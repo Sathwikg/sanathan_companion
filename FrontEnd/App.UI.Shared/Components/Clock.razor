@@ -1,0 +1,27 @@
+@* Live date + running clock for the top bar. Uses the viewer's local time. *@
+@implements IDisposable
+
+<div class="sc-clock" title="@_now.ToString("dddd, dd MMMM yyyy")">
+    <span class="sc-clock-cal">
+        <span class="sc-clock-day">@_now.ToString("ddd")</span>
+        <span class="sc-clock-date">@_now.ToString("dd MMM yyyy")</span>
+    </span>
+    <span class="sc-clock-time">@_now.ToString("HH:mm:ss")</span>
+</div>
+
+@code {
+    private DateTime _now = DateTime.Now;
+    private Timer? _timer;
+
+    protected override void OnInitialized()
+    {
+        // tick every second; DateTime.Now is the browser's local time in WASM
+        _timer = new Timer(_ =>
+        {
+            _now = DateTime.Now;
+            InvokeAsync(StateHasChanged);
+        }, null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
+    }
+
+    public void Dispose() => _timer?.Dispose();
+}

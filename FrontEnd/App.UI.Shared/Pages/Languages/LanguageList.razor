@@ -1,0 +1,383 @@
+@page "/languages"
+@attribute [Authorize]
+@inject IApiClient Api
+@inject ConfirmService Confirm
+@inject ToastService Toast
+
+<div class="sc-page-head">
+    <div class="sc-page-title">
+        <span class="sc-page-emoji">🗣️</span>
+        <div>
+            <h1>Languages</h1>
+            <p class="sc-page-sub">Manage languages and the regions they belong to</p>
+        </div>
+    </div>
+    <div class="sc-page-actions">
+        <div class="sc-viewtoggle">
+            <button class="@(_view == "grid" ? "active" : "")" @onclick='() => SetView("grid")'>▦ Cards</button>
+            <button class="@(_view == "list" ? "active" : "")" @onclick='() => SetView("list")'>☰ List</button>
+            <button class="@(_view == "region" ? "active" : "")" @onclick='() => SetView("region")'>🗺️ By Region</button>
+        </div>
+        <button class="sc-btn-primary sc-btn-sm" @onclick="OpenCreate">+ Create</button>
+    </div>
+</div>
+
+@if (_view != "region")
+{
+    <div class="sc-card sc-filtercard">
+        <div class="sc-filters">
+            <div class="sc-filter">
+                <label>Region</label>
+                <SearchableSelect Options="RegionOptions" Value="@_regionId" ValueChanged="OnRegionChanged"
+                                  EmptyLabel="All regions" SearchPlaceholder="Search regions…" />
+            </div>
+            <div class="sc-filter">
+                <label>Search</label>
+                <input class="sc-input sc-input-sm" placeholder="Name, native name or code…" @bind="_search" @bind:event="oninput" @bind:after="ReloadAsync" />
+            </div>
+        </div>
+    </div>
+}
+
+@if (_error is not null)
+{
+    <div class="sc-alert sc-alert-error">@_error</div>
+}
+
+@if (_loading)
+{
+    <OmLoader FullPage="true" Message="Loading languages…" />
+}
+else if (_view == "region")
+{
+    @if (_byRegion.Count == 0)
+    {
+        <div class="sc-card sc-empty-state">
+            <div class="sc-empty-om">🗺️</div>
+            <h3>No regions yet</h3>
+            <p>Add regions in the Region Master to map languages to them.</p>
+        </div>
+    }
+    else
+    {
+        <div class="sc-cardgrid">
+            @foreach (var r in _byRegion)
+            {
+                <div class="sc-tile">
+                    <div class="sc-tile-top">
+                        <div class="sc-tile-badge">🗺️</div>
+                        <span class="sc-badge on">@r.Languages.Count @(r.Languages.Count == 1 ? "language" : "languages")</span>
+                    </div>
+                    <h3 class="sc-tile-title">@r.RegionName</h3>
+                    @if (r.Languages.Count == 0)
+                    {
+                        <p class="sc-tile-desc">No languages mapped yet</p>
+                    }
+                    else
+                    {
+                        <div class="sc-chiprow">@foreach (var l in r.Languages) { <span class="sc-minichip">@l</span> }</div>
+                    }
+                </div>
+            }
+        </div>
+    }
+}
+else if (_list.Count == 0)
+{
+    <div class="sc-card sc-empty-state">
+        <div class="sc-empty-om">🗣️</div>
+        <h3>No languages found</h3>
+        <p>@(HasFilters ? "No languages match the current filters." : "Create your first language to get started.")</p>
+        <button class="sc-btn-primary sc-btn-sm" @onclick="OpenCreate">+ Create Language</button>
+    </div>
+}
+else if (_view == "grid")
+{
+    <div class="sc-cardgrid">
+        @foreach (var l in Paged)
+        {
+            <div class="sc-tile @(l.IsActive ? "" : "is-inactive")">
+                <div class="sc-tile-top">
+                    <div class="sc-tile-badge">🗣️</div>
+                    <span class="sc-badge @(l.IsActive ? "on" : "off")">@(l.IsActive ? "Active" : "Inactive")</span>
+                </div>
+                <h3 class="sc-tile-title">
+                    @l.Name
+                    @if (!string.IsNullOrWhiteSpace(l.Code))
+                    {
+                        <span class="sc-typechip god">@l.Code</span>
+                    }
+                </h3>
+                @if (!string.IsNullOrWhiteSpace(l.NativeName))
+                {
+                    <p class="sc-native">@l.NativeName</p>
+                }
+                <p class="sc-tile-desc">@(string.IsNullOrWhiteSpace(l.Description) ? "No description" : l.Description)</p>
+                @if (l.RegionNames.Count > 0)
+                {
+                    <div class="sc-chiprow">@foreach (var r in l.RegionNames) { <span class="sc-minichip">@r</span> }</div>
+                }
+                <div class="sc-tile-foot">
+                    <button class="sc-chip @(l.IsActive ? "chip-warn" : "chip-ok")" @onclick="() => ConfirmToggle(l)">
+                        @(l.IsActive ? "Deactivate" : "Activate")
+                    </button>
+                    <button class="sc-btn-ghost sc-btn-sm" @onclick="() => OpenEdit(l)">Edit</button>
+                </div>
+            </div>
+        }
+    </div>
+    <Pager Page="_page" PageCount="PageCount" TotalCount="_list.Count" PageSize="PageSize" OnGoTo="GoTo" />
+}
+else
+{
+    <div class="sc-card sc-tablewrap">
+        <table class="sc-table">
+            <thead>
+                <tr>
+                    <th>Language</th>
+                    <th>Native Name</th>
+                    <th>Code</th>
+                    <th>Regions</th>
+                    <th>Status</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var l in Paged)
+                {
+                    <tr>
+                        <td>
+                            <strong>@l.Name</strong>
+                            @if (!string.IsNullOrWhiteSpace(l.Description))
+                            {
+                                <div class="sc-muted">@l.Description</div>
+                            }
+                        </td>
+                        <td class="sc-native">@(string.IsNullOrWhiteSpace(l.NativeName) ? "—" : l.NativeName)</td>
+                        <td class="sc-muted">@(string.IsNullOrWhiteSpace(l.Code) ? "—" : l.Code)</td>
+                        <td>
+                            @if (l.RegionNames.Count == 0)
+                            {
+                                <span class="sc-muted">—</span>
+                            }
+                            else
+                            {
+                                <div class="sc-chiprow">@foreach (var r in l.RegionNames) { <span class="sc-minichip">@r</span> }</div>
+                            }
+                        </td>
+                        <td>
+                            <label class="sc-switch">
+                                <input type="checkbox" checked="@l.IsActive" @onclick="() => ConfirmToggle(l)" @onclick:preventDefault />
+                                <span class="sc-slider"></span>
+                            </label>
+                            <span class="sc-status @(l.IsActive ? "on" : "off")">@(l.IsActive ? "Active" : "Inactive")</span>
+                        </td>
+                        <td><button class="sc-btn-ghost sc-btn-sm" @onclick="() => OpenEdit(l)">Edit</button></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <Pager Page="_page" PageCount="PageCount" TotalCount="_list.Count" PageSize="PageSize" OnGoTo="GoTo" />
+}
+
+<ScModal Visible="_showForm" Title="@(_editId is null ? "Create Language" : "Edit Language")" OnClose="CloseForm">
+    <EditForm Model="_model" OnValidSubmit="SaveAsync" class="sc-form">
+        <DataAnnotationsValidator />
+
+        @if (_formError is not null)
+        {
+            <div class="sc-alert sc-alert-error">@_formError</div>
+        }
+
+        <div class="sc-form-grid">
+            <div class="sc-field">
+                <label>Language Name <span class="sc-req">*</span></label>
+                <InputText @bind-Value="_model.Name" class="sc-input" />
+                <ValidationMessage For="() => _model.Name" />
+            </div>
+            <div class="sc-field">
+                <label>Native Name <span class="sc-optional">(in its own script)</span></label>
+                <InputText @bind-Value="_model.NativeName" class="sc-input" />
+                <ValidationMessage For="() => _model.NativeName" />
+            </div>
+            <div class="sc-field">
+                <label>Code <span class="sc-optional">(ISO, e.g. te)</span></label>
+                <InputText @bind-Value="_model.Code" class="sc-input" />
+                <ValidationMessage For="() => _model.Code" />
+            </div>
+            <div class="sc-field">
+                <label>Description</label>
+                <InputText @bind-Value="_model.Description" class="sc-input" />
+                <ValidationMessage For="() => _model.Description" />
+            </div>
+        </div>
+
+        <div class="sc-field">
+            <label>Regions <span class="sc-optional">(a language can span several regions)</span></label>
+            <MultiSelect Options="RegionOptions" Selected="_selRegions" SelectedChanged="v => _selRegions = v" />
+        </div>
+
+        <div class="sc-switches">
+            <div class="sc-switchrow">
+                <label class="sc-switch"><input type="checkbox" @bind="_model.IsActive" /><span class="sc-slider"></span></label>
+                <span>Active</span>
+            </div>
+        </div>
+
+        <div class="sc-modal-actions">
+            <button type="button" class="sc-btn-ghost" @onclick="CloseForm">Cancel</button>
+            <button type="submit" class="sc-btn-primary" disabled="@_busy">
+                @if (_busy) { <OmLoader Inline="true" Size="18" Message="Saving…" /> } else { <span>@(_editId is null ? "Create" : "Update")</span> }
+            </button>
+        </div>
+    </EditForm>
+</ScModal>
+
+@code {
+    private string _view = "grid";
+    private bool _loading = true;
+    private string? _error;
+
+    private List<LanguageModel> _list = new();
+    private List<RegionLanguagesModel> _byRegion = new();
+    private List<RegionModel> _regions = new();
+
+    private string _regionId = string.Empty;
+    private string _search = string.Empty;
+
+    private int _page = 1;
+    private const int PageSize = 8;
+    private int PageCount => Math.Max(1, (int)Math.Ceiling(_list.Count / (double)PageSize));
+    private IEnumerable<LanguageModel> Paged => _list.Skip((_page - 1) * PageSize).Take(PageSize);
+
+    private bool HasFilters => !string.IsNullOrEmpty(_regionId) || !string.IsNullOrWhiteSpace(_search);
+
+    private List<SelectOption> RegionOptions =>
+        _regions.Where(r => r.IsActive).Select(r => new SelectOption(r.Id.ToString(), r.Name)).ToList();
+
+    // popup form state
+    private bool _showForm;
+    private Guid? _editId;
+    private LanguageRequest _model = new();
+    private bool _busy;
+    private string? _formError;
+    private HashSet<string> _selRegions = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _regions = await Api.GetRegionsAsync();
+        }
+        catch { /* region options are best-effort */ }
+        await ReloadAsync();
+    }
+
+    private async Task ReloadAsync()
+    {
+        _loading = true;
+        _error = null;
+        _page = 1;
+        try
+        {
+            _list = await Api.GetLanguagesAsync(ParseGuid(_regionId), _search);
+            if (_view == "region") _byRegion = await Api.GetLanguagesByRegionAsync();
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task OnRegionChanged(string value)
+    {
+        _regionId = value;
+        await ReloadAsync();
+    }
+
+    private async Task SetView(string view)
+    {
+        _view = view;
+        _page = 1;
+        if (view == "region") await ReloadAsync();
+    }
+
+    private void GoTo(int page) => _page = Math.Clamp(page, 1, PageCount);
+
+    private static Guid? ParseGuid(string value) => Guid.TryParse(value, out var g) ? g : null;
+
+    private void OpenCreate()
+    {
+        _editId = null;
+        _formError = null;
+        _model = new LanguageRequest();
+        _selRegions = new();
+        _showForm = true;
+    }
+
+    private void OpenEdit(LanguageModel l)
+    {
+        _editId = l.Id;
+        _formError = null;
+        _model = new LanguageRequest
+        {
+            Name = l.Name,
+            NativeName = l.NativeName,
+            Code = l.Code,
+            Description = l.Description,
+            RegionIds = l.RegionIds,
+            IsActive = l.IsActive
+        };
+        _selRegions = l.RegionIds.Select(id => id.ToString()).ToHashSet();
+        _showForm = true;
+    }
+
+    private void CloseForm() => _showForm = false;
+
+    private async Task SaveAsync()
+    {
+        _busy = true;
+        _formError = null;
+        _model.RegionIds = _selRegions.Select(Guid.Parse).ToList();
+
+        var (ok, err) = _editId is null
+            ? await Api.CreateLanguageAsync(_model)
+            : await Api.UpdateLanguageAsync(_editId.Value, _model);
+        _busy = false;
+
+        if (ok)
+        {
+            Toast.Success($"Language “{_model.Name}” saved.");
+            _showForm = false;
+            await ReloadAsync();
+        }
+        else
+        {
+            _formError = err;
+        }
+    }
+
+    private async Task ConfirmToggle(LanguageModel l)
+    {
+        var activate = !l.IsActive;
+        var confirmed = await Confirm.ConfirmAsync(new ConfirmRequest
+        {
+            Title = activate ? "Activate language?" : "Deactivate language?",
+            Message = $"Are you sure you want to {(activate ? "activate" : "deactivate")} “{l.Name}”?",
+            ConfirmText = activate ? "Yes, activate" : "Yes, deactivate",
+            CancelText = "Cancel",
+            Kind = activate ? ConfirmKind.Success : ConfirmKind.Warning
+        });
+        if (!confirmed) return;
+
+        var (ok, err) = await Api.SetLanguageStatusAsync(l.Id, activate);
+        if (ok) Toast.Success($"“{l.Name}” has been {(activate ? "activated" : "deactivated")}.");
+        else Toast.Error(err);
+        await ReloadAsync();
+    }
+}

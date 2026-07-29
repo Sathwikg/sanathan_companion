@@ -1,0 +1,158 @@
+@page "/sadhana"
+@attribute [Authorize]
+@implements IDisposable
+@inject IApiClient Api
+@inject RegionState Region
+
+<div class="sc-page-head">
+    <div class="sc-page-title">
+        <span class="sc-page-emoji">🪷</span>
+        <div>
+            <h1>Today's Sadhana</h1>
+            <p class="sc-page-sub">@_todayLabel</p>
+        </div>
+    </div>
+</div>
+
+@if (_error is not null)
+{
+    <div class="sc-alert sc-alert-error">@_error</div>
+}
+
+@if (_loading)
+{
+    <OmLoader FullPage="true" Message="Preparing your sadhana…" />
+}
+else if (_today is not null)
+{
+    var s = _today.Streak;
+    <div class="sc-card">
+        <div class="sc-streak">
+            <div class="sc-streak-flame @(s.CurrentStreak > 0 ? "" : "cold")">
+                <span class="ic">🔥</span>
+                <div>
+                    <div class="sc-streak-num">@s.CurrentStreak</div>
+                    <div class="sc-streak-label">day streak</div>
+                </div>
+            </div>
+            <span class="sc-streak-today @(s.PracticedToday ? "done" : "pending")">
+                @(s.PracticedToday ? "✓ Practiced today" : "Not yet today")
+            </span>
+            <div class="sc-streak-stats">
+                <div class="sc-streak-stat"><div class="n">@s.LongestStreak</div><div class="l">Longest</div></div>
+                <div class="sc-streak-stat"><div class="n">@_today.TodayMalas</div><div class="l">Malas today</div></div>
+                <div class="sc-streak-stat"><div class="n">@s.TotalMalas</div><div class="l">Total malas</div></div>
+                <div class="sc-streak-stat"><div class="n">@s.TotalDaysPracticed</div><div class="l">Days</div></div>
+            </div>
+        </div>
+    </div>
+
+    @if (_today.IsFestivalDay)
+    {
+        <div class="sc-festbanner">🎉 <span>Today is <strong>@_today.FestivalName</strong> — these chants are recommended for the festival.</span></div>
+    }
+
+    <div class="sc-tabs">
+        <button class="sc-tab @(_tab == "reco" ? "active" : "")" @onclick='() => _tab = "reco"'>
+            🪔 Recommended (@_today.Recommendations.Count)
+        </button>
+        <button class="sc-tab @(_tab == "all" ? "active" : "")" @onclick="SwitchToAll">
+            🔎 All Chants
+        </button>
+    </div>
+
+    @if (_tab == "reco")
+    {
+        @if (_today.Recommendations.Count == 0)
+        {
+            <div class="sc-card sc-empty-state">
+                <div class="sc-empty-om">🪷</div>
+                <h3>No specific recommendation for @_today.DayOfWeek</h3>
+                <p>No deity is mapped to today in the Deity master. Browse all chants and practice any you wish.</p>
+                <button class="sc-btn-primary sc-btn-sm" @onclick="SwitchToAll">Browse all chants</button>
+            </div>
+        }
+        else
+        {
+            <div class="sc-cardgrid">
+                @foreach (var c in _today.Recommendations)
+                {
+                    <ChantTile Chant="c" />
+                }
+            </div>
+        }
+    }
+    else
+    {
+        <div class="sc-card sc-filtercard">
+            <div class="sc-filter" style="min-width:280px">
+                <label>Search saved chants</label>
+                <input class="sc-input sc-input-sm" placeholder="Name, deity or category…" @bind="_search" @bind:event="oninput" @bind:after="SearchAsync" />
+            </div>
+        </div>
+        @if (_allChants.Count == 0)
+        {
+            <div class="sc-card sc-empty-state"><div class="sc-empty-om">🔎</div><h3>No chants found</h3></div>
+        }
+        else
+        {
+            <div class="sc-cardgrid">
+                @foreach (var c in _allChants)
+                {
+                    <ChantTile Chant="c" />
+                }
+            </div>
+        }
+    }
+}
+
+@code {
+    private SadhanaToday? _today;
+    private List<SadhanaChant> _allChants = new();
+    private string _tab = "reco";
+    private string _search = string.Empty;
+    private bool _loading = true;
+    private string? _error;
+
+    private string _todayLabel = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        Region.OnChanged += OnRegionChanged;
+        await Region.EnsureLoadedAsync();
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        _loading = true;
+        try
+        {
+            _today = await Api.GetSadhanaTodayAsync(Region.SelectedRegionId);
+            if (_today is not null)
+                _todayLabel = $"{_today.Date:dddd, dd MMMM yyyy}";
+        }
+        catch (Exception ex) { _error = ex.Message; }
+        finally { _loading = false; }
+
+        if (_tab == "all") await SearchAsync();
+    }
+
+    private void OnRegionChanged()
+        => _ = InvokeAsync(async () => { await LoadAsync(); StateHasChanged(); });
+
+    public void Dispose() => Region.OnChanged -= OnRegionChanged;
+
+    private async Task SwitchToAll()
+    {
+        _tab = "all";
+        if (_allChants.Count == 0) await SearchAsync();
+    }
+
+    private async Task SearchAsync()
+    {
+        try { _allChants = await Api.GetSadhanaChantsAsync(_search, Region.SelectedRegionId); }
+        catch (Exception ex) { _error = ex.Message; }
+    }
+
+}

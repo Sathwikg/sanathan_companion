@@ -1,0 +1,27 @@
+@inject IThemeStore ThemeStore
+@inject IJSRuntime JS
+
+<button class="sc-btn-ghost sc-theme-toggle" @onclick="ToggleAsync" title="Toggle light / dark">
+    @(_dark ? "☀️" : "🌙")
+</button>
+
+@code {
+    private bool _dark;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var theme = await ThemeStore.GetThemeAsync();
+        _dark = string.Equals(theme, "dark", StringComparison.OrdinalIgnoreCase);
+        await ApplyAsync();
+    }
+
+    private async Task ToggleAsync()
+    {
+        _dark = !_dark;
+        await ThemeStore.SetThemeAsync(_dark ? "dark" : "light");
+        await ApplyAsync();
+    }
+
+    private async Task ApplyAsync()
+        => await JS.InvokeVoidAsync("document.documentElement.setAttribute", "data-theme", _dark ? "dark" : "light");
+}

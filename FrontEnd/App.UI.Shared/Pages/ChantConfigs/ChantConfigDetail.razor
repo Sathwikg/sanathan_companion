@@ -1,0 +1,188 @@
+@page "/chants-config/{Id:guid}"
+@attribute [Authorize]
+@inject IApiClient Api
+@inject ConfirmService Confirm
+@inject ToastService Toast
+@inject NavigationManager Nav
+@inject AppConfig Config
+
+<div class="sc-page-head">
+    <div class="sc-page-title">
+        <span class="sc-page-emoji">📜</span>
+        <div>
+            <h1>@(_model?.Name ?? "Chant")</h1>
+            <p class="sc-page-sub">@(_model?.ChantName ?? "")</p>
+        </div>
+    </div>
+    <div class="sc-page-actions">
+        <button class="sc-btn-ghost sc-btn-sm" @onclick="BackToList">← Back to list</button>
+        @if (_model is not null)
+        {
+            <button class="sc-btn-primary sc-btn-sm" @onclick='() => Nav.NavigateTo($"chants-config/{Id}/edit")'>✏️ Edit</button>
+        }
+    </div>
+</div>
+
+@if (_error is not null)
+{
+    <div class="sc-alert sc-alert-error">@_error</div>
+}
+
+@if (_loading)
+{
+    <OmLoader FullPage="true" Message="Loading chant…" />
+}
+else if (_model is null)
+{
+    <div class="sc-card sc-empty-state">
+        <div class="sc-empty-om">📜</div>
+        <h3>Chant not found</h3>
+        <p>It may have been deleted.</p>
+        <button class="sc-btn-primary sc-btn-sm" @onclick="BackToList">Back to list</button>
+    </div>
+}
+else
+{
+    <div class="sc-card">
+        <div class="sc-detail-grid">
+            <div class="sc-detail-item">
+                <span class="sc-detail-label">Type</span>
+                <span class="sc-detail-value"><span class="sc-minichip">@_model.ChantName</span></span>
+            </div>
+            <div class="sc-detail-item">
+                <span class="sc-detail-label">Status</span>
+                <span class="sc-detail-value"><span class="sc-badge @(_model.IsActive ? "on" : "off")">@(_model.IsActive ? "Active" : "Inactive")</span></span>
+            </div>
+            <div class="sc-detail-item">
+                <span class="sc-detail-label">Time</span>
+                <span class="sc-detail-value">@FormatRange(_model.FromTime, _model.ToTime)</span>
+            </div>
+            <div class="sc-detail-item">
+                <span class="sc-detail-label">Time Description</span>
+                <span class="sc-detail-value">@(string.IsNullOrWhiteSpace(_model.TimeDescription) ? "—" : _model.TimeDescription)</span>
+            </div>
+        </div>
+
+        <div class="sc-detail-item">
+            <span class="sc-detail-label">Deities</span>
+            <span class="sc-detail-value">
+                @if (_model.DeityNames.Count == 0)
+                {
+                    <span class="sc-muted">Not mapped to any deity</span>
+                }
+                else
+                {
+                    <div class="sc-chiprow">@foreach (var d in _model.DeityNames) { <span class="sc-minichip">@d</span> }</div>
+                }
+            </span>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(_model.Description))
+        {
+            <div class="sc-detail-section">
+                <h3>Description</h3>
+                <p>@_model.Description</p>
+            </div>
+        }
+
+        @if (_model.HasAudio)
+        {
+            <div class="sc-detail-section">
+                <h3>Audio</h3>
+                <audio class="sc-audioplayer" controls src="@AudioUrl"></audio>
+                @if (!string.IsNullOrWhiteSpace(_model.AudioFileName))
+                {
+                    <div class="sc-audiometa">@_model.AudioFileName</div>
+                }
+            </div>
+        }
+
+        <div class="sc-detail-section">
+            <h3>Chant</h3>
+            @* Server-side sanitized on save (HtmlSanitizer), so it is safe to render. *@
+            <div class="sc-richtext">@((MarkupString)_model.ChantText)</div>
+        </div>
+
+        @if (_model.LanguageTexts.Count > 0)
+        {
+            <div class="sc-detail-section">
+                <h3>Chant in Other Languages</h3>
+                @foreach (var lt in _model.LanguageTexts)
+                {
+                    <div class="sc-lang-block">
+                        <div class="sc-lang-head">@lt.LanguageName</div>
+                        @* Server-side sanitized on save (HtmlSanitizer), so it is safe to render. *@
+                        <div class="sc-richtext">@((MarkupString)lt.Text)</div>
+                    </div>
+                }
+            </div>
+        }
+
+        <div class="sc-modal-actions">
+            <button class="sc-iconbtn danger" @onclick="ConfirmDelete">🗑 Delete</button>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+
+    private ChantConfigModel? _model;
+    private bool _loading = true;
+    private string? _error;
+
+    private string AudioUrl => $"{Config.ApiBaseUrl.TrimEnd('/')}/chantconfigs/{Id}/audio";
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _loading = true;
+        _error = null;
+        try
+        {
+            _model = await Api.GetChantConfigAsync(Id);
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private void BackToList() => Nav.NavigateTo("chants-config");
+
+    private static string FormatRange(TimeOnly? from, TimeOnly? to)
+    {
+        if (from is null && to is null) return "—";
+        if (from is not null && to is not null) return $"{from:HH\\:mm} – {to:HH\\:mm}";
+        return from is not null ? $"from {from:HH\\:mm}" : $"until {to:HH\\:mm}";
+    }
+
+    private async Task ConfirmDelete()
+    {
+        if (_model is null) return;
+
+        var confirmed = await Confirm.ConfirmAsync(new ConfirmRequest
+        {
+            Title = "Delete chant?",
+            Message = $"“{_model.Name}” and its audio will be permanently deleted. This cannot be undone.",
+            ConfirmText = "Yes, delete",
+            CancelText = "Cancel",
+            Kind = ConfirmKind.Danger
+        });
+        if (!confirmed) return;
+
+        var (ok, err) = await Api.DeleteChantConfigAsync(Id);
+        if (ok)
+        {
+            Toast.Success($"“{_model.Name}” was deleted.");
+            Nav.NavigateTo("chants-config");
+        }
+        else
+        {
+            Toast.Error(err);
+        }
+    }
+}

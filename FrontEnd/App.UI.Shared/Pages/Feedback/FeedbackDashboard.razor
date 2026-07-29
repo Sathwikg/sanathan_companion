@@ -1,0 +1,132 @@
+@page "/feedback-dashboard"
+@attribute [Authorize]
+@inject IApiClient Api
+@inject ToastService Toast
+
+<div class="sc-page-head">
+    <div class="sc-page-title">
+        <span class="sc-page-emoji">📊</span>
+        <div>
+            <h1>Feedback Dashboard</h1>
+            <p class="sc-page-sub">Suggestions and issues sent by seekers</p>
+        </div>
+    </div>
+</div>
+
+@if (_loading)
+{
+    <OmLoader FullPage="true" Message="Loading feedback…" />
+}
+else if (_forbidden)
+{
+    <div class="sc-card sc-empty-state">
+        <div class="sc-empty-om">🔒</div>
+        <h3>Administrator access required</h3>
+        <p>The feedback dashboard is available to administrators only.</p>
+    </div>
+}
+else if (_error is not null)
+{
+    <div class="sc-alert sc-alert-error">@_error</div>
+}
+else if (_model is not null)
+{
+    <div class="sc-stat-grid">
+        <StatCard Icon="💬" Value="@_model.Total.ToString("N0")" Label="Total Feedback" Accent="true" />
+        <StatCard Icon="🆕" Value="@_model.New.ToString("N0")" Label="New" Sub="awaiting review" />
+        <StatCard Icon="👀" Value="@_model.Reviewed.ToString("N0")" Label="Reviewed" />
+        <StatCard Icon="✅" Value="@_model.Resolved.ToString("N0")" Label="Resolved" />
+    </div>
+
+    @if (_model.ByIssueType.Count > 0)
+    {
+        <div class="sc-section-head"><h2>🏷️ By Issue Type</h2><span class="sc-section-sub">Where the feedback is coming from</span></div>
+        <div class="sc-card">
+            <div class="sc-bars">
+                @foreach (var b in _model.ByIssueType)
+                {
+                    <div class="sc-bar-row">
+                        <span class="sc-bar-label">@b.IssueTypeName</span>
+                        <div class="sc-bar-track"><div class="sc-bar-fill" style="width:@(Pct(b.Count))%"></div></div>
+                        <span class="sc-bar-val">@b.Count</span>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+    <div class="sc-section-head"><h2>🕒 Recent Feedback</h2><span class="sc-section-sub">Latest submissions</span></div>
+    @if (_model.Recent.Count == 0)
+    {
+        <div class="sc-card sc-empty-state"><div class="sc-empty-om">💬</div><h3>No feedback yet</h3></div>
+    }
+    else
+    {
+        <div class="sc-card sc-tablewrap">
+            <table class="sc-table">
+                <thead>
+                    <tr><th>Type</th><th>Feedback</th><th>From</th><th>When</th><th>Status</th></tr>
+                </thead>
+                <tbody>
+                    @foreach (var f in _model.Recent)
+                    {
+                        <tr>
+                            <td><span class="sc-minichip">@f.IssueTypeName</span></td>
+                            <td>@f.Description</td>
+                            <td class="sc-muted">@(string.IsNullOrWhiteSpace(f.SeekerName) ? f.UserName : $"{f.SeekerName}")</td>
+                            <td class="sc-muted">@f.SubmittedOn.ToLocalTime().ToString("dd MMM yyyy, HH:mm")</td>
+                            <td>
+                                <select class="sc-input sc-input-sm sc-status-@f.Status.ToLower()" value="@f.Status"
+                                        @onchange="e => ChangeStatusAsync(f, e.Value?.ToString())">
+                                    <option value="New">New</option>
+                                    <option value="Reviewed">Reviewed</option>
+                                    <option value="Resolved">Resolved</option>
+                                </select>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+}
+
+@code {
+    private FeedbackDashboardModel? _model;
+    private bool _loading = true;
+    private bool _forbidden;
+    private string? _error;
+
+    protected override async Task OnInitializedAsync() => await LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        _loading = true;
+        var (ok, data, forbidden, err) = await Api.GetFeedbackDashboardAsync();
+        _forbidden = forbidden;
+        _model = data;
+        if (!ok && !forbidden) _error = err;
+        _loading = false;
+    }
+
+    private int Pct(int count)
+    {
+        var max = _model?.ByIssueType.Count > 0 ? _model.ByIssueType.Max(x => x.Count) : 0;
+        return max == 0 ? 0 : (int)Math.Round(count * 100.0 / max);
+    }
+
+    private async Task ChangeStatusAsync(FeedbackItem f, string? status)
+    {
+        if (string.IsNullOrWhiteSpace(status) || status == f.Status) return;
+        var (ok, err) = await Api.SetFeedbackStatusAsync(f.Id, status);
+        if (ok)
+        {
+            Toast.Success($"Marked as {status}.");
+            await LoadAsync();
+        }
+        else
+        {
+            Toast.Error(err);
+        }
+    }
+}

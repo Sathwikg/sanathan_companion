@@ -1,0 +1,42 @@
+@* Top-bar region picker. Drives what deity/chant content the app shows. *@
+@implements IDisposable
+@inject RegionState Region
+
+@if (Region.Regions.Count > 0)
+{
+    <div class="sc-regionpick" title="Showing content for this region">
+        <span class="sc-regionpick-ic">📍</span>
+        <select class="sc-regionpick-select" value="@Value" @onchange="OnChangedAsync">
+            @* "All Regions" is an administrator-only view; seekers always browse one region. *@
+            @if (Region.AllowAllRegions)
+            {
+                <option value="">All Regions</option>
+            }
+            @foreach (var r in Region.Regions)
+            {
+                <option value="@r.Id">@r.Name</option>
+            }
+        </select>
+    </div>
+}
+
+@code {
+    private string Value => Region.SelectedRegionId?.ToString() ?? "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        Region.OnChanged += Changed;
+        await Region.EnsureLoadedAsync();
+    }
+
+    private void Changed() => InvokeAsync(StateHasChanged);
+
+    private Task OnChangedAsync(ChangeEventArgs e)
+    {
+        var raw = e.Value?.ToString();
+        Region.Select(Guid.TryParse(raw, out var id) ? id : null);
+        return Task.CompletedTask;
+    }
+
+    public void Dispose() => Region.OnChanged -= Changed;
+}

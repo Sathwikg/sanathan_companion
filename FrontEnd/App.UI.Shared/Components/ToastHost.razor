@@ -1,0 +1,57 @@
+@implements IDisposable
+@inject ToastService Toast
+
+<div class="sc-toast-host">
+    @foreach (var t in _toasts)
+    {
+        <div class="sc-toast @KindClass(t.Kind)" @key="t.Id">
+            <span class="sc-toast-icon">@KindIcon(t.Kind)</span>
+            <div class="sc-toast-body">
+                @if (!string.IsNullOrWhiteSpace(t.Title))
+                {
+                    <div class="sc-toast-title">@t.Title</div>
+                }
+                <div class="sc-toast-msg">@t.Message</div>
+            </div>
+            <button class="sc-toast-close" @onclick="() => Remove(t)" aria-label="Dismiss">×</button>
+        </div>
+    }
+</div>
+
+@code {
+    private readonly List<ToastMessage> _toasts = new();
+
+    protected override void OnInitialized() => Toast.Shown += OnShown;
+
+    private async void OnShown(ToastMessage toast)
+    {
+        _toasts.Add(toast);
+        await InvokeAsync(StateHasChanged);
+        await Task.Delay(toast.DurationMs);
+        Remove(toast);
+    }
+
+    private void Remove(ToastMessage toast)
+    {
+        if (_toasts.Remove(toast))
+            InvokeAsync(StateHasChanged);
+    }
+
+    private static string KindClass(ToastKind k) => k switch
+    {
+        ToastKind.Success => "is-success",
+        ToastKind.Error => "is-error",
+        ToastKind.Warning => "is-warning",
+        _ => "is-info"
+    };
+
+    private static string KindIcon(ToastKind k) => k switch
+    {
+        ToastKind.Success => "🕉️",
+        ToastKind.Error => "⚠️",
+        ToastKind.Warning => "🚩",
+        _ => "🪔"
+    };
+
+    public void Dispose() => Toast.Shown -= OnShown;
+}

@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Sanathana.Companion.Api/Sanathana.Companion.Api.csproj" />
+    <Project Path="src/Sanathana.Companion.Application/Sanathana.Companion.Application.csproj" />
+    <Project Path="src/Sanathana.Companion.Domain/Sanathana.Companion.Domain.csproj" />
+    <Project Path="src/Sanathana.Companion.Infrastructure/Sanathana.Companion.Infrastructure.csproj" />
+    <Project Path="src/Sanathana.Companion.Modules/Sanathana.Companion.Modules.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Sanathana.Companion.Tests/Sanathana.Companion.Tests.csproj" />
+  </Folder>
+</Solution>

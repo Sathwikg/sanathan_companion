@@ -1,0 +1,52 @@
+@page "/login"
+@layout AuthLayout
+@inject IAuthService AuthService
+@inject NavigationManager Nav
+
+<h2 class="sc-form-title">Welcome back, Seeker</h2>
+
+<EditForm Model="_model" OnValidSubmit="HandleLoginAsync" class="sc-form">
+    <DataAnnotationsValidator />
+
+    @if (!string.IsNullOrEmpty(_error))
+    {
+        <div class="sc-alert sc-alert-error">@_error</div>
+    }
+
+    <div class="sc-field">
+        <label>Email or Mobile</label>
+        <InputText @bind-Value="_model.Credential" class="sc-input" autocomplete="username" />
+        <ValidationMessage For="() => _model.Credential" />
+    </div>
+
+    <div class="sc-field">
+        <label>Password</label>
+        <InputText type="password" @bind-Value="_model.Password" class="sc-input" autocomplete="current-password" />
+        <ValidationMessage For="() => _model.Password" />
+    </div>
+
+    <button type="submit" class="sc-btn-primary" disabled="@_busy">
+        @if (_busy) { <OmLoader Inline="true" Size="18" Message="Signing in…" /> } else { <span>Begin Devotion</span> }
+    </button>
+</EditForm>
+
+<p class="sc-form-alt">New here? <a href="register">Create an account</a></p>
+
+@code {
+    private readonly LoginRequest _model = new();
+    private string? _error;
+    private bool _busy;
+
+    private async Task HandleLoginAsync()
+    {
+        _busy = true;
+        _error = null;
+        var (success, error) = await AuthService.LoginAsync(_model);
+        _busy = false;
+
+        if (success)
+            Nav.NavigateTo("");
+        else
+            _error = error;
+    }
+}

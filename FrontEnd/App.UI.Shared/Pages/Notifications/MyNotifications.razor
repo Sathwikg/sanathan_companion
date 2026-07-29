@@ -1,0 +1,234 @@
+@page "/my-notifications"
+@attribute [Authorize]
+@inject IApiClient Api
+@inject ToastService Toast
+
+<div class="sc-page-head">
+    <div class="sc-page-title">
+        <span class="sc-page-emoji">🔔</span>
+        <div>
+            <h1>My Notifications</h1>
+            <p class="sc-page-sub">Choose what you're notified about, and when</p>
+        </div>
+    </div>
+    @if (_settings is not null)
+    {
+        <div class="sc-page-actions">
+            <button class="sc-btn-primary sc-btn-sm" @onclick="SaveAsync" disabled="@_saving">
+                @if (_saving) { <OmLoader Inline="true" Size="18" Message="Saving…" /> } else { <span>Save</span> }
+            </button>
+        </div>
+    }
+</div>
+
+@if (_loading)
+{
+    <OmLoader FullPage="true" Message="Loading your preferences…" />
+}
+else if (_settings is null)
+{
+    <div class="sc-alert sc-alert-error">@_error</div>
+}
+else
+{
+    <div class="sc-card sc-notif-global">
+        <div class="sc-notif-master">
+            <label class="sc-switch">
+                <input type="checkbox" checked="@_settings.MasterEnabled"
+                       @onchange="e => _settings.MasterEnabled = (bool)(e.Value ?? false)" />
+                <span class="sc-slider"></span>
+            </label>
+            <div>
+                <strong>All notifications</strong>
+                <div class="sc-muted">@(_settings.MasterEnabled ? "You'll receive the notifications selected below." : "Everything is paused — only required notices get through.")</div>
+            </div>
+            <span class="sc-flex-spacer"></span>
+            <span class="sc-muted">Now @_settings.CurrentTime.ToString("HH:mm") IST</span>
+        </div>
+
+        <div class="sc-notif-quiet">
+            <div class="sc-notif-quiet-head">
+                <label class="sc-switch">
+                    <input type="checkbox" checked="@_settings.QuietHoursEnabled" @onchange="OnQuietToggled" />
+                    <span class="sc-slider"></span>
+                </label>
+                <div>
+                    <strong>🌙 Quiet hours</strong>
+                    <div class="sc-muted">Stay silent during these hours — even for required notices.</div>
+                </div>
+                @if (_settings.InQuietHoursNow)
+                {
+                    <span class="sc-badge on">Active now</span>
+                }
+            </div>
+            @if (_settings.QuietHoursEnabled)
+            {
+                <div class="sc-notif-times">
+                    <div class="sc-field">
+                        <label>From</label>
+                        <input type="time" class="sc-input sc-input-sm" value="@Fmt(_settings.QuietFrom)"
+                               @onchange="e => _settings.QuietFrom = Parse(e.Value)" />
+                    </div>
+                    <div class="sc-field">
+                        <label>To</label>
+                        <input type="time" class="sc-input sc-input-sm" value="@Fmt(_settings.QuietTo)"
+                               @onchange="e => _settings.QuietTo = Parse(e.Value)" />
+                    </div>
+                    <span class="sc-hint">Crossing midnight is fine (e.g. 22:00 → 06:00).</span>
+                </div>
+            }
+        </div>
+    </div>
+
+    @if (_settings.Items.Count == 0)
+    {
+        <div class="sc-card sc-empty-state">
+            <div class="sc-empty-om">🔕</div>
+            <h3>No notifications available yet</h3>
+            <p>An administrator hasn't enabled any notifications. Check back later.</p>
+        </div>
+    }
+    else
+    {
+        <div class="sc-section-head">
+            <h2>What to notify me about</h2>
+            <span class="sc-section-sub">Set an optional time window for each</span>
+        </div>
+
+        <div class="sc-notif-list">
+            @foreach (var item in _settings.Items)
+            {
+                <div class="sc-card sc-notif-item @(item.IsEnabled ? "" : "is-off")">
+                    <div class="sc-notif-item-head">
+                        <span class="sc-notif-ic">@(string.IsNullOrWhiteSpace(item.Icon) ? "🔔" : item.Icon)</span>
+                        <div class="sc-notif-item-text">
+                            <strong>@item.Title</strong>
+                            @if (!string.IsNullOrWhiteSpace(item.Description))
+                            {
+                                <div class="sc-muted">@item.Description</div>
+                            }
+                            <div class="sc-notif-flags">
+                                @if (item.IsMandatory)
+                                {
+                                    <span class="sc-minichip">Required</span>
+                                }
+                                @if (item.IsActiveNow)
+                                {
+                                    <span class="sc-badge on">Would notify now</span>
+                                }
+                                else if (!string.IsNullOrWhiteSpace(item.InactiveReason))
+                                {
+                                    <span class="sc-badge off">@item.InactiveReason</span>
+                                }
+                            </div>
+                        </div>
+                        <label class="sc-switch" title="@(item.IsMandatory ? "This notification is required" : "")">
+                            <input type="checkbox" checked="@item.IsEnabled" disabled="@item.IsMandatory"
+                                   @onchange="e => item.IsEnabled = (bool)(e.Value ?? false)" />
+                            <span class="sc-slider"></span>
+                        </label>
+                    </div>
+
+                    @if (item.IsEnabled)
+                    {
+                        <div class="sc-notif-times">
+                            <div class="sc-field">
+                                <label>From</label>
+                                <input type="time" class="sc-input sc-input-sm" value="@Fmt(item.FromTime)"
+                                       @onchange="e => item.FromTime = Parse(e.Value)" />
+                            </div>
+                            <div class="sc-field">
+                                <label>To</label>
+                                <input type="time" class="sc-input sc-input-sm" value="@Fmt(item.ToTime)"
+                                       @onchange="e => item.ToTime = Parse(e.Value)" />
+                            </div>
+                            @if (item.FromTime is null && item.ToTime is null)
+                            {
+                                <span class="sc-hint">Any time of day</span>
+                            }
+                            else
+                            {
+                                <button class="sc-btn-ghost sc-btn-sm" @onclick="() => ClearWindow(item)">Clear window</button>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    }
+}
+
+@code {
+    private MyNotificationSettings? _settings;
+    private bool _loading = true;
+    private bool _saving;
+    private string? _error;
+
+    protected override async Task OnInitializedAsync() => await LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        _loading = true;
+        try { _settings = await Api.GetMyNotificationsAsync(); }
+        catch (Exception ex) { _error = "Could not load your notification settings. " + ex.Message; }
+        finally { _loading = false; }
+    }
+
+    private void OnQuietToggled(ChangeEventArgs e)
+    {
+        if (_settings is null) return;
+        _settings.QuietHoursEnabled = (bool)(e.Value ?? false);
+
+        // Offer a sensible default night window the first time it's switched on.
+        if (_settings.QuietHoursEnabled && _settings.QuietFrom is null && _settings.QuietTo is null)
+        {
+            _settings.QuietFrom = new TimeOnly(22, 0);
+            _settings.QuietTo = new TimeOnly(6, 0);
+        }
+    }
+
+    private static void ClearWindow(MyNotificationItem item)
+    {
+        item.FromTime = null;
+        item.ToTime = null;
+    }
+
+    private async Task SaveAsync()
+    {
+        if (_settings is null) return;
+
+        _saving = true;
+        var request = new SaveMyNotificationSettingsRequest
+        {
+            MasterEnabled = _settings.MasterEnabled,
+            QuietHoursEnabled = _settings.QuietHoursEnabled,
+            QuietFrom = _settings.QuietFrom,
+            QuietTo = _settings.QuietTo,
+            Items = _settings.Items.Select(i => new SaveMyNotificationItem
+            {
+                ConfigId = i.ConfigId,
+                IsEnabled = i.IsEnabled,
+                FromTime = i.FromTime,
+                ToTime = i.ToTime
+            }).ToList()
+        };
+
+        var (ok, err) = await Api.SaveMyNotificationsAsync(request);
+        _saving = false;
+
+        if (ok)
+        {
+            Toast.Success("🔔 Notification preferences saved.");
+            await LoadAsync();   // refresh the "would notify now" hints
+        }
+        else
+        {
+            Toast.Error(err);
+        }
+    }
+
+    private static string Fmt(TimeOnly? t) => t?.ToString("HH:mm") ?? "";
+
+    private static TimeOnly? Parse(object? value)
+        => TimeOnly.TryParse(value?.ToString(), out var t) ? t : null;
+}

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sanathan Companion</title>
+    <base href="/" />
+    <link rel="preload" id="webassembly" />
+    <link rel="stylesheet" href="_content/App.UI.Shared/theme.css" />
+    <link rel="stylesheet" href="_content/App.UI.Shared/app.css" />
+    <link rel="icon" type="image/png" href="favicon.png" />
+    <link href="App.Web.styles.css" rel="stylesheet" />
+    <script>
+        // Apply the saved theme before render to avoid a flash of the wrong theme.
+        try { var t = localStorage.getItem('sc-theme'); if (t) document.documentElement.setAttribute('data-theme', t); } catch (e) { }
+    </script>
+    <script type="importmap"></script>
+</head>
+
+<body>
+    <div id="app">
+        <div class="om-loader is-full">
+            <div class="om-loader-ring" style="width:76px;height:76px;">
+                <span class="om-loader-glyph" style="font-size:38px;">ॐ</span>
+            </div>
+            <div class="om-loader-msg">Loading Sanathan Companion…</div>
+        </div>
+    </div>
+
+    <div id="blazor-error-ui" style="display:none;position:fixed;bottom:0;left:0;right:0;padding:0.6rem 1rem;background:#8D4E19;color:#fff;">
+        An unhandled error has occurred.
+        <a href="." class="reload">Reload</a>
+        <span class="dismiss">🗙</span>
+    </div>
+    <script src="_content/App.UI.Shared/imgCompress.js"></script>
+    <script src="_content/App.UI.Shared/richText.js"></script>
+    <script src="_content/App.UI.Shared/geo.js"></script>
+    <script src="_framework/blazor.webassembly#[.{fingerprint}].js"></script>
+</body>
+
+</html>

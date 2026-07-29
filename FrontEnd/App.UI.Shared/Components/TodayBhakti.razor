@@ -1,0 +1,239 @@
+@* Today's Bhakti — today's deity (auto slideshow when more than one) and the sadhana
+   configured for it. Tapping the deity opens details; tapping a sadhana opens its japa screen. *@
+@implements IDisposable
+@inject IApiClient Api
+@inject NavigationManager Nav
+@inject AppConfig Config
+@inject FavoritesState Favs
+@inject RegionState Region
+
+@if (_deities.Count > 0)
+{
+    var d = Current;
+    <div class="sc-section-head">
+        <h2>🪔 Today's Bhakti</h2>
+        <span class="sc-section-sub">@Subtitle</span>
+    </div>
+
+    <div class="sc-card sc-bhakti">
+        <div class="sc-bhakti-main">
+            <button type="button" class="sc-bhakti-deity" @onclick="() => OpenDetails(d)" title="View details">
+                <div class="sc-bhakti-avatar">
+                    @if (d.HasImage)
+                    {
+                        <img src="@ImgSrc(d.Id)" alt="@d.Name" />
+                    }
+                    else
+                    {
+                        <span class="sc-bhakti-fallback">@Fallback(d)</span>
+                    }
+                </div>
+                <div class="sc-bhakti-deity-meta">
+                    <span class="sc-bhakti-kicker">Today's Deity</span>
+                    <strong class="sc-bhakti-name">@d.Name</strong>
+                    <span class="sc-bhakti-reason">@(string.IsNullOrWhiteSpace(d.Reason) ? d.DeityType : d.Reason)</span>
+                    <span class="sc-bhakti-hint">Tap for details →</span>
+                </div>
+            </button>
+
+            <div class="sc-bhakti-sadhana">
+                <span class="sc-bhakti-kicker">Today's Sadhana</span>
+                @if (d.Sadhanas.Count == 0)
+                {
+                    <p class="sc-bhakti-empty">No sadhana configured for @d.Name yet.</p>
+                }
+                else
+                {
+                    @foreach (var s in d.Sadhanas.Take(CardMaxSadhanas))
+                    {
+                        <button type="button" class="sc-bhakti-chant" @onclick="() => GoToSadhana(s)">
+                            <span class="ic">📿</span>
+                            <span class="txt">
+                                <span class="nm">@s.Name</span>
+                                <span class="cat">@s.CategoryName@(s.HasAudio ? " · 🔊" : "")</span>
+                            </span>
+                            <span class="go">→</span>
+                        </button>
+                    }
+                    @if (d.Sadhanas.Count > CardMaxSadhanas)
+                    {
+                        <button type="button" class="sc-bhakti-more" @onclick="() => OpenDetails(d)">
+                            +@(d.Sadhanas.Count - CardMaxSadhanas) more →
+                        </button>
+                    }
+                }
+            </div>
+        </div>
+
+        @if (_deities.Count > 1)
+        {
+            <div class="sc-bhakti-dots">
+                @for (var i = 0; i < _deities.Count; i++)
+                {
+                    var idx = i;
+                    <button type="button" class="sc-bhakti-dot @(idx == _index ? "active" : null)"
+                            @onclick="() => Show(idx)" aria-label="@($"Show deity {idx + 1} of {_deities.Count}")"></button>
+                }
+            </div>
+        }
+    </div>
+}
+
+<ScModal Visible="_detail is not null" Title="@(_detail?.Name ?? "Deity")" OnClose="CloseDetails">
+    @if (_detail is not null)
+    {
+        <div class="sc-deity-detail">
+            <div class="sc-deity-detail-head">
+                <div class="sc-bhakti-avatar lg">
+                    @if (_detail.HasImage)
+                    {
+                        <img src="@ImgSrc(_detail.Id)" alt="@_detail.Name" />
+                    }
+                    else
+                    {
+                        <span class="sc-bhakti-fallback">@Fallback(_detail)</span>
+                    }
+                </div>
+                <div>
+                    <strong class="sc-bhakti-name">@_detail.Name</strong>
+                    <div class="sc-deity-tags">
+                        <span class="sc-chip">@_detail.DeityType</span>
+                        @if (!string.IsNullOrWhiteSpace(_detail.Reason))
+                        {
+                            <span class="sc-chip">@_detail.Reason</span>
+                        }
+                    </div>
+                </div>
+                <button type="button" class="sc-fav lg @(Favs.IsDeity(_detail.Id) ? "on" : null)"
+                        style="margin-left:auto"
+                        title="@(Favs.IsDeity(_detail.Id) ? "Remove from favorites" : "Add to favorites")"
+                        @onclick="() => Favs.ToggleDeityAsync(_detail.Id)">♥</button>
+            </div>
+
+            @if (!string.IsNullOrWhiteSpace(_detail.WelcomeNote))
+            {
+                <p class="sc-deity-welcome">“@_detail.WelcomeNote”</p>
+            }
+            @if (!string.IsNullOrWhiteSpace(_detail.Description))
+            {
+                <p class="sc-deity-desc">@_detail.Description</p>
+            }
+            @if (_detail.Days.Count > 0)
+            {
+                <p class="sc-deity-days"><span class="k">Days</span>@string.Join(", ", _detail.Days)</p>
+            }
+
+            <div class="sc-deity-sadhanas">
+                <span class="sc-bhakti-kicker">Sadhana</span>
+                @if (_detail.Sadhanas.Count == 0)
+                {
+                    <p class="sc-bhakti-empty">No sadhana configured yet.</p>
+                }
+                else
+                {
+                    @foreach (var s in _detail.Sadhanas)
+                    {
+                        <button type="button" class="sc-bhakti-chant" @onclick="() => GoToSadhana(s)">
+                            <span class="ic">📿</span>
+                            <span class="txt">
+                                <span class="nm">@s.Name</span>
+                                <span class="cat">@s.CategoryName@(s.HasAudio ? " · 🔊" : "")</span>
+                            </span>
+                            <span class="go">→</span>
+                        </button>
+                    }
+                }
+            </div>
+        </div>
+    }
+</ScModal>
+
+@code {
+    private const int RotateMs = 6000;
+    private const int CardMaxSadhanas = 3;
+
+    private List<TodayDeity> _deities = new();
+    private int _index;
+    private TodayDeity? _detail;
+    private bool _isFestival;
+    private string? _festivalName;
+    private System.Threading.Timer? _timer;
+
+    private TodayDeity Current => _deities[_index];
+
+    private string Subtitle => _isFestival && !string.IsNullOrWhiteSpace(_festivalName)
+        ? $"Festival · {_festivalName}"
+        : "Your daily devotional focus";
+
+    protected override async Task OnInitializedAsync()
+    {
+        Region.OnChanged += OnRegionChanged;
+        await Region.EnsureLoadedAsync();
+        await LoadAsync();
+
+        Favs.OnChanged += OnFavChanged;
+        await Favs.EnsureLoadedAsync();
+        StateHasChanged();
+    }
+
+    private async Task LoadAsync()
+    {
+        _deities = new();
+        _index = 0;
+        try
+        {
+            var data = await Api.GetTodayBhaktiAsync(Region.SelectedRegionId);
+            if (data is not null)
+            {
+                _deities = data.Deities;
+                _isFestival = data.IsFestivalDay;
+                _festivalName = data.FestivalName;
+            }
+        }
+        catch
+        {
+            // Best-effort widget — stay hidden if it can't load.
+        }
+
+        // Only rotate when the (possibly region-filtered) list has more than one deity.
+        _timer?.Dispose();
+        _timer = _deities.Count > 1
+            ? new System.Threading.Timer(_ => Rotate(), null, RotateMs, RotateMs)
+            : null;
+    }
+
+    private void OnRegionChanged()
+        => _ = InvokeAsync(async () => { await LoadAsync(); StateHasChanged(); });
+
+    private void OnFavChanged() => InvokeAsync(StateHasChanged);
+
+    private void Rotate()
+    {
+        if (_deities.Count <= 1 || _detail is not null) return; // pause while the modal is open
+        _index = (_index + 1) % _deities.Count;
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void Show(int i)
+    {
+        _index = i;
+        _timer?.Change(RotateMs, RotateMs); // give a manual pick a full dwell
+    }
+
+    private void OpenDetails(TodayDeity d) => _detail = d;
+    private void CloseDetails() => _detail = null;
+
+    private void GoToSadhana(TodaySadhana s) => Nav.NavigateTo($"sadhana/chant/{s.ChantConfigId}");
+
+    private string ImgSrc(Guid id) => $"{Config.ApiBaseUrl.TrimEnd('/')}/deities/{id}/image";
+
+    private static string Fallback(TodayDeity d)
+        => string.Equals(d.DeityType, "Goddess", StringComparison.OrdinalIgnoreCase) ? "🙏" : "🕉️";
+
+    public void Dispose()
+    {
+        _timer?.Dispose();
+        Favs.OnChanged -= OnFavChanged;
+        Region.OnChanged -= OnRegionChanged;
+    }
+}

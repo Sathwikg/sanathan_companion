@@ -1,0 +1,64 @@
+@implements IDisposable
+@inject ConfirmService Confirm
+
+@if (_request is not null)
+{
+    <div class="sc-modal-backdrop" @onclick="Cancel">
+        <div class="sc-modal @KindClass" @onclick:stopPropagation="true" role="alertdialog" aria-modal="true">
+            <div class="sc-modal-halo"></div>
+            <div class="sc-modal-icon">@Icon</div>
+            <h3 class="sc-modal-title">@_request.Title</h3>
+            @if (!string.IsNullOrWhiteSpace(_request.Message))
+            {
+                <p class="sc-modal-msg">@_request.Message</p>
+            }
+            <div class="sc-modal-actions">
+                <button class="sc-btn-ghost" @onclick="Cancel">@_request.CancelText</button>
+                <button class="sc-btn-primary sc-modal-confirm" @onclick="Ok">@_request.ConfirmText</button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private ConfirmRequest? _request;
+
+    protected override void OnInitialized() => Confirm.Requested += OnRequested;
+
+    private Task OnRequested(ConfirmRequest request)
+    {
+        _request = request;
+        return InvokeAsync(StateHasChanged);
+    }
+
+    private void Ok() => Complete(true);
+    private void Cancel() => Complete(false);
+
+    private void Complete(bool result)
+    {
+        var req = _request;
+        _request = null;
+        if (req is not null) Confirm.Resolve(req, result);
+        StateHasChanged();
+    }
+
+    private string KindClass => _request?.Kind switch
+    {
+        ConfirmKind.Danger => "is-danger",
+        ConfirmKind.Warning => "is-warning",
+        ConfirmKind.Success => "is-success",
+        ConfirmKind.Info => "is-info",
+        _ => "is-question"
+    };
+
+    private string Icon => _request?.Icon ?? (_request?.Kind switch
+    {
+        ConfirmKind.Danger => "⚠️",
+        ConfirmKind.Warning => "🚩",
+        ConfirmKind.Success => "🕉️",
+        ConfirmKind.Info => "ℹ️",
+        _ => "🪔"
+    });
+
+    public void Dispose() => Confirm.Requested -= OnRequested;
+}

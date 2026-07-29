@@ -1,0 +1,209 @@
+@page "/deities"
+@attribute [Authorize]
+@inject IApiClient Api
+@inject ConfirmService Confirm
+@inject ToastService Toast
+@inject NavigationManager Nav
+@inject AppConfig Config
+
+<div class="sc-page-head">
+    <div class="sc-page-title">
+        <span class="sc-page-emoji">🛕</span>
+        <div>
+            <h1>Deities</h1>
+            <p class="sc-page-sub">Gods &amp; Goddesses master</p>
+        </div>
+    </div>
+    <div class="sc-page-actions">
+        <div class="sc-viewtoggle">
+            <button class="@(_view == "grid" ? "active" : "")" @onclick='() => _view = "grid"'>▦ Grid</button>
+            <button class="@(_view == "list" ? "active" : "")" @onclick='() => _view = "list"'>☰ List</button>
+        </div>
+        <button class="sc-btn-primary sc-btn-sm" @onclick='() => Nav.NavigateTo("deities/create")'>+ Create</button>
+    </div>
+</div>
+
+<div class="sc-filters">
+    <div class="sc-yearfilter">
+        <label>Region</label>
+        <select class="sc-input sc-input-sm" @bind="_regionFilter" @bind:after="ApplyFilters">
+            <option value="">All regions</option>
+            @foreach (var r in _options.Regions)
+            {
+                <option value="@r">@r</option>
+            }
+        </select>
+    </div>
+    <div class="sc-yearfilter">
+        <label>Day</label>
+        <select class="sc-input sc-input-sm" @bind="_dayFilter" @bind:after="ApplyFilters">
+            <option value="">All days</option>
+            @foreach (var d in _options.Days)
+            {
+                <option value="@d">@d</option>
+            }
+        </select>
+    </div>
+</div>
+
+@if (_error is not null)
+{
+    <div class="sc-alert sc-alert-error">@_error</div>
+}
+
+@if (_loading)
+{
+    <OmLoader FullPage="true" Message="Loading deities…" />
+}
+else if (_filtered.Count == 0)
+{
+    <div class="sc-card sc-empty-state">
+        <div class="sc-empty-om">🛕</div>
+        <h3>No deities found</h3>
+        <p>@(_all.Count == 0 ? "Create your first deity to get started." : "No deities match the selected filters.")</p>
+        <button class="sc-btn-primary sc-btn-sm" @onclick='() => Nav.NavigateTo("deities/create")'>+ Create Deity</button>
+    </div>
+}
+else if (_view == "grid")
+{
+    <div class="sc-cardgrid">
+        @foreach (var d in Paged)
+        {
+            <div class="sc-tile @(d.IsActive ? "" : "is-inactive")">
+                <div class="sc-tile-top">
+                    <div class="sc-avatar">
+                        @if (d.HasImage) { <img src="@ImgSrc(d)" alt="@d.Name" /> } else { <span>🛕</span> }
+                    </div>
+                    <span class="sc-badge @(d.IsActive ? "on" : "off")">@(d.IsActive ? "Active" : "Inactive")</span>
+                </div>
+                <h3 class="sc-tile-title">@d.Name <span class="sc-typechip @(d.DeityType == "Goddess" ? "goddess" : "god")">@d.DeityType</span></h3>
+                <p class="sc-tile-desc">@(string.IsNullOrWhiteSpace(d.Description) ? "No description" : d.Description)</p>
+                @if (d.Regions.Count > 0)
+                {
+                    <div class="sc-chiprow">@foreach (var r in d.Regions) { <span class="sc-minichip">@r</span> }</div>
+                }
+                @if (d.Days.Count > 0)
+                {
+                    <div class="sc-chiprow">@foreach (var dn in d.Days) { <span class="sc-minichip day">@(dn.Length > 3 ? dn[..3] : dn)</span> }</div>
+                }
+                <div class="sc-tile-foot">
+                    <button class="sc-chip @(d.IsActive ? "chip-warn" : "chip-ok")" @onclick="() => ConfirmToggle(d)">@(d.IsActive ? "Deactivate" : "Activate")</button>
+                    <button class="sc-btn-ghost sc-btn-sm" @onclick="@(() => Nav.NavigateTo($"deities/{d.Id}/edit"))">Edit</button>
+                </div>
+            </div>
+        }
+    </div>
+    <Pager Page="_page" PageCount="PageCount" TotalCount="_filtered.Count" PageSize="PageSize" OnGoTo="GoTo" />
+}
+else
+{
+    <div class="sc-card sc-tablewrap">
+        <table class="sc-table">
+            <thead>
+                <tr><th></th><th>Name</th><th>Type</th><th>Regions</th><th>Days</th><th>Status</th><th></th></tr>
+            </thead>
+            <tbody>
+                @foreach (var d in Paged)
+                {
+                    <tr>
+                        <td>
+                            <div class="sc-avatar sc-avatar-sm">
+                                @if (d.HasImage) { <img src="@ImgSrc(d)" alt="@d.Name" /> } else { <span>🛕</span> }
+                            </div>
+                        </td>
+                        <td><strong>@d.Name</strong></td>
+                        <td><span class="sc-typechip @(d.DeityType == "Goddess" ? "goddess" : "god")">@d.DeityType</span></td>
+                        <td class="sc-muted">@string.Join(", ", d.Regions)</td>
+                        <td class="sc-muted">@string.Join(", ", d.Days)</td>
+                        <td>
+                            <label class="sc-switch">
+                                <input type="checkbox" checked="@d.IsActive" @onclick="() => ConfirmToggle(d)" @onclick:preventDefault />
+                                <span class="sc-slider"></span>
+                            </label>
+                            <span class="sc-status @(d.IsActive ? "on" : "off")">@(d.IsActive ? "Active" : "Inactive")</span>
+                        </td>
+                        <td><button class="sc-btn-ghost sc-btn-sm" @onclick="@(() => Nav.NavigateTo($"deities/{d.Id}/edit"))">Edit</button></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <Pager Page="_page" PageCount="PageCount" TotalCount="_filtered.Count" PageSize="PageSize" OnGoTo="GoTo" />
+}
+
+@code {
+    private string _view = "grid";
+    private List<DeityModel> _all = new();
+    private List<DeityModel> _filtered = new();
+    private DeityFormOptions _options = new();
+    private string _regionFilter = "";
+    private string _dayFilter = "";
+    private bool _loading = true;
+    private string? _error;
+
+    private int _page = 1;
+    private const int PageSize = 8;
+    private int PageCount => Math.Max(1, (int)Math.Ceiling(_filtered.Count / (double)PageSize));
+    private IEnumerable<DeityModel> Paged => _filtered.Skip((_page - 1) * PageSize).Take(PageSize);
+
+    private string ImgSrc(DeityModel d) => $"{Config.ApiBaseUrl.TrimEnd('/')}/deities/{d.Id}/image";
+
+    protected override async Task OnInitializedAsync()
+    {
+        try { _options = await Api.GetDeityFormOptionsAsync(); }
+        catch { /* filters are best-effort */ }
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        _loading = true;
+        _error = null;
+        try
+        {
+            _all = await Api.GetDeitiesAsync();
+            ApplyFilters();
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private void ApplyFilters()
+    {
+        IEnumerable<DeityModel> query = _all;
+        if (!string.IsNullOrEmpty(_regionFilter))
+            query = query.Where(d => d.Regions.Contains(_regionFilter));
+        if (!string.IsNullOrEmpty(_dayFilter))
+            query = query.Where(d => d.Days.Contains(_dayFilter));
+
+        _filtered = query.ToList();
+        _page = Math.Clamp(_page, 1, PageCount);
+    }
+
+    private void GoTo(int page) => _page = Math.Clamp(page, 1, PageCount);
+
+    private async Task ConfirmToggle(DeityModel d)
+    {
+        var activate = !d.IsActive;
+        var confirmed = await Confirm.ConfirmAsync(new ConfirmRequest
+        {
+            Title = activate ? "Activate deity?" : "Deactivate deity?",
+            Message = $"Are you sure you want to {(activate ? "activate" : "deactivate")} “{d.Name}”?",
+            ConfirmText = activate ? "Yes, activate" : "Yes, deactivate",
+            CancelText = "Cancel",
+            Kind = activate ? ConfirmKind.Success : ConfirmKind.Warning
+        });
+        if (!confirmed) return;
+
+        var (ok, err) = await Api.SetDeityStatusAsync(d.Id, activate);
+        if (ok) Toast.Success($"“{d.Name}” has been {(activate ? "activated" : "deactivated")}.");
+        else Toast.Error(err);
+        await LoadAsync();
+    }
+}

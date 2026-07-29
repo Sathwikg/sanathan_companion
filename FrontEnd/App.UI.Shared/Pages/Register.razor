@@ -1,0 +1,109 @@
+@page "/register"
+@layout AuthLayout
+@inject IAuthService AuthService
+@inject IApiClient Api
+
+<h2 class="sc-form-title">Begin your journey</h2>
+
+@if (_success)
+{
+    <div class="sc-alert sc-alert-success">
+        🕉️ Registration Successful! You may now <a href="login">sign in</a>.
+    </div>
+}
+else
+{
+    <EditForm Model="_model" OnValidSubmit="HandleRegisterAsync" class="sc-form">
+        <DataAnnotationsValidator />
+
+        @if (!string.IsNullOrEmpty(_error))
+        {
+            <div class="sc-alert sc-alert-error">@_error</div>
+        }
+
+        <div class="sc-field">
+            <label>Full Name</label>
+            <InputText @bind-Value="_model.FullName" class="sc-input" />
+            <ValidationMessage For="() => _model.FullName" />
+        </div>
+
+        <div class="sc-field">
+            <label>Email</label>
+            <InputText @bind-Value="_model.Email" class="sc-input" autocomplete="email" />
+            <ValidationMessage For="() => _model.Email" />
+        </div>
+
+        <div class="sc-field">
+            <label>Mobile Number</label>
+            <InputText @bind-Value="_model.MobileNumber" class="sc-input" />
+            <ValidationMessage For="() => _model.MobileNumber" />
+        </div>
+
+        <div class="sc-field">
+            <label>Seeker Name <span class="sc-optional">(optional)</span></label>
+            <InputText @bind-Value="_model.SeekerName" class="sc-input" placeholder="Your spiritual name" />
+            <ValidationMessage For="() => _model.SeekerName" />
+        </div>
+
+        @if (_regions.Count > 0)
+        {
+            <div class="sc-field">
+                <label>Region <span class="sc-optional">(optional)</span></label>
+                <InputSelect @bind-Value="_model.RegionId" class="sc-input">
+                    <option value="">— Choose later —</option>
+                    @foreach (var r in _regions)
+                    {
+                        <option value="@r.Id">@r.Name</option>
+                    }
+                </InputSelect>
+                <span class="sc-hint">Gods and chants will be shown for this region. You can change it any time.</span>
+            </div>
+        }
+
+        <div class="sc-field">
+            <label>Password</label>
+            <InputText type="password" @bind-Value="_model.Password" class="sc-input" autocomplete="new-password" />
+            <ValidationMessage For="() => _model.Password" />
+        </div>
+
+        <div class="sc-field">
+            <label>Confirm Password</label>
+            <InputText type="password" @bind-Value="_model.ConfirmPassword" class="sc-input" autocomplete="new-password" />
+            <ValidationMessage For="() => _model.ConfirmPassword" />
+        </div>
+
+        <button type="submit" class="sc-btn-primary" disabled="@_busy">
+            @if (_busy) { <OmLoader Inline="true" Size="18" Message="Creating…" /> } else { <span>Begin Journey</span> }
+        </button>
+    </EditForm>
+
+    <p class="sc-form-alt">Already a seeker? <a href="login">Sign in</a></p>
+}
+
+@code {
+    private readonly RegisterRequest _model = new();
+    private List<RegionOption> _regions = new();
+    private string? _error;
+    private bool _busy;
+    private bool _success;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Anonymous endpoint — the region picker is optional, so failures just hide it.
+        try { _regions = await Api.GetRegionOptionsAsync(); }
+        catch { _regions = new(); }
+    }
+
+    private async Task HandleRegisterAsync()
+    {
+        _busy = true;
+        _error = null;
+        var (success, message) = await AuthService.RegisterAsync(_model);
+        _busy = false;
+
+        if (success)
+            _success = true;
+        else
+            _error = message;
+    }
+}

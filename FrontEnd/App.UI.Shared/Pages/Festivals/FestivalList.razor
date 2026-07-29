@@ -1,0 +1,352 @@
+@page "/festivals"
+@attribute [Authorize]
+@inject IApiClient Api
+@inject ConfirmService Confirm
+@inject ToastService Toast
+
+<div class="sc-page-head">
+    <div class="sc-page-title">
+        <span class="sc-page-emoji">🎉</span>
+        <div>
+            <h1>Festivals</h1>
+            <p class="sc-page-sub">Manage festivals by year</p>
+        </div>
+    </div>
+    <div class="sc-page-actions">
+        <div class="sc-yearfilter">
+            <label>Year</label>
+            <select class="sc-input sc-input-sm" @bind="_year" @bind:after="OnYearChanged">
+                @foreach (var y in _years)
+                {
+                    <option value="@y">@y</option>
+                }
+            </select>
+        </div>
+        <div class="sc-viewtoggle">
+            <button class="@(_view == "grid" ? "active" : "")" @onclick='() => _view = "grid"'>▦ Grid</button>
+            <button class="@(_view == "list" ? "active" : "")" @onclick='() => _view = "list"'>☰ List</button>
+        </div>
+        <button class="sc-btn-primary sc-btn-sm" @onclick="OpenCreate">+ Create</button>
+    </div>
+</div>
+
+@if (_error is not null)
+{
+    <div class="sc-alert sc-alert-error">@_error</div>
+}
+
+@if (_loading)
+{
+    <OmLoader FullPage="true" Message="Loading festivals…" />
+}
+else if (_list.Count == 0)
+{
+    <div class="sc-card sc-empty-state">
+        <div class="sc-empty-om">🎉</div>
+        <h3>No festivals for @_year</h3>
+        <p>Create a festival for this year to get started.</p>
+        <button class="sc-btn-primary sc-btn-sm" @onclick="OpenCreate">+ Create Festival</button>
+    </div>
+}
+else if (_view == "grid")
+{
+    <div class="sc-cardgrid">
+        @foreach (var f in Paged)
+        {
+            <div class="sc-tile @(f.IsActive ? "" : "is-inactive")">
+                <div class="sc-tile-top">
+                    <div class="sc-tile-date">
+                        <span class="sc-tile-day">@f.Date.ToString("dd")</span>
+                        <span class="sc-tile-mon">@f.Date.ToString("MMM")</span>
+                    </div>
+                    <span class="sc-badge @(f.IsActive ? "on" : "off")">@(f.IsActive ? "Active" : "Inactive")</span>
+                </div>
+                <h3 class="sc-tile-title">@f.Name</h3>
+                <p class="sc-tile-desc">@(string.IsNullOrWhiteSpace(f.Description) ? "No description" : f.Description)</p>
+                @if (f.RegionNames.Count > 0)
+                {
+                    <div class="sc-chiprow">@foreach (var r in f.RegionNames) { <span class="sc-minichip">@r</span> }</div>
+                }
+                <div class="sc-tile-foot">
+                    <button class="sc-chip @(f.IsActive ? "chip-warn" : "chip-ok")" @onclick="() => ConfirmToggle(f)">
+                        @(f.IsActive ? "Deactivate" : "Activate")
+                    </button>
+                    <button class="sc-btn-ghost sc-btn-sm" @onclick="() => OpenEdit(f)">Edit</button>
+                </div>
+            </div>
+        }
+    </div>
+    <Pager Page="_page" PageCount="PageCount" TotalCount="_list.Count" PageSize="PageSize" OnGoTo="GoTo" />
+}
+else
+{
+    <div class="sc-card sc-tablewrap">
+        <table class="sc-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Festival</th>
+                    <th>Description</th>
+                    <th>Regions</th>
+                    <th>Status</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var f in Paged)
+                {
+                    <tr>
+                        <td class="sc-datecell">@f.Date.ToString("dd") <span class="sc-datem">@f.Date.ToString("MMM")</span> @f.Date.ToString("yyyy")</td>
+                        <td><strong>@f.Name</strong></td>
+                        <td class="sc-muted">@f.Description</td>
+                        <td class="sc-muted">@string.Join(", ", f.RegionNames)</td>
+                        <td>
+                            <label class="sc-switch">
+                                <input type="checkbox" checked="@f.IsActive" @onclick="() => ConfirmToggle(f)" @onclick:preventDefault />
+                                <span class="sc-slider"></span>
+                            </label>
+                            <span class="sc-status @(f.IsActive ? "on" : "off")">@(f.IsActive ? "Active" : "Inactive")</span>
+                        </td>
+                        <td><button class="sc-btn-ghost sc-btn-sm" @onclick="() => OpenEdit(f)">Edit</button></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <Pager Page="_page" PageCount="PageCount" TotalCount="_list.Count" PageSize="PageSize" OnGoTo="GoTo" />
+}
+
+<ScModal Visible="_showForm" Title="@(_editId is null ? "Create Festival" : "Edit Festival")" OnClose="CloseForm">
+    <EditForm Model="_model" OnValidSubmit="SaveAsync" class="sc-form">
+        <DataAnnotationsValidator />
+
+        @if (_formError is not null)
+        {
+            <div class="sc-alert sc-alert-error">@_formError</div>
+        }
+
+        <div class="sc-form-grid">
+            <div class="sc-field sc-span-2">
+                <label>Festival Name</label>
+                <InputText @bind-Value="_model.Name" class="sc-input" />
+                <ValidationMessage For="() => _model.Name" />
+            </div>
+
+            <div class="sc-field">
+                <label>Year</label>
+                <select class="sc-input" @bind="_model.Year" @bind:after="OnFormYearChanged">
+                    @foreach (var y in FormYears)
+                    {
+                        <option value="@y">@y</option>
+                    }
+                </select>
+            </div>
+
+            <div class="sc-field">
+                <label>Date <span class="sc-optional">(within @_model.Year)</span></label>
+                <InputDate @bind-Value="_model.Date" class="sc-input" min="@YearMin" max="@YearMax" />
+                <ValidationMessage For="() => _model.Date" />
+            </div>
+
+            <div class="sc-field sc-span-2">
+                <label>Description</label>
+                <InputText @bind-Value="_model.Description" class="sc-input" />
+            </div>
+        </div>
+
+        <div class="sc-field">
+            <label>Regions</label>
+            <MultiSelect Options="_regionOptions" Selected="_selRegions" SelectedChanged="v => _selRegions = v" />
+        </div>
+
+        <div class="sc-switches">
+            <div class="sc-switchrow">
+                <label class="sc-switch"><input type="checkbox" @bind="_model.IsActive" /><span class="sc-slider"></span></label>
+                <span>Active</span>
+            </div>
+        </div>
+
+        <div class="sc-modal-actions">
+            <button type="button" class="sc-btn-ghost" @onclick="CloseForm">Cancel</button>
+            <button type="submit" class="sc-btn-primary" disabled="@_busy">
+                @if (_busy) { <OmLoader Inline="true" Size="18" Message="Saving…" /> } else { <span>@(_editId is null ? "Create" : "Update")</span> }
+            </button>
+        </div>
+    </EditForm>
+</ScModal>
+
+@code {
+    private int _year = DateTime.Now.Year;
+    private List<int> _years = new();
+    private List<FestivalModel> _list = new();
+    private bool _loading = true;
+    private string? _error;
+
+    private string _view = "grid";
+    private int _page = 1;
+    private const int PageSize = 8;
+
+    private int PageCount => Math.Max(1, (int)Math.Ceiling(_list.Count / (double)PageSize));
+    private IEnumerable<FestivalModel> Paged => _list.Skip((_page - 1) * PageSize).Take(PageSize);
+
+    // popup form state
+    private bool _showForm;
+    private Guid? _editId;
+    private FestivalRequest _model = new();
+    private bool _busy;
+    private string? _formError;
+    private List<SelectOption> _regionOptions = new();
+    private HashSet<string> _selRegions = new();
+
+    private string YearMin => $"{_model.Year:0000}-01-01";
+    private string YearMax => $"{_model.Year:0000}-12-31";
+
+    private IEnumerable<int> FormYears
+    {
+        get
+        {
+            var range = Enumerable.Range(DateTime.Now.Year - 1, 8).ToList();
+            if (!range.Contains(_model.Year)) range.Add(_model.Year);
+            return range.OrderBy(y => y);
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadRegionOptionsAsync();
+        await LoadYearsAsync();
+        await LoadFestivalsAsync();
+    }
+
+    private async Task LoadRegionOptionsAsync()
+    {
+        try
+        {
+            var regions = await Api.GetRegionsAsync();
+            _regionOptions = regions.Where(r => r.IsActive).Select(r => new SelectOption(r.Id.ToString(), r.Name)).ToList();
+        }
+        catch { /* region options are best-effort */ }
+    }
+
+    private async Task LoadYearsAsync()
+    {
+        try
+        {
+            var years = await Api.GetFestivalYearsAsync();
+            if (!years.Contains(DateTime.Now.Year)) years.Add(DateTime.Now.Year);
+            _years = years.OrderByDescending(y => y).ToList();
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+            _years = new() { DateTime.Now.Year };
+        }
+    }
+
+    private async Task LoadFestivalsAsync()
+    {
+        _loading = true;
+        _error = null;
+        try
+        {
+            _list = await Api.GetFestivalsAsync(_year);
+            _page = Math.Clamp(_page, 1, PageCount);
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task OnYearChanged()
+    {
+        _page = 1;
+        await LoadFestivalsAsync();
+    }
+
+    private void GoTo(int page) => _page = Math.Clamp(page, 1, PageCount);
+
+    private void OpenCreate()
+    {
+        _editId = null;
+        _formError = null;
+        _model = new FestivalRequest { Year = _year, Date = new DateOnly(_year, 1, 1) };
+        _selRegions = new();
+        _showForm = true;
+    }
+
+    private void OpenEdit(FestivalModel f)
+    {
+        _formError = null;
+        _editId = f.Id;
+        _model = new FestivalRequest
+        {
+            Name = f.Name,
+            Description = f.Description,
+            Year = f.Year,
+            Date = f.Date,
+            RegionIds = f.RegionIds,
+            IsActive = f.IsActive
+        };
+        _selRegions = f.RegionIds.Select(id => id.ToString()).ToHashSet();
+        _showForm = true;
+    }
+
+    private void CloseForm() => _showForm = false;
+
+    private void OnFormYearChanged()
+    {
+        if (_model.Date.Year != _model.Year)
+        {
+            var day = Math.Min(_model.Date.Day, DateTime.DaysInMonth(_model.Year, _model.Date.Month));
+            _model.Date = new DateOnly(_model.Year, _model.Date.Month, day);
+        }
+    }
+
+    private async Task SaveAsync()
+    {
+        _busy = true;
+        _formError = null;
+        _model.RegionIds = _selRegions.Select(Guid.Parse).ToList();
+        var (ok, err) = _editId is null
+            ? await Api.CreateFestivalAsync(_model)
+            : await Api.UpdateFestivalAsync(_editId.Value, _model);
+        _busy = false;
+
+        if (ok)
+        {
+            Toast.Success($"Festival “{_model.Name}” saved.");
+            _showForm = false;
+            await LoadYearsAsync();
+            _year = _model.Year;
+            await LoadFestivalsAsync();
+        }
+        else
+        {
+            _formError = err;
+        }
+    }
+
+    private async Task ConfirmToggle(FestivalModel f)
+    {
+        var activate = !f.IsActive;
+        var confirmed = await Confirm.ConfirmAsync(new ConfirmRequest
+        {
+            Title = activate ? "Activate festival?" : "Deactivate festival?",
+            Message = $"Are you sure you want to {(activate ? "activate" : "deactivate")} “{f.Name}”?",
+            ConfirmText = activate ? "Yes, activate" : "Yes, deactivate",
+            CancelText = "Cancel",
+            Kind = activate ? ConfirmKind.Success : ConfirmKind.Warning
+        });
+        if (!confirmed) return;
+
+        var (ok, err) = await Api.SetFestivalStatusAsync(f.Id, activate);
+        if (ok) Toast.Success($"“{f.Name}” has been {(activate ? "activated" : "deactivated")}.");
+        else Toast.Error(err);
+        await LoadFestivalsAsync();
+    }
+}

@@ -1,0 +1,25 @@
+@* Meditative Om loader: a breathing ॐ inside a rotating saffron/gold aura.
+   Size = ring diameter (px). FullPage centers it in a tall area. Inline = row layout for buttons. *@
+
+<div class="@CssClass" role="status" aria-live="polite" aria-label="@(Message ?? "Loading")">
+    <div class="om-loader-ring" style="width:@(Size)px;height:@(Size)px;">
+        <span class="om-loader-glyph" style="font-size:@(GlyphPx)px;">ॐ</span>
+    </div>
+    @if (!string.IsNullOrWhiteSpace(Message))
+    {
+        <div class="om-loader-msg">@Message</div>
+    }
+</div>
+
+@code {
+    [Parameter] public int Size { get; set; } = 64;
+    [Parameter] public string? Message { get; set; }
+    [Parameter] public bool FullPage { get; set; }
+    [Parameter] public bool Inline { get; set; }
+
+    private int GlyphPx => (int)(Size * 0.5);
+
+    private string CssClass => "om-loader"
+        + (FullPage ? " is-full" : string.Empty)
+        + (Inline ? " is-inline" : string.Empty);
+}

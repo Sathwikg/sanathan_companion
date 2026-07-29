@@ -1,0 +1,58 @@
+@inherits LayoutComponentBase
+@inject IAuthService AuthService
+@inject NavigationManager Nav
+
+<div class="sc-shell">
+    <header class="sc-topbar">
+        <div class="sc-topbar-left">
+            <button class="sc-hamburger" @onclick="ToggleSidebar" title="Toggle menu">☰</button>
+            <OmLogo Size="34" />
+            <span class="sc-brand-text">Sanathan Companion</span>
+        </div>
+        <div class="sc-topbar-right">
+            <AuthorizeView>
+                <Authorized>
+                    <RegionSelector />
+                </Authorized>
+            </AuthorizeView>
+            <Clock />
+            <AuthorizeView Roles="Admin">
+                <NavLink class="sc-btn-ghost sc-btn-sm" href="modules">⚙ Modules</NavLink>
+            </AuthorizeView>
+            <ThemeToggle />
+            <AuthorizeView>
+                <Authorized>
+                    <NavLink class="sc-user sc-user-link" href="profile" title="View my profile">
+                        <span class="sc-user-ic">👤</span>
+                        <span class="sc-user-name">@context.User.FindFirst("fullName")?.Value</span>
+                    </NavLink>
+                    <button class="sc-btn-ghost sc-btn-sm" @onclick="LogoutAsync">Logout</button>
+                </Authorized>
+            </AuthorizeView>
+        </div>
+    </header>
+
+    <div class="sc-body">
+        <aside class="sc-sidebar @(_sidebarOpen ? "open" : "closed")">
+            <NavSidebar />
+        </aside>
+        <main class="sc-content">
+            @Body
+        </main>
+    </div>
+
+    <ConfirmDialog />
+    <ToastHost />
+</div>
+
+@code {
+    private bool _sidebarOpen = true;
+
+    private void ToggleSidebar() => _sidebarOpen = !_sidebarOpen;
+
+    private async Task LogoutAsync()
+    {
+        await AuthService.LogoutAsync();
+        Nav.NavigateTo("login");
+    }
+}

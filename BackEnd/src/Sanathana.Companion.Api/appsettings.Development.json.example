@@ -1,0 +1,14 @@
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Host=localhost;Port=5432;Database=sanathana_companion;Username=postgres;Password=CHANGE_ME"
+  },
+  "JwtSettings": {
+    "Secret": "REPLACE_WITH_A_LONG_RANDOM_BASE64_SECRET_AT_LEAST_32_BYTES"
+  },
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  }
+}

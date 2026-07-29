@@ -1,0 +1,160 @@
+@page "/modules/create"
+@page "/modules/{Id:guid}/edit"
+@attribute [Authorize]
+@inject IApiClient Api
+@inject MenuRefreshService MenuRefresh
+@inject NavigationManager Nav
+
+<div class="sc-page-head">
+    <h1>@(IsEdit ? "Edit Menu Item" : "Create Menu Item")</h1>
+    <button class="sc-btn-ghost sc-btn-sm" @onclick='() => Nav.NavigateTo("modules")'>← Back to list</button>
+</div>
+
+@if (_error is not null)
+{
+    <div class="sc-alert sc-alert-error">@_error</div>
+}
+
+@if (_loading)
+{
+    <OmLoader FullPage="true" Message="Loading…" />
+}
+else
+{
+    <div class="sc-card sc-form-card">
+        <EditForm Model="_model" OnValidSubmit="SaveAsync" class="sc-form">
+            <DataAnnotationsValidator />
+
+            <div class="sc-form-grid">
+                <div class="sc-field">
+                    <label>Parent (Main Module)</label>
+                    <select class="sc-input" @bind="_parentIdString">
+                        <option value="">— None (this is a Main Module) —</option>
+                        @foreach (var p in _mainModules)
+                        {
+                            <option value="@p.Id">@p.Name</option>
+                        }
+                    </select>
+                    <small class="sc-hint">Select a main module to make this record a sub-module.</small>
+                </div>
+
+                <div class="sc-field">
+                    <label>Name</label>
+                    <InputText @bind-Value="_model.Name" class="sc-input" />
+                    <ValidationMessage For="() => _model.Name" />
+                </div>
+
+                <div class="sc-field">
+                    <label>Icon <span class="sc-optional">(emoji)</span></label>
+                    <InputText @bind-Value="_model.Icon" class="sc-input" placeholder="🕉️" />
+                </div>
+
+                <div class="sc-field">
+                    <label>Display Order</label>
+                    <InputNumber @bind-Value="_model.DisplayOrder" class="sc-input" />
+                </div>
+
+                <div class="sc-field">
+                    <label>Route Path</label>
+                    <InputText @bind-Value="_model.RoutePath" class="sc-input" placeholder="/dashboard" />
+                </div>
+
+                <div class="sc-field sc-span-2">
+                    <label>Description</label>
+                    <InputText @bind-Value="_model.Description" class="sc-input" />
+                </div>
+            </div>
+
+            <div class="sc-switches">
+                <div class="sc-switchrow">
+                    <label class="sc-switch"><input type="checkbox" @bind="_model.IsVisibleInMenu" /><span class="sc-slider"></span></label>
+                    <span>Visible in menu</span>
+                </div>
+                <div class="sc-switchrow">
+                    <label class="sc-switch"><input type="checkbox" @bind="_model.ShowInMobile" /><span class="sc-slider"></span></label>
+                    <span>Show in Mobile App</span>
+                </div>
+                <div class="sc-switchrow">
+                    <label class="sc-switch"><input type="checkbox" @bind="_model.IsActive" /><span class="sc-slider"></span></label>
+                    <span>Active</span>
+                </div>
+            </div>
+
+            <button type="submit" class="sc-btn-primary" disabled="@_busy">
+                @if (_busy) { <OmLoader Inline="true" Size="18" Message="Saving…" /> } else { <span>@(IsEdit ? "Update" : "Create")</span> }
+            </button>
+        </EditForm>
+    </div>
+}
+
+@code {
+    [Parameter] public Guid? Id { get; set; }
+    private bool IsEdit => Id.HasValue;
+
+    private MenuModuleRequest _model = new();
+    private List<MenuModuleModel> _mainModules = new();
+    private string _parentIdString = "";
+    private string? _error;
+    private bool _busy;
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var all = await Api.GetModulesAsync();
+            _mainModules = all.Where(m => m.ParentId is null && (!Id.HasValue || m.Id != Id.Value)).ToList();
+
+            if (IsEdit)
+            {
+                var existing = await Api.GetModuleAsync(Id!.Value);
+                if (existing is not null)
+                {
+                    _model = new MenuModuleRequest
+                    {
+                        Name = existing.Name,
+                        Icon = existing.Icon,
+                        Description = existing.Description,
+                        RoutePath = existing.RoutePath,
+                        DisplayOrder = existing.DisplayOrder,
+                        IsVisibleInMenu = existing.IsVisibleInMenu,
+                        ShowInMobile = existing.ShowInMobile,
+                        IsActive = existing.IsActive,
+                        ParentId = existing.ParentId
+                    };
+                    _parentIdString = existing.ParentId?.ToString() ?? "";
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task SaveAsync()
+    {
+        _busy = true;
+        _error = null;
+        _model.ParentId = string.IsNullOrEmpty(_parentIdString) ? null : Guid.Parse(_parentIdString);
+
+        var (ok, err) = IsEdit
+            ? await Api.UpdateModuleAsync(Id!.Value, _model)
+            : await Api.CreateModuleAsync(_model);
+
+        _busy = false;
+        if (ok)
+        {
+            MenuRefresh.NotifyChanged();
+            Nav.NavigateTo("modules");
+        }
+        else
+        {
+            _error = err;
+        }
+    }
+}

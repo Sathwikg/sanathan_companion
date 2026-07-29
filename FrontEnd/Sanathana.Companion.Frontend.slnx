@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="App.Core/App.Core.csproj" />
+  <Project Path="App.Mobile/App.Mobile.csproj" />
+  <Project Path="App.Tests/App.Tests.csproj" />
+  <Project Path="App.UI.Shared/App.UI.Shared.csproj" />
+  <Project Path="App.Web/App.Web.csproj" />
+</Solution>

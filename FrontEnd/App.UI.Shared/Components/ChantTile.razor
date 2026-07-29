@@ -1,0 +1,59 @@
+@* A single chant card — shows category, deities, preview and today's progress.
+   Clicking anywhere opens the chant's japa screen. Shared by the Sadhana page and the dashboard. *@
+@implements IDisposable
+@inject NavigationManager Nav
+@inject FavoritesState Favs
+
+<div class="sc-tile" @onclick="Open" style="cursor:pointer">
+    <div class="sc-tile-top">
+        <div class="sc-tile-top-left">
+            <span class="sc-minichip">@Chant.CategoryName</span>
+            @if (Chant.TodayMalas > 0)
+            {
+                <span class="sc-badge on">@Chant.TodayMalas mala@(Chant.TodayMalas == 1 ? "" : "s") today</span>
+            }
+        </div>
+        <button type="button" class="sc-fav @(Favs.IsChant(Chant.Id) ? "on" : null)"
+                title="@(Favs.IsChant(Chant.Id) ? "Remove from favorites" : "Add to favorites")"
+                @onclick="ToggleFavAsync" @onclick:stopPropagation="true">♥</button>
+    </div>
+    @if (!string.IsNullOrWhiteSpace(Chant.RecommendReason))
+    {
+        <span class="sc-reason">@Chant.RecommendReason</span>
+    }
+    <h3 class="sc-tile-title">@Chant.Name</h3>
+    @if (Chant.DeityNames.Count > 0)
+    {
+        <div class="sc-chiprow">@foreach (var d in Chant.DeityNames) { <span class="sc-minichip">@d</span> }</div>
+    }
+    @if (!string.IsNullOrWhiteSpace(Chant.TextPreview))
+    {
+        <p class="sc-tile-preview">@Chant.TextPreview</p>
+    }
+    <div class="sc-tile-foot">
+        <span class="sc-chantprog">
+            🧮 1 mala = @Chant.TargetCount
+            @if (Chant.HasAudio) { <span>· 🔊</span> }
+        </span>
+        <button class="sc-btn-primary sc-btn-sm" @onclick="Open" @onclick:stopPropagation="true">Chant →</button>
+    </div>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public SadhanaChant Chant { get; set; } = default!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Favs.OnChanged += OnFavChanged;
+        await Favs.EnsureLoadedAsync();
+        StateHasChanged();
+    }
+
+    private void OnFavChanged() => InvokeAsync(StateHasChanged);
+
+    private async Task ToggleFavAsync() => await Favs.ToggleChantAsync(Chant.Id);
+
+    private void Open() => Nav.NavigateTo($"sadhana/chant/{Chant.Id}");
+
+    public void Dispose() => Favs.OnChanged -= OnFavChanged;
+}

@@ -1,0 +1,338 @@
+@page "/panchangam"
+@attribute [Authorize]
+@implements IDisposable
+@inject IApiClient Api
+@inject ToastService Toast
+@inject ConfirmService Confirm
+@inject IJSRuntime JS
+@inject RegionState Region
+
+<div class="sc-page-head">
+    <div class="sc-page-title">
+        <span class="sc-page-emoji">🗓️</span>
+        <div>
+            <h1>Panchangam</h1>
+            <p class="sc-page-sub">Daily Panchangam by region, or computed for your exact location</p>
+        </div>
+    </div>
+    <div class="sc-page-actions">
+        <button class="sc-btn-ghost sc-btn-sm sc-locbtn" @onclick="UseMyLocation" disabled="@_locating">
+            @if (_locating) { <OmLoader Inline="true" Size="16" Message="Locating…" /> } else { <span>📍 My Location</span> }
+        </button>
+        <button class="sc-btn-ghost sc-btn-sm" @onclick="OpenGenerate">⚙ Generate</button>
+    </div>
+</div>
+
+<div class="sc-card sc-filtercard">
+    <div class="sc-pchg-bar">
+        <div class="sc-filter">
+            <label>Date</label>
+            <div class="sc-daynav">
+                <button type="button" title="Previous day" @onclick="() => Shift(-1)">‹</button>
+                <input type="date" class="sc-input sc-input-sm" value="@_date.ToString("yyyy-MM-dd")" @onchange="OnDateChanged" />
+                <button type="button" title="Next day" @onclick="() => Shift(1)">›</button>
+            </div>
+        </div>
+        <div class="sc-filter">
+            <label>Region</label>
+            <SearchableSelect Options="RegionOptions" Value="@_regionId" ValueChanged="OnRegionChanged"
+                              PlaceholderLabel="Select region" SearchPlaceholder="Search regions…" />
+        </div>
+        <button class="sc-btn-ghost sc-btn-sm" @onclick="GoToday">Today</button>
+    </div>
+    @if (_missingCoords)
+    {
+        <div class="sc-hint sc-hint-error">This region has no coordinates set — add them in the Region Master to generate its Panchangam.</div>
+    }
+</div>
+
+@if (_geoError is not null)
+{
+    <div class="sc-alert sc-alert-error sc-geo-alert">📍 @_geoError</div>
+}
+
+@if (_loading)
+{
+    <OmLoader FullPage="true" Message="Loading Panchangam…" />
+}
+else if (_current is null)
+{
+    <div class="sc-card sc-empty-state">
+        <div class="sc-empty-om">🗓️</div>
+        <h3>No Panchangam for this day</h3>
+        <p>@(_missingCoords ? "Set the region's coordinates first." : "No stored data for this date and region. Try “Generate”, or use “My Location” for an on-the-fly calculation.")</p>
+    </div>
+}
+else
+{
+    var p = _current;
+    <div class="sc-card">
+        <div class="sc-pchg-head">
+            <div>
+                <div class="sc-pchg-date">@p.Date.ToString("dddd, dd MMMM yyyy")</div>
+                <div class="sc-pchg-place">
+                    @if (p.IsComputed)
+                    {
+                        <span>📍 @p.PlaceLabel</span>
+                        <span class="sc-livechip">Live · your location</span>
+                    }
+                    else
+                    {
+                        <span>🗺️ @p.RegionName</span>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="sc-pchg-groups">
+            <div class="sc-pchg-group">
+                <h4>Calendar</h4>
+                <PchgRow K="Samvatsaram" V="@p.TeluguSamvatsaram" />
+                <PchgRow K="Masam" V="@p.Masam" />
+                <PchgRow K="Paksham" V="@p.Paksham" />
+                <PchgRow K="Rutuvu" V="@p.Rutuvu" />
+                <PchgRow K="Ayanam" V="@p.Ayanam" />
+                <PchgRow K="Saka / Vikrama" V="@($"{p.SakaSamvatsaram} / {p.VikramaSamvatsaram}")" />
+            </div>
+
+            <div class="sc-pchg-group">
+                <h4>Day & Elements</h4>
+                <PchgRow K="Vaaram (Day)" V="@p.DayOfWeek" />
+                <PchgRow K="Sunrise" V="@Fmt(p.Sunrise)" />
+                <PchgRow K="Sunset" V="@Fmt(p.Sunset)" />
+                <PchgRow K="Tithi" V="@p.TithiDetails" />
+                <PchgRow K="Nakshatram" V="@p.NakshatramDetails" />
+            </div>
+
+            <div class="sc-pchg-group good">
+                <h4>Auspicious</h4>
+                <PchgRow K="Abhijit Muhurtham" V="@p.AbhijitMuhurtham" />
+                <PchgRow K="Amrutha Kalam" V="@p.AmruthaKalam" />
+            </div>
+
+            <div class="sc-pchg-group warn">
+                <h4>Inauspicious</h4>
+                <PchgRow K="Rahu Kalam" V="@p.RahuKalam" />
+                <PchgRow K="Yamagandam" V="@p.Yamagandam" />
+                <PchgRow K="Gulika" V="@p.Gulika" />
+                <PchgRow K="Durmuhurtham" V="@p.Durmuhurtham" />
+                <PchgRow K="Varjyam" V="@p.Varjyam" />
+            </div>
+        </div>
+    </div>
+}
+
+<ScModal Visible="_showGenerate" Title="Generate Panchangam Data" OnClose="() => _showGenerate = false">
+    <div class="sc-form">
+        <p class="sc-muted">Compute and store a full year for a region. Existing days are skipped unless you overwrite.</p>
+        <div class="sc-form-grid">
+            <div class="sc-field">
+                <label>Year</label>
+                <InputNumber @bind-Value="_genYear" class="sc-input" />
+            </div>
+            <div class="sc-field">
+                <label>Region</label>
+                <select class="sc-input" @bind="_genRegionId">
+                    <option value="">All regions with coordinates</option>
+                    @foreach (var r in _options.Regions)
+                    {
+                        <option value="@r.Id" disabled="@(!r.HasCoordinates)">@r.Name @(r.HasCoordinates ? "" : "(no coordinates)")</option>
+                    }
+                </select>
+            </div>
+        </div>
+        <div class="sc-switchrow">
+            <label class="sc-switch"><input type="checkbox" @bind="_genOverwrite" /><span class="sc-slider"></span></label>
+            <span>Overwrite existing days</span>
+        </div>
+        <div class="sc-modal-actions">
+            <button type="button" class="sc-btn-ghost" @onclick="() => _showGenerate = false">Cancel</button>
+            <button type="button" class="sc-btn-primary" disabled="@_generating" @onclick="RunGenerate">
+                @if (_generating) { <OmLoader Inline="true" Size="18" Message="Generating…" /> } else { <span>Generate</span> }
+            </button>
+        </div>
+    </div>
+</ScModal>
+
+@code {
+    private DateOnly _date = DateOnly.FromDateTime(DateTime.Now);
+    private string _regionId = string.Empty;
+    private PanchangamModel? _current;
+    private PanchangamOptions _options = new();
+
+    private bool _loading = true;
+    private bool _locating;
+    private bool _missingCoords;
+    private string? _geoError;
+
+    private bool _showGenerate;
+    private int _genYear = DateTime.Now.Year;
+    private string _genRegionId = string.Empty;
+    private bool _genOverwrite;
+    private bool _generating;
+
+    /// <summary>Sentinel option value meaning "compute for the device's current location".</summary>
+    private const string CurrentLocationValue = "current-location";
+
+    private List<SelectOption> RegionOptions =>
+        _options.Regions.Select(r => new SelectOption(r.Id.ToString(), r.Name))
+            .Prepend(new SelectOption(CurrentLocationValue, "📍 My Current Location"))
+            .ToList();
+
+    protected override async Task OnInitializedAsync()
+    {
+        Region.OnChanged += OnGlobalRegionChanged;
+        await Region.EnsureLoadedAsync();
+
+        try
+        {
+            _options = await Api.GetPanchangamOptionsAsync();
+            ApplyGlobalRegion();
+        }
+        catch (Exception ex) { _geoError = ex.Message; }
+
+        await LoadStoredAsync();
+    }
+
+    /// <summary>Follows the region chosen in the top bar; falls back to the first region that has coordinates.</summary>
+    private void ApplyGlobalRegion()
+    {
+        if (Region.SelectedRegionId is { } gid && _options.Regions.Any(r => r.Id == gid))
+        {
+            _regionId = gid.ToString();
+            return;
+        }
+
+        var fallback = _options.Regions.FirstOrDefault(r => r.HasCoordinates) ?? _options.Regions.FirstOrDefault();
+        _regionId = fallback?.Id.ToString() ?? string.Empty;
+    }
+
+    private void OnGlobalRegionChanged()
+        => _ = InvokeAsync(async () =>
+        {
+            ApplyGlobalRegion();
+            await LoadStoredAsync();
+            StateHasChanged();
+        });
+
+    public void Dispose() => Region.OnChanged -= OnGlobalRegionChanged;
+
+    private async Task LoadStoredAsync()
+    {
+        _loading = true;
+        _geoError = null;
+        _missingCoords = false;
+        try
+        {
+            if (Guid.TryParse(_regionId, out var rid))
+            {
+                var region = _options.Regions.FirstOrDefault(r => r.Id == rid);
+                _missingCoords = region is not null && !region.HasCoordinates;
+                _current = await Api.GetPanchangamByDateAsync(_date, rid);
+            }
+            else
+            {
+                _current = null;
+            }
+        }
+        catch (Exception ex) { _geoError = ex.Message; _current = null; }
+        finally { _loading = false; }
+    }
+
+    private async Task OnRegionChanged(string value)
+    {
+        _regionId = value;
+        if (value == CurrentLocationValue)
+            await UseMyLocation();
+        else
+            await LoadStoredAsync();
+    }
+
+    /// <summary>Re-fetches for the current date, honouring whether we're on a region or the live location.</summary>
+    private Task RefreshAsync()
+        => _regionId == CurrentLocationValue ? UseMyLocation() : LoadStoredAsync();
+
+    private async Task OnDateChanged(ChangeEventArgs e)
+    {
+        if (DateOnly.TryParse(e.Value?.ToString(), out var d))
+        {
+            _date = d;
+            await RefreshAsync();
+        }
+    }
+
+    private async Task Shift(int days)
+    {
+        _date = _date.AddDays(days);
+        await RefreshAsync();
+    }
+
+    private async Task GoToday()
+    {
+        _date = DateOnly.FromDateTime(DateTime.Now);
+        await RefreshAsync();
+    }
+
+    private async Task UseMyLocation()
+    {
+        _locating = true;
+        _geoError = null;
+        _missingCoords = false;
+        // Reflect the choice in the region picker, however it was triggered.
+        _regionId = CurrentLocationValue;
+        try
+        {
+            var geo = await JS.InvokeAsync<GeoPosition>("scGeo.current");
+            if (!string.IsNullOrEmpty(geo.Error))
+            {
+                _geoError = geo.Error;
+                _current = null;
+            }
+            else
+            {
+                _current = await Api.ComputePanchangamAsync(geo.Latitude, geo.Longitude, _date, "My current location");
+                if (_current is not null)
+                    Toast.Success($"Panchangam computed for your location ({geo.Latitude:F3}, {geo.Longitude:F3}).");
+            }
+        }
+        catch (Exception ex) { _geoError = "Could not compute for your location. " + ex.Message; _current = null; }
+        finally { _locating = false; }
+    }
+
+    private void OpenGenerate()
+    {
+        _genYear = _date.Year;
+        // Default to the region being viewed; the live-location option isn't a storable region.
+        _genRegionId = _regionId == CurrentLocationValue ? string.Empty : _regionId;
+        _genOverwrite = false;
+        _showGenerate = true;
+    }
+
+    private async Task RunGenerate()
+    {
+        _generating = true;
+        Guid? rid = Guid.TryParse(_genRegionId, out var g) ? g : null;
+        var (ok, result, err) = await Api.GeneratePanchangamAsync(new GeneratePanchangamRequest
+        {
+            Year = _genYear,
+            RegionId = rid,
+            Overwrite = _genOverwrite
+        });
+        _generating = false;
+
+        if (ok && result is not null)
+        {
+            Toast.Success($"Generated {result.Created} new, {result.Updated} updated, {result.Skipped} skipped for [{string.Join(", ", result.Regions)}].");
+            foreach (var w in result.Warnings) Toast.Info(w);
+            _showGenerate = false;
+            _options = await Api.GetPanchangamOptionsAsync();
+            await LoadStoredAsync();
+        }
+        else
+        {
+            Toast.Error(err);
+        }
+    }
+
+    private static string Fmt(TimeOnly? t) => t is null ? "—" : t.Value.ToString("HH:mm");
+}

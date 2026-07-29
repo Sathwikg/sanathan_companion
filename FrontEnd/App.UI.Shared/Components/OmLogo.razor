@@ -1,0 +1,7 @@
+<div class="sc-om" style="@Style">ॐ</div>
+
+@code {
+    [Parameter] public int Size { get; set; } = 56;
+
+    private string Style => $"width:{Size}px;height:{Size}px;font-size:{(int)(Size * 0.5)}px;";
+}

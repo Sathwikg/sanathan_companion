@@ -1,0 +1,82 @@
+@* Recursive management tree node: collapsible parent, status switch + edit for every item. *@
+
+<li class="sc-mtree-item">
+    <div class="sc-mtree-row @(HasChildren ? "is-parent" : null)">
+        @if (HasChildren)
+        {
+            <button type="button" class="sc-mtree-caret" @onclick="Toggle"
+                    title="@(_expanded ? "Collapse" : "Expand")"
+                    aria-expanded="@(_expanded ? "true" : "false")">@(_expanded ? "▾" : "▸")</button>
+        }
+        else
+        {
+            <span class="sc-mtree-caret-spacer"></span>
+        }
+
+        <span class="sc-mtree-icon">@(string.IsNullOrWhiteSpace(Node.Icon) ? "•" : Node.Icon)</span>
+        <span class="sc-mtree-name @(HasChildren ? "is-parent" : null)" @onclick="ToggleIfParent">@Node.Name</span>
+        @if (!string.IsNullOrWhiteSpace(Node.RoutePath))
+        {
+            <span class="sc-mtree-route">@Node.RoutePath</span>
+        }
+        @if (HasChildren)
+        {
+            <span class="sc-mtree-count" title="Sub-modules">@Node.Children.Count</span>
+        }
+        <span class="sc-flex-spacer"></span>
+        <label class="sc-switch">
+            <input type="checkbox" checked="@Node.IsActive" @onchange="OnStatusChanged" />
+            <span class="sc-slider"></span>
+        </label>
+        <span class="sc-status @(Node.IsActive ? "on" : "off")">@(Node.IsActive ? "Active" : "Inactive")</span>
+        <button class="sc-btn-ghost sc-btn-sm" @onclick="() => OnEdit.InvokeAsync(Node.Id)">Edit</button>
+    </div>
+
+    @if (HasChildren && _expanded)
+    {
+        <ul class="sc-mtree-children">
+            @foreach (var child in Node.Children)
+            {
+                <ModuleTreeItem Node="child" OnToggle="OnToggle" OnEdit="OnEdit"
+                                ExpandAll="ExpandAll" ExpandSignal="ExpandSignal" />
+            }
+        </ul>
+    }
+</li>
+
+@code {
+    [Parameter] public MenuTreeNode Node { get; set; } = default!;
+    [Parameter] public EventCallback<(Guid Id, bool IsActive)> OnToggle { get; set; }
+    [Parameter] public EventCallback<Guid> OnEdit { get; set; }
+
+    /// <summary>Whether the last expand/collapse-all request was "expand".</summary>
+    [Parameter] public bool ExpandAll { get; set; }
+
+    /// <summary>Bumped by the page on each expand/collapse-all so nodes re-apply <see cref="ExpandAll"/>.</summary>
+    [Parameter] public int ExpandSignal { get; set; }
+
+    // Start collapsed — the tree is for scanning the structure, not reading every leaf at once.
+    private bool _expanded;
+    private int _lastSignal;
+
+    private bool HasChildren => Node.Children.Count > 0;
+
+    protected override void OnParametersSet()
+    {
+        if (ExpandSignal != _lastSignal)
+        {
+            _lastSignal = ExpandSignal;
+            _expanded = ExpandAll;
+        }
+    }
+
+    private void Toggle() => _expanded = !_expanded;
+
+    private void ToggleIfParent()
+    {
+        if (HasChildren) Toggle();
+    }
+
+    private Task OnStatusChanged(ChangeEventArgs e)
+        => OnToggle.InvokeAsync((Node.Id, (bool)(e.Value ?? false)));
+}

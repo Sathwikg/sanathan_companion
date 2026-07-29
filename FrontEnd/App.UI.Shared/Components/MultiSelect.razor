@@ -1,0 +1,31 @@
+@* Checkbox-list multi-select bound to a HashSet of string values. *@
+<div class="sc-multiselect">
+    @if (Options.Count == 0)
+    {
+        <span class="sc-multi-empty">No options available</span>
+    }
+    else
+    {
+        @foreach (var opt in Options)
+        {
+            var isChecked = Selected.Contains(opt.Value);
+            <label class="sc-multiopt @(isChecked ? "checked" : "")">
+                <input type="checkbox" checked="@isChecked" @onchange="e => Toggle(opt.Value, (bool)(e.Value ?? false))" />
+                <span>@opt.Label</span>
+            </label>
+        }
+    }
+</div>
+
+@code {
+    [Parameter] public List<SelectOption> Options { get; set; } = new();
+    [Parameter] public HashSet<string> Selected { get; set; } = new();
+    [Parameter] public EventCallback<HashSet<string>> SelectedChanged { get; set; }
+
+    private async Task Toggle(string value, bool on)
+    {
+        if (on) Selected.Add(value);
+        else Selected.Remove(value);
+        await SelectedChanged.InvokeAsync(Selected);
+    }
+}

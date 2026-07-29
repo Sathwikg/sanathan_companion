@@ -1,0 +1,95 @@
+@* Dashboard component: time-configured prayers. The one whose window includes the current
+   time is highlighted as "Now"; each carries an icon for its time of day. Tapping opens sadhana. *@
+@implements IDisposable
+@inject IApiClient Api
+@inject NavigationManager Nav
+@inject RegionState Region
+
+@if (_loaded && _prayers.Count > 0)
+{
+    <div class="sc-section-head">
+        <h2>🙏 Prayers</h2>
+        <span class="sc-section-sub">For this time of day</span>
+    </div>
+
+    <div class="sc-prayergrid">
+        @foreach (var p in _prayers)
+        {
+            <button type="button" class="sc-card sc-prayer-card @(p.IsActiveNow ? "now" : null)" @onclick="() => Go(p)">
+                <span class="sc-prayer-ic">@Icon(p.Slot)</span>
+                <span class="sc-prayer-body">
+                    <span class="sc-prayer-name">@p.Name</span>
+                    <span class="sc-prayer-time">@SubLine(p)</span>
+                </span>
+                @if (p.IsActiveNow)
+                {
+                    <span class="sc-prayer-now">Now</span>
+                }
+                else
+                {
+                    <span class="sc-prayer-go">→</span>
+                }
+            </button>
+        }
+    </div>
+}
+
+@code {
+    private List<Prayer> _prayers = new();
+    private bool _loaded;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Region.OnChanged += OnRegionChanged;
+        await Region.EnsureLoadedAsync();
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        try
+        {
+            var result = await Api.GetPrayersAsync(Region.SelectedRegionId);
+            _prayers = result?.Prayers ?? new();
+        }
+        catch
+        {
+            // Best-effort — stay hidden if it can't load.
+        }
+        finally
+        {
+            _loaded = true;
+        }
+    }
+
+    private void OnRegionChanged()
+        => _ = InvokeAsync(async () => { await LoadAsync(); StateHasChanged(); });
+
+    public void Dispose() => Region.OnChanged -= OnRegionChanged;
+
+    private void Go(Prayer p) => Nav.NavigateTo($"sadhana/chant/{p.ChantConfigId}");
+
+    private static string Icon(string slot) => slot switch
+    {
+        "Morning" => "🌅",
+        "Afternoon" => "☀️",
+        "Evening" => "🌆",
+        "Night" => "🌙",
+        "Food" => "🍽️",
+        _ => "🙏"
+    };
+
+    private static string SubLine(Prayer p)
+    {
+        var parts = new List<string>();
+        if (!string.IsNullOrWhiteSpace(p.TimeDescription)) parts.Add(p.TimeDescription!);
+        if (p.FromTime is { } f)
+        {
+            var window = f.ToString("h:mm tt");
+            if (p.ToTime is { } t) window += " – " + t.ToString("h:mm tt");
+            parts.Add(window);
+        }
+        if (p.DeityNames.Count > 0) parts.Add(string.Join(", ", p.DeityNames));
+        return string.Join(" · ", parts);
+    }
+}

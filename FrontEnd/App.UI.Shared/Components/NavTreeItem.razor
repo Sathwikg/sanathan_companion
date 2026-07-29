@@ -1,0 +1,39 @@
+@* Recursive sidebar node: parents expand/collapse, leaves are navigation links. *@
+
+<li class="sc-nav-item">
+    @if (Node.Children.Count > 0)
+    {
+        <div class="sc-nav-parent" @onclick="Toggle">
+            <span class="sc-nav-icon">@Icon</span>
+            <span class="sc-nav-label">@Node.Name</span>
+            <span class="sc-nav-caret">@(_expanded ? "▾" : "▸")</span>
+        </div>
+        @if (_expanded)
+        {
+            <ul class="sc-nav-children">
+                @foreach (var child in Node.Children)
+                {
+                    <NavTreeItem Node="child" />
+                }
+            </ul>
+        }
+    }
+    else
+    {
+        <NavLink class="sc-nav-link" href="@Href" Match="Match">
+            <span class="sc-nav-icon">@Icon</span>
+            <span class="sc-nav-label">@Node.Name</span>
+        </NavLink>
+    }
+</li>
+
+@code {
+    [Parameter] public MenuTreeNode Node { get; set; } = default!;
+
+    private bool _expanded = true;
+    private string Icon => string.IsNullOrWhiteSpace(Node.Icon) ? "•" : Node.Icon!;
+    private string Href => string.IsNullOrWhiteSpace(Node.RoutePath) ? "" : Node.RoutePath!.TrimStart('/');
+    private NavLinkMatch Match => Href.Length == 0 ? NavLinkMatch.All : NavLinkMatch.Prefix;
+
+    private void Toggle() => _expanded = !_expanded;
+}

@@ -1,0 +1,120 @@
+@* Type-to-filter dropdown. Dependency-free; an invisible backdrop handles click-away
+   so no document-level JS listener is needed. *@
+<div class="sc-ss @(_open ? "is-open" : "")">
+    <div class="sc-ss-control" @onclick="Toggle">
+        @if (_open)
+        {
+            <input class="sc-input sc-input-sm sc-ss-search"
+                   placeholder="@SearchPlaceholder"
+                   value="@_query"
+                   @onclick:stopPropagation="true"
+                   @oninput="OnQueryInput"
+                   @onkeydown="OnKeyDown"
+                   @ref="_searchBox" />
+        }
+        else
+        {
+            <button type="button" class="sc-input sc-input-sm sc-ss-value @(HasValue ? "" : "is-placeholder")">
+                <span>@CurrentLabel</span>
+            </button>
+        }
+        <span class="sc-ss-caret">▾</span>
+    </div>
+
+    @if (_open)
+    {
+        <div class="sc-ss-backdrop" @onclick="Close"></div>
+        <div class="sc-ss-panel">
+            @if (!string.IsNullOrEmpty(EmptyLabel))
+            {
+                <button type="button" class="sc-ss-opt @(HasValue ? "" : "is-sel")" @onclick="() => Select(string.Empty)">@EmptyLabel</button>
+            }
+            @if (Filtered.Count == 0)
+            {
+                <div class="sc-ss-empty">No matches</div>
+            }
+            else
+            {
+                @foreach (var o in Filtered)
+                {
+                    var opt = o;
+                    <button type="button" class="sc-ss-opt @(opt.Value == Value ? "is-sel" : "")" @onclick="() => Select(opt.Value)">@opt.Label</button>
+                }
+            }
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public List<SelectOption> Options { get; set; } = new();
+    [Parameter] public string? Value { get; set; }
+    [Parameter] public EventCallback<string> ValueChanged { get; set; }
+
+    /// <summary>Label for the "no selection" entry (e.g. "All types"). Omit to make the field required.</summary>
+    [Parameter] public string? EmptyLabel { get; set; }
+    [Parameter] public string SearchPlaceholder { get; set; } = "Type to search…";
+    [Parameter] public string PlaceholderLabel { get; set; } = "Select…";
+
+    private bool _open;
+    private string _query = string.Empty;
+    private ElementReference _searchBox;
+    private bool _focusPending;
+
+    private bool HasValue => !string.IsNullOrEmpty(Value);
+
+    private string CurrentLabel
+    {
+        get
+        {
+            if (!HasValue) return EmptyLabel ?? PlaceholderLabel;
+            var match = Options.FirstOrDefault(o => o.Value == Value);
+            return match is null ? (EmptyLabel ?? PlaceholderLabel) : match.Label;
+        }
+    }
+
+    private List<SelectOption> Filtered => string.IsNullOrWhiteSpace(_query)
+        ? Options
+        : Options.Where(o => o.Label.Contains(_query.Trim(), StringComparison.OrdinalIgnoreCase)).ToList();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_focusPending)
+        {
+            _focusPending = false;
+            try { await _searchBox.FocusAsync(); } catch { /* element gone */ }
+        }
+    }
+
+    private void Toggle()
+    {
+        if (_open) { Close(); return; }
+        _open = true;
+        _query = string.Empty;
+        _focusPending = true;
+    }
+
+    private void Close()
+    {
+        _open = false;
+        _query = string.Empty;
+    }
+
+    private void OnQueryInput(ChangeEventArgs e) => _query = e.Value?.ToString() ?? string.Empty;
+
+    private async Task OnKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Escape") { Close(); return; }
+        if (e.Key == "Enter")
+        {
+            var first = Filtered.FirstOrDefault();
+            if (first is not null) await Select(first.Value);
+        }
+    }
+
+    private async Task Select(string value)
+    {
+        Value = value;
+        Close();
+        await ValueChanged.InvokeAsync(value);
+    }
+}

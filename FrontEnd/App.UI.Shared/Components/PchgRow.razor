@@ -1,0 +1,13 @@
+@* One label/value row in a Panchangam group. Hidden when the value is empty. *@
+@if (!string.IsNullOrWhiteSpace(V))
+{
+    <div class="sc-pchg-row">
+        <span class="k">@K</span>
+        <span class="v">@V</span>
+    </div>
+}
+
+@code {
+    [Parameter] public string K { get; set; } = string.Empty;
+    [Parameter] public string? V { get; set; }
+}

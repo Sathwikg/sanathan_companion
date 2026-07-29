@@ -1,0 +1,296 @@
+@page "/roles"
+@attribute [Authorize]
+@inject IApiClient Api
+@inject ConfirmService Confirm
+@inject ToastService Toast
+
+<div class="sc-page-head">
+    <div class="sc-page-title">
+        <span class="sc-page-emoji">🎭</span>
+        <div>
+            <h1>Role Master</h1>
+            <p class="sc-page-sub">Manage the roles users are assigned and access rights are granted to</p>
+        </div>
+    </div>
+    @if (!_forbidden)
+    {
+        <div class="sc-page-actions">
+            <div class="sc-viewtoggle">
+                <button class="@(_view == "grid" ? "active" : "")" @onclick='() => SetView("grid")'>▦ Cards</button>
+                <button class="@(_view == "list" ? "active" : "")" @onclick='() => SetView("list")'>☰ List</button>
+            </div>
+            <button class="sc-btn-primary sc-btn-sm" @onclick="OpenCreate">+ Create</button>
+        </div>
+    }
+</div>
+
+@if (_forbidden)
+{
+    <div class="sc-card sc-empty-state">
+        <div class="sc-empty-om">🔒</div>
+        <h3>Administrator access required</h3>
+        <p>The Role master is available to administrators only.</p>
+    </div>
+}
+else
+{
+    <div class="sc-card sc-filtercard">
+        <div class="sc-filters">
+            <div class="sc-filter" style="min-width:280px">
+                <label>Search</label>
+                <input class="sc-input sc-input-sm" placeholder="Role name or description…" @bind="_search" @bind:event="oninput" @bind:after="ReloadAsync" />
+            </div>
+        </div>
+    </div>
+
+    @if (_error is not null)
+    {
+        <div class="sc-alert sc-alert-error">@_error</div>
+    }
+
+    @if (_loading)
+    {
+        <OmLoader FullPage="true" Message="Loading roles…" />
+    }
+    else if (_list.Count == 0)
+    {
+        <div class="sc-card sc-empty-state">
+            <div class="sc-empty-om">🎭</div>
+            <h3>No roles found</h3>
+            <p>@(string.IsNullOrWhiteSpace(_search) ? "Create your first role to get started." : "No roles match the current search.")</p>
+            <button class="sc-btn-primary sc-btn-sm" @onclick="OpenCreate">+ Create Role</button>
+        </div>
+    }
+    else if (_view == "grid")
+    {
+        <div class="sc-cardgrid">
+            @foreach (var r in Paged)
+            {
+                <div class="sc-tile">
+                    <div class="sc-tile-top">
+                        <div class="sc-tile-badge">🎭</div>
+                        @if (r.IsSystemRole)
+                        {
+                            <span class="sc-badge on">Built-in</span>
+                        }
+                    </div>
+                    <h3 class="sc-tile-title">
+                        @r.RoleName
+                        <span class="sc-typechip @(IsAdmin(r) ? "god" : "goddess")">#@r.RoleId</span>
+                    </h3>
+                    <p class="sc-tile-desc">@(string.IsNullOrWhiteSpace(r.Description) ? "No description" : r.Description)</p>
+                    <div class="sc-tile-meta">
+                        <span>👥 @r.UserCount @(r.UserCount == 1 ? "user" : "users")</span>
+                        <span>@FormAccessLabel(r)</span>
+                    </div>
+                    <div class="sc-tile-foot">
+                        @if (r.CanDelete)
+                        {
+                            <button class="sc-chip chip-warn" @onclick="() => ConfirmDelete(r)">Delete</button>
+                        }
+                        else
+                        {
+                            <span class="sc-muted" title="@DeleteBlockedReason(r)">🔒 Protected</span>
+                        }
+                        <button class="sc-btn-ghost sc-btn-sm" @onclick="() => OpenEdit(r)">Edit</button>
+                    </div>
+                </div>
+            }
+        </div>
+        <Pager Page="_page" PageCount="PageCount" TotalCount="_list.Count" PageSize="PageSize" OnGoTo="GoTo" />
+    }
+    else
+    {
+        <div class="sc-card sc-tablewrap">
+            <table class="sc-table">
+                <thead>
+                    <tr>
+                        <th>Role</th>
+                        <th>Description</th>
+                        <th>Users</th>
+                        <th>Forms</th>
+                        <th>Type</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var r in Paged)
+                    {
+                        <tr>
+                            <td><strong>@r.RoleName</strong></td>
+                            <td class="sc-muted">@(string.IsNullOrWhiteSpace(r.Description) ? "—" : r.Description)</td>
+                            <td>@r.UserCount</td>
+                            <td>@(IsAdmin(r) ? "All" : r.FormCount.ToString())</td>
+                            <td>
+                                <span class="sc-typechip @(r.IsSystemRole ? "god" : "goddess")">@(r.IsSystemRole ? "Built-in" : "Custom")</span>
+                            </td>
+                            <td>
+                                <button class="sc-btn-ghost sc-btn-sm" @onclick="() => OpenEdit(r)">Edit</button>
+                                @if (r.CanDelete)
+                                {
+                                    <button class="sc-chip chip-warn" @onclick="() => ConfirmDelete(r)">Delete</button>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <Pager Page="_page" PageCount="PageCount" TotalCount="_list.Count" PageSize="PageSize" OnGoTo="GoTo" />
+    }
+}
+
+<ScModal Visible="_showForm" Title="@(_editId is null ? "Create Role" : "Edit Role")" OnClose="CloseForm">
+    <EditForm Model="_model" OnValidSubmit="SaveAsync" class="sc-form">
+        <DataAnnotationsValidator />
+
+        @if (_formError is not null)
+        {
+            <div class="sc-alert sc-alert-error">@_formError</div>
+        }
+
+        @if (_editingSystemRole)
+        {
+            <div class="sc-alert sc-alert-info">
+                This is a built-in role the application depends on — its name is fixed, but you can update the description.
+            </div>
+        }
+
+        <div class="sc-field">
+            <label>Role Name <span class="sc-req">*</span></label>
+            <InputText @bind-Value="_model.RoleName" class="sc-input" disabled="@_editingSystemRole" />
+            <ValidationMessage For="() => _model.RoleName" />
+        </div>
+
+        <div class="sc-field">
+            <label>Description</label>
+            <InputText @bind-Value="_model.Description" class="sc-input" />
+            <ValidationMessage For="() => _model.Description" />
+        </div>
+
+        <div class="sc-modal-actions">
+            <button type="button" class="sc-btn-ghost" @onclick="CloseForm">Cancel</button>
+            <button type="submit" class="sc-btn-primary" disabled="@_busy">
+                @if (_busy) { <OmLoader Inline="true" Size="18" Message="Saving…" /> } else { <span>@(_editId is null ? "Create" : "Update")</span> }
+            </button>
+        </div>
+    </EditForm>
+</ScModal>
+
+@code {
+    private string _view = "grid";
+    private bool _loading = true;
+    private bool _forbidden;
+    private string? _error;
+
+    private List<RoleModel> _list = new();
+    private string _search = string.Empty;
+
+    private int _page = 1;
+    private const int PageSize = 9;
+    private int PageCount => Math.Max(1, (int)Math.Ceiling(_list.Count / (double)PageSize));
+    private IEnumerable<RoleModel> Paged => _list.Skip((_page - 1) * PageSize).Take(PageSize);
+
+    // popup form state
+    private bool _showForm;
+    private int? _editId;
+    private bool _editingSystemRole;
+    private RoleRequest _model = new();
+    private bool _busy;
+    private string? _formError;
+
+    protected override async Task OnInitializedAsync() => await ReloadAsync();
+
+    private async Task ReloadAsync()
+    {
+        _loading = true;
+        _error = null;
+        _page = 1;
+
+        var (ok, roles, forbidden, err) = await Api.GetRolesAsync(_search);
+        _forbidden = forbidden;
+        if (ok) _list = roles;
+        else if (!forbidden) _error = err;
+
+        _loading = false;
+    }
+
+    private void SetView(string view)
+    {
+        _view = view;
+        _page = 1;
+    }
+
+    private void GoTo(int page) => _page = Math.Clamp(page, 1, PageCount);
+
+    private static bool IsAdmin(RoleModel r) => string.Equals(r.RoleName, "Admin", StringComparison.OrdinalIgnoreCase);
+
+    // Admin bypasses the access matrix entirely, so a mapping count would read as "0 forms" and mislead.
+    private static string FormAccessLabel(RoleModel r)
+        => IsAdmin(r) ? "🔐 Full access" : $"🔐 {r.FormCount} {(r.FormCount == 1 ? "form" : "forms")}";
+
+    private static string DeleteBlockedReason(RoleModel r)
+        => r.IsSystemRole
+            ? "Built-in roles cannot be deleted."
+            : $"Assigned to {r.UserCount} {(r.UserCount == 1 ? "user" : "users")} — reassign them first.";
+
+    private void OpenCreate()
+    {
+        _editId = null;
+        _editingSystemRole = false;
+        _formError = null;
+        _model = new RoleRequest();
+        _showForm = true;
+    }
+
+    private void OpenEdit(RoleModel r)
+    {
+        _editId = r.RoleId;
+        _editingSystemRole = r.IsSystemRole;
+        _formError = null;
+        _model = new RoleRequest { RoleName = r.RoleName, Description = r.Description };
+        _showForm = true;
+    }
+
+    private void CloseForm() => _showForm = false;
+
+    private async Task SaveAsync()
+    {
+        _busy = true;
+        _formError = null;
+
+        var (ok, err) = _editId is null
+            ? await Api.CreateRoleAsync(_model)
+            : await Api.UpdateRoleAsync(_editId.Value, _model);
+        _busy = false;
+
+        if (ok)
+        {
+            Toast.Success($"Role “{_model.RoleName}” saved.");
+            _showForm = false;
+            await ReloadAsync();
+        }
+        else
+        {
+            _formError = err;
+        }
+    }
+
+    private async Task ConfirmDelete(RoleModel r)
+    {
+        var confirmed = await Confirm.ConfirmAsync(new ConfirmRequest
+        {
+            Title = "Delete role?",
+            Message = $"“{r.RoleName}” will be removed along with its access rights. This cannot be undone.",
+            ConfirmText = "Yes, delete",
+            CancelText = "Cancel",
+            Kind = ConfirmKind.Danger
+        });
+        if (!confirmed) return;
+
+        var (ok, err) = await Api.DeleteRoleAsync(r.RoleId);
+        if (ok) Toast.Success($"Role “{r.RoleName}” has been deleted.");
+        else Toast.Error(err);
+        await ReloadAsync();
+    }
+}

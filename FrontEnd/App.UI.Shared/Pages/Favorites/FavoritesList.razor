@@ -1,0 +1,141 @@
+@page "/favorites"
+@attribute [Authorize]
+@inject IApiClient Api
+@inject NavigationManager Nav
+@inject AppConfig Config
+@inject FavoritesState Favs
+
+<div class="sc-page-head">
+    <div class="sc-page-title">
+        <span class="sc-page-emoji">⭐</span>
+        <div>
+            <h1>Favorites</h1>
+            <p class="sc-page-sub">Your favorite chants and gods</p>
+        </div>
+    </div>
+</div>
+
+@if (_loading)
+{
+    <OmLoader FullPage="true" Message="Loading your favorites…" />
+}
+else if (_fav.Chants.Count == 0 && _fav.Gods.Count == 0)
+{
+    <div class="sc-card sc-empty-state">
+        <div class="sc-empty-om">⭐</div>
+        <h3>No favorites yet</h3>
+        <p>Tap the ♥ on a chant or a god to add it here.</p>
+        <a href="sadhana" class="sc-btn-primary sc-btn-sm">Browse chants →</a>
+    </div>
+}
+else
+{
+    <div class="sc-tabs">
+        <button class="sc-tab @(_tab == "chants" ? "active" : "")" @onclick='() => _tab = "chants"'>📿 Chants (@_fav.Chants.Count)</button>
+        <button class="sc-tab @(_tab == "gods" ? "active" : "")" @onclick='() => _tab = "gods"'>🛕 Gods (@_fav.Gods.Count)</button>
+    </div>
+
+    @if (_tab == "chants")
+    {
+        @if (_fav.Chants.Count == 0)
+        {
+            <div class="sc-card sc-empty-state"><div class="sc-empty-om">📿</div><h3>No favorite chants yet</h3></div>
+        }
+        else
+        {
+            <div class="sc-cardgrid">
+                @foreach (var c in _fav.Chants)
+                {
+                    <div class="sc-tile" @onclick="() => OpenChant(c)" style="cursor:pointer">
+                        <div class="sc-tile-top">
+                            <div class="sc-tile-top-left"><span class="sc-minichip">@c.CategoryName</span></div>
+                            <button type="button" class="sc-fav on" title="Remove from favorites"
+                                    @onclick="() => RemoveChantAsync(c)" @onclick:stopPropagation="true">♥</button>
+                        </div>
+                        <h3 class="sc-tile-title">@c.Name</h3>
+                        @if (c.DeityNames.Count > 0)
+                        {
+                            <div class="sc-chiprow">@foreach (var d in c.DeityNames) { <span class="sc-minichip">@d</span> }</div>
+                        }
+                        <div class="sc-tile-foot">
+                            <span class="sc-chantprog">@(c.HasAudio ? "🔊 audio" : "")</span>
+                            <button class="sc-btn-primary sc-btn-sm" @onclick="() => OpenChant(c)" @onclick:stopPropagation="true">Chant →</button>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    }
+    else
+    {
+        @if (_fav.Gods.Count == 0)
+        {
+            <div class="sc-card sc-empty-state"><div class="sc-empty-om">🛕</div><h3>No favorite gods yet</h3></div>
+        }
+        else
+        {
+            <div class="sc-cardgrid">
+                @foreach (var g in _fav.Gods)
+                {
+                    <div class="sc-tile">
+                        <div class="sc-tile-top">
+                            <div class="sc-tile-top-left">
+                                <span class="sc-typechip @(g.DeityType == "Goddess" ? "goddess" : "god")">@g.DeityType</span>
+                            </div>
+                            <button type="button" class="sc-fav on" title="Remove from favorites"
+                                    @onclick="() => RemoveDeityAsync(g)">♥</button>
+                        </div>
+                        <div class="sc-fav-god">
+                            <div class="sc-bhakti-avatar">
+                                @if (g.HasImage)
+                                {
+                                    <img src="@ImgSrc(g.Id)" alt="@g.Name" />
+                                }
+                                else
+                                {
+                                    <span class="sc-bhakti-fallback">@(g.DeityType == "Goddess" ? "🙏" : "🕉️")</span>
+                                }
+                            </div>
+                            <h3 class="sc-tile-title">@g.Name</h3>
+                        </div>
+                        @if (!string.IsNullOrWhiteSpace(g.Description))
+                        {
+                            <p class="sc-tile-desc">@g.Description</p>
+                        }
+                    </div>
+                }
+            </div>
+        }
+    }
+}
+
+@code {
+    private Favorites _fav = new();
+    private bool _loading = true;
+    private string _tab = "chants";
+
+    protected override async Task OnInitializedAsync() => await LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        try { _fav = await Api.GetFavoritesAsync(); }
+        catch { _fav = new(); }
+        finally { _loading = false; }
+    }
+
+    private void OpenChant(FavoriteChant c) => Nav.NavigateTo($"sadhana/chant/{c.ChantConfigId}");
+
+    private async Task RemoveChantAsync(FavoriteChant c)
+    {
+        await Favs.ToggleChantAsync(c.ChantConfigId);
+        await LoadAsync();
+    }
+
+    private async Task RemoveDeityAsync(FavoriteDeity g)
+    {
+        await Favs.ToggleDeityAsync(g.Id);
+        await LoadAsync();
+    }
+
+    private string ImgSrc(Guid id) => $"{Config.ApiBaseUrl.TrimEnd('/')}/deities/{id}/image";
+}

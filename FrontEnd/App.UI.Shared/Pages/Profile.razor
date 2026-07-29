@@ -1,0 +1,201 @@
+@page "/profile"
+@attribute [Authorize]
+@inject IApiClient Api
+@inject RegionState Region
+@inject ToastService Toast
+
+<div class="sc-page-head">
+    <div class="sc-page-title">
+        <span class="sc-page-emoji">🧘</span>
+        <div>
+            <h1>My Profile</h1>
+            <p class="sc-page-sub">Your details and sadhana journey</p>
+        </div>
+    </div>
+</div>
+
+@if (_loading)
+{
+    <OmLoader FullPage="true" Message="Loading your profile…" />
+}
+else if (_error is not null)
+{
+    <div class="sc-alert sc-alert-error">@_error</div>
+}
+else if (_p is not null)
+{
+    <div class="sc-card sc-profile-hero">
+        <div class="sc-avatar sc-avatar-lg" style="width:72px;height:72px;border-radius:18px">
+            <span style="font-size:1.7rem">@Initials(_p.FullName)</span>
+        </div>
+        <div class="sc-profile-id">
+            <h2>@_p.FullName</h2>
+            <div class="sc-muted">
+                @if (!string.IsNullOrWhiteSpace(_p.SeekerName))
+                {
+                    <span>🕉️ @_p.SeekerName · </span>
+                }
+                <span class="sc-typechip @(_p.RoleName == "Admin" ? "god" : "goddess")">@_p.RoleName</span>
+            </div>
+        </div>
+        <div class="sc-profile-streak">
+            <div class="sc-streak-flame @(_p.CurrentStreak > 0 ? "" : "cold")">
+                <span class="ic">🔥</span>
+                <div>
+                    <div class="sc-streak-num">@_p.CurrentStreak</div>
+                    <div class="sc-streak-label">day streak</div>
+                </div>
+            </div>
+            <div class="sc-streak-stats">
+                <div class="sc-streak-stat"><div class="n">@_p.LongestStreak</div><div class="l">Longest</div></div>
+                <div class="sc-streak-stat"><div class="n">@_p.TotalMalas</div><div class="l">Total malas</div></div>
+                <div class="sc-streak-stat"><div class="n">@_p.TotalDaysPracticed</div><div class="l">Days</div></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="sc-tabs">
+        <button class="sc-tab @(_tab == "profile" ? "active" : "")" @onclick='() => _tab = "profile"'>👤 My Profile</button>
+        <button class="sc-tab @(_tab == "timeline" ? "active" : "")" @onclick='() => _tab = "timeline"'>📅 Sadhana Timeline</button>
+    </div>
+
+    @if (_tab == "profile")
+    {
+        <div class="sc-card">
+            <div class="sc-detail-grid">
+                <div class="sc-detail-item"><span class="sc-detail-label">Full name</span><span class="sc-detail-value">@_p.FullName</span></div>
+                @if (!string.IsNullOrWhiteSpace(_p.SeekerName))
+                {
+                    <div class="sc-detail-item"><span class="sc-detail-label">Seeker name</span><span class="sc-detail-value">🕉️ @_p.SeekerName</span></div>
+                }
+                <div class="sc-detail-item"><span class="sc-detail-label">Email</span><span class="sc-detail-value">@_p.Email</span></div>
+                <div class="sc-detail-item"><span class="sc-detail-label">Mobile</span><span class="sc-detail-value">@_p.MobileNumber</span></div>
+                <div class="sc-detail-item"><span class="sc-detail-label">Role</span><span class="sc-detail-value">@_p.RoleName</span></div>
+                <div class="sc-detail-item"><span class="sc-detail-label">Registered</span><span class="sc-detail-value">@_p.RegisteredOn.ToLocalTime().ToString("dd MMM yyyy, HH:mm")</span></div>
+                <div class="sc-detail-item"><span class="sc-detail-label">Last practice</span><span class="sc-detail-value">@(_p.LastPracticeDate?.ToString("dd MMM yyyy") ?? "—")</span></div>
+                <div class="sc-detail-item"><span class="sc-detail-label">Practised today</span><span class="sc-detail-value">@(_p.PracticedToday ? "✓ Yes" : "Not yet")</span></div>
+            </div>
+        </div>
+
+        <div class="sc-card sc-prefcard">
+            <div class="sc-section-head" style="margin-bottom:0.6rem">
+                <h2>📍 Default Region</h2>
+                <span class="sc-section-sub">Gods and chants shown across the app default to this region</span>
+            </div>
+            <div class="sc-field" style="max-width:340px">
+                <label>Region</label>
+                <select class="sc-input" value="@(_regionId?.ToString() ?? "")" @onchange="SaveRegionAsync" disabled="@_savingRegion">
+                    @* "All Regions" is an administrator-only view; seekers always browse one region. *@
+                    @if (Region.AllowAllRegions)
+                    {
+                        <option value="">All Regions</option>
+                    }
+                    @foreach (var r in Region.Regions)
+                    {
+                        <option value="@r.Id">@r.Name</option>
+                    }
+                </select>
+                <span class="sc-hint">
+                    @if (_savingRegion) { <span>Saving…</span> }
+                    else { <span>You can still switch region any time from the selector at the top.</span> }
+                </span>
+            </div>
+        </div>
+    }
+    else
+    {
+        @if (_p.Timeline.Count == 0)
+        {
+            <div class="sc-card sc-empty-state">
+                <div class="sc-empty-om">🪷</div>
+                <h3>No sadhana yet</h3>
+                <p>Your daily practice will appear here once you begin.</p>
+                <a href="sadhana" class="sc-btn-primary sc-btn-sm">Begin Sadhana →</a>
+            </div>
+        }
+        else
+        {
+            <div class="sc-timeline">
+                @foreach (var day in _p.Timeline)
+                {
+                    <div class="sc-card sc-day-card">
+                        <div class="sc-day-head">
+                            <div class="sc-tile-date">
+                                <span class="sc-tile-day">@day.Date.ToString("dd")</span>
+                                <span class="sc-tile-mon">@day.Date.ToString("MMM")</span>
+                            </div>
+                            <div class="sc-day-meta">
+                                <strong>@day.Date.ToString("dddd, dd MMM yyyy")</strong>
+                                <span class="sc-muted">🧮 @day.TotalMalas mala@(day.TotalMalas == 1 ? "" : "s") · @day.Entries.Count chant@(day.Entries.Count == 1 ? "" : "s") · @day.TotalCount total count</span>
+                            </div>
+                        </div>
+                        <div class="sc-day-entries">
+                            @foreach (var e in day.Entries)
+                            {
+                                <div class="sc-day-entry">
+                                    <span class="sc-day-chant">📿 @e.ChantName</span>
+                                    <span class="sc-day-sub">@(string.IsNullOrWhiteSpace(e.DeityName) ? e.CategoryName : e.DeityName)</span>
+                                    <span class="sc-day-val">@e.MalasCompleted mala@(e.MalasCompleted == 1 ? "" : "s") · @e.TotalCount</span>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    }
+}
+
+@code {
+    private MyProfile? _p;
+    private bool _loading = true;
+    private string? _error;
+    private string _tab = "profile";
+
+    private Guid? _regionId;
+    private bool _savingRegion;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Region.EnsureLoadedAsync();
+        try
+        {
+            _p = await Api.GetMyProfileAsync();
+            _regionId = _p?.DefaultRegionId;
+        }
+        catch (Exception ex) { _error = "Could not load your profile. " + ex.Message; }
+        finally { _loading = false; }
+    }
+
+    private async Task SaveRegionAsync(ChangeEventArgs e)
+    {
+        var raw = e.Value?.ToString();
+        Guid? id = Guid.TryParse(raw, out var g) ? g : null;
+
+        _savingRegion = true;
+        var (ok, err) = await Api.SetDefaultRegionAsync(id);
+        _savingRegion = false;
+
+        if (ok)
+        {
+            _regionId = id;
+            // Follow the new default straight away in the top-bar selector.
+            Region.ApplyDefault(id);
+            var name = Region.Regions.FirstOrDefault(r => r.Id == id)?.Name ?? "All Regions";
+            Toast.Success($"Default region set to {name}.");
+        }
+        else
+        {
+            Toast.Error(err);
+        }
+    }
+
+    private static string Initials(string name)
+    {
+        var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length == 0) return "?";
+        return parts.Length == 1
+            ? parts[0][..1].ToUpper()
+            : (parts[0][..1] + parts[^1][..1]).ToUpper();
+    }
+}

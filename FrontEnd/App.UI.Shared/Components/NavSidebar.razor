@@ -1,0 +1,44 @@
+@implements IDisposable
+@inject IApiClient Api
+@inject MenuRefreshService MenuRefresh
+
+<nav class="sc-sidebar-nav">
+    @if (_menu is null)
+    {
+        <div class="sc-nav-loading"><OmLoader Size="40" Message="Loading…" /></div>
+    }
+    else if (_menu.Count == 0)
+    {
+        <div class="sc-nav-empty">No menu items yet.</div>
+    }
+    else
+    {
+        <ul class="sc-nav-list">
+            @foreach (var node in _menu)
+            {
+                <NavTreeItem Node="node" />
+            }
+        </ul>
+    }
+</nav>
+
+@code {
+    private List<MenuTreeNode>? _menu;
+
+    protected override async Task OnInitializedAsync()
+    {
+        MenuRefresh.OnChanged += HandleChanged;
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        try { _menu = await Api.GetMenuAsync(); }
+        catch { _menu = new(); }
+    }
+
+    private void HandleChanged()
+        => _ = InvokeAsync(async () => { await LoadAsync(); StateHasChanged(); });
+
+    public void Dispose() => MenuRefresh.OnChanged -= HandleChanged;
+}

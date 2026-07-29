@@ -1,0 +1,333 @@
+@page "/chants-config"
+@attribute [Authorize]
+@inject IApiClient Api
+@inject ConfirmService Confirm
+@inject ToastService Toast
+@inject NavigationManager Nav
+
+<div class="sc-page-head">
+    <div class="sc-page-title">
+        <span class="sc-page-emoji">📜</span>
+        <div>
+            <h1>Chants Config</h1>
+            <p class="sc-page-sub">Configure the chants under each chant category</p>
+        </div>
+    </div>
+    <div class="sc-page-actions">
+        <div class="sc-viewtoggle">
+            <button class="@(_view == "list" ? "active" : "")" @onclick='() => SetView("list")'>☰ List</button>
+            <button class="@(_view == "grid" ? "active" : "")" @onclick='() => SetView("grid")'>▦ Cards</button>
+        </div>
+        <button class="sc-btn-primary sc-btn-sm" @onclick='() => Nav.NavigateTo("chants-config/create")'>+ Add New Chant</button>
+    </div>
+</div>
+
+<div class="sc-card sc-filtercard">
+    <div class="sc-filters">
+        <div class="sc-filter">
+            <label>Type</label>
+            <SearchableSelect Options="CategoryOptions" Value="@_chantId" ValueChanged="OnTypeChanged"
+                              EmptyLabel="All types" SearchPlaceholder="Search types…" />
+        </div>
+        <div class="sc-filter">
+            <label>Deity</label>
+            <SearchableSelect Options="DeityOptions" Value="@_deityId" ValueChanged="OnDeityChanged"
+                              EmptyLabel="All deities" SearchPlaceholder="Search deities…" />
+        </div>
+        <div class="sc-filter">
+            <label>Time</label>
+            <SearchableSelect Options="TimeSelectOptions" Value="@_timeFilter" ValueChanged="OnTimeChanged"
+                              EmptyLabel="All times" SearchPlaceholder="Search times…" />
+        </div>
+        <div class="sc-filter">
+            <label>Search</label>
+            <input class="sc-input sc-input-sm" placeholder="Name or description…" @bind="_search" @bind:event="oninput" @bind:after="OnSearchAsync" />
+        </div>
+    </div>
+</div>
+
+@if (_error is not null)
+{
+    <div class="sc-alert sc-alert-error">@_error</div>
+}
+
+@if (_loading)
+{
+    <OmLoader FullPage="true" Message="Loading chants…" />
+}
+else if (Filtered.Count == 0)
+{
+    <div class="sc-card sc-empty-state">
+        <div class="sc-empty-om">📜</div>
+        <h3>No chants configured</h3>
+        <p>@(HasFilters ? "No chants match the current filters." : "Add your first chant to get started.")</p>
+        <button class="sc-btn-primary sc-btn-sm" @onclick='() => Nav.NavigateTo("chants-config/create")'>+ Add New Chant</button>
+    </div>
+}
+else if (_view == "grid")
+{
+    <div class="sc-cardgrid">
+        @foreach (var c in Paged)
+        {
+            <div class="sc-tile @(c.IsActive ? "" : "is-inactive")">
+                <div class="sc-tile-top">
+                    <span class="sc-minichip">@c.ChantName</span>
+                    <span class="sc-badge @(c.IsActive ? "on" : "off")">@(c.IsActive ? "Active" : "Inactive")</span>
+                </div>
+
+                <h3 class="sc-tile-title">@c.Name</h3>
+                <p class="sc-tile-desc">@(string.IsNullOrWhiteSpace(c.Description) ? "No description" : c.Description)</p>
+
+                @if (!string.IsNullOrWhiteSpace(c.TextPreview))
+                {
+                    <p class="sc-tile-preview">@c.TextPreview</p>
+                }
+
+                @if (c.DeityNames.Count > 0)
+                {
+                    <div class="sc-chiprow">@foreach (var d in c.DeityNames) { <span class="sc-minichip">@d</span> }</div>
+                }
+
+                <div class="sc-tile-meta">
+                    @if (c.FromTime is not null || c.ToTime is not null)
+                    {
+                        <span>⏰ @FormatRange(c.FromTime, c.ToTime)</span>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(c.TimeDescription))
+                    {
+                        <span>@c.TimeDescription</span>
+                    }
+                    @if (c.HasAudio)
+                    {
+                        <span>🔊 Audio</span>
+                    }
+                </div>
+
+                <div class="sc-tile-foot">
+                    <button class="sc-chip @(c.IsActive ? "chip-warn" : "chip-ok")" @onclick="() => ConfirmToggle(c)">
+                        @(c.IsActive ? "Deactivate" : "Activate")
+                    </button>
+                    <div class="sc-tile-actions">
+                        <button class="sc-iconbtn" title="View" @onclick="() => View(c)">👁</button>
+                        <button class="sc-iconbtn" title="Edit" @onclick="() => Edit(c)">✏️</button>
+                        <button class="sc-iconbtn danger" title="Delete" @onclick="() => ConfirmDelete(c)">🗑</button>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+    <Pager Page="_page" PageCount="PageCount" TotalCount="Filtered.Count" PageSize="PageSize" OnGoTo="GoTo" />
+}
+else
+{
+    <div class="sc-card sc-tablewrap">
+        <table class="sc-table">
+            <thead>
+                <tr>
+                    <th>Chant</th>
+                    <th>Type</th>
+                    <th>Deities</th>
+                    <th>Time</th>
+                    <th>Audio</th>
+                    <th>Status</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var c in Paged)
+                {
+                    <tr>
+                        <td>
+                            <strong>@c.Name</strong>
+                            @if (!string.IsNullOrWhiteSpace(c.Description))
+                            {
+                                <div class="sc-muted">@c.Description</div>
+                            }
+                        </td>
+                        <td><span class="sc-minichip">@c.ChantName</span></td>
+                        <td>
+                            @if (c.DeityNames.Count == 0)
+                            {
+                                <span class="sc-muted">—</span>
+                            }
+                            else
+                            {
+                                <div class="sc-chiprow">@foreach (var d in c.DeityNames) { <span class="sc-minichip">@d</span> }</div>
+                            }
+                        </td>
+                        <td>
+                            <div>@FormatRange(c.FromTime, c.ToTime)</div>
+                            @if (!string.IsNullOrWhiteSpace(c.TimeDescription))
+                            {
+                                <div class="sc-muted">@c.TimeDescription</div>
+                            }
+                        </td>
+                        <td>@(c.HasAudio ? "🔊" : "—")</td>
+                        <td>
+                            <label class="sc-switch">
+                                <input type="checkbox" checked="@c.IsActive" @onclick="() => ConfirmToggle(c)" @onclick:preventDefault />
+                                <span class="sc-slider"></span>
+                            </label>
+                            <span class="sc-status @(c.IsActive ? "on" : "off")">@(c.IsActive ? "Active" : "Inactive")</span>
+                        </td>
+                        <td>
+                            <div class="sc-rowactions">
+                                <button class="sc-iconbtn" title="View" @onclick="() => View(c)">👁</button>
+                                <button class="sc-iconbtn" title="Edit" @onclick="() => Edit(c)">✏️</button>
+                                <button class="sc-iconbtn danger" title="Delete" @onclick="() => ConfirmDelete(c)">🗑</button>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <Pager Page="_page" PageCount="PageCount" TotalCount="Filtered.Count" PageSize="PageSize" OnGoTo="GoTo" />
+}
+
+@code {
+    private List<ChantConfigListItem> _list = new();
+    private ChantConfigFormOptions _options = new();
+    private bool _loading = true;
+    private string? _error;
+
+    private string _view = "list";
+    private string _chantId = string.Empty;
+    private string _deityId = string.Empty;
+    private string _timeFilter = string.Empty;
+    private string _search = string.Empty;
+
+    private int _page = 1;
+    private const int PageSize = 8;
+
+    private List<ChantConfigListItem> Filtered => string.IsNullOrEmpty(_timeFilter)
+        ? _list
+        : _list.Where(c => c.TimeDescription == _timeFilter).ToList();
+
+    private int PageCount => Math.Max(1, (int)Math.Ceiling(Filtered.Count / (double)PageSize));
+    private IEnumerable<ChantConfigListItem> Paged => Filtered.Skip((_page - 1) * PageSize).Take(PageSize);
+
+    private List<SelectOption> CategoryOptions =>
+        _options.Categories.Select(c => new SelectOption(c.Id.ToString(), c.Name)).ToList();
+
+    private List<SelectOption> DeityOptions =>
+        _options.Deities.Select(d => new SelectOption(d.Id.ToString(), d.Name)).ToList();
+
+    /// <summary>Time descriptions present in the current result set.</summary>
+    private List<SelectOption> TimeSelectOptions => _list
+        .Where(c => !string.IsNullOrWhiteSpace(c.TimeDescription))
+        .Select(c => c.TimeDescription!)
+        .Distinct()
+        .OrderBy(t => t)
+        .Select(t => new SelectOption(t, t))
+        .ToList();
+
+    private bool HasFilters => !string.IsNullOrEmpty(_chantId) || !string.IsNullOrEmpty(_deityId)
+        || !string.IsNullOrEmpty(_timeFilter) || !string.IsNullOrWhiteSpace(_search);
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _options = await Api.GetChantConfigFormOptionsAsync();
+        }
+        catch { /* filter options are best-effort */ }
+        await ReloadAsync();
+    }
+
+    private async Task ReloadAsync()
+    {
+        _loading = true;
+        _error = null;
+        _page = 1;
+        try
+        {
+            _list = await Api.GetChantConfigsAsync(ParseGuid(_chantId), ParseGuid(_deityId), _search);
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task OnSearchAsync() => await ReloadAsync();
+
+    private async Task OnTypeChanged(string value)
+    {
+        _chantId = value;
+        await ReloadAsync();
+    }
+
+    private async Task OnDeityChanged(string value)
+    {
+        _deityId = value;
+        await ReloadAsync();
+    }
+
+    private void OnTimeChanged(string value)
+    {
+        _timeFilter = value;
+        _page = 1;
+    }
+
+    private void SetView(string view)
+    {
+        _view = view;
+        _page = 1;
+    }
+
+    private void GoTo(int page) => _page = Math.Clamp(page, 1, PageCount);
+
+    private void View(ChantConfigListItem c) => Nav.NavigateTo($"chants-config/{c.Id}");
+    private void Edit(ChantConfigListItem c) => Nav.NavigateTo($"chants-config/{c.Id}/edit");
+
+    private static Guid? ParseGuid(string value) => Guid.TryParse(value, out var g) ? g : null;
+
+    private static string FormatRange(TimeOnly? from, TimeOnly? to)
+    {
+        if (from is null && to is null) return "—";
+        if (from is not null && to is not null) return $"{from:HH\\:mm} – {to:HH\\:mm}";
+        return from is not null ? $"from {from:HH\\:mm}" : $"until {to:HH\\:mm}";
+    }
+
+    private async Task ConfirmToggle(ChantConfigListItem c)
+    {
+        var activate = !c.IsActive;
+        var confirmed = await Confirm.ConfirmAsync(new ConfirmRequest
+        {
+            Title = activate ? "Activate chant?" : "Deactivate chant?",
+            Message = $"Are you sure you want to {(activate ? "activate" : "deactivate")} “{c.Name}”?",
+            ConfirmText = activate ? "Yes, activate" : "Yes, deactivate",
+            CancelText = "Cancel",
+            Kind = activate ? ConfirmKind.Success : ConfirmKind.Warning
+        });
+        if (!confirmed) return;
+
+        var (ok, err) = await Api.SetChantConfigStatusAsync(c.Id, activate);
+        if (ok) Toast.Success($"“{c.Name}” has been {(activate ? "activated" : "deactivated")}.");
+        else Toast.Error(err);
+        await ReloadAsync();
+    }
+
+    private async Task ConfirmDelete(ChantConfigListItem c)
+    {
+        var confirmed = await Confirm.ConfirmAsync(new ConfirmRequest
+        {
+            Title = "Delete chant?",
+            Message = $"“{c.Name}” and its audio will be permanently deleted. This cannot be undone.",
+            ConfirmText = "Yes, delete",
+            CancelText = "Cancel",
+            Kind = ConfirmKind.Danger
+        });
+        if (!confirmed) return;
+
+        var (ok, err) = await Api.DeleteChantConfigAsync(c.Id);
+        if (ok) Toast.Success($"“{c.Name}” was deleted.");
+        else Toast.Error(err);
+        await ReloadAsync();
+    }
+}

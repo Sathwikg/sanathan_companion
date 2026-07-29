@@ -1,0 +1,72 @@
+@* Dependency-free rich-text editor: a contenteditable surface driven by document.execCommand. *@
+@implements IDisposable
+@inject IJSRuntime JS
+
+<div class="sc-rte">
+    <div class="sc-rte-toolbar">
+        <button type="button" class="sc-rte-btn" title="Bold" @onclick='() => Exec("bold")'><b>B</b></button>
+        <button type="button" class="sc-rte-btn" title="Italic" @onclick='() => Exec("italic")'><i>I</i></button>
+        <button type="button" class="sc-rte-btn" title="Underline" @onclick='() => Exec("underline")'><u>U</u></button>
+        <button type="button" class="sc-rte-btn" title="Strikethrough" @onclick='() => Exec("strikeThrough")'><s>S</s></button>
+        <span class="sc-rte-sep"></span>
+        <button type="button" class="sc-rte-btn" title="Heading" @onclick='() => Exec("formatBlock", "<h3>")'>H</button>
+        <button type="button" class="sc-rte-btn" title="Paragraph" @onclick='() => Exec("formatBlock", "<p>")'>¶</button>
+        <button type="button" class="sc-rte-btn" title="Quote" @onclick='() => Exec("formatBlock", "<blockquote>")'>❝</button>
+        <span class="sc-rte-sep"></span>
+        <button type="button" class="sc-rte-btn" title="Bulleted list" @onclick='() => Exec("insertUnorderedList")'>• ≡</button>
+        <button type="button" class="sc-rte-btn" title="Numbered list" @onclick='() => Exec("insertOrderedList")'>1. ≡</button>
+        <span class="sc-rte-sep"></span>
+        <button type="button" class="sc-rte-btn" title="Align left" @onclick='() => Exec("justifyLeft")'>⯇</button>
+        <button type="button" class="sc-rte-btn" title="Align centre" @onclick='() => Exec("justifyCenter")'>≡</button>
+        <span class="sc-rte-sep"></span>
+        <button type="button" class="sc-rte-btn" title="Clear formatting" @onclick='() => Exec("removeFormat")'>✕</button>
+        <button type="button" class="sc-rte-btn" title="Undo" @onclick='() => Exec("undo")'>↶</button>
+        <button type="button" class="sc-rte-btn" title="Redo" @onclick='() => Exec("redo")'>↷</button>
+    </div>
+    <div @ref="_editor" class="sc-rte-body" contenteditable="true" data-placeholder="@Placeholder"></div>
+</div>
+
+@code {
+    [Parameter] public string? Value { get; set; }
+    [Parameter] public EventCallback<string> ValueChanged { get; set; }
+    [Parameter] public string Placeholder { get; set; } = "Type the chant here…";
+
+    private ElementReference _editor;
+    private DotNetObjectReference<RichTextEditor>? _selfRef;
+
+    // Tracks the HTML the DOM already holds so re-renders never reset the caret.
+    private string? _domHtml;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _selfRef = DotNetObjectReference.Create(this);
+            await JS.InvokeVoidAsync("scRichText.init", _editor, _selfRef);
+            await JS.InvokeVoidAsync("scRichText.setHtml", _editor, Value ?? string.Empty);
+            _domHtml = Value;
+        }
+        else if (Value != _domHtml)
+        {
+            // Value changed from outside the editor (e.g. an existing record finished loading).
+            await JS.InvokeVoidAsync("scRichText.setHtml", _editor, Value ?? string.Empty);
+            _domHtml = Value;
+        }
+    }
+
+    [JSInvokable]
+    public async Task OnHtmlChanged(string html)
+    {
+        _domHtml = html;
+        await ValueChanged.InvokeAsync(html);
+    }
+
+    private async Task Exec(string command, string? value = null)
+    {
+        var html = await JS.InvokeAsync<string>("scRichText.exec", _editor, command, value);
+        _domHtml = html;
+        await ValueChanged.InvokeAsync(html);
+    }
+
+    public void Dispose() => _selfRef?.Dispose();
+}

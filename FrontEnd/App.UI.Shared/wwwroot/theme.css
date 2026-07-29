@@ -1,0 +1,71 @@
+/* Sanathan Companion — Hindu Dharma theme tokens (light + dark) */
+:root {
+  --color-primary: #8D4E19;          /* divine saffron / copper-bronze */
+  --color-on-primary: #FFFFFF;
+  --color-primary-container: #F6ECD5;
+  --color-on-primary-container: #5A2A04;
+  --color-secondary: #705745;        /* warm taupe */
+  --color-background: #FDFBF7;        /* cream */
+  --color-on-background: #3D210A;
+  --color-surface: #FAF6EE;           /* card beige */
+  --color-on-surface: #3D210A;
+  --color-outline: #EFE8D8;
+  --color-accent: #D47222;            /* CTA / links */
+  --color-gold: #E4A951;              /* mala / highlights */
+  --color-error: #B3261E;
+  --color-on-error: #FFFFFF;
+  --color-success: #2E7D32;
+
+  --font-heading: Georgia, "Noto Serif", "Times New Roman", serif;
+  --font-body: system-ui, "Segoe UI", "Noto Sans", sans-serif;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-badge: 24px;
+  --btn-height: 50px;
+
+  --welcome-gradient: linear-gradient(180deg, #FDFBF7 0%, #FAF6EE 100%);
+  --elevation-card: 0 1px 3px rgba(61, 33, 10, 0.12);
+
+  /* Revamp tokens */
+  --gradient-saffron: linear-gradient(135deg, #C0631A 0%, #8D4E19 100%);
+  --gradient-gold: linear-gradient(135deg, #E4A951 0%, #D47222 100%);
+  --gradient-hero: radial-gradient(1100px 560px at 12% -12%, #F6ECD5 0%, transparent 55%),
+                   radial-gradient(900px 520px at 112% 8%, #F3E5D8 0%, transparent 52%),
+                   linear-gradient(180deg, #FDFBF7 0%, #FAF6EE 100%);
+  --shadow-sm: 0 1px 2px rgba(61, 33, 10, 0.10);
+  --shadow-md: 0 6px 20px -8px rgba(61, 33, 10, 0.22);
+  --shadow-lg: 0 18px 48px -18px rgba(61, 33, 10, 0.34);
+  --shadow-glow: 0 8px 30px -10px rgba(212, 114, 34, 0.45);
+  --glass-border: rgba(141, 78, 25, 0.14);
+  --ring: rgba(212, 114, 34, 0.28);
+  --pattern-mandala: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140' viewBox='0 0 140 140'%3E%3Cg fill='none' stroke='%238D4E19' stroke-opacity='0.045'%3E%3Ccircle cx='70' cy='70' r='34'/%3E%3Ccircle cx='70' cy='70' r='20'/%3E%3Cpath d='M70 14c8 18 8 32 0 42-8-10-8-24 0-42zM70 126c8-18 8-32 0-42-8 10-8 24 0 42zM14 70c18 8 32 8 42 0-10-8-24-8-42 0zM126 70c-18 8-32 8-42 0 10-8 24-8 42 0z'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+:root[data-theme="dark"] {
+  --color-primary: #F39F5A;
+  --color-on-primary: #1E140B;
+  --color-primary-container: #5A2A04;
+  --color-on-primary-container: #F6ECD5;
+  --color-secondary: #C05C11;
+  --color-background: #1E140B;
+  --color-on-background: #FAF6EE;
+  --color-surface: #2B1D10;
+  --color-on-surface: #FAF6EE;
+  --color-outline: #4A3826;
+  --color-error: #F2B8B5;
+  --color-on-error: #601410;
+  --welcome-gradient: linear-gradient(180deg, #1E140B 0%, #2B1D10 100%);
+  --elevation-card: 0 1px 3px rgba(0, 0, 0, 0.4);
+
+  --gradient-hero: radial-gradient(1100px 560px at 12% -12%, #2B1D10 0%, transparent 55%),
+                   radial-gradient(900px 520px at 112% 8%, #33241A 0%, transparent 52%),
+                   linear-gradient(180deg, #1E140B 0%, #241811 100%);
+  --shadow-md: 0 6px 20px -8px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 18px 48px -18px rgba(0, 0, 0, 0.6);
+  --shadow-glow: 0 8px 30px -10px rgba(243, 159, 90, 0.4);
+  --glass-border: rgba(243, 159, 90, 0.16);
+  --ring: rgba(243, 159, 90, 0.3);
+  --pattern-mandala: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140' viewBox='0 0 140 140'%3E%3Cg fill='none' stroke='%23F39F5A' stroke-opacity='0.05'%3E%3Ccircle cx='70' cy='70' r='34'/%3E%3Ccircle cx='70' cy='70' r='20'/%3E%3Cpath d='M70 14c8 18 8 32 0 42-8-10-8-24 0-42zM70 126c8-18 8-32 0-42-8 10-8 24 0 42zM14 70c18 8 32 8 42 0-10-8-24-8-42 0zM126 70c-18 8-32 8-42 0 10-8 24-8 42 0z'/%3E%3C/g%3E%3C/svg%3E");
+}

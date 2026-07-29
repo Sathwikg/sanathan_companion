@@ -1,0 +1,254 @@
+@page "/deities/create"
+@page "/deities/{Id:guid}/edit"
+@attribute [Authorize]
+@inject IApiClient Api
+@inject ToastService Toast
+@inject NavigationManager Nav
+@inject IJSRuntime JS
+@inject AppConfig Config
+
+<div class="sc-page-head">
+    <h1>@(IsEdit ? "Edit Deity" : "Create Deity")</h1>
+    <button class="sc-btn-ghost sc-btn-sm" @onclick='() => Nav.NavigateTo("deities")'>← Back to list</button>
+</div>
+
+@if (_error is not null)
+{
+    <div class="sc-alert sc-alert-error">@_error</div>
+}
+
+@if (_loading)
+{
+    <OmLoader FullPage="true" Message="Loading…" />
+}
+else
+{
+    <div class="sc-card sc-form-card">
+        <EditForm Model="_model" OnValidSubmit="SaveAsync" class="sc-form">
+            <DataAnnotationsValidator />
+
+            @if (_formError is not null)
+            {
+                <div class="sc-alert sc-alert-error">@_formError</div>
+            }
+
+            <div class="sc-deityform">
+                <div class="sc-deity-photo">
+                    <div class="sc-avatar-lg">
+                        @if (_previewUrl is not null)
+                        {
+                            <img src="@_previewUrl" alt="preview" />
+                        }
+                        else if (IsEdit && _hasExistingImage && !_model.RemoveImage)
+                        {
+                            <img src="@ExistingImageUrl" alt="@_model.Name" />
+                        }
+                        else
+                        {
+                            <span class="sc-avatar-ph">🛕</span>
+                        }
+                    </div>
+                    <label class="sc-btn-ghost sc-btn-sm sc-upload">
+                        📷 @(HasAnyImage ? "Change" : "Add photo")
+                        <InputFile OnChange="OnImageSelected" accept="image/*" style="display:none" />
+                    </label>
+                    @if (HasAnyImage)
+                    {
+                        <button type="button" class="sc-linkbtn" @onclick="RemoveImage">Remove</button>
+                    }
+                    @if (_imageError is not null)
+                    {
+                        <span class="sc-hint sc-hint-error">@_imageError</span>
+                    }
+                    <span class="sc-hint">Compressed to WebP · stored in the DB</span>
+                </div>
+
+                <div class="sc-deity-fields sc-form-grid">
+                    <div class="sc-field sc-span-2">
+                        <label>God Name</label>
+                        <InputText @bind-Value="_model.Name" class="sc-input" />
+                        <ValidationMessage For="() => _model.Name" />
+                    </div>
+
+                    <div class="sc-field sc-span-2">
+                        <label>God / Goddess</label>
+                        <div class="sc-radios">
+                            <label class="sc-radio">
+                                <input type="radio" name="dtype" checked="@(_model.DeityType == "God")" @onchange='() => _model.DeityType = "God"' />
+                                <span>God</span>
+                            </label>
+                            <label class="sc-radio">
+                                <input type="radio" name="dtype" checked="@(_model.DeityType == "Goddess")" @onchange='() => _model.DeityType = "Goddess"' />
+                                <span>Goddess</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="sc-field sc-span-2">
+                        <label>God Description</label>
+                        <InputTextArea @bind-Value="_model.Description" class="sc-input sc-textarea" rows="2" />
+                        <ValidationMessage For="() => _model.Description" />
+                    </div>
+
+                    <div class="sc-field sc-span-2">
+                        <label>Welcome Note</label>
+                        <InputTextArea @bind-Value="_model.WelcomeNote" class="sc-input sc-textarea" rows="2" />
+                        <ValidationMessage For="() => _model.WelcomeNote" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="sc-multigroup">
+                <div class="sc-field">
+                    <label>Regions</label>
+                    <MultiSelect Options="_regionOptions" Selected="_selRegions" SelectedChanged="v => _selRegions = v" />
+                </div>
+                <div class="sc-field">
+                    <label>Festivals</label>
+                    <MultiSelect Options="_festivalOptions" Selected="_selFestivals" SelectedChanged="v => _selFestivals = v" />
+                </div>
+                <div class="sc-field">
+                    <label>Days</label>
+                    <MultiSelect Options="_dayOptions" Selected="_selDays" SelectedChanged="v => _selDays = v" />
+                </div>
+            </div>
+
+            <div class="sc-switches">
+                <div class="sc-switchrow">
+                    <label class="sc-switch"><input type="checkbox" @bind="_model.IsActive" /><span class="sc-slider"></span></label>
+                    <span>Active</span>
+                </div>
+            </div>
+
+            <div class="sc-modal-actions">
+                <button type="button" class="sc-btn-ghost" @onclick='() => Nav.NavigateTo("deities")'>Cancel</button>
+                <button type="submit" class="sc-btn-primary" disabled="@_busy">
+                    @if (_busy) { <OmLoader Inline="true" Size="18" Message="Saving…" /> } else { <span>@(IsEdit ? "Update" : "Create")</span> }
+                </button>
+            </div>
+        </EditForm>
+    </div>
+}
+
+@code {
+    [Parameter] public Guid? Id { get; set; }
+    private bool IsEdit => Id.HasValue;
+
+    private DeityRequest _model = new();
+    private List<SelectOption> _regionOptions = new();
+    private List<SelectOption> _festivalOptions = new();
+    private List<SelectOption> _dayOptions = new();
+    private HashSet<string> _selRegions = new();
+    private HashSet<string> _selFestivals = new();
+    private HashSet<string> _selDays = new();
+
+    private bool _loading = true;
+    private bool _busy;
+    private bool _hasExistingImage;
+    private string? _previewUrl;
+    private string? _error;
+    private string? _formError;
+    private string? _imageError;
+
+    private string ExistingImageUrl => $"{Config.ApiBaseUrl.TrimEnd('/')}/deities/{Id}/image";
+    private bool HasAnyImage => _previewUrl is not null || (IsEdit && _hasExistingImage && !_model.RemoveImage);
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var opts = await Api.GetDeityFormOptionsAsync();
+            _regionOptions = opts.Regions.Select(r => new SelectOption(r, r)).ToList();
+            _festivalOptions = opts.Festivals.Select(f => new SelectOption(f, f)).ToList();
+            _dayOptions = opts.Days.Select(d => new SelectOption(d, d)).ToList();
+
+            if (IsEdit)
+            {
+                var d = await Api.GetDeityAsync(Id!.Value);
+                if (d is not null)
+                {
+                    _model = new DeityRequest
+                    {
+                        Name = d.Name,
+                        Description = d.Description,
+                        WelcomeNote = d.WelcomeNote,
+                        DeityType = d.DeityType,
+                        IsActive = d.IsActive,
+                        Regions = d.Regions,
+                        Festivals = d.Festivals,
+                        Days = d.Days
+                    };
+                    _selRegions = d.Regions.ToHashSet();
+                    _selFestivals = d.Festivals.ToHashSet();
+                    _selDays = d.Days.ToHashSet();
+                    _hasExistingImage = d.HasImage;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task OnImageSelected(InputFileChangeEventArgs e)
+    {
+        _imageError = null;
+        var file = e.File;
+        if (file is null) return;
+        try
+        {
+            // Downscale large images losslessly (PNG) first to bound the JS-interop payload…
+            var pre = await file.RequestImageFileAsync("image/png", 1024, 1024);
+            await using var stream = pre.OpenReadStream(maxAllowedSize: 15 * 1024 * 1024);
+            using var ms = new MemoryStream();
+            await stream.CopyToAsync(ms);
+            var pngDataUrl = $"data:image/png;base64,{Convert.ToBase64String(ms.ToArray())}";
+
+            // …then compress to high-quality WebP in the browser canvas.
+            var compressed = await JS.InvokeAsync<string>("scImage.compress", pngDataUrl, 512, 0.9);
+            _model.ImageBase64 = compressed;
+            _model.RemoveImage = false;
+            _previewUrl = compressed;
+        }
+        catch (Exception ex)
+        {
+            _imageError = "Could not process image. " + ex.Message;
+        }
+    }
+
+    private void RemoveImage()
+    {
+        _previewUrl = null;
+        _model.ImageBase64 = null;
+        _model.RemoveImage = true;
+    }
+
+    private async Task SaveAsync()
+    {
+        _busy = true;
+        _formError = null;
+        _model.Regions = _selRegions.ToList();
+        _model.Festivals = _selFestivals.ToList();
+        _model.Days = _selDays.ToList();
+
+        var (ok, err) = IsEdit
+            ? await Api.UpdateDeityAsync(Id!.Value, _model)
+            : await Api.CreateDeityAsync(_model);
+        _busy = false;
+
+        if (ok)
+        {
+            Toast.Success($"Deity “{_model.Name}” saved.");
+            Nav.NavigateTo("deities");
+        }
+        else
+        {
+            _formError = err;
+        }
+    }
+}

@@ -1,0 +1,18 @@
+@* A single metric tile for the admin dashboard. *@
+<div class="sc-card sc-stat-card @(Accent ? "accent" : null)">
+    <div class="sc-stat-ic">@Icon</div>
+    <div class="sc-stat-n">@Value</div>
+    <div class="sc-stat-l">@Label</div>
+    @if (!string.IsNullOrWhiteSpace(Sub))
+    {
+        <div class="sc-stat-sub">@Sub</div>
+    }
+</div>
+
+@code {
+    [Parameter] public string Icon { get; set; } = "";
+    [Parameter] public string Value { get; set; } = "";
+    [Parameter] public string Label { get; set; } = "";
+    [Parameter] public string? Sub { get; set; }
+    [Parameter] public bool Accent { get; set; }
+}

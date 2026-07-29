@@ -1,0 +1,393 @@
+@page "/chants-config/create"
+@page "/chants-config/{Id:guid}/edit"
+@attribute [Authorize]
+@using System.Text.RegularExpressions
+@inject IApiClient Api
+@inject ToastService Toast
+@inject NavigationManager Nav
+@inject AppConfig Config
+
+<div class="sc-page-head">
+    <h1>@(IsEdit ? "Edit Chant" : "Add New Chant")</h1>
+    <button class="sc-btn-ghost sc-btn-sm" @onclick="BackToList">← Back to list</button>
+</div>
+
+@if (_error is not null)
+{
+    <div class="sc-alert sc-alert-error">@_error</div>
+}
+
+@if (_loading)
+{
+    <OmLoader FullPage="true" Message="Loading…" />
+}
+else
+{
+    <div class="sc-card sc-form-card sc-compact">
+        <EditForm Model="_model" OnValidSubmit="SaveAsync" class="sc-form">
+            <DataAnnotationsValidator />
+
+            @if (_formError is not null)
+            {
+                <div class="sc-alert sc-alert-error">@_formError</div>
+            }
+
+            <div class="sc-form-grid">
+                <div class="sc-field">
+                    <label>Chant Name <span class="sc-req">*</span></label>
+                    <InputText @bind-Value="_model.Name" class="sc-input" />
+                    <ValidationMessage For="() => _model.Name" />
+                </div>
+
+                <div class="sc-field">
+                    <label>Chant Type <span class="sc-req">*</span></label>
+                    <select class="sc-input" @bind="_categoryId">
+                        <option value="">Select a type…</option>
+                        @foreach (var c in _options.Categories)
+                        {
+                            <option value="@c.Id">@c.Name</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="sc-field sc-span-2">
+                    <label>Description</label>
+                    <InputTextArea @bind-Value="_model.Description" class="sc-input sc-textarea" rows="2" />
+                    <ValidationMessage For="() => _model.Description" />
+                </div>
+            </div>
+
+            <div class="sc-form-grid">
+                <div class="sc-field sc-span-2">
+                    <label>Mapped Deities</label>
+                    <MultiSelect Options="_deityOptions" Selected="_selDeities" SelectedChanged="v => _selDeities = v" />
+                </div>
+
+                <div class="sc-field sc-span-2">
+                    <label>Audio <span class="sc-optional">(optional · MP3, WAV or OGG · max 10 MB)</span></label>
+                    <div class="sc-audiobox">
+                        <div class="sc-audiorow">
+                            <label class="sc-btn-ghost sc-btn-sm sc-upload">
+                                🎵 @(HasAnyAudio ? "Change audio" : "Choose audio")
+                                <InputFile OnChange="OnAudioSelected" accept="audio/mpeg,audio/mp3,audio/wav,audio/x-wav,audio/ogg,.mp3,.wav,.ogg" style="display:none" />
+                            </label>
+                            @if (HasAnyAudio)
+                            {
+                                <span class="sc-audiometa">@AudioLabel</span>
+                                <button type="button" class="sc-linkbtn" @onclick="RemoveAudio">Remove</button>
+                            }
+                        </div>
+
+                        @if (_audioError is not null)
+                        {
+                            <span class="sc-hint sc-hint-error">@_audioError</span>
+                        }
+
+                        @if (_newAudioDataUrl is not null)
+                        {
+                            <audio class="sc-audioplayer" controls src="@_newAudioDataUrl"></audio>
+                        }
+                        else if (IsEdit && _hasExistingAudio && !_model.RemoveAudio)
+                        {
+                            <audio class="sc-audioplayer" controls src="@ExistingAudioUrl"></audio>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <div class="sc-field">
+                <label>Chant Text <span class="sc-req">*</span></label>
+                <RichTextEditor @bind-Value="_model.ChantText" />
+            </div>
+
+            <div class="sc-collapse">
+                <button type="button" class="sc-collapse-head" @onclick="() => _timeOpen = !_timeOpen">
+                    <span>⏰ Time Configuration <span class="sc-optional">(optional)</span></span>
+                    <span class="sc-collapse-caret @(_timeOpen ? "open" : "")">›</span>
+                </button>
+                @if (_timeOpen)
+                {
+                    <div class="sc-collapse-body sc-form-grid">
+                        <div class="sc-field">
+                            <label>From Time</label>
+                            <InputDate Type="InputDateType.Time" @bind-Value="_model.FromTime" class="sc-input" />
+                        </div>
+                        <div class="sc-field">
+                            <label>To Time</label>
+                            <InputDate Type="InputDateType.Time" @bind-Value="_model.ToTime" class="sc-input" />
+                        </div>
+                        <div class="sc-field sc-span-2">
+                            <label>Time Description</label>
+                            <InputText @bind-Value="_model.TimeDescription" class="sc-input" placeholder="e.g. Morning Prayer, Food Prayer, Night Prayer" />
+                            <ValidationMessage For="() => _model.TimeDescription" />
+                        </div>
+                    </div>
+                }
+            </div>
+
+            @if (_languages.Count > 0)
+            {
+                <div class="sc-field">
+                    <label>Chant in Other Languages <span class="sc-optional">(optional · saved per language)</span></label>
+                    <div class="sc-tabs">
+                        @foreach (var lang in _languages)
+                        {
+                            <button type="button" class="sc-tab @(_activeLangId == lang.Id ? "active" : "")" @onclick="() => _activeLangId = lang.Id">
+                                @lang.Name@(HasLangText(lang.Id) ? " ●" : "")
+                            </button>
+                        }
+                    </div>
+                    @if (_activeLangId != Guid.Empty)
+                    {
+                        var active = _languages.FirstOrDefault(l => l.Id == _activeLangId);
+                        <div class="sc-langeditor">
+                            @if (active is not null && !string.IsNullOrWhiteSpace(active.NativeName))
+                            {
+                                <div class="sc-native" style="margin-bottom:0.3rem">@active.NativeName</div>
+                            }
+                            <RichTextEditor @key="_activeLangId" Value="@GetLangText(_activeLangId)"
+                                            ValueChanged="v => SetLangText(_activeLangId, v)"
+                                            Placeholder="@($"Type the chant in {active?.Name}…")" />
+                        </div>
+                    }
+                </div>
+            }
+
+            <div class="sc-formfoot">
+                <div class="sc-switchrow">
+                    <label class="sc-switch"><input type="checkbox" @bind="_model.IsActive" /><span class="sc-slider"></span></label>
+                    <span>Active</span>
+                </div>
+
+                <div class="sc-modal-actions">
+                    <button type="button" class="sc-btn-ghost" @onclick="BackToList">Cancel</button>
+                    <button type="submit" class="sc-btn-primary" disabled="@_busy">
+                        @if (_busy) { <OmLoader Inline="true" Size="18" Message="Saving…" /> } else { <span>@(IsEdit ? "Update" : "Create")</span> }
+                    </button>
+                </div>
+            </div>
+        </EditForm>
+    </div>
+}
+
+@code {
+    [Parameter] public Guid? Id { get; set; }
+    private bool IsEdit => Id.HasValue;
+
+    private const long MaxAudioBytes = 10 * 1024 * 1024;
+
+    private ChantConfigRequest _model = new();
+    private ChantConfigFormOptions _options = new();
+    private List<SelectOption> _deityOptions = new();
+    private HashSet<string> _selDeities = new();
+    private string _categoryId = string.Empty;
+
+    private bool _loading = true;
+    private bool _busy;
+    private bool _timeOpen;
+    private string? _error;
+    private string? _formError;
+    private string? _audioError;
+
+    private bool _hasExistingAudio;
+    private string? _newAudioDataUrl;
+    private string? _newAudioName;
+    private long _newAudioSize;
+
+    // per-language chant texts
+    private List<LanguageModel> _languages = new();
+    private readonly Dictionary<Guid, string> _langTexts = new();
+    private Guid _activeLangId;
+
+    private string GetLangText(Guid id) => _langTexts.TryGetValue(id, out var t) ? t : string.Empty;
+    private void SetLangText(Guid id, string v) => _langTexts[id] = v;
+    private bool HasLangText(Guid id) => _langTexts.TryGetValue(id, out var t) && !IsRichTextEmpty(t);
+
+    private string ExistingAudioUrl => $"{Config.ApiBaseUrl.TrimEnd('/')}/chantconfigs/{Id}/audio";
+    private bool HasAnyAudio => _newAudioDataUrl is not null || (IsEdit && _hasExistingAudio && !_model.RemoveAudio);
+
+    private string AudioLabel => _newAudioDataUrl is not null
+        ? $"{_newAudioName} · {FormatSize(_newAudioSize)}"
+        : _existingAudioLabel ?? "Current audio";
+
+    private string? _existingAudioLabel;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _options = await Api.GetChantConfigFormOptionsAsync();
+            _deityOptions = _options.Deities.Select(d => new SelectOption(d.Id.ToString(), d.Name)).ToList();
+
+            _languages = (await Api.GetLanguagesAsync()).Where(l => l.IsActive).ToList();
+            _activeLangId = _languages.FirstOrDefault()?.Id ?? Guid.Empty;
+
+            if (IsEdit)
+            {
+                var c = await Api.GetChantConfigAsync(Id!.Value);
+                if (c is null)
+                {
+                    _error = "That chant no longer exists.";
+                }
+                else
+                {
+                    _model = new ChantConfigRequest
+                    {
+                        ChantId = c.ChantId,
+                        Name = c.Name,
+                        Description = c.Description,
+                        DeityIds = c.DeityIds,
+                        ChantText = c.ChantText,
+                        FromTime = c.FromTime,
+                        ToTime = c.ToTime,
+                        TimeDescription = c.TimeDescription,
+                        IsActive = c.IsActive
+                    };
+                    _categoryId = c.ChantId.ToString();
+                    _selDeities = c.DeityIds.Select(id => id.ToString()).ToHashSet();
+                    _hasExistingAudio = c.HasAudio;
+                    _existingAudioLabel = c.AudioFileName is null
+                        ? null
+                        : $"{c.AudioFileName}{(c.AudioSizeBytes is null ? "" : " · " + FormatSize(c.AudioSizeBytes.Value))}";
+                    _timeOpen = c.FromTime is not null || c.ToTime is not null || !string.IsNullOrWhiteSpace(c.TimeDescription);
+                    foreach (var lt in c.LanguageTexts)
+                        _langTexts[lt.LanguageId] = lt.Text;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task OnAudioSelected(InputFileChangeEventArgs e)
+    {
+        _audioError = null;
+        var file = e.File;
+        if (file is null) return;
+
+        if (file.Size > MaxAudioBytes)
+        {
+            _audioError = $"That file is {FormatSize(file.Size)}. Please choose an audio file of 10 MB or less.";
+            return;
+        }
+
+        var contentType = NormaliseAudioType(file.ContentType, file.Name);
+        if (contentType is null)
+        {
+            _audioError = "Only MP3, WAV and OGG audio files are supported.";
+            return;
+        }
+
+        try
+        {
+            await using var stream = file.OpenReadStream(maxAllowedSize: MaxAudioBytes);
+            using var ms = new MemoryStream();
+            await stream.CopyToAsync(ms);
+            var bytes = ms.ToArray();
+
+            _newAudioDataUrl = $"data:{contentType};base64,{Convert.ToBase64String(bytes)}";
+            _newAudioName = file.Name;
+            _newAudioSize = bytes.LongLength;
+
+            _model.AudioBase64 = _newAudioDataUrl;
+            _model.AudioFileName = file.Name;
+            _model.RemoveAudio = false;
+        }
+        catch (Exception ex)
+        {
+            _audioError = "Could not read that audio file. " + ex.Message;
+        }
+    }
+
+    private void RemoveAudio()
+    {
+        _newAudioDataUrl = null;
+        _newAudioName = null;
+        _newAudioSize = 0;
+        _model.AudioBase64 = null;
+        _model.AudioFileName = null;
+        _model.RemoveAudio = true;
+    }
+
+    private void BackToList() => Nav.NavigateTo("chants-config");
+
+    private async Task SaveAsync()
+    {
+        _formError = null;
+
+        if (!Guid.TryParse(_categoryId, out var chantId) || chantId == Guid.Empty)
+        {
+            _formError = "Please select a chant type.";
+            return;
+        }
+
+        if (IsRichTextEmpty(_model.ChantText))
+        {
+            _formError = "Please enter the chant text.";
+            return;
+        }
+
+        if (_model.FromTime is not null && _model.ToTime is not null && _model.FromTime >= _model.ToTime)
+        {
+            _formError = "From time must be earlier than To time.";
+            return;
+        }
+
+        _busy = true;
+        _model.ChantId = chantId;
+        _model.DeityIds = _selDeities.Select(Guid.Parse).ToList();
+        // send every language's current text (the server keeps non-empty ones and clears the rest)
+        _model.LanguageTexts = _langTexts
+            .Select(kv => new ChantLanguageText { LanguageId = kv.Key, Text = kv.Value })
+            .ToList();
+
+        var (ok, err) = IsEdit
+            ? await Api.UpdateChantConfigAsync(Id!.Value, _model)
+            : await Api.CreateChantConfigAsync(_model);
+        _busy = false;
+
+        if (ok)
+        {
+            Toast.Success($"Chant “{_model.Name}” saved.");
+            Nav.NavigateTo("chants-config");
+        }
+        else
+        {
+            _formError = err;
+        }
+    }
+
+    private static bool IsRichTextEmpty(string? html)
+    {
+        if (string.IsNullOrWhiteSpace(html)) return true;
+        var text = Regex.Replace(html, "<[^>]*>", string.Empty).Replace("&nbsp;", " ");
+        return string.IsNullOrWhiteSpace(text);
+    }
+
+    private static string? NormaliseAudioType(string? contentType, string fileName)
+    {
+        var extension = Path.GetExtension(fileName).ToLowerInvariant();
+        return extension switch
+        {
+            ".mp3" => "audio/mpeg",
+            ".wav" => "audio/wav",
+            ".ogg" => "audio/ogg",
+            _ => contentType switch
+            {
+                "audio/mpeg" or "audio/mp3" => "audio/mpeg",
+                "audio/wav" or "audio/wave" or "audio/x-wav" => "audio/wav",
+                "audio/ogg" or "application/ogg" => "audio/ogg",
+                _ => null
+            }
+        };
+    }
+
+    private static string FormatSize(long bytes)
+        => bytes >= 1024 * 1024 ? $"{bytes / 1024d / 1024d:0.#} MB" : $"{Math.Max(1, bytes / 1024)} KB";
+}

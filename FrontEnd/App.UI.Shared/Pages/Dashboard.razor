@@ -1,0 +1,126 @@
+@page "/"
+@attribute [Authorize]
+@inject IApiClient Api
+
+@if (_loading)
+{
+    <OmLoader FullPage="true" Message="Loading your sadhana…" />
+}
+else if (_model is not null)
+{
+    <section class="sc-hero">
+        <div class="sc-hero-om">ॐ</div>
+        <div class="sc-hero-text">
+            <p class="sc-hero-kicker">@Greeting</p>
+            <h1 class="sc-hero-title">@_model.Message</h1>
+            <div class="sc-hero-meta">
+                <span class="sc-pill"><span class="sc-pill-k">Seeker</span>@(string.IsNullOrWhiteSpace(_model.SeekerName) ? _model.FullName : _model.SeekerName)</span>
+                <span class="sc-pill"><span class="sc-pill-k">Role</span>@_model.Role</span>
+            </div>
+        </div>
+    </section>
+
+    @if (_streak is not null)
+    {
+        <div class="sc-section-head">
+            <h2>🙏 My Sadhana</h2>
+            <span class="sc-section-sub">Your practice at a glance</span>
+        </div>
+        <div class="sc-card sc-sadhana-widget">
+            <div class="sc-streak">
+                <div class="sc-streak-flame @(_streak.CurrentStreak > 0 ? "" : "cold")">
+                    <span class="ic">🔥</span>
+                    <div>
+                        <div class="sc-streak-num">@_streak.CurrentStreak</div>
+                        <div class="sc-streak-label">day streak</div>
+                    </div>
+                </div>
+                <span class="sc-streak-today @(_streak.PracticedToday ? "done" : "pending")">
+                    @(_streak.PracticedToday ? "✓ Practiced today" : "Not yet today")
+                </span>
+                <div class="sc-streak-stats">
+                    <div class="sc-streak-stat"><div class="n">@_streak.TotalMalas</div><div class="l">Total malas</div></div>
+                    <div class="sc-streak-stat"><div class="n">@_streak.LongestStreak</div><div class="l">Longest</div></div>
+                    <div class="sc-streak-stat"><div class="n">@_streak.TotalDaysPracticed</div><div class="l">Days</div></div>
+                </div>
+            </div>
+            <a href="sadhana" class="sc-btn-primary sc-btn-sm sc-sadhana-cta">Continue Sadhana →</a>
+        </div>
+    }
+
+    <TodayBhakti />
+
+    <ChantCategories />
+
+    <PrayerTimes />
+
+    <div class="sc-section-head">
+        <h2>🪔 Daily Darshan</h2>
+        <span class="sc-section-sub">Seek blessings from the divine</span>
+    </div>
+    <div class="sc-darshan">
+        @foreach (var d in Deities)
+        {
+            <figure class="sc-darshan-card">
+                <div class="sc-darshan-img" style="background-image:url('_content/App.UI.Shared/img/@(d.File)')"></div>
+                <figcaption>
+                    <strong>@d.Name</strong>
+                    <span>@d.Mantra</span>
+                </figcaption>
+            </figure>
+        }
+    </div>
+}
+else
+{
+    <div class="sc-alert sc-alert-error">@_error</div>
+}
+
+@code {
+    private DashboardModel? _model;
+    private SadhanaStreak? _streak;
+    private bool _loading = true;
+    private string? _error;
+
+    private sealed record Deity(string Name, string File, string Mantra);
+
+    private static readonly Deity[] Deities =
+    {
+        new("Shri Ganesha", "lord_ganesha.png", "Om Gam Ganapataye Namaha"),
+        new("Mahadev Shiva", "lord_shiva.png", "Om Namah Shivaya"),
+        new("Shri Krishna", "lord_krishna.png", "Hare Krishna Hare Rama"),
+        new("Maa Lakshmi", "goddess_lakshmi.png", "Om Shreem Mahalakshmiyei Namaha"),
+        new("Shri Hanuman", "lord_hanuman.png", "Jai Bajrangbali"),
+    };
+
+    private string Greeting
+    {
+        get
+        {
+            var hour = DateTime.Now.Hour;
+            return hour < 12 ? "Suprabhatam · Good Morning"
+                 : hour < 17 ? "Namaste · Good Afternoon"
+                 : "Shubh Sandhya · Good Evening";
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _model = await Api.GetDashboardAsync();
+        }
+        catch (Exception ex)
+        {
+            _error = "Could not load the dashboard. " + ex.Message;
+        }
+        finally
+        {
+            _loading = false;
+        }
+
+        // Sadhana summary is best-effort — never block the dashboard on it.
+        try { _streak = await Api.GetSadhanaStreakAsync(); }
+        catch { /* leave the widget hidden */ }
+    }
+}

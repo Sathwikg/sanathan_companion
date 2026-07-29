@@ -1,0 +1,152 @@
+@page "/modules"
+@attribute [Authorize]
+@inject IApiClient Api
+@inject MenuRefreshService MenuRefresh
+@inject ConfirmService Confirm
+@inject ToastService Toast
+@inject NavigationManager Nav
+
+<div class="sc-page-head">
+    <h1>Modules &amp; Sub-modules</h1>
+    <div class="sc-page-actions">
+        <div class="sc-viewtoggle">
+            <button class="@(_view == "list" ? "active" : "")" @onclick='() => _view = "list"'>List View</button>
+            <button class="@(_view == "tree" ? "active" : "")" @onclick='() => _view = "tree"'>Tree View</button>
+        </div>
+        <button class="sc-btn-primary sc-btn-sm" @onclick='() => Nav.NavigateTo("modules/create")'>+ Create</button>
+    </div>
+</div>
+
+@if (_error is not null)
+{
+    <div class="sc-alert sc-alert-error">@_error</div>
+}
+
+@if (_loading)
+{
+    <OmLoader FullPage="true" Message="Loading modules…" />
+}
+else if (_view == "list")
+{
+    <div class="sc-card sc-tablewrap">
+        <table class="sc-table">
+            <thead>
+                <tr>
+                    <th>Name</th><th>Icon</th><th>Route</th><th>Order</th>
+                    <th>In Menu</th><th>Mobile</th><th>Status</th><th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var m in _list)
+                {
+                    <tr>
+                        <td>@(m.ParentId is null ? "" : "↳ ")<strong>@m.Name</strong></td>
+                        <td>@m.Icon</td>
+                        <td class="sc-muted">@m.RoutePath</td>
+                        <td>@m.DisplayOrder</td>
+                        <td>@(m.IsVisibleInMenu ? "Yes" : "No")</td>
+                        <td>@(m.ShowInMobile ? "Yes" : "No")</td>
+                        <td>
+                            <label class="sc-switch">
+                                <input type="checkbox" checked="@m.IsActive" @onclick="@(() => ConfirmAndSet(m.Id, m.Name, !m.IsActive))" @onclick:preventDefault />
+                                <span class="sc-slider"></span>
+                            </label>
+                            <span class="sc-status @(m.IsActive ? "on" : "off")">@(m.IsActive ? "Active" : "Inactive")</span>
+                        </td>
+                        <td><button class="sc-btn-ghost sc-btn-sm" @onclick="@(() => Nav.NavigateTo($"modules/{m.Id}/edit"))">Edit</button></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+else
+{
+    <div class="sc-card">
+        <div class="sc-mtree-toolbar">
+            <span class="sc-muted">@_tree.Count main module@(_tree.Count == 1 ? "" : "s")</span>
+            <span class="sc-flex-spacer"></span>
+            <button class="sc-btn-ghost sc-btn-sm" @onclick="ExpandAll">⊞ Expand all</button>
+            <button class="sc-btn-ghost sc-btn-sm" @onclick="CollapseAll">⊟ Collapse all</button>
+        </div>
+        <ul class="sc-mtree">
+            @foreach (var node in _tree)
+            {
+                <ModuleTreeItem Node="node" OnToggle="ToggleActiveById" OnEdit="EditNode"
+                                ExpandAll="_expandAll" ExpandSignal="_expandSignal" />
+            }
+        </ul>
+    </div>
+}
+
+@code {
+    private string _view = "tree";
+    private bool _loading = true;
+    private string? _error;
+    private List<MenuModuleModel> _list = new();
+    private List<MenuTreeNode> _tree = new();
+
+    // Tree nodes start collapsed; these drive the expand/collapse-all buttons.
+    private bool _expandAll;
+    private int _expandSignal;
+
+    protected override async Task OnInitializedAsync() => await LoadAsync();
+
+    private void ExpandAll()
+    {
+        _expandAll = true;
+        _expandSignal++;
+    }
+
+    private void CollapseAll()
+    {
+        _expandAll = false;
+        _expandSignal++;
+    }
+
+    private async Task LoadAsync()
+    {
+        _loading = true;
+        _error = null;
+        try
+        {
+            _list = await Api.GetModulesAsync();
+            _tree = await Api.GetModuleTreeAsync();
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private Task ToggleActiveById((Guid Id, bool IsActive) x)
+    {
+        var name = _list.FirstOrDefault(m => m.Id == x.Id)?.Name ?? "item";
+        return ConfirmAndSet(x.Id, name, x.IsActive);
+    }
+
+    private async Task ConfirmAndSet(Guid id, string name, bool activate)
+    {
+        var confirmed = await Confirm.ConfirmAsync(new ConfirmRequest
+        {
+            Title = activate ? "Activate menu item?" : "Deactivate menu item?",
+            Message = $"Are you sure you want to {(activate ? "activate" : "deactivate")} “{name}”?",
+            ConfirmText = activate ? "Yes, activate" : "Yes, deactivate",
+            CancelText = "Cancel",
+            Kind = activate ? ConfirmKind.Success : ConfirmKind.Warning
+        });
+        if (!confirmed) return;
+
+        var (ok, err) = await Api.SetModuleStatusAsync(id, activate);
+        if (ok) Toast.Success($"“{name}” has been {(activate ? "activated" : "deactivated")}.");
+        else _error = err;
+        await LoadAsync();
+        MenuRefresh.NotifyChanged();
+    }
+
+    private void EditNode(Guid id) => Nav.NavigateTo($"modules/{id}/edit");
+}

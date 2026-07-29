@@ -1,0 +1,275 @@
+@page "/access-rights"
+@attribute [Authorize]
+@inject IApiClient Api
+@inject ToastService Toast
+
+<div class="sc-page-head">
+    <div class="sc-page-title">
+        <span class="sc-page-emoji">🔐</span>
+        <div>
+            <h1>Access Rights</h1>
+            <p class="sc-page-sub">Choose which forms each role can open on web and mobile</p>
+        </div>
+    </div>
+</div>
+
+<AuthorizeView Roles="Admin">
+    <Authorized>
+        <div class="sc-alert sc-alert-info">👑 The <strong>Admin</strong> role always has full access to every form — it can’t be restricted here. Configure the other roles below.</div>
+
+        <div class="sc-card sc-filtercard">
+            <div class="sc-filters">
+                <div class="sc-filter">
+                    <label>Role</label>
+                    <select class="sc-input sc-input-sm" value="@_roleId" @onchange="OnRoleChanged">
+                        @if (_roles.Count == 0)
+                        {
+                            <option value="0">No configurable roles</option>
+                        }
+                        @foreach (var r in _roles)
+                        {
+                            <option value="@r.RoleId">@r.RoleName</option>
+                        }
+                    </select>
+                </div>
+                <div class="sc-filter">
+                    <label>Search forms</label>
+                    <input class="sc-input sc-input-sm" placeholder="Filter by form name…" @bind="_search" @bind:event="oninput" />
+                </div>
+                @if (_matrix is not null)
+                {
+                    <div class="sc-filter sc-filter-note">
+                        <label>&nbsp;</label>
+                        <span class="sc-hint">
+                            @EnabledCount of @FormCount forms enabled on web · @MobileCount on mobile
+                            <button type="button" class="sc-linkbtn" @onclick="ToggleAllGroups">@(AllCollapsed ? "expand all" : "collapse all")</button>
+                        </span>
+                    </div>
+                }
+            </div>
+        </div>
+
+        @if (_error is not null)
+        {
+            <div class="sc-alert sc-alert-error">@_error</div>
+        }
+
+        @if (_loading)
+        {
+            <OmLoader FullPage="true" Message="Loading access rights…" />
+        }
+        else if (_matrix is not null)
+        {
+            <div class="sc-card">
+                <div class="sc-tablewrap">
+                    <table class="sc-table sc-access-table">
+                        <thead>
+                            <tr>
+                                <th>Form</th>
+                                <th class="sc-access-col">
+                                    Web
+                                    <div class="sc-access-all">
+                                        <button type="button" class="sc-linkbtn" @onclick="() => SetAll(web: true, on: true)">all</button>
+                                        <span>·</span>
+                                        <button type="button" class="sc-linkbtn" @onclick="() => SetAll(web: true, on: false)">none</button>
+                                    </div>
+                                </th>
+                                <th class="sc-access-col">
+                                    Mobile
+                                    <div class="sc-access-all">
+                                        <button type="button" class="sc-linkbtn" @onclick="() => SetAll(web: false, on: true)">all</button>
+                                        <span>·</span>
+                                        <button type="button" class="sc-linkbtn" @onclick="() => SetAll(web: false, on: false)">none</button>
+                                    </div>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var m in VisibleModules())
+                            {
+                                @if (m.IsParent)
+                                {
+                                    <tr class="sc-access-group" @onclick="() => ToggleCollapse(m.ModuleId)">
+                                        <td colspan="3">
+                                            <span class="sc-access-caret">@((IsCollapsed(m.ModuleId) && !SearchActive) ? "▸" : "▾")</span>
+                                            @(m.Icon) @m.ModuleName
+                                            <span class="sc-access-count">@ChildrenOf(m.ModuleId).Count(x => x.WebEnabled || x.MobileEnabled) / @ChildrenOf(m.ModuleId).Count()</span>
+                                        </td>
+                                    </tr>
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td class="@(m.ParentId.HasValue ? "sc-access-child" : "")">
+                                            <span class="sc-access-icon">@(m.Icon ?? "•")</span> @m.ModuleName
+                                            @if (!m.ShowInMobile)
+                                            {
+                                                <span class="sc-minichip sc-minichip-muted" title="This form is not published to mobile">web-only</span>
+                                            }
+                                        </td>
+                                        <td class="sc-access-col">
+                                            <label class="sc-switch"><input type="checkbox" @bind="m.WebEnabled" /><span class="sc-slider"></span></label>
+                                        </td>
+                                        <td class="sc-access-col">
+                                            <label class="sc-switch"><input type="checkbox" @bind="m.MobileEnabled" /><span class="sc-slider"></span></label>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            @if (!VisibleModules().Any())
+                            {
+                                <tr><td colspan="3" class="sc-access-empty">No forms match “@_search”.</td></tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="sc-formfoot">
+                    <div class="sc-hint">Changes apply the next time the user signs in or refreshes.</div>
+                    <button class="sc-btn-primary" @onclick="SaveAsync" disabled="@_saving">
+                        @(_saving ? "Saving…" : "💾 Save access rights")
+                    </button>
+                </div>
+            </div>
+        }
+    </Authorized>
+    <NotAuthorized>
+        <div class="sc-card sc-empty-state">
+            <div class="sc-empty-om">🔒</div>
+            <h3>Admins only</h3>
+            <p>Access rights can only be managed by an administrator.</p>
+        </div>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    private List<AccessRoleModel> _roles = new();
+    private int _roleId;
+    private AccessMatrixModel? _matrix;
+    private bool _loading;
+    private bool _saving;
+    private string? _error;
+    private string _search = string.Empty;
+    private readonly HashSet<Guid> _collapsed = new();
+
+    private bool SearchActive => !string.IsNullOrWhiteSpace(_search);
+
+    private int FormCount => _matrix?.Modules.Count(m => !m.IsParent) ?? 0;
+    private int EnabledCount => _matrix?.Modules.Count(m => !m.IsParent && m.WebEnabled) ?? 0;
+    private int MobileCount => _matrix?.Modules.Count(m => !m.IsParent && m.MobileEnabled) ?? 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _roles = await Api.GetAccessRolesAsync();
+            _roleId = _roles.FirstOrDefault()?.RoleId ?? 0;
+            if (_roleId != 0)
+                await LoadMatrixAsync();
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+    }
+
+    private async Task OnRoleChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var id) && id != 0)
+        {
+            _roleId = id;
+            await LoadMatrixAsync();
+        }
+    }
+
+    private async Task LoadMatrixAsync()
+    {
+        _loading = true;
+        _error = null;
+        try
+        {
+            _matrix = await Api.GetAccessMatrixAsync(_roleId);
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+            _matrix = null;
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private IEnumerable<ModuleAccessModel> ChildrenOf(Guid id)
+        => _matrix?.Modules.Where(m => m.ParentId == id) ?? Enumerable.Empty<ModuleAccessModel>();
+
+    private bool Matches(ModuleAccessModel m)
+        => !SearchActive || m.ModuleName.Contains(_search.Trim(), StringComparison.OrdinalIgnoreCase);
+
+    // Rows to render: honours the search filter and (when not searching) collapsed groups.
+    private IEnumerable<ModuleAccessModel> VisibleModules()
+        => _matrix is null ? Enumerable.Empty<ModuleAccessModel>() : _matrix.Modules.Where(ShowRow);
+
+    private bool ShowRow(ModuleAccessModel m)
+    {
+        if (_matrix is null) return false;
+        if (m.IsParent)
+            return Matches(m) || ChildrenOf(m.ModuleId).Any(Matches);
+        if (m.ParentId is null)
+            return Matches(m);
+        var parent = _matrix.Modules.FirstOrDefault(p => p.ModuleId == m.ParentId);
+        var parentMatches = parent is not null && Matches(parent);
+        if (SearchActive)
+            return Matches(m) || parentMatches;
+        return !_collapsed.Contains(m.ParentId.Value);
+    }
+
+    private bool IsCollapsed(Guid id) => _collapsed.Contains(id);
+    private void ToggleCollapse(Guid id) { if (!_collapsed.Add(id)) _collapsed.Remove(id); }
+
+    private IEnumerable<Guid> GroupIds => _matrix?.Modules.Where(m => m.IsParent).Select(m => m.ModuleId) ?? Enumerable.Empty<Guid>();
+    private bool AllCollapsed => _matrix is not null && GroupIds.Any() && GroupIds.All(_collapsed.Contains);
+
+    private void ToggleAllGroups()
+    {
+        if (AllCollapsed) _collapsed.Clear();
+        else foreach (var id in GroupIds) _collapsed.Add(id);
+    }
+
+    private void SetAll(bool web, bool on)
+    {
+        if (_matrix is null) return;
+        foreach (var m in _matrix.Modules.Where(m => !m.IsParent))
+        {
+            if (web) m.WebEnabled = on;
+            else m.MobileEnabled = on;
+        }
+    }
+
+    private async Task SaveAsync()
+    {
+        if (_matrix is null) return;
+        _saving = true;
+        try
+        {
+            var request = new SaveAccessRightsRequest
+            {
+                // Only leaf forms carry access; containers appear from their visible children.
+                Items = _matrix.Modules
+                    .Where(m => !m.IsParent)
+                    .Select(m => new ModuleAccessItem { ModuleId = m.ModuleId, WebEnabled = m.WebEnabled, MobileEnabled = m.MobileEnabled })
+                    .ToList()
+            };
+            var (ok, err) = await Api.SaveAccessRightsAsync(_roleId, request);
+            if (ok)
+                Toast.Success("Access rights saved.");
+            else
+                Toast.Error(string.IsNullOrWhiteSpace(err) ? "Could not save access rights." : err);
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+}

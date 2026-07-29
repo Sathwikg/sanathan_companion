@@ -1,0 +1,101 @@
+@* Dashboard component: the Chant master (categories) as a grid. Tapping a category shows the
+   chants configured under it; tapping one of those opens its sadhana (japa) screen. *@
+@implements IDisposable
+@inject IApiClient Api
+@inject NavigationManager Nav
+@inject RegionState Region
+
+@if (_loaded && _categories.Count > 0)
+{
+    <div class="sc-section-head">
+        <h2>📿 Chants</h2>
+        <span class="sc-section-sub">Browse by type, then begin your sadhana</span>
+    </div>
+
+    <div class="sc-catgrid">
+        @foreach (var cat in _categories)
+        {
+            <button type="button" class="sc-card sc-cat-card" @onclick="() => Open(cat)">
+                <span class="sc-cat-ic">📿</span>
+                <span class="sc-cat-name">@cat.Name</span>
+                <span class="sc-cat-count">@cat.Chants.Count chant@(cat.Chants.Count == 1 ? "" : "s")</span>
+            </button>
+        }
+    </div>
+}
+
+<ScModal Visible="_selected is not null" Title="@(_selected?.Name ?? "Chants")" OnClose="Close">
+    @if (_selected is not null)
+    {
+        <div class="sc-cat-list">
+            @foreach (var c in _selected.Chants)
+            {
+                <button type="button" class="sc-bhakti-chant" @onclick="() => GoToSadhana(c)">
+                    <span class="ic">📿</span>
+                    <span class="txt">
+                        <span class="nm">@c.Name</span>
+                        <span class="cat">
+                            @(c.DeityNames.Count > 0 ? string.Join(", ", c.DeityNames) : c.CategoryName)@(c.HasAudio ? " · 🔊" : "")
+                        </span>
+                    </span>
+                    <span class="go">→</span>
+                </button>
+            }
+        </div>
+    }
+</ScModal>
+
+@code {
+    private sealed class CategoryGroup
+    {
+        public string Name { get; init; } = string.Empty;
+        public List<SadhanaChant> Chants { get; init; } = new();
+    }
+
+    private List<CategoryGroup> _categories = new();
+    private CategoryGroup? _selected;
+    private bool _loaded;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Region.OnChanged += OnRegionChanged;
+        await Region.EnsureLoadedAsync();
+        await LoadAsync();
+    }
+
+    private void OnRegionChanged()
+        => _ = InvokeAsync(async () => { await LoadAsync(); StateHasChanged(); });
+
+    public void Dispose() => Region.OnChanged -= OnRegionChanged;
+
+    private async Task LoadAsync()
+    {
+        _selected = null;
+        try
+        {
+            var all = await Api.GetSadhanaChantsAsync(null, Region.SelectedRegionId);
+            _categories = all
+                .Where(c => !string.IsNullOrWhiteSpace(c.CategoryName))
+                .GroupBy(c => c.CategoryName)
+                .OrderBy(g => g.Key)
+                .Select(g => new CategoryGroup
+                {
+                    Name = g.Key,
+                    Chants = g.OrderBy(c => c.Name).ToList()
+                })
+                .ToList();
+        }
+        catch
+        {
+            // Best-effort — stay hidden if it can't load.
+        }
+        finally
+        {
+            _loaded = true;
+        }
+    }
+
+    private void Open(CategoryGroup cat) => _selected = cat;
+    private void Close() => _selected = null;
+    private void GoToSadhana(SadhanaChant c) => Nav.NavigateTo($"sadhana/chant/{c.Id}");
+}
