@@ -71,6 +71,7 @@ secrets.json
 *.key
 .env
 .env.*
+!.env.example
 
 # ---- Logs & runtime ----
 *.log

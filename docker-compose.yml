@@ -1,0 +1,73 @@
+# Sanathana Companion — app stack on one host, database hosted on Supabase.
+#
+#   browser ──► web (nginx) :${WEB_PORT:-8080} ─┬─ /      static Blazor WebAssembly
+#                                               └─ /api/  ──► api (.NET 10) ──► Supabase
+#
+# Only `web` publishes a host port; the API is reachable only on the internal
+# network, through the /api proxy. Copy .env.example to .env and fill it in.
+
+name: sanathana-companion
+
+services:
+  api:
+    build:
+      context: ./BackEnd
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_HTTP_PORTS: "8080"
+      # nginx is the only caller, so every request would otherwise look like it
+      # came from one IP and the per-IP auth rate limiter would throttle all
+      # users as a single bucket. This flag makes ASP.NET Core honour
+      # X-Forwarded-For/-Proto and trust the proxy (safe: the API is not
+      # published to the host).
+      ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
+      # Full Npgsql connection string, kept whole in .env so whatever Supabase
+      # hands you pastes straight in. See .env.example for the IPv6 caveat.
+      ConnectionStrings__DefaultConnection: ${CONNECTION_STRING:?set CONNECTION_STRING in .env}
+      # The API refuses to start if this is missing, under 32 bytes, or still
+      # contains "change-me".
+      JwtSettings__Secret: ${JWT_SECRET:?set JWT_SECRET in .env (32+ bytes, random)}
+    expose:
+      - "8080"
+    # Uncomment to hit Kestrel directly while debugging.
+    # ports:
+    #   - "7050:8080"
+    healthcheck:
+      # /api/regions/options is [AllowAnonymous] and queries the database, so a
+      # 200 proves the Supabase connection works, not just that the process is up.
+      test: ["CMD", "curl", "-fsS", "-o", "/dev/null", "http://localhost:8080/api/regions/options"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      # Migrations run at startup against a remote database — allow for that.
+      start_period: 90s
+    networks: [appnet]
+
+  web:
+    build:
+      context: ./FrontEnd
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      # Relative path => the SPA calls the API on its own origin, through the
+      # /api proxy in this container. Point it at an absolute URL only if you
+      # move the API somewhere else.
+      API_BASE_URL: /api
+    ports:
+      - "${WEB_PORT:-8080}:80"
+    depends_on:
+      api:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost/index.html"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks: [appnet]
+
+networks:
+  appnet:
+    driver: bridge
