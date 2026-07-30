@@ -78,6 +78,29 @@ COPY deploy/render/nginx.conf.template    /etc/nginx/templates/default.conf.temp
 COPY deploy/render/entrypoint.sh          /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
+# No inotify. WebApplication.CreateBuilder registers appsettings.json with
+# reloadOnChange:true, which opens an inotify instance before a single line of
+# our own code runs. The host kernel caps fs.inotify.max_user_instances at 128
+# and that budget is shared with every other tenant on the machine, so when it
+# is exhausted the watcher cannot be created and the process aborts on the
+# first statement of Program.cs. A sysctl is not ours to raise here.
+#
+# Nothing is lost by switching it off: configuration arrives as environment
+# variables and the container filesystem is immutable, so there is no edit for
+# a watcher to observe.
+#
+#   reloadConfigOnChange=false  removes the config watcher, the one the crash
+#                               stack actually named.
+#   USE_POLLING_FILE_WATCHER    is the backstop — should any other component
+#                               ever ask for a watcher, it degrades to polling
+#                               instead of taking the process down. Idle unless
+#                               something registers one.
+#
+# Env-var keys use __ for the : separator; the host reads DOTNET_-prefixed
+# variables into `hostBuilder:reloadConfigOnChange`.
+ENV DOTNET_hostBuilder__reloadConfigOnChange=false \
+    DOTNET_USE_POLLING_FILE_WATCHER=true
+
 # Loopback-only: nothing outside the container can reach Kestrel directly.
 ENV ASPNETCORE_URLS=http://127.0.0.1:8080 \
     ASPNETCORE_ENVIRONMENT=Production \

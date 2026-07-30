@@ -56,6 +56,29 @@ to itself. The `map` at the top of the template prefers the edge's header.
 **nginx listens on `$PORT`, not 80,** and only on IPv4 — see the comment in the
 template.
 
+**File watching is off.** `WebApplication.CreateBuilder` registers
+`appsettings.json` with `reloadOnChange: true`, which opens an inotify instance
+before any of our own code runs. Render's kernel caps
+`fs.inotify.max_user_instances` at 128 and that budget is shared across tenants,
+so an exhausted host aborts the process on the first statement of `Program.cs`:
+
+```
+System.IO.IOException: The configured user limit (128) on the number of
+inotify instances has been reached ...
+   at Program.<Main>$(String[] args) in /src/src/.../Program.cs:line 24
+==> Exited with status 134
+```
+
+Note what that traceback is *not*: it never reaches configuration binding, so it
+says nothing about your connection string. The Dockerfile sets
+`DOTNET_hostBuilder__reloadConfigOnChange=false` to drop the watcher, and
+`DOTNET_USE_POLLING_FILE_WATCHER=true` so anything else that asks for one
+degrades to polling rather than crashing. Nothing is lost — configuration comes
+from environment variables and the container filesystem is immutable.
+
+Compose does not hit this because a local Docker host has the whole inotify
+budget to itself.
+
 ## Known caveat: the auth rate limiter buckets every user together
 
 `Program.cs` partitions the `auth` rate limiter (10 requests/minute) on
