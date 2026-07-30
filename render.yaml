@@ -1,0 +1,92 @@
+# Sanathana Companion — Render Blueprint.
+#
+# Render does not read docker-compose.yml; it builds one image per service.
+# deploy/render/Dockerfile folds the compose stack's two services into a single
+# container (nginx + Kestrel), so this Blueprint declares just one web service:
+#
+#   browser ──► https://<name>.onrender.com ──► nginx :$PORT ─┬─ /     SPA
+#                                                             └─ /api/ ──► Kestrel
+#
+# To deploy: Render Dashboard -> New -> Blueprint -> pick this repo. Render
+# reads this file from the branch you select and will prompt for the one secret
+# it cannot generate (the Supabase connection string).
+#
+# docker-compose.yml stays as-is and remains the way to run the stack locally.
+
+services:
+  - type: web
+    name: sanathana-companion
+    runtime: docker
+
+    # Free instances get 512 MB RAM / 0.1 CPU, sleep after 15 minutes with no
+    # inbound requests, and cold-start on the next one. Both processes for this
+    # app share that one instance. See deploy/render/README.md for what the free
+    # plan does and does not survive; `plan: starter` removes the sleep.
+    plan: free
+
+    # Put this in the same region as the Supabase project — every request does
+    # at least one round trip to Postgres, so a mismatch here costs more than
+    # the distance to your users does.
+    region: singapore
+
+    dockerfilePath: ./deploy/render/Dockerfile
+    # The Dockerfile needs BackEnd/ and FrontEnd/ together, so the build context
+    # is the repository root, not the Dockerfile's own directory.
+    dockerContext: .
+
+    # [AllowAnonymous] and it queries the database, so a 200 proves the Supabase
+    # connection works rather than just that the process is up. Render holds the
+    # deploy back until this passes, which is what we want while migrations run.
+    healthCheckPath: /api/regions/options
+
+    autoDeployTrigger: commit
+
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+
+      # ASP.NET Core defaults to the server GC, which sizes its heaps to the
+      # machine's CPU count and trades memory for throughput — the wrong trade
+      # on a 512 MB / 0.1 CPU instance shared with nginx. The workstation GC
+      # collects sooner and keeps the resident set well clear of the cap.
+      # Remove this if you move to a plan with real headroom.
+      - key: DOTNET_gcServer
+        value: "0"
+
+      # Render terminates TLS at the edge and forwards plain HTTP, so without
+      # this the API's UseHttpsRedirection() would redirect every request back
+      # to itself. Safe: Kestrel is bound to loopback and nginx is the only
+      # thing that can reach it.
+      #
+      # NOTE: this env-var form of the switch honours X-Forwarded-Proto and
+      # X-Forwarded-Host only — it does NOT enable X-Forwarded-For. See the
+      # rate-limiter caveat in deploy/render/README.md.
+      - key: ASPNETCORE_FORWARDEDHEADERS_ENABLED
+        value: "true"
+
+      # Relative path => the SPA calls the API on its own origin, through the
+      # /api proxy in this container, so Cors:AllowedOrigins can stay empty.
+      - key: API_BASE_URL
+        value: /api
+
+      # Full Npgsql connection string. Render prompts for this on first deploy
+      # and never writes it into the repo.
+      #
+      # Use Supabase's SESSION POOLER (port 5432), not the direct connection:
+      # db.<project-ref>.supabase.co is IPv6-only and Render has no outbound
+      # IPv6, so the direct host fails with "Network is unreachable". The
+      # transaction pooler on 6543 is also wrong here — it breaks the prepared
+      # statements EF Core migrations rely on.
+      #
+      #   Host=aws-0-<region>.pooler.supabase.com;Port=5432;Database=postgres;
+      #   Username=postgres.<project-ref>;Password=...;SSL Mode=Require;
+      #   Trust Server Certificate=true
+      - key: ConnectionStrings__DefaultConnection
+        sync: false
+
+      # Render generates a random secret once, at service creation, and keeps it
+      # across deploys. Rotating it invalidates every issued token, so change it
+      # only deliberately. The API refuses to start if it is missing, shorter
+      # than 32 bytes, or still contains "change-me".
+      - key: JwtSettings__Secret
+        generateValue: true
