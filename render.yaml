@@ -24,10 +24,13 @@ services:
     # plan does and does not survive; `plan: starter` removes the sleep.
     plan: free
 
-    # Put this in the same region as the Supabase project — every request does
-    # at least one round trip to Postgres, so a mismatch here costs more than
-    # the distance to your users does.
-    region: singapore
+    # Render's `oregon` is AWS us-west-2, which is where the Supabase project
+    # lives — keep the two together. A single API request can issue several EF
+    # Core queries, and each one pays the app-to-database round trip, so putting
+    # the app nearer the users but further from Postgres multiplies a latency
+    # the user only pays once. Fixed at creation: Render cannot move a service
+    # between regions afterwards, so changing this later means recreating it.
+    region: oregon
 
     dockerfilePath: ./deploy/render/Dockerfile
     # The Dockerfile needs BackEnd/ and FrontEnd/ together, so the build context
