@@ -21,6 +21,17 @@ export PORT API_PORT
 # path /api, which App.Web resolves against the page origin.
 printf '{\n  "ApiBaseUrl": "%s"\n}\n' "$API_BASE_URL" \
     > /usr/share/nginx/html/appsettings.json
+
+# Blazor publishes a precompressed sibling next to every static asset, and
+# `gzip_static on` prefers it over the plain file whenever the client accepts
+# gzip. Rewriting only the .json therefore changes nothing a browser can see:
+# nginx keeps serving a .gz that still holds the build-time default, and the SPA
+# goes on calling http://localhost:7050/api in production. Delete the siblings
+# so the file just written is the only candidate — at a few dozen bytes there
+# was nothing to gain by compressing it.
+rm -f /usr/share/nginx/html/appsettings.json.gz \
+      /usr/share/nginx/html/appsettings.json.br
+
 echo "entrypoint: ApiBaseUrl set to $API_BASE_URL"
 
 # ---- nginx configuration ---------------------------------------------------
