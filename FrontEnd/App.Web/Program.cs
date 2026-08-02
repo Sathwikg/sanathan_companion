@@ -11,8 +11,12 @@ var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App.UI.Shared.Routes>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
 
-// Config-driven API base URL (wwwroot/appsettings.json).
-var apiBaseUrl = builder.Configuration["ApiBaseUrl"] ?? "http://localhost:5050/api";
+// Config-driven API base URL (wwwroot/appsettings.json). A relative value such
+// as "/api" is resolved against the page origin — that is what the Docker deploy
+// uses, where nginx serves this app and proxies /api to the API on one origin.
+var apiBaseUrl = builder.Configuration["ApiBaseUrl"] ?? "/api";
+if (!Uri.IsWellFormedUriString(apiBaseUrl, UriKind.Absolute))
+    apiBaseUrl = new Uri(new Uri(builder.HostEnvironment.BaseAddress), apiBaseUrl).ToString();
 
 // Web token/theme storage = browser localStorage.
 builder.Services.AddScoped<ITokenStore, LocalStorageTokenStore>();

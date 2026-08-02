@@ -1,0 +1,11 @@
+# Files consumed by Linux containers or by Docker itself must stay LF.
+# CRLF here fails in confusing ways: a shell script becomes "bad interpreter",
+# and a trailing \r on a .env value silently corrupts the connection string.
+*.sh           text eol=lf
+*.conf         text eol=lf
+*.template     text eol=lf
+*.yml          text eol=lf
+*.yaml         text eol=lf
+Dockerfile     text eol=lf
+.dockerignore  text eol=lf
+.env.example   text eol=lf

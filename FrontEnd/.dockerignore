@@ -1,0 +1,23 @@
+# Keep the build context small.
+**/bin/
+**/obj/
+**/.vs/
+**/.idea/
+**/*.user
+**/*.binlog
+
+# Not built by this image.
+App.Mobile/
+App.Tests/
+
+# Local-only configuration (see .gitignore).
+**/appsettings.Development.json
+**/appsettings.*.Local.json
+**/secrets.json
+**/*.pfx
+**/*.p12
+**/*.pem
+**/*.key
+
+Dockerfile
+.dockerignore
