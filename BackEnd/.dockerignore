@@ -1,0 +1,22 @@
+# Keep the build context small and never ship local secrets into an image layer.
+**/bin/
+**/obj/
+**/.vs/
+**/.idea/
+**/*.user
+**/*.binlog
+
+# Local-only configuration (see .gitignore).
+**/appsettings.Development.json
+**/appsettings.*.Local.json
+**/secrets.json
+**/*.pfx
+**/*.p12
+**/*.pem
+**/*.key
+
+# Tests are not part of the published image.
+tests/
+
+Dockerfile
+.dockerignore

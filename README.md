@@ -24,6 +24,69 @@ Application/
 3. **Mobile (Windows):** `dotnet build FrontEnd/App.Mobile -t:Run -f net10.0-windows10.0.19041.0`
    **Mobile (Android emulator):** `dotnet build FrontEnd/App.Mobile -t:Run -f net10.0-android` (API reached via `http://10.0.2.2:7050`).
 
+## Run with Docker (single server, API under `/api`)
+
+`docker-compose.yml` brings up the whole stack. nginx is the only thing exposed; it
+serves the Blazor WASM files and reverse-proxies `/api` to the API container, so
+the app and the API share one origin (no CORS involved).
+
+```
+browser ──► web (nginx) :8080 ──┬─ /      static Blazor WebAssembly
+                                └─ /api/  ──► api (.NET 10) ──► Supabase PostgreSQL
+```
+
+```bash
+cp .env.example .env      # then edit it — CONNECTION_STRING and JWT_SECRET are required
+docker compose up -d --build
+```
+
+Then open **http://localhost:8080**. The API is at **http://localhost:8080/api**.
+
+### Supabase: use the session pooler, not the direct host
+
+The direct host `db.<project-ref>.supabase.co` resolves to an **IPv6 address only**.
+Docker's default bridge network is IPv4-only, so a container using it fails with
+`Network is unreachable`. Take the **Session pooler** string instead —
+*Dashboard → Project Settings → Database → Connection string → Session pooler* — which
+is IPv4-reachable:
+
+| | Direct (won't work in Docker) | Session pooler (use this) |
+|---|---|---|
+| Host | `db.<ref>.supabase.co` | `aws-<n>-<region>.pooler.supabase.com` |
+| Port | 5432 | 5432 |
+| Username | `postgres` | `postgres.<ref>` |
+
+Stay on the **session** pooler (5432), not the transaction pooler (6543): EF Core runs
+migrations on startup and Npgsql's prepared statements don't survive transaction mode.
+
+The alternative fixes are Supabase's paid IPv4 add-on, or enabling IPv6 on the Docker
+network — which also requires working IPv6 egress on the host.
+
+No extra NuGet package is needed for this; `Microsoft.Extensions.Configuration.Json` is
+already part of the ASP.NET Core host, and the connection string is supplied as the
+`ConnectionStrings__DefaultConnection` environment variable rather than a config file.
+
+### Notes
+
+- `JWT_SECRET` must be random and at least 32 bytes; the API refuses to start on a
+  placeholder containing `change-me`. Generate one with `openssl rand -base64 48`
+  (or `[Convert]::ToBase64String((1..48 | % { Get-Random -Max 256 }))` in PowerShell).
+- Migrations and seeding run on API startup against the Supabase database, so the first
+  boot takes longer than later ones.
+- `Trust Server Certificate=true` encrypts the connection but skips CA validation. To
+  validate properly, download Supabase's CA certificate and use
+  `SSL Mode=VerifyFull;Root Certificate=/path/to/prod-ca.crt`.
+- Change the published port with `WEB_PORT` in `.env`.
+- Swagger is proxied at `/swagger` but only responds if you set the API's
+  `ASPNETCORE_ENVIRONMENT` to `Development` in `docker-compose.yml`.
+- The SPA's API URL comes from `API_BASE_URL` (default `/api`), written into
+  `wwwroot/appsettings.json` at container start — no rebuild needed to repoint it.
+
+```bash
+docker compose logs -f api     # follow API logs
+docker compose down            # stop
+```
+
 ## Seeded data
 - Roles: **Admin**, **Sanathan**.
 - Default admin login → **credential `admin`, password `admin`**.

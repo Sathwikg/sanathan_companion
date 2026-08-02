@@ -1,0 +1,36 @@
+# Applies to builds whose context is the repository root — currently only
+# deploy/render/Dockerfile, which needs BackEnd/ and FrontEnd/ together.
+# The per-service builds used by docker-compose keep their own .dockerignore
+# in BackEnd/ and FrontEnd/; this file does not affect them.
+
+# ---- Build output ----
+**/bin/
+**/obj/
+**/out/
+**/publish/
+**/*.binlog
+
+# ---- Editors / VCS ----
+.git/
+.github/
+.vs/
+.vscode/
+.idea/
+**/*.user
+
+# ---- Not built by the Render image ----
+BackEnd/tests/
+FrontEnd/App.Mobile/
+FrontEnd/App.Tests/
+
+# ---- Local-only configuration and secrets (see .gitignore) ----
+.env
+.env.*
+!.env.example
+**/appsettings.Development.json
+**/appsettings.*.Local.json
+**/secrets.json
+**/*.pfx
+**/*.p12
+**/*.pem
+**/*.key
