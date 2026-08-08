@@ -564,6 +564,35 @@ public class ApiClient : IApiClient
         return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
     }
 
+    // ---- Pujas ----
+
+    public async Task<List<PujaModel>> GetPujasAsync()
+        => await _http.GetFromJsonAsync<List<PujaModel>>("pujas") ?? new();
+
+    public async Task<PujaModel?> GetPujaAsync(Guid id)
+        => await _http.GetFromJsonAsync<PujaModel>($"pujas/{id}");
+
+    public async Task<PujaFormOptions> GetPujaFormOptionsAsync()
+        => await _http.GetFromJsonAsync<PujaFormOptions>("pujas/form-options") ?? new();
+
+    public async Task<(bool Success, string Error)> CreatePujaAsync(PujaRequest request)
+    {
+        var response = await _http.PostAsJsonAsync("pujas", request);
+        return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
+    }
+
+    public async Task<(bool Success, string Error)> UpdatePujaAsync(Guid id, PujaRequest request)
+    {
+        var response = await _http.PutAsJsonAsync($"pujas/{id}", request);
+        return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
+    }
+
+    public async Task<(bool Success, string Error)> SetPujaStatusAsync(Guid id, bool isActive)
+    {
+        var response = await _http.PutAsJsonAsync($"pujas/{id}/status", new { isActive });
+        return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
+    }
+
     // ---- Wallpapers ----
 
     public async Task<List<WallpaperDeityModel>> GetWallpaperDeitiesAsync(bool onlyWithWallpapers = false)

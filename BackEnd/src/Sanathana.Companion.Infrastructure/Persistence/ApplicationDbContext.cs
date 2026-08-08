@@ -24,6 +24,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<Deity> Deities => Set<Deity>();
     public DbSet<Chant> Chants => Set<Chant>();
     public DbSet<Wallpaper> Wallpapers => Set<Wallpaper>();
+    public DbSet<Puja> Pujas => Set<Puja>();
     public DbSet<ChantConfig> ChantConfigs => Set<ChantConfig>();
     public DbSet<ChantConfigAudio> ChantConfigAudios => Set<ChantConfigAudio>();
     public DbSet<ChantLanguageConfig> ChantLanguageConfigs => Set<ChantLanguageConfig>();

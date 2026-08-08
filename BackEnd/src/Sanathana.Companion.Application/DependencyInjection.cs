@@ -18,6 +18,7 @@ public static class DependencyInjection
         services.AddScoped<IDeityService, DeityService>();
         services.AddScoped<IChantService, ChantService>();
         services.AddScoped<IWallpaperService, WallpaperService>();
+        services.AddScoped<IPujaService, PujaService>();
         services.AddScoped<IChantConfigService, ChantConfigService>();
         services.AddScoped<ILanguageService, LanguageService>();
         services.AddScoped<IPanchangamService, PanchangamService>();

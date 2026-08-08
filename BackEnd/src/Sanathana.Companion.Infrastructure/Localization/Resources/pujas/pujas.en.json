@@ -1,0 +1,16 @@
+{
+  "pujas.chooseFestival": "— Select a festival —",
+  "pujas.confirmActivateBody": "Are you sure you want to activate “{0}”?",
+  "pujas.confirmDeactivateBody": "Are you sure you want to deactivate “{0}”?",
+  "pujas.createPuja": "Create Puja",
+  "pujas.editPuja": "Edit Puja",
+  "pujas.emptyBody": "Create your first puja and map it to a festival.",
+  "pujas.emptyTitle": "No pujas yet",
+  "pujas.entity": "puja",
+  "pujas.festival": "Festival",
+  "pujas.loading": "Loading pujas…",
+  "pujas.noFestivals": "No active festivals — add one in the Festival master first.",
+  "pujas.pujaName": "Puja Name",
+  "pujas.sub": "Pujas and the festival each belongs to",
+  "pujas.title": "Puja"
+}

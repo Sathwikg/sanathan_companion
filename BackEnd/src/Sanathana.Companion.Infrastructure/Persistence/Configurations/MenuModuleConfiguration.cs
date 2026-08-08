@@ -256,6 +256,21 @@ public class MenuModuleConfiguration : IEntityTypeConfiguration<MenuModule>
             },
             new MenuModule
             {
+                Id = SeedConstants.PujaMasterMenuId,
+                Name = "Puja",
+                Icon = "🛐",
+                Description = "Pujas mapped to festivals",
+                RoutePath = "/pujas",
+                DisplayOrder = 10,
+                IsVisibleInMenu = true,
+                ShowInMobile = false,
+                IsActive = true,
+                ParentId = SeedConstants.MastersModuleId,
+                CreatedBy = "system",
+                CreatedDate = SeedConstants.SeedTimestamp
+            },
+            new MenuModule
+            {
                 Id = SeedConstants.WallpaperMasterMenuId,
                 Name = "Wallpaper Master",
                 Icon = "🖼️",

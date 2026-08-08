@@ -12,6 +12,7 @@ public interface IUnitOfWork
     IDeityRepository Deities { get; }
     IChantRepository Chants { get; }
     IWallpaperRepository Wallpapers { get; }
+    IPujaRepository Pujas { get; }
     IChantConfigRepository ChantConfigs { get; }
     ILanguageRepository Languages { get; }
     IPanchangamRepository Panchangams { get; }

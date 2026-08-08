@@ -1,0 +1,16 @@
+{
+  "pujas.chooseFestival": "— ಹಬ್ಬವನ್ನು ಆಯ್ಕೆಮಾಡಿ —",
+  "pujas.confirmActivateBody": "“{0}” ಅನ್ನು ಸಕ್ರಿಯಗೊಳಿಸಲು ಬಯಸುವಿರಾ?",
+  "pujas.confirmDeactivateBody": "“{0}” ಅನ್ನು ನಿಷ್ಕ್ರಿಯಗೊಳಿಸಲು ಬಯಸುವಿರಾ?",
+  "pujas.createPuja": "ಪೂಜೆ ರಚಿಸಿ",
+  "pujas.editPuja": "ಪೂಜೆ ಸಂಪಾದಿಸಿ",
+  "pujas.emptyBody": "ನಿಮ್ಮ ಮೊದಲ ಪೂಜೆಯನ್ನು ರಚಿಸಿ ಒಂದು ಹಬ್ಬಕ್ಕೆ ಜೋಡಿಸಿ.",
+  "pujas.emptyTitle": "ಇನ್ನೂ ಪೂಜೆಗಳಿಲ್ಲ",
+  "pujas.entity": "ಪೂಜೆ",
+  "pujas.festival": "ಹಬ್ಬ",
+  "pujas.loading": "ಪೂಜೆಗಳು ಲೋಡ್ ಆಗುತ್ತಿವೆ…",
+  "pujas.noFestivals": "ಸಕ್ರಿಯ ಹಬ್ಬಗಳಿಲ್ಲ — ಮೊದಲು ಹಬ್ಬ ಮಾಸ್ಟರ್‌ನಲ್ಲಿ ಒಂದನ್ನು ಸೇರಿಸಿ.",
+  "pujas.pujaName": "ಪೂಜೆಯ ಹೆಸರು",
+  "pujas.sub": "ಪೂಜೆಗಳು ಮತ್ತು ಅವು ಸೇರಿದ ಹಬ್ಬ",
+  "pujas.title": "ಪೂಜೆ"
+}

@@ -14,6 +14,7 @@ public class UnitOfWork : IUnitOfWork
     public IDayRepository Days { get; }
     public IDeityRepository Deities { get; }
     public IWallpaperRepository Wallpapers { get; }
+    public IPujaRepository Pujas { get; }
     public IChantRepository Chants { get; }
     public IChantConfigRepository ChantConfigs { get; }
     public ILanguageRepository Languages { get; }
@@ -27,7 +28,7 @@ public class UnitOfWork : IUnitOfWork
     public IUserNotificationRepository UserNotifications { get; }
     public ILocalizationRepository Localization { get; }
 
-    public UnitOfWork(ApplicationDbContext context, IUserRepository users, IRoleRepository roles, IMenuModuleRepository menuModules, IRegionRepository regions, IFestivalRepository festivals, IDayRepository days, IDeityRepository deities, IChantRepository chants, IWallpaperRepository wallpapers, IChantConfigRepository chantConfigs, ILanguageRepository languages, IPanchangamRepository panchangams, ISadhanaRepository sadhana, IModuleRoleMappingRepository moduleRoleMappings, IIssueTypeRepository issueTypes, IFeedbackRepository feedbacks, IUserFavoriteRepository favorites, INotificationConfigRepository notificationConfigs, IUserNotificationRepository userNotifications, ILocalizationRepository localization)
+    public UnitOfWork(ApplicationDbContext context, IUserRepository users, IRoleRepository roles, IMenuModuleRepository menuModules, IRegionRepository regions, IFestivalRepository festivals, IDayRepository days, IDeityRepository deities, IChantRepository chants, IWallpaperRepository wallpapers, IPujaRepository pujas, IChantConfigRepository chantConfigs, ILanguageRepository languages, IPanchangamRepository panchangams, ISadhanaRepository sadhana, IModuleRoleMappingRepository moduleRoleMappings, IIssueTypeRepository issueTypes, IFeedbackRepository feedbacks, IUserFavoriteRepository favorites, INotificationConfigRepository notificationConfigs, IUserNotificationRepository userNotifications, ILocalizationRepository localization)
     {
         _context = context;
         Users = users;
@@ -38,6 +39,7 @@ public class UnitOfWork : IUnitOfWork
         Days = days;
         Deities = deities;
         Wallpapers = wallpapers;
+        Pujas = pujas;
         Chants = chants;
         ChantConfigs = chantConfigs;
         Languages = languages;

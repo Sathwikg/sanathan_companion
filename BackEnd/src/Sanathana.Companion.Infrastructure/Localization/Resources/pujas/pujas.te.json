@@ -1,0 +1,16 @@
+{
+  "pujas.chooseFestival": "— పండుగను ఎంచుకోండి —",
+  "pujas.confirmActivateBody": "“{0}” క్రియాశీలం చేయాలనుకుంటున్నారా?",
+  "pujas.confirmDeactivateBody": "“{0}” నిష్క్రియం చేయాలనుకుంటున్నారా?",
+  "pujas.createPuja": "పూజను సృష్టించు",
+  "pujas.editPuja": "పూజను సవరించు",
+  "pujas.emptyBody": "మీ మొదటి పూజను సృష్టించి, ఒక పండుగకు అనుసంధానించండి.",
+  "pujas.emptyTitle": "ఇంకా పూజలు లేవు",
+  "pujas.entity": "పూజ",
+  "pujas.festival": "పండుగ",
+  "pujas.loading": "పూజలు లోడ్ అవుతున్నాయి…",
+  "pujas.noFestivals": "క్రియాశీల పండుగలు లేవు — ముందుగా పండుగ మాస్టర్‌లో ఒకటి జోడించండి.",
+  "pujas.pujaName": "పూజ పేరు",
+  "pujas.sub": "పూజలు మరియు అవి చెందిన పండుగ",
+  "pujas.title": "పూజ"
+}

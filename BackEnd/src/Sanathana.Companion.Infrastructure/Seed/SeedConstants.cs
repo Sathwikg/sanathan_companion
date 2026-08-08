@@ -38,6 +38,7 @@ public static class SeedConstants
     public static readonly Guid LanguageConfigsMenuId = new("70707070-7070-7070-7070-707070707070");
     public static readonly Guid WallpaperMasterMenuId = new("80808080-8080-8080-8080-808080808080");
     public static readonly Guid DownloadWallpapersMenuId = new("81818181-8181-8181-8181-818181818181");
+    public static readonly Guid PujaMasterMenuId = new("82828282-8282-8282-8282-828282828282");
 
     /// <summary>Tamil was added after the original language seed; fixed id keeps migrations stable.</summary>
     public static readonly Guid TamilLanguageId = new("da000000-0000-0000-0000-000000000006");
