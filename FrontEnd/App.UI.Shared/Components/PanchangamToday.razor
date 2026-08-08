@@ -1,0 +1,97 @@
+@* Dashboard component: today's Panchangam at a glance. Shows the details a seeker checks daily
+   (tithi, nakshatram, masam, and the Rahu Kalam window); the whole card opens the full page.
+   Best-effort — if there is no stored Panchangam for today it stays hidden rather than showing
+   an empty shell on the dashboard. *@
+@inherits LocalizedComponentBase
+@implements IDisposable
+@inject IApiClient Api
+@inject RegionState Region
+
+@if (_today is not null)
+{
+    <div class="sc-section-head">
+        <h2>🗓️ @Loc["dashboard.panchangamTitle", "Today's Panchangam"]</h2>
+        <span class="sc-section-sub">@Loc["dashboard.panchangamSub", "Tithi, nakshatram and timings for today"]</span>
+    </div>
+
+    <a href="panchangam" class="sc-card sc-pchg-dash">
+        <div class="sc-pchg-dash-head">
+            <span class="sc-pchg-dash-date">@_today.Date.ToString("dddd, dd MMMM yyyy")</span>
+            @if (!string.IsNullOrWhiteSpace(_today.RegionName))
+            {
+                <span class="sc-pill">🗺️ @_today.RegionName</span>
+            }
+        </div>
+
+        <div class="sc-pchg-dash-grid">
+            <div class="sc-pchg-group">
+                <h4>@Loc["panchangam.groupDayElements", "Day & Elements"]</h4>
+                <PchgRow K='@Loc["panchangam.tithi", "Tithi"]' V="@_today.TithiDetails" />
+                <PchgRow K='@Loc["panchangam.nakshatram", "Nakshatram"]' V="@_today.NakshatramDetails" />
+                <PchgRow K='@Loc["panchangam.vaaram", "Vaaram (Day)"]' V="@_today.DayOfWeek" />
+                <PchgRow K='@Loc["panchangam.sunrise", "Sunrise"]' V="@Fmt(_today.Sunrise)" />
+                <PchgRow K='@Loc["panchangam.sunset", "Sunset"]' V="@Fmt(_today.Sunset)" />
+            </div>
+
+            <div class="sc-pchg-group">
+                <h4>@Loc["panchangam.groupCalendar", "Calendar"]</h4>
+                <PchgRow K='@Loc["panchangam.masam", "Masam"]' V="@_today.Masam" />
+                <PchgRow K='@Loc["panchangam.paksham", "Paksham"]' V="@_today.Paksham" />
+                <PchgRow K='@Loc["panchangam.samvatsaram", "Samvatsaram"]' V="@_today.TeluguSamvatsaram" />
+                <PchgRow K='@Loc["panchangam.rutuvu", "Rutuvu"]' V="@_today.Rutuvu" />
+                <PchgRow K='@Loc["panchangam.ayanam", "Ayanam"]' V="@_today.Ayanam" />
+            </div>
+
+            <div class="sc-pchg-group warn">
+                <h4>@Loc["panchangam.groupInauspicious", "Inauspicious"]</h4>
+                <PchgRow K='@Loc["panchangam.rahuKalam", "Rahu Kalam"]' V="@_today.RahuKalam" />
+                <PchgRow K='@Loc["panchangam.yamagandam", "Yamagandam"]' V="@_today.Yamagandam" />
+                <PchgRow K='@Loc["panchangam.gulika", "Gulika"]' V="@_today.Gulika" />
+            </div>
+        </div>
+
+        <span class="sc-pchg-dash-cta">@Loc["dashboard.viewFullPanchangam", "View full Panchangam"] →</span>
+    </a>
+}
+
+@code {
+    private PanchangamModel? _today;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        Region.OnChanged += OnRegionChanged;
+        await Region.EnsureLoadedAsync();
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        try
+        {
+            var today = DateOnly.FromDateTime(DateTime.Now);
+
+            // A date range rather than GetPanchangamByDateAsync, because that one needs a concrete
+            // region and the user may be on "All Regions".
+            var rows = await Api.GetPanchangamsAsync(regionId: Region.SelectedRegionId, from: today, to: today);
+            _today = rows.FirstOrDefault();
+        }
+        catch
+        {
+            // Best-effort — the dashboard must still render if Panchangam is unavailable.
+            _today = null;
+        }
+    }
+
+    private void OnRegionChanged()
+        => _ = InvokeAsync(async () => { await LoadAsync(); StateHasChanged(); });
+
+    public override void Dispose()
+    {
+        Region.OnChanged -= OnRegionChanged;
+        base.Dispose();
+    }
+
+    private static string? Fmt(TimeOnly? t) => t?.ToString("HH:mm");
+}

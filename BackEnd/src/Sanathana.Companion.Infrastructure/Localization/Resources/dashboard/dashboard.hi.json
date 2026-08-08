@@ -1,5 +1,8 @@
 {
   "dashboard.couldNotLoad": "डैशबोर्ड लोड नहीं हो सका।",
   "dashboard.loading": "आपकी साधना लोड हो रही है…",
-  "dashboard.seeker": "साधक"
+  "dashboard.panchangamSub": "आज की तिथि, नक्षत्र और समय",
+  "dashboard.panchangamTitle": "आज का पंचांग",
+  "dashboard.seeker": "साधक",
+  "dashboard.viewFullPanchangam": "पूरा पंचांग देखें"
 }

@@ -1,5 +1,8 @@
 {
   "dashboard.couldNotLoad": "ಡ್ಯಾಶ್ಬೋರ್ಡ್ ಲೋಡ್ ಮಾಡಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ.",
   "dashboard.loading": "ನಿಮ್ಮ ಸಾಧನೆಯನ್ನು ಲೋಡ್ ಮಾಡಲಾಗುತ್ತಿದೆ…",
-  "dashboard.seeker": "ಸಾಧಕ"
+  "dashboard.panchangamSub": "ಇಂದಿನ ತಿಥಿ, ನಕ್ಷತ್ರ ಮತ್ತು ಸಮಯಗಳು",
+  "dashboard.panchangamTitle": "ಇಂದಿನ ಪಂಚಾಂಗ",
+  "dashboard.seeker": "ಸಾಧಕ",
+  "dashboard.viewFullPanchangam": "ಪೂರ್ಣ ಪಂಚಾಂಗ ವೀಕ್ಷಿಸಿ"
 }

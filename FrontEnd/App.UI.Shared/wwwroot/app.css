@@ -900,6 +900,14 @@ body {
 .sc-pchg-row .k { color: var(--color-secondary); flex-shrink: 0; }
 .sc-pchg-row .v { text-align: right; font-weight: 600; }
 
+/* Dashboard overview card — the whole card is the link through to the full Panchangam page. */
+.sc-pchg-dash { display: block; text-decoration: none; color: inherit; transition: border-color 0.15s, transform 0.15s; }
+.sc-pchg-dash:hover { border-color: var(--color-primary); transform: translateY(-2px); }
+.sc-pchg-dash-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.6rem; margin-bottom: 0.8rem; }
+.sc-pchg-dash-date { font-size: 1.05rem; font-weight: 700; color: var(--color-primary); }
+.sc-pchg-dash-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 0.8rem; }
+.sc-pchg-dash-cta { display: inline-block; margin-top: 0.9rem; font-size: 0.9rem; font-weight: 600; color: var(--color-primary); }
+
 .sc-geo-alert { display: flex; align-items: center; gap: 0.5rem; }
 
 /* ---- Dashboard sadhana widget ---- */
