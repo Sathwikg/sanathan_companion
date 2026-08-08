@@ -564,6 +564,35 @@ public class ApiClient : IApiClient
         return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
     }
 
+    // ---- Wallpapers ----
+
+    public async Task<List<WallpaperDeityModel>> GetWallpaperDeitiesAsync(bool onlyWithWallpapers = false)
+        => await _http.GetFromJsonAsync<List<WallpaperDeityModel>>(
+               $"wallpapers/deities?onlyWithWallpapers={(onlyWithWallpapers ? "true" : "false")}") ?? new();
+
+    public async Task<List<WallpaperModel>> GetWallpapersByDeityAsync(Guid deityId, bool activeOnly = true)
+        => await _http.GetFromJsonAsync<List<WallpaperModel>>(
+               $"wallpapers/deity/{deityId}?activeOnly={(activeOnly ? "true" : "false")}") ?? new();
+
+    public async Task<(bool Success, WallpaperUploadResult? Result, string Error)> UploadWallpapersAsync(CreateWallpapersRequest request)
+    {
+        var response = await _http.PostAsJsonAsync("wallpapers", request);
+        if (!response.IsSuccessStatusCode) return (false, null, await ExtractErrorAsync(response));
+        return (true, await response.Content.ReadFromJsonAsync<WallpaperUploadResult>(), string.Empty);
+    }
+
+    public async Task<(bool Success, string Error)> UpdateWallpaperAsync(Guid id, UpdateWallpaperRequest request)
+    {
+        var response = await _http.PutAsJsonAsync($"wallpapers/{id}", request);
+        return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
+    }
+
+    public async Task<(bool Success, string Error)> DeleteWallpaperAsync(Guid id)
+    {
+        var response = await _http.DeleteAsync($"wallpapers/{id}");
+        return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
+    }
+
     public async Task<List<ChantModel>> GetChantsAsync()
         => await _http.GetFromJsonAsync<List<ChantModel>>("chants") ?? new();
 

@@ -979,3 +979,32 @@ body {
 /* ---- Filter field ---- */
 .sc-filter { display: flex; flex-direction: column; gap: 0.25rem; min-width: 170px; }
 .sc-filter label { font-size: 0.72rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--color-secondary); }
+
+/* ---- Wallpapers ---- */
+.sc-upload { display: inline-flex; align-items: center; gap: 0.4rem; cursor: pointer; }
+
+.sc-wp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 1rem; }
+.sc-wp-card { margin: 0; border: 1px solid var(--color-outline); border-radius: var(--radius-md); overflow: hidden; background: var(--color-surface); display: flex; flex-direction: column; }
+.sc-wp-card.inactive { opacity: 0.5; }
+
+/* 9:16 keeps every tile the same shape whatever the source image is. */
+.sc-wp-thumb { width: 100%; aspect-ratio: 9 / 16; object-fit: cover; display: block; background: var(--color-surface); }
+.sc-wp-card figcaption { display: flex; flex-direction: column; gap: 0.1rem; padding: 0.45rem 0.6rem; min-width: 0; }
+.sc-wp-name { font-size: 0.85rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sc-wp-meta { font-size: 0.75rem; color: var(--color-secondary); }
+.sc-wp-actions { display: flex; justify-content: space-between; gap: 0.5rem; padding: 0.35rem 0.6rem 0.55rem; border-top: 1px solid color-mix(in srgb, var(--color-outline) 55%, transparent); }
+.sc-wp-actions .danger { color: #B4531B; }
+
+.sc-wp-download { text-decoration: none; color: inherit; transition: border-color 0.15s, transform 0.15s; }
+.sc-wp-download:hover { border-color: var(--color-primary); transform: translateY(-2px); }
+
+.sc-wp-deities { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 1rem; }
+.sc-wp-deity { display: flex; flex-direction: column; align-items: center; gap: 0.4rem; padding: 1rem 0.6rem; border: 1px solid var(--color-outline); border-radius: var(--radius-md); background: var(--color-surface); cursor: pointer; transition: border-color 0.15s, transform 0.15s; }
+.sc-wp-deity:hover { border-color: var(--color-primary); transform: translateY(-2px); }
+.sc-wp-deity-img { width: 72px; height: 72px; border-radius: 50%; object-fit: cover; }
+.sc-wp-deity-img.placeholder { display: grid; place-items: center; font-size: 2rem; background: var(--color-primary-container); }
+.sc-wp-deity-name { font-weight: 600; text-align: center; }
+.sc-wp-deity-count { font-size: 0.78rem; color: var(--color-secondary); }
+
+.sc-wp-bar { display: flex; align-items: center; gap: 0.8rem; margin-bottom: 1rem; }
+.sc-wp-bar-title { font-size: 1.1rem; font-weight: 700; color: var(--color-primary); }

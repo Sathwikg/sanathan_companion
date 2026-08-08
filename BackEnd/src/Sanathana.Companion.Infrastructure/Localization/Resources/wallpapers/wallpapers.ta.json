@@ -1,0 +1,18 @@
+{
+  "wallpapers.addFiles": "வால்பேப்பர்களைச் சேர்க்கவும்",
+  "wallpapers.choose": "— தெய்வத்தைத் தேர்ந்தெடுக்கவும் —",
+  "wallpapers.chooseFiles": "படங்களைத் தேர்ந்தெடுக்கவும்",
+  "wallpapers.compressing": "{1} இல் {0} தயாராகிறது…",
+  "wallpapers.confirmDelete": "'{0}' நீக்கவா? இதை மீட்டெடுக்க முடியாது.",
+  "wallpapers.confirmDeleteTitle": "வால்பேப்பரை நீக்கு",
+  "wallpapers.couldNotRead": "{0} படிக்க முடியவில்லை.",
+  "wallpapers.noneYet": "இந்தத் தெய்வத்திற்கு இதுவரை வால்பேப்பர்கள் இல்லை.",
+  "wallpapers.pickFirst": "வால்பேப்பர்களை நிர்வகிக்க ஒரு தெய்வத்தைத் தேர்ந்தெடுக்கவும்.",
+  "wallpapers.selectDeity": "தெய்வம்",
+  "wallpapers.sub": "ஒவ்வொரு தெய்வத்திற்கும் பதிவிறக்கக்கூடிய வால்பேப்பர்களைப் பதிவேற்றவும்",
+  "wallpapers.title": "வால்பேப்பர் மாஸ்டர்",
+  "wallpapers.untitled": "தலைப்பு இல்லை",
+  "wallpapers.uploadHint": "ஒரே நேரத்தில் பல · WebP ஆகச் சுருக்கப்படும் · ஒரு பதிவேற்றத்திற்கு அதிகபட்சம் 25",
+  "wallpapers.uploaded": "{0} வால்பேப்பர்கள் சேர்க்கப்பட்டன.",
+  "wallpapers.uploading": "பதிவேற்றுகிறது…"
+}

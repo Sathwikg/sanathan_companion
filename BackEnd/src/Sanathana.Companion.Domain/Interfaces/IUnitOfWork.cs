@@ -11,6 +11,7 @@ public interface IUnitOfWork
     IDayRepository Days { get; }
     IDeityRepository Deities { get; }
     IChantRepository Chants { get; }
+    IWallpaperRepository Wallpapers { get; }
     IChantConfigRepository ChantConfigs { get; }
     ILanguageRepository Languages { get; }
     IPanchangamRepository Panchangams { get; }

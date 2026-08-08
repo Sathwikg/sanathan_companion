@@ -139,6 +139,13 @@ public interface IApiClient
     Task<(bool Ok, FeedbackDashboardModel? Data, bool Forbidden, string Error)> GetFeedbackDashboardAsync();
     Task<(bool Success, string Error)> SetFeedbackStatusAsync(Guid id, string status);
 
+    // Wallpapers
+    Task<List<WallpaperDeityModel>> GetWallpaperDeitiesAsync(bool onlyWithWallpapers = false);
+    Task<List<WallpaperModel>> GetWallpapersByDeityAsync(Guid deityId, bool activeOnly = true);
+    Task<(bool Success, WallpaperUploadResult? Result, string Error)> UploadWallpapersAsync(CreateWallpapersRequest request);
+    Task<(bool Success, string Error)> UpdateWallpaperAsync(Guid id, UpdateWallpaperRequest request);
+    Task<(bool Success, string Error)> DeleteWallpaperAsync(Guid id);
+
     // Chants
     Task<List<ChantModel>> GetChantsAsync();
     Task<ChantModel?> GetChantAsync(Guid id);

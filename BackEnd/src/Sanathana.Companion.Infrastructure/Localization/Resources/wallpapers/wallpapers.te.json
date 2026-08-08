@@ -1,0 +1,18 @@
+{
+  "wallpapers.addFiles": "వాల్‌పేపర్‌లను జోడించండి",
+  "wallpapers.choose": "— దేవతను ఎంచుకోండి —",
+  "wallpapers.chooseFiles": "చిత్రాలను ఎంచుకోండి",
+  "wallpapers.compressing": "{1}లో {0} సిద్ధం చేస్తోంది…",
+  "wallpapers.confirmDelete": "'{0}' తొలగించాలా? దీన్ని తిరిగి పొందలేరు.",
+  "wallpapers.confirmDeleteTitle": "వాల్‌పేపర్‌ను తొలగించు",
+  "wallpapers.couldNotRead": "{0} చదవలేకపోయాం.",
+  "wallpapers.noneYet": "ఈ దేవతకు ఇంకా వాల్‌పేపర్‌లు లేవు.",
+  "wallpapers.pickFirst": "వాల్‌పేపర్‌లను నిర్వహించడానికి ఒక దేవతను ఎంచుకోండి.",
+  "wallpapers.selectDeity": "దేవత",
+  "wallpapers.sub": "ప్రతి దేవతకు డౌన్‌లోడ్ చేయదగిన వాల్‌పేపర్‌లను అప్‌లోడ్ చేయండి",
+  "wallpapers.title": "వాల్‌పేపర్ మాస్టర్",
+  "wallpapers.untitled": "పేరు లేనిది",
+  "wallpapers.uploadHint": "ఒకేసారి అనేకం · WebPగా కుదించబడుతుంది · ఒక అప్‌లోడ్‌కు గరిష్ఠంగా 25",
+  "wallpapers.uploaded": "{0} వాల్‌పేపర్‌లు జోడించబడ్డాయి.",
+  "wallpapers.uploading": "అప్‌లోడ్ అవుతోంది…"
+}

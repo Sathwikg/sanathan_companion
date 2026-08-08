@@ -86,6 +86,16 @@ public class ModuleRoleMappingConfiguration : IEntityTypeConfiguration<ModuleRol
             },
             new ModuleRoleMapping
             {
+                Id = SeedConstants.SanathanWallpapersAccessId,
+                RoleId = SeedConstants.SanathanRoleId,
+                MenuModuleId = SeedConstants.DownloadWallpapersMenuId,
+                WebEnabled = true,
+                MobileEnabled = true,
+                CreatedBy = "system",
+                CreatedDate = SeedConstants.SeedTimestamp
+            },
+            new ModuleRoleMapping
+            {
                 Id = SeedConstants.SanathanNotificationsAccessId,
                 RoleId = SeedConstants.SanathanRoleId,
                 MenuModuleId = SeedConstants.MyNotificationsMenuId,

@@ -256,6 +256,36 @@ public class MenuModuleConfiguration : IEntityTypeConfiguration<MenuModule>
             },
             new MenuModule
             {
+                Id = SeedConstants.WallpaperMasterMenuId,
+                Name = "Wallpaper Master",
+                Icon = "🖼️",
+                Description = "Upload and manage downloadable wallpapers for each deity",
+                RoutePath = "/wallpapers",
+                DisplayOrder = 9,
+                IsVisibleInMenu = true,
+                ShowInMobile = false,
+                IsActive = true,
+                ParentId = SeedConstants.MastersModuleId,
+                CreatedBy = "system",
+                CreatedDate = SeedConstants.SeedTimestamp
+            },
+            new MenuModule
+            {
+                Id = SeedConstants.DownloadWallpapersMenuId,
+                Name = "Download Wallpapers",
+                Icon = "📱",
+                Description = "Browse and download deity wallpapers",
+                RoutePath = "/wallpapers-download",
+                DisplayOrder = 2,
+                IsVisibleInMenu = true,
+                ShowInMobile = true,
+                IsActive = true,
+                ParentId = SeedConstants.SadhanaModuleId,
+                CreatedBy = "system",
+                CreatedDate = SeedConstants.SeedTimestamp
+            },
+            new MenuModule
+            {
                 Id = SeedConstants.TodaysSadhanaMenuId,
                 Name = "Today's Sadhana",
                 Icon = "🪷",

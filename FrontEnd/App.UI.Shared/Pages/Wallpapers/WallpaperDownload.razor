@@ -1,0 +1,120 @@
+@page "/wallpapers-download"
+@attribute [Authorize]
+@inherits LocalizedComponentBase
+@inject IApiClient Api
+@inject AppConfig Config
+
+<div class="sc-page-head">
+    <span class="sc-page-emoji">📱</span>
+    <div>
+        <h1 class="sc-page-title">@Loc["wallpapersDownload.title", "Download Wallpapers"]</h1>
+        <p class="sc-page-sub">@Loc["wallpapersDownload.sub", "Choose a deity, then tap a wallpaper to save it"]</p>
+    </div>
+</div>
+
+@if (_loading)
+{
+    <OmLoader FullPage="true" Message='@Loc["wallpapersDownload.loading", "Loading wallpapers…"]' />
+}
+else if (_selected is null)
+{
+    @if (_deities.Count == 0)
+    {
+        <div class="sc-card sc-empty-state">
+            <div class="sc-empty-om">🖼️</div>
+            <p>@Loc["wallpapersDownload.noneAvailable", "No wallpapers have been published yet."]</p>
+        </div>
+    }
+    else
+    {
+        <div class="sc-wp-deities">
+            @foreach (var d in _deities)
+            {
+                <button type="button" class="sc-card sc-wp-deity" @onclick="() => SelectAsync(d)">
+                    @if (d.HasProfileImage)
+                    {
+                        <img class="sc-wp-deity-img" src="@DeityImg(d.DeityId)" alt="@d.Name" loading="lazy" />
+                    }
+                    else
+                    {
+                        <span class="sc-wp-deity-img placeholder">🕉️</span>
+                    }
+                    <span class="sc-wp-deity-name">@d.Name</span>
+                    <span class="sc-wp-deity-count">
+                        @Loc.TF("wallpapersDownload.count", "{0} wallpapers", d.WallpaperCount)
+                    </span>
+                </button>
+            }
+        </div>
+    }
+}
+else
+{
+    <div class="sc-wp-bar">
+        <button type="button" class="sc-btn-ghost sc-btn-sm" @onclick="BackToDeities">
+            ← @Loc["wallpapersDownload.allDeities", "All deities"]
+        </button>
+        <span class="sc-wp-bar-title">@_selected.Name</span>
+    </div>
+
+    @if (_wallpapers.Count == 0)
+    {
+        <div class="sc-card sc-empty-state">
+            <div class="sc-empty-om">🖼️</div>
+            <p>@Loc["wallpapersDownload.noneForDeity", "No wallpapers for this deity yet."]</p>
+        </div>
+    }
+    else
+    {
+        <div class="sc-wp-grid">
+            @foreach (var w in _wallpapers)
+            {
+                @* A plain anchor with `download`, so the browser saves the file itself — no JS,
+                   and it keeps working on mobile where a blob download often does not. *@
+                <a class="sc-wp-card sc-wp-download" href="@DownloadUrl(w.Id)" download
+                   title="@Loc["wallpapersDownload.tapToSave", "Tap to download"]">
+                    <img class="sc-wp-thumb" src="@ImgSrc(w.Id)" alt="@(w.Title ?? _selected.Name)" loading="lazy" />
+                    <figcaption>
+                        <span class="sc-wp-name">@(string.IsNullOrWhiteSpace(w.Title) ? _selected.Name : w.Title)</span>
+                        <span class="sc-wp-meta">⬇ @w.SizeLabel</span>
+                    </figcaption>
+                </a>
+            }
+        </div>
+    }
+}
+
+@code {
+    private List<WallpaperDeityModel> _deities = new();
+    private List<WallpaperModel> _wallpapers = new();
+    private WallpaperDeityModel? _selected;
+    private bool _loading = true;
+
+    private string ApiRoot => Config.ApiBaseUrl.TrimEnd('/');
+    private string ImgSrc(Guid id) => $"{ApiRoot}/wallpapers/{id}/image";
+    private string DownloadUrl(Guid id) => $"{ApiRoot}/wallpapers/{id}/download";
+    private string DeityImg(Guid id) => $"{ApiRoot}/deities/{id}/image";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        // Only deities that actually have something to download.
+        _deities = await Api.GetWallpaperDeitiesAsync(onlyWithWallpapers: true);
+        _loading = false;
+    }
+
+    private async Task SelectAsync(WallpaperDeityModel deity)
+    {
+        _loading = true;
+        _selected = deity;
+        _wallpapers = await Api.GetWallpapersByDeityAsync(deity.DeityId);
+        _loading = false;
+    }
+
+    private void BackToDeities()
+    {
+        _selected = null;
+        _wallpapers = new();
+    }
+}

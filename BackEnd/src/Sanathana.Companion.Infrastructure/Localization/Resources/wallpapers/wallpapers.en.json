@@ -1,0 +1,18 @@
+{
+  "wallpapers.addFiles": "Add wallpapers",
+  "wallpapers.choose": "— Select a deity —",
+  "wallpapers.chooseFiles": "Choose images",
+  "wallpapers.compressing": "Preparing {0} of {1}…",
+  "wallpapers.confirmDelete": "Delete '{0}'? This cannot be undone.",
+  "wallpapers.confirmDeleteTitle": "Delete wallpaper",
+  "wallpapers.couldNotRead": "Could not read {0}.",
+  "wallpapers.noneYet": "No wallpapers yet for this deity.",
+  "wallpapers.pickFirst": "Choose a deity to manage its wallpapers.",
+  "wallpapers.selectDeity": "Deity",
+  "wallpapers.sub": "Upload downloadable wallpapers for each deity",
+  "wallpapers.title": "Wallpaper Master",
+  "wallpapers.untitled": "Untitled",
+  "wallpapers.uploadHint": "Several at once · compressed to WebP · max 25 per upload",
+  "wallpapers.uploaded": "{0} wallpaper(s) added.",
+  "wallpapers.uploading": "Uploading…"
+}

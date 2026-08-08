@@ -1,0 +1,18 @@
+{
+  "wallpapers.addFiles": "ವಾಲ್‌ಪೇಪರ್‌ಗಳನ್ನು ಸೇರಿಸಿ",
+  "wallpapers.choose": "— ದೇವತೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ —",
+  "wallpapers.chooseFiles": "ಚಿತ್ರಗಳನ್ನು ಆಯ್ಕೆಮಾಡಿ",
+  "wallpapers.compressing": "{1} ರಲ್ಲಿ {0} ಸಿದ್ಧವಾಗುತ್ತಿದೆ…",
+  "wallpapers.confirmDelete": "'{0}' ಅಳಿಸಬೇಕೆ? ಇದನ್ನು ಹಿಂಪಡೆಯಲಾಗುವುದಿಲ್ಲ.",
+  "wallpapers.confirmDeleteTitle": "ವಾಲ್‌ಪೇಪರ್ ಅಳಿಸಿ",
+  "wallpapers.couldNotRead": "{0} ಓದಲಾಗಲಿಲ್ಲ.",
+  "wallpapers.noneYet": "ಈ ದೇವತೆಗೆ ಇನ್ನೂ ವಾಲ್‌ಪೇಪರ್‌ಗಳಿಲ್ಲ.",
+  "wallpapers.pickFirst": "ವಾಲ್‌ಪೇಪರ್‌ಗಳನ್ನು ನಿರ್ವಹಿಸಲು ಒಂದು ದೇವತೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ.",
+  "wallpapers.selectDeity": "ದೇವತೆ",
+  "wallpapers.sub": "ಪ್ರತಿ ದೇವತೆಗೂ ಡೌನ್‌ಲೋಡ್ ಮಾಡಬಹುದಾದ ವಾಲ್‌ಪೇಪರ್‌ಗಳನ್ನು ಅಪ್‌ಲೋಡ್ ಮಾಡಿ",
+  "wallpapers.title": "ವಾಲ್‌ಪೇಪರ್ ಮಾಸ್ಟರ್",
+  "wallpapers.untitled": "ಶೀರ್ಷಿಕೆ ಇಲ್ಲ",
+  "wallpapers.uploadHint": "ಒಮ್ಮೆಗೇ ಹಲವು · ವೆಬ್‌ಪಿ ರೂಪಕ್ಕೆ ಸಂಕುಚಿಸಲಾಗುತ್ತದೆ · ಪ್ರತಿ ಅಪ್‌ಲೋಡ್‌ಗೆ ಗರಿಷ್ಠ 25",
+  "wallpapers.uploaded": "{0} ವಾಲ್‌ಪೇಪರ್‌ಗಳನ್ನು ಸೇರಿಸಲಾಗಿದೆ.",
+  "wallpapers.uploading": "ಅಪ್‌ಲೋಡ್ ಆಗುತ್ತಿದೆ…"
+}

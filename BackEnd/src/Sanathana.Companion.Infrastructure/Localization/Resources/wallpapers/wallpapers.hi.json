@@ -1,0 +1,18 @@
+{
+  "wallpapers.addFiles": "वॉलपेपर जोड़ें",
+  "wallpapers.choose": "— देवता चुनें —",
+  "wallpapers.chooseFiles": "छवियाँ चुनें",
+  "wallpapers.compressing": "{1} में से {0} तैयार हो रहा है…",
+  "wallpapers.confirmDelete": "'{0}' हटाएँ? इसे वापस नहीं किया जा सकता।",
+  "wallpapers.confirmDeleteTitle": "वॉलपेपर हटाएँ",
+  "wallpapers.couldNotRead": "{0} पढ़ा नहीं जा सका।",
+  "wallpapers.noneYet": "इस देवता के लिए अभी कोई वॉलपेपर नहीं है।",
+  "wallpapers.pickFirst": "वॉलपेपर प्रबंधित करने के लिए एक देवता चुनें।",
+  "wallpapers.selectDeity": "देवता",
+  "wallpapers.sub": "प्रत्येक देवता के लिए डाउनलोड करने योग्य वॉलपेपर अपलोड करें",
+  "wallpapers.title": "वॉलपेपर मास्टर",
+  "wallpapers.untitled": "बिना शीर्षक",
+  "wallpapers.uploadHint": "एक साथ कई · वेबपी में संपीड़ित · प्रति अपलोड अधिकतम 25",
+  "wallpapers.uploaded": "{0} वॉलपेपर जोड़े गए।",
+  "wallpapers.uploading": "अपलोड हो रहा है…"
+}

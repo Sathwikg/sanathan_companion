@@ -1,0 +1,223 @@
+@page "/wallpapers"
+@attribute [Authorize(Roles = "Admin")]
+@inherits LocalizedComponentBase
+@inject IApiClient Api
+@inject IJSRuntime JS
+@inject ToastService Toast
+@inject ConfirmService Confirm
+@inject AppConfig Config
+
+<div class="sc-page-head">
+    <span class="sc-page-emoji">🖼️</span>
+    <div>
+        <h1 class="sc-page-title">@Loc["wallpapers.title", "Wallpaper Master"]</h1>
+        <p class="sc-page-sub">@Loc["wallpapers.sub", "Upload downloadable wallpapers for each deity"]</p>
+    </div>
+</div>
+
+<div class="sc-card sc-filtercard">
+    <div class="sc-field">
+        <label>@Loc["wallpapers.selectDeity", "Deity"]</label>
+        <select class="sc-input" value="@_deityId" @onchange="OnDeityChanged">
+            <option value="">@Loc["wallpapers.choose", "— Select a deity —"]</option>
+            @foreach (var d in _deities)
+            {
+                <option value="@d.DeityId">@d.Name (@d.WallpaperCount)</option>
+            }
+        </select>
+    </div>
+
+    @if (_selectedDeity is not null)
+    {
+        <div class="sc-field">
+            <label>@Loc["wallpapers.addFiles", "Add wallpapers"]</label>
+            <label class="sc-btn-primary sc-btn-sm sc-upload">
+                ⬆️ @Loc["wallpapers.chooseFiles", "Choose images"]
+                <InputFile OnChange="OnFilesSelected" accept="image/*" multiple style="display:none" />
+            </label>
+            <span class="sc-hint">@Loc["wallpapers.uploadHint", "Several at once · compressed to WebP · max 25 per upload"]</span>
+        </div>
+    }
+</div>
+
+@if (_busy)
+{
+    <OmLoader Message="@_busyMessage" />
+}
+else if (_selectedDeity is null)
+{
+    <div class="sc-card sc-empty-state">
+        <div class="sc-empty-om">🖼️</div>
+        <p>@Loc["wallpapers.pickFirst", "Choose a deity to manage its wallpapers."]</p>
+    </div>
+}
+else if (_wallpapers.Count == 0)
+{
+    <div class="sc-card sc-empty-state">
+        <div class="sc-empty-om">🖼️</div>
+        <p>@Loc["wallpapers.noneYet", "No wallpapers yet for this deity."]</p>
+    </div>
+}
+else
+{
+    <div class="sc-wp-grid">
+        @foreach (var w in _wallpapers)
+        {
+            <figure class="sc-wp-card @(w.IsActive ? null : "inactive")">
+                <img class="sc-wp-thumb" src="@ImgSrc(w.Id)" alt="@(w.Title ?? _selectedDeity.Name)" loading="lazy" />
+                <figcaption>
+                    <span class="sc-wp-name">@(string.IsNullOrWhiteSpace(w.Title) ? Loc["wallpapers.untitled", "Untitled"] : w.Title)</span>
+                    <span class="sc-wp-meta">@w.SizeLabel</span>
+                </figcaption>
+                <div class="sc-wp-actions">
+                    <button type="button" class="sc-linkbtn" @onclick="() => ToggleActive(w)">
+                        @(w.IsActive ? Loc["common.deactivate", "Deactivate"] : Loc["common.activate", "Activate"])
+                    </button>
+                    <button type="button" class="sc-linkbtn danger" @onclick="() => DeleteAsync(w)">
+                        @Loc["common.delete", "Delete"]
+                    </button>
+                </div>
+            </figure>
+        }
+    </div>
+}
+
+@code {
+    private List<WallpaperDeityModel> _deities = new();
+    private List<WallpaperModel> _wallpapers = new();
+    private WallpaperDeityModel? _selectedDeity;
+    private string _deityId = string.Empty;
+    private bool _busy;
+    private string _busyMessage = string.Empty;
+
+    /// <summary>Wallpapers are viewed full-screen, so they keep more resolution than a deity avatar.</summary>
+    private const int MaxDimension = 1440;
+    private const double Quality = 0.85;
+    private const int MaxFilesPerBatch = 25;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        _deities = await Api.GetWallpaperDeitiesAsync();
+    }
+
+    private string ImgSrc(Guid id) => $"{Config.ApiBaseUrl.TrimEnd('/')}/wallpapers/{id}/image";
+
+    private async Task OnDeityChanged(ChangeEventArgs e)
+    {
+        _deityId = e.Value?.ToString() ?? string.Empty;
+        _selectedDeity = Guid.TryParse(_deityId, out var id)
+            ? _deities.FirstOrDefault(d => d.DeityId == id)
+            : null;
+
+        _wallpapers = _selectedDeity is null
+            ? new()
+            : await Api.GetWallpapersByDeityAsync(_selectedDeity.DeityId, activeOnly: false);
+    }
+
+    private async Task OnFilesSelected(InputFileChangeEventArgs e)
+    {
+        if (_selectedDeity is null) return;
+
+        var files = e.GetMultipleFiles(MaxFilesPerBatch);
+        if (files.Count == 0) return;
+
+        _busy = true;
+        var request = new CreateWallpapersRequest { DeityId = _selectedDeity.DeityId };
+        var unreadable = new List<string>();
+
+        for (var i = 0; i < files.Count; i++)
+        {
+            var file = files[i];
+            _busyMessage = Loc.TF("wallpapers.compressing", "Preparing {0} of {1}…", i + 1, files.Count);
+            StateHasChanged();
+
+            try
+            {
+                // Downscale in the browser first so the interop payload stays bounded, then
+                // compress to WebP — the same two-step the deity photo upload uses.
+                var pre = await file.RequestImageFileAsync("image/png", MaxDimension, MaxDimension);
+                await using var stream = pre.OpenReadStream(maxAllowedSize: 30 * 1024 * 1024);
+                using var ms = new MemoryStream();
+                await stream.CopyToAsync(ms);
+
+                var pngDataUrl = $"data:image/png;base64,{Convert.ToBase64String(ms.ToArray())}";
+                var compressed = await JS.InvokeAsync<string>("scImage.compress", pngDataUrl, MaxDimension, Quality);
+
+                request.Items.Add(new WallpaperUploadItem
+                {
+                    Title = Path.GetFileNameWithoutExtension(file.Name),
+                    ImageBase64 = compressed
+                });
+            }
+            catch
+            {
+                // Keep going: one unreadable file should not lose the rest of the selection.
+                unreadable.Add(file.Name);
+            }
+        }
+
+        if (request.Items.Count > 0)
+        {
+            _busyMessage = Loc["wallpapers.uploading", "Uploading…"];
+            StateHasChanged();
+
+            var (ok, result, error) = await Api.UploadWallpapersAsync(request);
+            if (!ok)
+            {
+                Toast.Error(error);
+            }
+            else
+            {
+                Toast.Success(Loc.TF("wallpapers.uploaded", "{0} wallpaper(s) added.", result?.Added ?? 0));
+                foreach (var r in result?.Rejected ?? new()) Toast.Error(r);
+
+                _wallpapers = await Api.GetWallpapersByDeityAsync(_selectedDeity.DeityId, activeOnly: false);
+                await RefreshCountsAsync();
+            }
+        }
+
+        foreach (var name in unreadable)
+            Toast.Error(Loc.TF("wallpapers.couldNotRead", "Could not read {0}.", name));
+
+        _busy = false;
+    }
+
+    private async Task ToggleActive(WallpaperModel w)
+    {
+        var (ok, error) = await Api.UpdateWallpaperAsync(w.Id, new UpdateWallpaperRequest
+        {
+            Title = w.Title,
+            DisplayOrder = w.DisplayOrder,
+            IsActive = !w.IsActive
+        });
+
+        if (ok) w.IsActive = !w.IsActive; else Toast.Error(error);
+    }
+
+    private async Task DeleteAsync(WallpaperModel w)
+    {
+        var name = string.IsNullOrWhiteSpace(w.Title) ? Loc["wallpapers.untitled", "Untitled"] : w.Title!;
+        var confirmed = await Confirm.ConfirmAsync(
+            Loc["wallpapers.confirmDeleteTitle", "Delete wallpaper"],
+            Loc.TF("wallpapers.confirmDelete", "Delete '{0}'? This cannot be undone.", name),
+            Loc["common.delete", "Delete"],
+            Loc["common.cancel", "Cancel"]);
+
+        if (!confirmed) return;
+
+        var (ok, error) = await Api.DeleteWallpaperAsync(w.Id);
+        if (!ok) { Toast.Error(error); return; }
+
+        _wallpapers.Remove(w);
+        await RefreshCountsAsync();
+    }
+
+    /// <summary>Keeps the per-deity counts in the picker honest after an add or delete.</summary>
+    private async Task RefreshCountsAsync()
+    {
+        _deities = await Api.GetWallpaperDeitiesAsync();
+        if (_selectedDeity is not null)
+            _selectedDeity = _deities.FirstOrDefault(d => d.DeityId == _selectedDeity.DeityId);
+    }
+}

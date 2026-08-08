@@ -36,6 +36,8 @@ public static class SeedConstants
     public static readonly Guid NotificationConfigMenuId = new("61616161-6161-6161-6161-616161616161");
     public static readonly Guid MyNotificationsMenuId = new("62626262-6262-6262-6262-626262626262");
     public static readonly Guid LanguageConfigsMenuId = new("70707070-7070-7070-7070-707070707070");
+    public static readonly Guid WallpaperMasterMenuId = new("80808080-8080-8080-8080-808080808080");
+    public static readonly Guid DownloadWallpapersMenuId = new("81818181-8181-8181-8181-818181818181");
 
     /// <summary>Tamil was added after the original language seed; fixed id keeps migrations stable.</summary>
     public static readonly Guid TamilLanguageId = new("da000000-0000-0000-0000-000000000006");
@@ -54,6 +56,7 @@ public static class SeedConstants
     public static readonly Guid SanathanFeedbackAccessId = new("a0000000-0000-0000-0000-000000000004");
     public static readonly Guid SanathanFavoritesAccessId = new("a0000000-0000-0000-0000-000000000005");
     public static readonly Guid SanathanNotificationsAccessId = new("a0000000-0000-0000-0000-000000000006");
+    public static readonly Guid SanathanWallpapersAccessId = new("a0000000-0000-0000-0000-000000000007");
 
     /// <summary>Pre-computed BCrypt hash of "admin" (workFactor 11). Verify("admin", hash) == true.</summary>
     public const string AdminPasswordHash = "$2a$11$IcC0k9qwHgoBzVuv369tC.z4bukAlUY7IxbpbLD4MU7At7TX4Sxsi";
