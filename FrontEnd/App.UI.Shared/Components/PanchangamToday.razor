@@ -1,7 +1,7 @@
-@* Dashboard component: today's Panchangam at a glance. Shows the details a seeker checks daily
-   (tithi, nakshatram, masam, and the Rahu Kalam window); the whole card opens the full page.
-   Best-effort — if there is no stored Panchangam for today it stays hidden rather than showing
-   an empty shell on the dashboard. *@
+@* Dashboard component: a one-line Panchangam summary. Deliberately compact — only the three
+   facts a seeker checks at a glance (tithi, nakshatram, Rahu Kalam); the whole strip opens the
+   full Panchangam page for everything else. Best-effort: if there is no stored Panchangam for
+   today it stays hidden rather than showing an empty shell. *@
 @inherits LocalizedComponentBase
 @implements IDisposable
 @inject IApiClient Api
@@ -9,48 +9,27 @@
 
 @if (_today is not null)
 {
-    <div class="sc-section-head">
-        <h2>🗓️ @Loc["dashboard.panchangamTitle", "Today's Panchangam"]</h2>
-        <span class="sc-section-sub">@Loc["dashboard.panchangamSub", "Tithi, nakshatram and timings for today"]</span>
-    </div>
+    <a href="panchangam" class="sc-card sc-pchg-mini">
+        <span class="sc-pchg-mini-ic">🗓️</span>
 
-    <a href="panchangam" class="sc-card sc-pchg-dash">
-        <div class="sc-pchg-dash-head">
-            <span class="sc-pchg-dash-date">@_today.Date.ToString("dddd, dd MMMM yyyy")</span>
-            @if (!string.IsNullOrWhiteSpace(_today.RegionName))
-            {
-                <span class="sc-pill">🗺️ @_today.RegionName</span>
-            }
-        </div>
+        <span class="sc-pchg-mini-body">
+            <span class="sc-pchg-mini-head">
+                <span class="sc-pchg-mini-title">@Loc["dashboard.panchangamTitle", "Today's Panchangam"]</span>
+                <span class="sc-pchg-mini-date">@_today.Date.ToString("ddd, dd MMM yyyy")</span>
+                @if (!string.IsNullOrWhiteSpace(_today.RegionName))
+                {
+                    <span class="sc-pchg-mini-region">🗺️ @_today.RegionName</span>
+                }
+            </span>
 
-        <div class="sc-pchg-dash-grid">
-            <div class="sc-pchg-group">
-                <h4>@Loc["panchangam.groupDayElements", "Day & Elements"]</h4>
-                <PchgRow K='@Loc["panchangam.tithi", "Tithi"]' V="@_today.TithiDetails" />
-                <PchgRow K='@Loc["panchangam.nakshatram", "Nakshatram"]' V="@_today.NakshatramDetails" />
-                <PchgRow K='@Loc["panchangam.vaaram", "Vaaram (Day)"]' V="@_today.DayOfWeek" />
-                <PchgRow K='@Loc["panchangam.sunrise", "Sunrise"]' V="@Fmt(_today.Sunrise)" />
-                <PchgRow K='@Loc["panchangam.sunset", "Sunset"]' V="@Fmt(_today.Sunset)" />
-            </div>
+            <span class="sc-pchg-mini-facts">
+                @Fact(Loc["panchangam.tithi", "Tithi"], _today.TithiDetails)
+                @Fact(Loc["panchangam.nakshatram", "Nakshatram"], _today.NakshatramDetails)
+                @Fact(Loc["panchangam.rahuKalam", "Rahu Kalam"], _today.RahuKalam, warn: true)
+            </span>
+        </span>
 
-            <div class="sc-pchg-group">
-                <h4>@Loc["panchangam.groupCalendar", "Calendar"]</h4>
-                <PchgRow K='@Loc["panchangam.masam", "Masam"]' V="@_today.Masam" />
-                <PchgRow K='@Loc["panchangam.paksham", "Paksham"]' V="@_today.Paksham" />
-                <PchgRow K='@Loc["panchangam.samvatsaram", "Samvatsaram"]' V="@_today.TeluguSamvatsaram" />
-                <PchgRow K='@Loc["panchangam.rutuvu", "Rutuvu"]' V="@_today.Rutuvu" />
-                <PchgRow K='@Loc["panchangam.ayanam", "Ayanam"]' V="@_today.Ayanam" />
-            </div>
-
-            <div class="sc-pchg-group warn">
-                <h4>@Loc["panchangam.groupInauspicious", "Inauspicious"]</h4>
-                <PchgRow K='@Loc["panchangam.rahuKalam", "Rahu Kalam"]' V="@_today.RahuKalam" />
-                <PchgRow K='@Loc["panchangam.yamagandam", "Yamagandam"]' V="@_today.Yamagandam" />
-                <PchgRow K='@Loc["panchangam.gulika", "Gulika"]' V="@_today.Gulika" />
-            </div>
-        </div>
-
-        <span class="sc-pchg-dash-cta">@Loc["dashboard.viewFullPanchangam", "View full Panchangam"] →</span>
+        <span class="sc-pchg-mini-go" aria-hidden="true">→</span>
     </a>
 }
 
@@ -93,5 +72,31 @@
         base.Dispose();
     }
 
-    private static string? Fmt(TimeOnly? t) => t?.ToString("HH:mm");
+    /// <summary>
+    /// One label/value pair. The value is never trimmed in code — long values are ellipsised by
+    /// CSS, because slicing a string by character count corrupts Indic scripts.
+    /// </summary>
+    private static RenderFragment? Fact(string label, string? value, bool warn = false)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return null;
+
+        return builder =>
+        {
+            builder.OpenElement(0, "span");
+            builder.AddAttribute(1, "class", warn ? "sc-pchg-mini-fact warn" : "sc-pchg-mini-fact");
+            builder.AddAttribute(2, "title", $"{label}: {value}");
+
+            builder.OpenElement(3, "span");
+            builder.AddAttribute(4, "class", "k");
+            builder.AddContent(5, label);
+            builder.CloseElement();
+
+            builder.OpenElement(6, "span");
+            builder.AddAttribute(7, "class", "v");
+            builder.AddContent(8, value);
+            builder.CloseElement();
+
+            builder.CloseElement();
+        };
+    }
 }

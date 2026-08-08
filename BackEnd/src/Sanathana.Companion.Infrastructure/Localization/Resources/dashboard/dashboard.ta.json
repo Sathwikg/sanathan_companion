@@ -1,8 +1,6 @@
 {
   "dashboard.couldNotLoad": "பலகையை ஏற்ற முடியவில்லை.",
   "dashboard.loading": "உங்கள் சாதனாவை ஏற்றுகிறது…",
-  "dashboard.panchangamSub": "இன்றைய திதி, நட்சத்திரம் மற்றும் நேரங்கள்",
   "dashboard.panchangamTitle": "இன்றைய பஞ்சாங்கம்",
-  "dashboard.seeker": "சாதகர்",
-  "dashboard.viewFullPanchangam": "முழு பஞ்சாங்கத்தைப் பார்"
+  "dashboard.seeker": "சாதகர்"
 }

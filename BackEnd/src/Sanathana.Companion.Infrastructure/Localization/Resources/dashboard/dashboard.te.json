@@ -1,8 +1,6 @@
 {
   "dashboard.couldNotLoad": "డాష్బోర్డును లోడ్ చేయలేకపోయాం.",
   "dashboard.loading": "మీ సాధన లోడ్ అవుతోంది…",
-  "dashboard.panchangamSub": "ఈ రోజు తిథి, నక్షత్రం మరియు సమయాలు",
   "dashboard.panchangamTitle": "నేటి పంచాంగం",
-  "dashboard.seeker": "సాధకుడు",
-  "dashboard.viewFullPanchangam": "పూర్తి పంచాంగం చూడండి"
+  "dashboard.seeker": "సాధకుడు"
 }
