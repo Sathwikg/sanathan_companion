@@ -18,7 +18,7 @@ public class PujaService : IPujaService
 
     public async Task<IReadOnlyList<PujaDto>> GetAllAsync(CancellationToken cancellationToken = default)
     {
-        var rows = await _uow.Pujas.GetAllWithFestivalAsync(cancellationToken);
+        var rows = await _uow.Pujas.GetAllWithLinksAsync(cancellationToken);
         return rows.Select(Map).ToList();
     }
 
@@ -27,13 +27,18 @@ public class PujaService : IPujaService
         var entity = await _uow.Pujas.GetByIdAsync(id, cancellationToken);
         if (entity is null) return null;
 
-        entity.Festival ??= await _uow.Festivals.GetByIdAsync(entity.FestivalId, cancellationToken);
+        if (entity.FestivalId is { } fid)
+            entity.Festival ??= await _uow.Festivals.GetByIdAsync(fid, cancellationToken);
+        if (entity.DeityId is { } did)
+            entity.Deity ??= await _uow.Deities.GetByIdAsync(did, cancellationToken);
+
         return Map(entity);
     }
 
     public async Task<PujaFormOptionsDto> GetFormOptionsAsync(CancellationToken cancellationToken = default)
     {
         var festivals = await _uow.Festivals.ListAllAsync(cancellationToken);
+        var deities = await _uow.Deities.ListWithoutImageAsync(cancellationToken);
 
         return new PujaFormOptionsDto
         {
@@ -41,6 +46,12 @@ public class PujaService : IPujaService
                 .Where(f => f.IsActive)
                 .OrderByDescending(f => f.Year).ThenBy(f => f.Name)
                 .Select(f => new PujaFestivalOptionDto { Id = f.Id, Name = f.Name, Year = f.Year })
+                .ToList(),
+
+            Deities = deities
+                .Where(d => d.IsActive)
+                .OrderBy(d => d.Name)
+                .Select(d => new PujaDeityOptionDto { Id = d.Id, Name = d.Name })
                 .ToList()
         };
     }
@@ -48,16 +59,19 @@ public class PujaService : IPujaService
     public async Task<Guid> CreateAsync(CreatePujaDto dto, CancellationToken cancellationToken = default)
     {
         var name = Require(dto.Name);
-        await EnsureFestivalExistsAsync(dto.FestivalId, cancellationToken);
+        var festivalId = Normalise(dto.FestivalId);
+        var deityId = Normalise(dto.DeityId);
 
-        if (await _uow.Pujas.NameExistsAsync(name, dto.FestivalId, null, cancellationToken))
-            throw new ConflictException($"A puja named '{name}' already exists for this festival.");
+        await EnsureFestivalExistsAsync(festivalId, cancellationToken);
+        await EnsureDeityExistsAsync(deityId, cancellationToken);
+        await EnsureNameFreeAsync(name, festivalId, null, cancellationToken);
 
         var entity = new Puja
         {
             Name = name,
             Description = Trim(dto.Description, MaxDescriptionLength),
-            FestivalId = dto.FestivalId,
+            FestivalId = festivalId,
+            DeityId = deityId,
             IsActive = dto.IsActive
         };
 
@@ -72,14 +86,17 @@ public class PujaService : IPujaService
             ?? throw new NotFoundException($"Puja '{id}' was not found.");
 
         var name = Require(dto.Name);
-        await EnsureFestivalExistsAsync(dto.FestivalId, cancellationToken);
+        var festivalId = Normalise(dto.FestivalId);
+        var deityId = Normalise(dto.DeityId);
 
-        if (await _uow.Pujas.NameExistsAsync(name, dto.FestivalId, id, cancellationToken))
-            throw new ConflictException($"A puja named '{name}' already exists for this festival.");
+        await EnsureFestivalExistsAsync(festivalId, cancellationToken);
+        await EnsureDeityExistsAsync(deityId, cancellationToken);
+        await EnsureNameFreeAsync(name, festivalId, id, cancellationToken);
 
         entity.Name = name;
         entity.Description = Trim(dto.Description, MaxDescriptionLength);
-        entity.FestivalId = dto.FestivalId;
+        entity.FestivalId = festivalId;
+        entity.DeityId = deityId;
         entity.IsActive = dto.IsActive;
 
         _uow.Pujas.Update(entity);
@@ -96,13 +113,35 @@ public class PujaService : IPujaService
         await _uow.SaveChangesAsync(cancellationToken);
     }
 
-    private async Task EnsureFestivalExistsAsync(Guid festivalId, CancellationToken cancellationToken)
-    {
-        if (festivalId == Guid.Empty)
-            throw new ValidationException("Choose the festival this puja belongs to.");
+    /// <summary>
+    /// An all-zero Guid is what an unset dropdown sends; treat it as "not mapped" rather than
+    /// letting it reach the database and fail the foreign key.
+    /// </summary>
+    private static Guid? Normalise(Guid? id) => id == Guid.Empty ? null : id;
 
-        _ = await _uow.Festivals.GetByIdAsync(festivalId, cancellationToken)
+    private async Task EnsureNameFreeAsync(string name, Guid? festivalId, Guid? excludeId, CancellationToken ct)
+    {
+        if (!await _uow.Pujas.NameExistsAsync(name, festivalId, excludeId, ct)) return;
+
+        throw new ConflictException(festivalId is null
+            ? $"A puja named '{name}' already exists without a festival."
+            : $"A puja named '{name}' already exists for this festival.");
+    }
+
+    private async Task EnsureFestivalExistsAsync(Guid? festivalId, CancellationToken cancellationToken)
+    {
+        if (festivalId is null) return;   // optional mapping
+
+        _ = await _uow.Festivals.GetByIdAsync(festivalId.Value, cancellationToken)
             ?? throw new NotFoundException($"Festival '{festivalId}' was not found.");
+    }
+
+    private async Task EnsureDeityExistsAsync(Guid? deityId, CancellationToken cancellationToken)
+    {
+        if (deityId is null) return;      // optional mapping
+
+        _ = await _uow.Deities.GetByIdAsync(deityId.Value, cancellationToken)
+            ?? throw new NotFoundException($"Deity '{deityId}' was not found.");
     }
 
     private static string Require(string? name)
@@ -127,9 +166,10 @@ public class PujaService : IPujaService
         Name = p.Name,
         Description = p.Description,
         FestivalId = p.FestivalId,
-        FestivalName = p.Festival?.Name ?? string.Empty,
-        FestivalYear = p.Festival?.Year ?? 0,
-        FestivalDate = p.Festival?.Date ?? default,
+        FestivalName = p.Festival?.Name,
+        FestivalYear = p.Festival?.Year,
+        DeityId = p.DeityId,
+        DeityName = p.Deity?.Name,
         IsActive = p.IsActive
     };
 }

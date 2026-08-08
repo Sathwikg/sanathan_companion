@@ -50,7 +50,7 @@
   "common.noOptions": "No options available",
   "common.none": "None",
   "common.notFound": "Not found",
-  "common.optional": "Optional",
+  "common.optional": "(optional)",
   "common.order": "Order",
   "common.prev": "Prev",
   "common.region": "Region",

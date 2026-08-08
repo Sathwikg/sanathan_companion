@@ -18,13 +18,30 @@ public class PujaConfiguration : IEntityTypeConfiguration<Puja>
         builder.Property(x => x.ModifiedBy).HasMaxLength(100);
 
         // Unique per festival rather than globally — the same rite may appear under two festivals.
+        //
+        // AreNullsDistinct(false) is load-bearing now that the festival is optional. By default
+        // Postgres treats every NULL as distinct, so without it two unmapped pujas could share a
+        // name and the constraint would quietly do nothing for exactly the rows most likely to
+        // collide. Requires PG15+; the deployment is on 17.
         builder.HasIndex(x => new { x.FestivalId, x.Name })
-            .IsUnique().HasDatabaseName("UX_Pujas_Festival_Name");
+            .IsUnique()
+            .AreNullsDistinct(false)
+            .HasDatabaseName("UX_Pujas_Festival_Name");
 
-        // Restrict, not Cascade: deleting a festival must not silently take its pujas with it.
+        builder.HasIndex(x => x.DeityId).HasDatabaseName("IX_Pujas_Deity");
+
+        // Both links are optional, but Restrict on each: removing a festival or a deity must not
+        // silently delete the pujas that reference it, nor quietly blank the mapping.
         builder.HasOne(x => x.Festival)
             .WithMany()
             .HasForeignKey(x => x.FestivalId)
+            .IsRequired(false)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(x => x.Deity)
+            .WithMany()
+            .HasForeignKey(x => x.DeityId)
+            .IsRequired(false)
             .OnDelete(DeleteBehavior.Restrict);
     }
 }

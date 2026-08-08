@@ -1008,3 +1008,6 @@ body {
 
 .sc-wp-bar { display: flex; align-items: center; gap: 0.8rem; margin-bottom: 1rem; }
 .sc-wp-bar-title { font-size: 1.1rem; font-weight: 700; color: var(--color-primary); }
+
+/* Marks a form field that may be left blank. */
+.sc-optional { font-weight: 400; font-size: 0.8rem; color: var(--color-secondary); }

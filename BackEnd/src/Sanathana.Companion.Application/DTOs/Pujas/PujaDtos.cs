@@ -16,18 +16,26 @@ public class PujaDto
     [NoTranslate]
     public string? Description { get; set; }
 
-    public Guid FestivalId { get; set; }
+    /// <summary>Optional mapping.</summary>
+    public Guid? FestivalId { get; set; }
 
     /// <summary>Display only — the form binds <see cref="FestivalId"/>, never this.</summary>
-    [Translatable("Festival", nameof(FestivalId))]
-    public string FestivalName { get; set; } = string.Empty;
+    [Translatable(Category = "festival")]
+    public string? FestivalName { get; set; }
 
-    public int FestivalYear { get; set; }
-    public DateOnly FestivalDate { get; set; }
+    public int? FestivalYear { get; set; }
+
+    /// <summary>Optional mapping.</summary>
+    public Guid? DeityId { get; set; }
+
+    /// <summary>Display only — the form binds <see cref="DeityId"/>, never this.</summary>
+    [Translatable(Category = "deity")]
+    public string? DeityName { get; set; }
+
     public bool IsActive { get; set; }
 }
 
-/// <summary>Festivals for the form's dropdown, as id + label so no name is ever posted back.</summary>
+/// <summary>Options are id + label, so no name is ever posted back as an identifier.</summary>
 public class PujaFestivalOptionDto
 {
     public Guid Id { get; set; }
@@ -38,16 +46,31 @@ public class PujaFestivalOptionDto
     public int Year { get; set; }
 }
 
+public class PujaDeityOptionDto
+{
+    public Guid Id { get; set; }
+
+    [Translatable("Deity", nameof(Id))]
+    public string Name { get; set; } = string.Empty;
+}
+
 public class PujaFormOptionsDto
 {
     public List<PujaFestivalOptionDto> Festivals { get; set; } = new();
+    public List<PujaDeityOptionDto> Deities { get; set; } = new();
 }
 
 public class CreatePujaDto
 {
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
-    public Guid FestivalId { get; set; }
+
+    /// <summary>Optional — null means the puja is not tied to a festival.</summary>
+    public Guid? FestivalId { get; set; }
+
+    /// <summary>Optional — null means the puja is not tied to a deity.</summary>
+    public Guid? DeityId { get; set; }
+
     public bool IsActive { get; set; } = true;
 }
 
@@ -55,6 +78,7 @@ public class UpdatePujaDto
 {
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
-    public Guid FestivalId { get; set; }
+    public Guid? FestivalId { get; set; }
+    public Guid? DeityId { get; set; }
     public bool IsActive { get; set; } = true;
 }

@@ -1,16 +1,18 @@
 {
-  "pujas.chooseFestival": "— त्योहार चुनें —",
   "pujas.confirmActivateBody": "क्या आप “{0}” को सक्रिय करना चाहते हैं?",
   "pujas.confirmDeactivateBody": "क्या आप “{0}” को निष्क्रिय करना चाहते हैं?",
   "pujas.createPuja": "पूजा बनाएँ",
+  "pujas.deity": "देवता",
   "pujas.editPuja": "पूजा संपादित करें",
-  "pujas.emptyBody": "अपनी पहली पूजा बनाएँ और उसे किसी त्योहार से जोड़ें।",
+  "pujas.emptyBody": "अपनी पहली पूजा बनाएँ। त्योहार या देवता से जोड़ना वैकल्पिक है।",
   "pujas.emptyTitle": "अभी कोई पूजा नहीं",
   "pujas.entity": "पूजा",
   "pujas.festival": "त्योहार",
   "pujas.loading": "पूजाएँ लोड हो रही हैं…",
-  "pujas.noFestivals": "कोई सक्रिय त्योहार नहीं — पहले त्योहार मास्टर में एक जोड़ें।",
+  "pujas.noDeity": "— कोई देवता नहीं —",
+  "pujas.noFestival": "— कोई त्योहार नहीं —",
+  "pujas.notMapped": "कोई मैपिंग नहीं",
   "pujas.pujaName": "पूजा का नाम",
-  "pujas.sub": "पूजाएँ और उनसे जुड़ा त्योहार",
+  "pujas.sub": "पूजाएँ, वैकल्पिक रूप से त्योहार और देवता से जुड़ी",
   "pujas.title": "पूजा"
 }
