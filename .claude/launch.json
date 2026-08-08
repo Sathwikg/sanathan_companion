@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "api",
+      "runtimeExecutable": "dotnet",
+      "runtimeArgs": ["run", "--project", "BackEnd/src/Sanathana.Companion.Api"],
+      "port": 7050
+    },
+    {
+      "name": "web",
+      "runtimeExecutable": "dotnet",
+      "runtimeArgs": ["run", "--project", "FrontEnd/App.Web"],
+      "port": 7001
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "favorites.addToFavorites": "பிடித்தவற்றில் சேர்",
+  "favorites.audioTag": "ஒலி",
+  "favorites.browseChants": "மந்திரங்களைப் பார்",
+  "favorites.chantCta": "ஜபி",
+  "favorites.chants": "மந்திரங்கள்",
+  "favorites.emptyHint": "ஒரு மந்திரம் அல்லது தெய்வத்தில் உள்ள ♥ ஐத் தட்டி இங்கே சேர்க்கலாம்.",
+  "favorites.gods": "தெய்வங்கள்",
+  "favorites.loading": "உங்கள் பிடித்தவற்றை ஏற்றுகிறது…",
+  "favorites.noChantsYet": "இன்னும் பிடித்த மந்திரங்கள் இல்லை",
+  "favorites.noGodsYet": "இன்னும் பிடித்த தெய்வங்கள் இல்லை",
+  "favorites.noneYet": "இன்னும் பிடித்தவை இல்லை",
+  "favorites.removeFromFavorites": "பிடித்தவற்றிலிருந்து அகற்று",
+  "favorites.sub": "நீங்கள் விரும்பும் மந்திரங்களும் தெய்வங்களும்",
+  "favorites.title": "பிடித்தவை"
+}

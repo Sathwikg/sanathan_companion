@@ -1,0 +1,20 @@
+{
+  "regions.confirmActivateBody": "क्या आप वाकई “{0}” को सक्रिय करना चाहते हैं?",
+  "regions.confirmDeactivateBody": "क्या आप वाकई “{0}” को निष्क्रिय करना चाहते हैं?",
+  "regions.createRegion": "क्षेत्र बनाएँ",
+  "regions.editRegion": "क्षेत्र संपादित करें",
+  "regions.languagePlural": "भाषाएँ",
+  "regions.languageSingular": "भाषा",
+  "regions.languagesHint": "(एक क्षेत्र में कई भाषाएँ हो सकती हैं)",
+  "regions.latitude": "अक्षांश",
+  "regions.latitudeHint": "(°उ., पंचांग के लिए)",
+  "regions.loadingList": "क्षेत्र लोड हो रहे हैं…",
+  "regions.longitude": "देशांतर",
+  "regions.longitudeHint": "(°पू., पंचांग के लिए)",
+  "regions.noActiveLanguages": "अभी कोई सक्रिय भाषा नहीं — उन्हें भाषा मास्टर में जोड़ें।",
+  "regions.noun": "क्षेत्र",
+  "regions.nounSingular": "क्षेत्र",
+  "regions.regionName": "क्षेत्र का नाम",
+  "regions.sub": "सनातन कम्पेनियन के सभी क्षेत्र प्रबंधित करें",
+  "regions.title": "क्षेत्र मास्टर"
+}

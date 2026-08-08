@@ -1,3 +1,5 @@
+using Sanathana.Companion.Application.Common.Translation;
+
 namespace Sanathana.Companion.Application.DTOs.Panchangams;
 
 /// <summary>A full day's Panchangam. Used for both stored rows and dynamically computed results.</summary>
@@ -8,6 +10,7 @@ public class PanchangamDto
     public int Year { get; set; }
 
     public Guid? RegionId { get; set; }
+    [Translatable("Region", nameof(RegionId))]
     public string? RegionName { get; set; }
 
     /// <summary>Set on dynamically computed results (current location).</summary>
@@ -18,24 +21,40 @@ public class PanchangamDto
     /// <summary>True when computed on the fly rather than read from the database.</summary>
     public bool IsComputed { get; set; }
 
+    [Translatable(Category = "panchangam")]
+
     public string DayOfWeek { get; set; } = string.Empty;
+    [Translatable(Category = "panchangam")]
     public string? TeluguSamvatsaram { get; set; }
+    [Translatable(Category = "panchangam")]
     public string? Ayanam { get; set; }
     public int? SakaSamvatsaram { get; set; }
     public int? VikramaSamvatsaram { get; set; }
+    [Translatable(Category = "panchangam")]
     public string? Masam { get; set; }
+    [Translatable(Category = "panchangam")]
     public string? Paksham { get; set; }
+    [Translatable(Category = "panchangam")]
     public string? Rutuvu { get; set; }
     public TimeOnly? Sunrise { get; set; }
     public TimeOnly? Sunset { get; set; }
+    [Translatable(Composite = true, Category = "panchangam")]
     public string? TithiDetails { get; set; }
+    [Translatable(Composite = true, Category = "panchangam")]
     public string? NakshatramDetails { get; set; }
+    [Translatable(Composite = true, Category = "panchangam")]
     public string? AmruthaKalam { get; set; }
+    [Translatable(Composite = true, Category = "panchangam")]
     public string? AbhijitMuhurtham { get; set; }
+    [Translatable(Composite = true, Category = "panchangam")]
     public string? Durmuhurtham { get; set; }
+    [Translatable(Composite = true, Category = "panchangam")]
     public string? RahuKalam { get; set; }
+    [Translatable(Composite = true, Category = "panchangam")]
     public string? Yamagandam { get; set; }
+    [Translatable(Composite = true, Category = "panchangam")]
     public string? Varjyam { get; set; }
+    [Translatable(Composite = true, Category = "panchangam")]
     public string? Gulika { get; set; }
 
     public bool IsActive { get; set; } = true;

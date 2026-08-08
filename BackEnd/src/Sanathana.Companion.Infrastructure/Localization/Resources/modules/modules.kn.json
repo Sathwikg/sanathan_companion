@@ -1,0 +1,10 @@
+{
+  "modules.confirmActivateBody": "“{0}” ಅನ್ನು ಸಕ್ರಿಯಗೊಳಿಸಲು ನೀವು ಖಚಿತವಾಗಿದ್ದೀರಾ?",
+  "modules.confirmDeactivateBody": "“{0}” ಅನ್ನು ನಿಷ್ಕ್ರಿಯಗೊಳಿಸಲು ನೀವು ಖಚಿತವಾಗಿದ್ದೀರಾ?",
+  "modules.inMenu": "ಮೆನುವಿನಲ್ಲಿ",
+  "modules.loadingList": "ಮಾಡ್ಯೂಲುಗಳನ್ನು ಲೋಡ್ ಮಾಡಲಾಗುತ್ತಿದೆ…",
+  "modules.mainModuleCountMany": "{0} ಮುಖ್ಯ ಮಾಡ್ಯೂಲುಗಳು",
+  "modules.mainModuleCountOne": "{0} ಮುಖ್ಯ ಮಾಡ್ಯೂಲ್",
+  "modules.nounSingular": "ಮೆನು ಅಂಶ",
+  "modules.title": "ಮಾಡ್ಯೂಲುಗಳು ಮತ್ತು ಉಪ ಮಾಡ್ಯೂಲುಗಳು"
+}

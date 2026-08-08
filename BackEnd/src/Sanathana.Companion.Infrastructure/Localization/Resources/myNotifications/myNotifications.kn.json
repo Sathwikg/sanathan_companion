@@ -1,0 +1,23 @@
+{
+  "myNotifications.activeNow": "ಈಗ ಸಕ್ರಿಯ",
+  "myNotifications.allNotifications": "ಎಲ್ಲಾ ಅಧಿಸೂಚನೆಗಳು",
+  "myNotifications.anyTime": "ದಿನದ ಯಾವುದೇ ಸಮಯ",
+  "myNotifications.clearWindow": "ಅವಧಿ ತೆರವುಗೊಳಿಸಿ",
+  "myNotifications.couldNotLoad": "ನಿಮ್ಮ ಅಧಿಸೂಚನೆ ಸಂಯೋಜನೆಗಳನ್ನು ಲೋಡ್ ಮಾಡಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ.",
+  "myNotifications.loadingPrefs": "ನಿಮ್ಮ ಆದ್ಯತೆಗಳನ್ನು ಲೋಡ್ ಮಾಡಲಾಗುತ್ತಿದೆ…",
+  "myNotifications.mandatoryTooltip": "ಈ ಅಧಿಸೂಚನೆ ಕಡ್ಡಾಯ",
+  "myNotifications.masterOff": "ಎಲ್ಲವನ್ನೂ ವಿರಾಮಗೊಳಿಸಲಾಗಿದೆ — ಅಗತ್ಯ ಸೂಚನೆಗಳು ಮಾತ್ರ ತಲುಪುತ್ತವೆ.",
+  "myNotifications.masterOn": "ಕೆಳಗೆ ಆಯ್ಕೆ ಮಾಡಿದ ಅಧಿಸೂಚನೆಗಳನ್ನು ನೀವು ಸ್ವೀಕರಿಸುತ್ತೀರಿ.",
+  "myNotifications.midnightHint": "ಮಧ್ಯರಾತ್ರಿ ದಾಟಿದರೂ ಪರವಾಗಿಲ್ಲ (ಉದಾ. 22:00 → 06:00).",
+  "myNotifications.noneAvailable": "ಇನ್ನೂ ಯಾವುದೇ ಅಧಿಸೂಚನೆಗಳು ಲಭ್ಯವಿಲ್ಲ",
+  "myNotifications.noneAvailableBody": "ನಿರ್ವಾಹಕರು ಇನ್ನೂ ಯಾವುದೇ ಅಧಿಸೂಚನೆಯನ್ನು ಸಕ್ರಿಯಗೊಳಿಸಿಲ್ಲ. ನಂತರ ಪರಿಶೀಲಿಸಿ.",
+  "myNotifications.nowIst": "ಈಗ {0} (ಭಾರತೀಯ ಕಾಲಮಾನ)",
+  "myNotifications.quietHours": "ಮೌನ ಸಮಯ",
+  "myNotifications.quietHoursHint": "ಈ ಅವಧಿಯಲ್ಲಿ ಮೌನವಾಗಿರಲಿ — ಅಗತ್ಯ ಸೂಚನೆಗಳಿಗೂ ಸಹ.",
+  "myNotifications.saved": "🔔 ಅಧಿಸೂಚನೆ ಆದ್ಯತೆಗಳನ್ನು ಉಳಿಸಲಾಗಿದೆ.",
+  "myNotifications.sub": "ನಿಮಗೆ ಯಾವುದರ ಬಗ್ಗೆ ಮತ್ತು ಯಾವಾಗ ಸೂಚನೆ ಬರಬೇಕೆಂಬುದನ್ನು ಆಯ್ಕೆಮಾಡಿ",
+  "myNotifications.title": "ನನ್ನ ಅಧಿಸೂಚನೆಗಳು",
+  "myNotifications.whatHeading": "ನನಗೆ ಯಾವುದರ ಬಗ್ಗೆ ತಿಳಿಸಬೇಕು",
+  "myNotifications.whatSub": "ಪ್ರತಿಯೊಂದಕ್ಕೂ ಐಚ್ಛಿಕ ಸಮಯದ ಅವಧಿಯನ್ನು ಹೊಂದಿಸಿ",
+  "myNotifications.wouldNotifyNow": "ಈಗ ತಿಳಿಸಲಾಗುತ್ತಿತ್ತು"
+}

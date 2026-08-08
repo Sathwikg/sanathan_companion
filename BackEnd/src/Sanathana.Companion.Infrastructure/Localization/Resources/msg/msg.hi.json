@@ -1,0 +1,18 @@
+{
+  "msg.accessRightsSaved": "पहुँच अधिकार सहेजे गए।",
+  "msg.activatedNamed": "“{0}” सक्रिय कर दिया गया है।",
+  "msg.couldNotLoad": "डेटा लोड नहीं हो सका। कृपया पुनः प्रयास करें।",
+  "msg.couldNotSave": "सहेजा नहीं जा सका। कृपया पुनः प्रयास करें।",
+  "msg.createFirst": "आरंभ करने के लिए अपना पहला {0} बनाएँ।",
+  "msg.deactivatedNamed": "“{0}” निष्क्रिय कर दिया गया है।",
+  "msg.deletedNamed": "“{0}” हटा दिया गया।",
+  "msg.fieldRequired": "{0} आवश्यक है।",
+  "msg.languageSaved": "भाषा सेटिंग्स सहेजी गईं।",
+  "msg.noItemsFound": "कोई {0} नहीं मिला",
+  "msg.noItemsYet": "अभी तक कोई {0} नहीं",
+  "msg.noMatchFilters": "वर्तमान फ़िल्टर से कोई {0} मेल नहीं खाता।",
+  "msg.requestFailed": "अनुरोध विफल रहा ({0})।",
+  "msg.saved": "सहेजा गया।",
+  "msg.savedNamed": "“{0}” सहेजा गया।",
+  "msg.translationSaved": "अनुवाद सहेजा गया।"
+}

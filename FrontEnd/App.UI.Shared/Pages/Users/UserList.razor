@@ -1,21 +1,22 @@
 @page "/users"
 @attribute [Authorize]
+@inherits LocalizedComponentBase
 @inject IApiClient Api
 
 <div class="sc-page-head">
     <div class="sc-page-title">
         <span class="sc-page-emoji">👥</span>
         <div>
-            <h1>Users</h1>
-            <p class="sc-page-sub">Registered seekers and their profiles</p>
+            <h1>@Loc["users.title", "Users"]</h1>
+            <p class="sc-page-sub">@Loc["users.sub", "Registered seekers and their profiles"]</p>
         </div>
     </div>
     @if (!_forbidden)
     {
         <div class="sc-page-actions">
             <div class="sc-viewtoggle">
-                <button class="@(_view == "grid" ? "active" : "")" @onclick='() => _view = "grid"'>▦ Cards</button>
-                <button class="@(_view == "list" ? "active" : "")" @onclick='() => _view = "list"'>☰ List</button>
+                <button class="@(_view == "grid" ? "active" : "")" @onclick='() => _view = "grid"'>▦ @Loc["common.cardView", "Cards"]</button>
+                <button class="@(_view == "list" ? "active" : "")" @onclick='() => _view = "list"'>☰ @Loc["common.listView", "List"]</button>
             </div>
         </div>
     }
@@ -25,8 +26,8 @@
 {
     <div class="sc-card sc-empty-state">
         <div class="sc-empty-om">🔒</div>
-        <h3>Administrator access required</h3>
-        <p>The User master is available to administrators only.</p>
+        <h3>@Loc["common.adminOnly", "Administrator access required"]</h3>
+        <p>@Loc["common.adminOnlyBody", "The User master is available to administrators only."]</p>
     </div>
 }
 else if (_error is not null)
@@ -35,20 +36,20 @@ else if (_error is not null)
 }
 else if (_loading)
 {
-    <OmLoader FullPage="true" Message="Loading users…" />
+    <OmLoader FullPage="true" Message="@Loc["common.loading", "Loading…"]" />
 }
 else
 {
     <div class="sc-card sc-filtercard">
         <div class="sc-filter" style="min-width:280px">
-            <label>Search</label>
-            <input class="sc-input sc-input-sm" placeholder="Name, email, mobile or role…" @bind="_search" @bind:event="oninput" @bind:after="() => _page = 1" />
+            <label>@Loc["common.search", "Search"]</label>
+            <input class="sc-input sc-input-sm" placeholder="@Loc["users.searchPlaceholder", "Name, email, mobile or role…"]" @bind="_search" @bind:event="oninput" @bind:after="() => _page = 1" />
         </div>
     </div>
 
     @if (Filtered.Count == 0)
     {
-        <div class="sc-card sc-empty-state"><div class="sc-empty-om">👥</div><h3>No users found</h3></div>
+        <div class="sc-card sc-empty-state"><div class="sc-empty-om">👥</div><h3>@Loc.TF("msg.noItemsFound", "No {0} found", Loc["users.entityPlural", "users"])</h3></div>
     }
     else if (_view == "grid")
     {
@@ -58,19 +59,19 @@ else
                 <div class="sc-tile" @onclick="() => Open(u)" style="cursor:pointer">
                     <div class="sc-tile-top">
                         <div class="sc-avatar"><span>@Initials(u.FullName)</span></div>
-                        <span class="sc-typechip @(u.RoleName == "Admin" ? "god" : "goddess")">@u.RoleName</span>
+                        <span class="sc-typechip @(u.IsAdmin ? "god" : "goddess")">@u.RoleName</span>
                     </div>
                     <h3 class="sc-tile-title">@u.FullName</h3>
                     @if (!string.IsNullOrWhiteSpace(u.SeekerName))
                     {
                         <p class="sc-tile-desc">🕉️ @u.SeekerName</p>
                     }
-                    <div class="sc-pchg-row"><span class="k">Email</span><span class="v">@u.Email</span></div>
-                    <div class="sc-pchg-row"><span class="k">Mobile</span><span class="v">@u.MobileNumber</span></div>
-                    <div class="sc-tile-meta">🔥 @u.CurrentStreak day streak · 🧮 @u.TotalMalas malas</div>
+                    <div class="sc-pchg-row"><span class="k">@Loc["common.email", "Email"]</span><span class="v">@u.Email</span></div>
+                    <div class="sc-pchg-row"><span class="k">@Loc["common.mobile", "Mobile"]</span><span class="v">@u.MobileNumber</span></div>
+                    <div class="sc-tile-meta">🔥 @Loc.TF("users.dayStreak", "{0} day streak", u.CurrentStreak) · 🧮 @Loc.TF("users.malasCount", "{0} malas", u.TotalMalas)</div>
                     <div class="sc-tile-foot">
-                        <span class="sc-muted">Joined @u.RegisteredOn.ToLocalTime().ToString("dd MMM yyyy")</span>
-                        <button class="sc-btn-ghost sc-btn-sm" @onclick="() => Open(u)" @onclick:stopPropagation="true">View profile</button>
+                        <span class="sc-muted">@Loc.TF("users.joinedOn", "Joined {0}", u.RegisteredOn.ToLocalTime().ToString("dd MMM yyyy"))</span>
+                        <button class="sc-btn-ghost sc-btn-sm" @onclick="() => Open(u)" @onclick:stopPropagation="true">@Loc["users.viewProfile", "View profile"]</button>
                     </div>
                 </div>
             }
@@ -82,7 +83,7 @@ else
         <div class="sc-card sc-tablewrap">
             <table class="sc-table">
                 <thead>
-                    <tr><th>User</th><th>Email</th><th>Mobile</th><th>Role</th><th>Streak</th><th>Malas</th><th>Joined</th><th></th></tr>
+                    <tr><th>@Loc["users.userColumn", "User"]</th><th>@Loc["common.email", "Email"]</th><th>@Loc["common.mobile", "Mobile"]</th><th>@Loc["common.role", "Role"]</th><th>@Loc["users.streakColumn", "Streak"]</th><th>@Loc["users.malasColumn", "Malas"]</th><th>@Loc["users.joinedColumn", "Joined"]</th><th></th></tr>
                 </thead>
                 <tbody>
                     @foreach (var u in Paged)
@@ -91,11 +92,11 @@ else
                             <td><strong>@u.FullName</strong>@(string.IsNullOrWhiteSpace(u.SeekerName) ? "" : $" · {u.SeekerName}")</td>
                             <td class="sc-muted">@u.Email</td>
                             <td class="sc-muted">@u.MobileNumber</td>
-                            <td><span class="sc-typechip @(u.RoleName == "Admin" ? "god" : "goddess")">@u.RoleName</span></td>
+                            <td><span class="sc-typechip @(u.IsAdmin ? "god" : "goddess")">@u.RoleName</span></td>
                             <td>🔥 @u.CurrentStreak</td>
                             <td>@u.TotalMalas</td>
                             <td class="sc-muted">@u.RegisteredOn.ToLocalTime().ToString("dd MMM yyyy")</td>
-                            <td><button class="sc-btn-ghost sc-btn-sm" @onclick="() => Open(u)">View</button></td>
+                            <td><button class="sc-btn-ghost sc-btn-sm" @onclick="() => Open(u)">@Loc["common.view", "View"]</button></td>
                         </tr>
                     }
                 </tbody>
@@ -105,10 +106,10 @@ else
     }
 }
 
-<ScModal Visible="_showProfile" Title="User Profile" OnClose="() => _showProfile = false">
+<ScModal Visible="_showProfile" Title="@Loc["users.profileTitle", "User Profile"]" OnClose="() => _showProfile = false">
     @if (_loadingProfile)
     {
-        <OmLoader Inline="true" Size="26" Message="Loading profile…" />
+        <OmLoader Inline="true" Size="26" Message="@Loc["common.loading", "Loading…"]" />
     }
     else if (_profile is not null)
     {
@@ -117,34 +118,34 @@ else
             <div class="sc-avatar sc-avatar-lg" style="width:60px;height:60px;border-radius:16px"><span style="font-size:1.4rem">@Initials(p.FullName)</span></div>
             <div>
                 <h2>@p.FullName</h2>
-                <div class="sc-muted">@(string.IsNullOrWhiteSpace(p.SeekerName) ? "" : $"🕉️ {p.SeekerName} · ")<span class="sc-typechip @(p.RoleName == "Admin" ? "god" : "goddess")">@p.RoleName</span></div>
+                <div class="sc-muted">@(string.IsNullOrWhiteSpace(p.SeekerName) ? "" : $"🕉️ {p.SeekerName} · ")<span class="sc-typechip @(p.IsAdmin ? "god" : "goddess")">@p.RoleName</span></div>
             </div>
         </div>
 
         <div class="sc-detail-grid" style="margin-top:1rem">
-            <div class="sc-detail-item"><span class="sc-detail-label">Email</span><span class="sc-detail-value">@p.Email</span></div>
-            <div class="sc-detail-item"><span class="sc-detail-label">Mobile</span><span class="sc-detail-value">@p.MobileNumber</span></div>
-            <div class="sc-detail-item"><span class="sc-detail-label">Registered</span><span class="sc-detail-value">@p.RegisteredOn.ToLocalTime().ToString("dd MMM yyyy, HH:mm")</span></div>
-            <div class="sc-detail-item"><span class="sc-detail-label">Last practice</span><span class="sc-detail-value">@(p.LastPracticeDate?.ToString("dd MMM yyyy") ?? "—")</span></div>
+            <div class="sc-detail-item"><span class="sc-detail-label">@Loc["common.email", "Email"]</span><span class="sc-detail-value">@p.Email</span></div>
+            <div class="sc-detail-item"><span class="sc-detail-label">@Loc["common.mobile", "Mobile"]</span><span class="sc-detail-value">@p.MobileNumber</span></div>
+            <div class="sc-detail-item"><span class="sc-detail-label">@Loc["users.registered", "Registered"]</span><span class="sc-detail-value">@p.RegisteredOn.ToLocalTime().ToString("dd MMM yyyy, HH:mm")</span></div>
+            <div class="sc-detail-item"><span class="sc-detail-label">@Loc["users.lastPractice", "Last practice"]</span><span class="sc-detail-value">@(p.LastPracticeDate?.ToString("dd MMM yyyy") ?? "—")</span></div>
         </div>
 
         <div class="sc-detail-section">
-            <h3>Sadhana</h3>
+            <h3>@Loc["users.sadhana", "Sadhana"]</h3>
             <div class="sc-streak-stats" style="margin:0;flex-wrap:wrap;gap:1.6rem">
-                <div class="sc-streak-stat"><div class="n">🔥 @p.CurrentStreak</div><div class="l">Current streak</div></div>
-                <div class="sc-streak-stat"><div class="n">@p.LongestStreak</div><div class="l">Longest</div></div>
-                <div class="sc-streak-stat"><div class="n">@p.TotalMalas</div><div class="l">Total malas</div></div>
-                <div class="sc-streak-stat"><div class="n">@p.TotalDaysPracticed</div><div class="l">Days practiced</div></div>
+                <div class="sc-streak-stat"><div class="n">🔥 @p.CurrentStreak</div><div class="l">@Loc["users.currentStreak", "Current streak"]</div></div>
+                <div class="sc-streak-stat"><div class="n">@p.LongestStreak</div><div class="l">@Loc["users.longestStreak", "Longest"]</div></div>
+                <div class="sc-streak-stat"><div class="n">@p.TotalMalas</div><div class="l">@Loc["users.totalMalas", "Total malas"]</div></div>
+                <div class="sc-streak-stat"><div class="n">@p.TotalDaysPracticed</div><div class="l">@Loc["users.daysPracticed", "Days practiced"]</div></div>
             </div>
         </div>
 
         @if (p.RecentSadhana.Count > 0)
         {
             <div class="sc-detail-section">
-                <h3>Recent practice</h3>
+                <h3>@Loc["users.recentPractice", "Recent practice"]</h3>
                 <div class="sc-tablewrap">
                     <table class="sc-table">
-                        <thead><tr><th>Date</th><th>Chant</th><th>Deity</th><th>Malas</th><th>Count</th></tr></thead>
+                        <thead><tr><th>@Loc["common.date", "Date"]</th><th>@Loc["users.chantColumn", "Chant"]</th><th>@Loc["users.deityColumn", "Deity"]</th><th>@Loc["users.malasColumn", "Malas"]</th><th>@Loc["common.count", "Count"]</th></tr></thead>
                         <tbody>
                             @foreach (var e in p.RecentSadhana)
                             {
@@ -163,7 +164,7 @@ else
         }
         else
         {
-            <p class="sc-muted">No sadhana practised yet.</p>
+            <p class="sc-muted">@Loc["users.noSadhana", "No sadhana practised yet."]</p>
         }
     }
 </ScModal>
@@ -203,6 +204,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        await base.OnInitializedAsync();
         var (ok, users, forbidden, err) = await Api.GetUsersAsync();
         _forbidden = forbidden;
         if (ok) _users = users;

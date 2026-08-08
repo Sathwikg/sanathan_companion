@@ -12,8 +12,6 @@ namespace App.Core.Services;
 /// </summary>
 public class RegionState : IUserSessionState
 {
-    private const string AdminRole = "Admin";
-
     private readonly IApiClient _api;
     private Task? _loadTask;
 
@@ -55,7 +53,9 @@ public class RegionState : IUserSessionState
         try
         {
             var profile = await _api.GetMyProfileAsync();
-            allowAll = string.Equals(profile?.RoleName, AdminRole, StringComparison.OrdinalIgnoreCase);
+            // Deliberately IsAdmin, not RoleName: this decides who may view every region, and the
+            // role NAME is display text that gets translated.
+            allowAll = profile?.IsAdmin ?? false;
 
             // Only honour the default if it is still an active region.
             if (profile?.DefaultRegionId is { } id && regions.Any(r => r.Id == id))

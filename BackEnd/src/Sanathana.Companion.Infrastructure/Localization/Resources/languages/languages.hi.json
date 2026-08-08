@@ -1,0 +1,23 @@
+{
+  "languages.allRegions": "सभी क्षेत्र",
+  "languages.byRegionView": "क्षेत्र अनुसार",
+  "languages.code": "कोड",
+  "languages.codeHint": "(आईएसओ, जैसे hi)",
+  "languages.confirmActivateBody": "क्या आप वाकई “{0}” को सक्रिय करना चाहते हैं?",
+  "languages.confirmDeactivateBody": "क्या आप वाकई “{0}” को निष्क्रिय करना चाहते हैं?",
+  "languages.createTitle": "भाषा बनाएँ",
+  "languages.editTitle": "भाषा संपादित करें",
+  "languages.entityName": "भाषा",
+  "languages.entityPlural": "भाषाएँ",
+  "languages.nameLabel": "भाषा का नाम",
+  "languages.nativeName": "मूल नाम",
+  "languages.nativeNameHint": "(अपनी ही लिपि में)",
+  "languages.noRegionsBody": "भाषाओं को क्षेत्रों से जोड़ने के लिए क्षेत्र मास्टर में क्षेत्र जोड़ें।",
+  "languages.noneMapped": "अभी कोई भाषा नहीं जोड़ी गई",
+  "languages.regionsHint": "(एक भाषा कई क्षेत्रों में हो सकती है)",
+  "languages.regionsWord": "क्षेत्र",
+  "languages.searchPlaceholder": "नाम, मूल नाम या कोड…",
+  "languages.searchRegions": "क्षेत्र खोजें…",
+  "languages.sub": "भाषाएँ और उनसे जुड़े क्षेत्र प्रबंधित करें",
+  "languages.title": "भाषाएँ"
+}

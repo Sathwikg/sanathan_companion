@@ -1,5 +1,6 @@
 @page "/chants-config"
 @attribute [Authorize]
+@inherits LocalizedComponentBase
 @inject IApiClient Api
 @inject ConfirmService Confirm
 @inject ToastService Toast
@@ -9,39 +10,39 @@
     <div class="sc-page-title">
         <span class="sc-page-emoji">📜</span>
         <div>
-            <h1>Chants Config</h1>
-            <p class="sc-page-sub">Configure the chants under each chant category</p>
+            <h1>@Loc["chantsConfig.title", "Chants Config"]</h1>
+            <p class="sc-page-sub">@Loc["chantsConfig.sub", "Configure the chants under each chant category"]</p>
         </div>
     </div>
     <div class="sc-page-actions">
         <div class="sc-viewtoggle">
-            <button class="@(_view == "list" ? "active" : "")" @onclick='() => SetView("list")'>☰ List</button>
-            <button class="@(_view == "grid" ? "active" : "")" @onclick='() => SetView("grid")'>▦ Cards</button>
+            <button class="@(_view == "list" ? "active" : "")" @onclick='() => SetView("list")'>☰ @Loc["common.listView", "List"]</button>
+            <button class="@(_view == "grid" ? "active" : "")" @onclick='() => SetView("grid")'>▦ @Loc["common.cardView", "Cards"]</button>
         </div>
-        <button class="sc-btn-primary sc-btn-sm" @onclick='() => Nav.NavigateTo("chants-config/create")'>+ Add New Chant</button>
+        <button class="sc-btn-primary sc-btn-sm" @onclick='() => Nav.NavigateTo("chants-config/create")'>+ @Loc["chantsConfig.addNew", "Add New Chant"]</button>
     </div>
 </div>
 
 <div class="sc-card sc-filtercard">
     <div class="sc-filters">
         <div class="sc-filter">
-            <label>Type</label>
+            <label>@Loc["common.type", "Type"]</label>
             <SearchableSelect Options="CategoryOptions" Value="@_chantId" ValueChanged="OnTypeChanged"
-                              EmptyLabel="All types" SearchPlaceholder="Search types…" />
+                              EmptyLabel="@Loc["chantsConfig.allTypes", "All types"]" SearchPlaceholder="@Loc["chantsConfig.searchTypes", "Search types…"]" />
         </div>
         <div class="sc-filter">
-            <label>Deity</label>
+            <label>@Loc["chantsConfig.deity", "Deity"]</label>
             <SearchableSelect Options="DeityOptions" Value="@_deityId" ValueChanged="OnDeityChanged"
-                              EmptyLabel="All deities" SearchPlaceholder="Search deities…" />
+                              EmptyLabel="@Loc["chantsConfig.allDeities", "All deities"]" SearchPlaceholder="@Loc["chantsConfig.searchDeities", "Search deities…"]" />
         </div>
         <div class="sc-filter">
-            <label>Time</label>
+            <label>@Loc["common.time", "Time"]</label>
             <SearchableSelect Options="TimeSelectOptions" Value="@_timeFilter" ValueChanged="OnTimeChanged"
-                              EmptyLabel="All times" SearchPlaceholder="Search times…" />
+                              EmptyLabel="@Loc["chantsConfig.allTimes", "All times"]" SearchPlaceholder="@Loc["chantsConfig.searchTimes", "Search times…"]" />
         </div>
         <div class="sc-filter">
-            <label>Search</label>
-            <input class="sc-input sc-input-sm" placeholder="Name or description…" @bind="_search" @bind:event="oninput" @bind:after="OnSearchAsync" />
+            <label>@Loc["common.search", "Search"]</label>
+            <input class="sc-input sc-input-sm" placeholder="@Loc["chantsConfig.searchPlaceholder", "Name or description…"]" @bind="_search" @bind:event="oninput" @bind:after="OnSearchAsync" />
         </div>
     </div>
 </div>
@@ -53,15 +54,15 @@
 
 @if (_loading)
 {
-    <OmLoader FullPage="true" Message="Loading chants…" />
+    <OmLoader FullPage="true" Message="@Loc["chantsConfig.loading", "Loading chants…"]" />
 }
 else if (Filtered.Count == 0)
 {
     <div class="sc-card sc-empty-state">
         <div class="sc-empty-om">📜</div>
-        <h3>No chants configured</h3>
-        <p>@(HasFilters ? "No chants match the current filters." : "Add your first chant to get started.")</p>
-        <button class="sc-btn-primary sc-btn-sm" @onclick='() => Nav.NavigateTo("chants-config/create")'>+ Add New Chant</button>
+        <h3>@Loc["chantsConfig.emptyTitle", "No chants configured"]</h3>
+        <p>@(HasFilters ? Loc["chantsConfig.noMatch", "No chants match the current filters."] : Loc["chantsConfig.emptyBody", "Add your first chant to get started."])</p>
+        <button class="sc-btn-primary sc-btn-sm" @onclick='() => Nav.NavigateTo("chants-config/create")'>+ @Loc["chantsConfig.addNew", "Add New Chant"]</button>
     </div>
 }
 else if (_view == "grid")
@@ -72,11 +73,11 @@ else if (_view == "grid")
             <div class="sc-tile @(c.IsActive ? "" : "is-inactive")">
                 <div class="sc-tile-top">
                     <span class="sc-minichip">@c.ChantName</span>
-                    <span class="sc-badge @(c.IsActive ? "on" : "off")">@(c.IsActive ? "Active" : "Inactive")</span>
+                    <span class="sc-badge @(c.IsActive ? "on" : "off")">@(c.IsActive ? Loc["common.active", "Active"] : Loc["common.inactive", "Inactive"])</span>
                 </div>
 
                 <h3 class="sc-tile-title">@c.Name</h3>
-                <p class="sc-tile-desc">@(string.IsNullOrWhiteSpace(c.Description) ? "No description" : c.Description)</p>
+                <p class="sc-tile-desc">@(string.IsNullOrWhiteSpace(c.Description) ? Loc["common.noDescription", "No description"] : c.Description)</p>
 
                 @if (!string.IsNullOrWhiteSpace(c.TextPreview))
                 {
@@ -99,18 +100,18 @@ else if (_view == "grid")
                     }
                     @if (c.HasAudio)
                     {
-                        <span>🔊 Audio</span>
+                        <span>🔊 @Loc["common.audio", "Audio"]</span>
                     }
                 </div>
 
                 <div class="sc-tile-foot">
                     <button class="sc-chip @(c.IsActive ? "chip-warn" : "chip-ok")" @onclick="() => ConfirmToggle(c)">
-                        @(c.IsActive ? "Deactivate" : "Activate")
+                        @(c.IsActive ? Loc["common.deactivate", "Deactivate"] : Loc["common.activate", "Activate"])
                     </button>
                     <div class="sc-tile-actions">
-                        <button class="sc-iconbtn" title="View" @onclick="() => View(c)">👁</button>
-                        <button class="sc-iconbtn" title="Edit" @onclick="() => Edit(c)">✏️</button>
-                        <button class="sc-iconbtn danger" title="Delete" @onclick="() => ConfirmDelete(c)">🗑</button>
+                        <button class="sc-iconbtn" title="@Loc["common.view", "View"]" @onclick="() => View(c)">👁</button>
+                        <button class="sc-iconbtn" title="@Loc["common.edit", "Edit"]" @onclick="() => Edit(c)">✏️</button>
+                        <button class="sc-iconbtn danger" title="@Loc["common.delete", "Delete"]" @onclick="() => ConfirmDelete(c)">🗑</button>
                     </div>
                 </div>
             </div>
@@ -124,12 +125,12 @@ else
         <table class="sc-table">
             <thead>
                 <tr>
-                    <th>Chant</th>
-                    <th>Type</th>
-                    <th>Deities</th>
-                    <th>Time</th>
-                    <th>Audio</th>
-                    <th>Status</th>
+                    <th>@Loc["chantsConfig.chant", "Chant"]</th>
+                    <th>@Loc["common.type", "Type"]</th>
+                    <th>@Loc["chantsConfig.deities", "Deities"]</th>
+                    <th>@Loc["common.time", "Time"]</th>
+                    <th>@Loc["common.audio", "Audio"]</th>
+                    <th>@Loc["common.status", "Status"]</th>
                     <th></th>
                 </tr>
             </thead>
@@ -168,13 +169,13 @@ else
                                 <input type="checkbox" checked="@c.IsActive" @onclick="() => ConfirmToggle(c)" @onclick:preventDefault />
                                 <span class="sc-slider"></span>
                             </label>
-                            <span class="sc-status @(c.IsActive ? "on" : "off")">@(c.IsActive ? "Active" : "Inactive")</span>
+                            <span class="sc-status @(c.IsActive ? "on" : "off")">@(c.IsActive ? Loc["common.active", "Active"] : Loc["common.inactive", "Inactive"])</span>
                         </td>
                         <td>
                             <div class="sc-rowactions">
-                                <button class="sc-iconbtn" title="View" @onclick="() => View(c)">👁</button>
-                                <button class="sc-iconbtn" title="Edit" @onclick="() => Edit(c)">✏️</button>
-                                <button class="sc-iconbtn danger" title="Delete" @onclick="() => ConfirmDelete(c)">🗑</button>
+                                <button class="sc-iconbtn" title="@Loc["common.view", "View"]" @onclick="() => View(c)">👁</button>
+                                <button class="sc-iconbtn" title="@Loc["common.edit", "Edit"]" @onclick="() => Edit(c)">✏️</button>
+                                <button class="sc-iconbtn danger" title="@Loc["common.delete", "Delete"]" @onclick="() => ConfirmDelete(c)">🗑</button>
                             </div>
                         </td>
                     </tr>
@@ -227,6 +228,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        await base.OnInitializedAsync();
         try
         {
             _options = await Api.GetChantConfigFormOptionsAsync();
@@ -287,28 +289,40 @@ else
 
     private static Guid? ParseGuid(string value) => Guid.TryParse(value, out var g) ? g : null;
 
-    private static string FormatRange(TimeOnly? from, TimeOnly? to)
+    private string FormatRange(TimeOnly? from, TimeOnly? to)
     {
         if (from is null && to is null) return "—";
         if (from is not null && to is not null) return $"{from:HH\\:mm} – {to:HH\\:mm}";
-        return from is not null ? $"from {from:HH\\:mm}" : $"until {to:HH\\:mm}";
+        return from is not null
+            ? Loc.TF("chantsConfig.fromTime", "from {0}", from.Value.ToString("HH\\:mm"))
+            : Loc.TF("chantsConfig.untilTime", "until {0}", to!.Value.ToString("HH\\:mm"));
     }
 
     private async Task ConfirmToggle(ChantConfigListItem c)
     {
         var activate = !c.IsActive;
+        var entity = Loc["chantsConfig.entity", "chant"];
         var confirmed = await Confirm.ConfirmAsync(new ConfirmRequest
         {
-            Title = activate ? "Activate chant?" : "Deactivate chant?",
-            Message = $"Are you sure you want to {(activate ? "activate" : "deactivate")} “{c.Name}”?",
-            ConfirmText = activate ? "Yes, activate" : "Yes, deactivate",
-            CancelText = "Cancel",
+            Title = activate
+                ? Loc.TF("common.confirmActivate", "Activate {0}?", entity)
+                : Loc.TF("common.confirmDeactivate", "Deactivate {0}?", entity),
+            Message = activate
+                ? Loc.TF("chantsConfig.confirmActivateBody", "Are you sure you want to activate “{0}”?", c.Name)
+                : Loc.TF("chantsConfig.confirmDeactivateBody", "Are you sure you want to deactivate “{0}”?", c.Name),
+            ConfirmText = activate
+                ? Loc["common.yesActivate", "Yes, activate"]
+                : Loc["common.yesDeactivate", "Yes, deactivate"],
+            CancelText = Loc["common.cancel", "Cancel"],
             Kind = activate ? ConfirmKind.Success : ConfirmKind.Warning
         });
         if (!confirmed) return;
 
         var (ok, err) = await Api.SetChantConfigStatusAsync(c.Id, activate);
-        if (ok) Toast.Success($"“{c.Name}” has been {(activate ? "activated" : "deactivated")}.");
+        if (ok)
+            Toast.Success(activate
+                ? Loc.TF("msg.activatedNamed", "“{0}” has been activated.", c.Name)
+                : Loc.TF("msg.deactivatedNamed", "“{0}” has been deactivated.", c.Name));
         else Toast.Error(err);
         await ReloadAsync();
     }
@@ -317,16 +331,16 @@ else
     {
         var confirmed = await Confirm.ConfirmAsync(new ConfirmRequest
         {
-            Title = "Delete chant?",
-            Message = $"“{c.Name}” and its audio will be permanently deleted. This cannot be undone.",
-            ConfirmText = "Yes, delete",
-            CancelText = "Cancel",
+            Title = Loc.TF("common.confirmDelete", "Delete {0}?", Loc["chantsConfig.entity", "chant"]),
+            Message = Loc.TF("chantsConfig.deleteBody", "“{0}” and its audio will be permanently deleted. This cannot be undone.", c.Name),
+            ConfirmText = Loc["common.yesDelete", "Yes, delete"],
+            CancelText = Loc["common.cancel", "Cancel"],
             Kind = ConfirmKind.Danger
         });
         if (!confirmed) return;
 
         var (ok, err) = await Api.DeleteChantConfigAsync(c.Id);
-        if (ok) Toast.Success($"“{c.Name}” was deleted.");
+        if (ok) Toast.Success(Loc.TF("msg.deletedNamed", "“{0}” was deleted.", c.Name));
         else Toast.Error(err);
         await ReloadAsync();
     }

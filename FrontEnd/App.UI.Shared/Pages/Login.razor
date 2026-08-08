@@ -1,9 +1,10 @@
 @page "/login"
+@inherits LocalizedComponentBase
 @layout AuthLayout
 @inject IAuthService AuthService
 @inject NavigationManager Nav
 
-<h2 class="sc-form-title">Welcome back, Seeker</h2>
+<h2 class="sc-form-title">@Loc["auth.welcomeBack", "Welcome back, Seeker"]</h2>
 
 <EditForm Model="_model" OnValidSubmit="HandleLoginAsync" class="sc-form">
     <DataAnnotationsValidator />
@@ -14,23 +15,23 @@
     }
 
     <div class="sc-field">
-        <label>Email or Mobile</label>
+        <label>@Loc["auth.emailOrMobile", "Email or Mobile"]</label>
         <InputText @bind-Value="_model.Credential" class="sc-input" autocomplete="username" />
         <ValidationMessage For="() => _model.Credential" />
     </div>
 
     <div class="sc-field">
-        <label>Password</label>
+        <label>@Loc["auth.password", "Password"]</label>
         <InputText type="password" @bind-Value="_model.Password" class="sc-input" autocomplete="current-password" />
         <ValidationMessage For="() => _model.Password" />
     </div>
 
     <button type="submit" class="sc-btn-primary" disabled="@_busy">
-        @if (_busy) { <OmLoader Inline="true" Size="18" Message="Signing in…" /> } else { <span>Begin Devotion</span> }
+        @if (_busy) { <OmLoader Inline="true" Size="18" Message='@Loc["common.signingIn", "Signing in…"]' /> } else { <span>@Loc["auth.signIn", "Begin Devotion"]</span> }
     </button>
 </EditForm>
 
-<p class="sc-form-alt">New here? <a href="register">Create an account</a></p>
+<p class="sc-form-alt">@Loc["auth.newHere", "New here?"] <a href="register">@Loc["auth.createAccount", "Create an account"]</a></p>
 
 @code {
     private readonly LoginRequest _model = new();

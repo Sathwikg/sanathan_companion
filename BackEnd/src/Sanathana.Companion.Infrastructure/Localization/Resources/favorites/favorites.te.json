@@ -1,0 +1,16 @@
+{
+  "favorites.addToFavorites": "ఇష్టమైనవిలో చేర్చు",
+  "favorites.audioTag": "ఆడియో",
+  "favorites.browseChants": "మంత్రాలు చూడు",
+  "favorites.chantCta": "జపించు",
+  "favorites.chants": "మంత్రాలు",
+  "favorites.emptyHint": "ఇక్కడ జోడించడానికి మంత్రంపై లేదా దేవునిపై ♥ గుర్తును తాకండి.",
+  "favorites.gods": "దేవతలు",
+  "favorites.loading": "మీ ఇష్టమైనవి లోడ్ అవుతున్నాయి…",
+  "favorites.noChantsYet": "ఇంకా ఇష్టమైన మంత్రాలు లేవు",
+  "favorites.noGodsYet": "ఇంకా ఇష్టమైన దేవతలు లేరు",
+  "favorites.noneYet": "ఇంకా ఇష్టమైనవి లేవు",
+  "favorites.removeFromFavorites": "ఇష్టమైనవి నుండి తీసివేయి",
+  "favorites.sub": "మీకు ఇష్టమైన మంత్రాలు మరియు దేవతలు",
+  "favorites.title": "ఇష్టమైనవి"
+}

@@ -1,0 +1,12 @@
+{
+  "feedback.chooseIssueType": "Please choose an issue type.",
+  "feedback.descriptionPlaceholder": "Tell us what's on your mind…",
+  "feedback.issueType": "Issue Type",
+  "feedback.noIssueTypes": "No issue types available",
+  "feedback.noIssueTypesBody": "An administrator needs to add feedback issue types first.",
+  "feedback.selectIssueType": "— Select an issue type —",
+  "feedback.sub": "Share a suggestion, appreciation or report an issue",
+  "feedback.submit": "Submit Feedback",
+  "feedback.thankYou": "🙏 Thank you! Your feedback has been submitted.",
+  "feedback.title": "Feedback"
+}

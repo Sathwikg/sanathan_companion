@@ -35,6 +35,10 @@ public static class SeedConstants
     public static readonly Guid NotificationsModuleId = new("60606060-6060-6060-6060-606060606060");
     public static readonly Guid NotificationConfigMenuId = new("61616161-6161-6161-6161-616161616161");
     public static readonly Guid MyNotificationsMenuId = new("62626262-6262-6262-6262-626262626262");
+    public static readonly Guid LanguageConfigsMenuId = new("70707070-7070-7070-7070-707070707070");
+
+    /// <summary>Tamil was added after the original language seed; fixed id keeps migrations stable.</summary>
+    public static readonly Guid TamilLanguageId = new("da000000-0000-0000-0000-000000000006");
 
     // Seeded common feedback issue types.
     public static readonly Guid IssueTypeBugId = new("41000000-0000-0000-0000-000000000001");

@@ -1,5 +1,6 @@
 @page "/sadhana/chant/{Id:guid}"
 @attribute [Authorize]
+@inherits LocalizedComponentBase
 @implements IDisposable
 @inject IApiClient Api
 @inject ToastService Toast
@@ -11,15 +12,15 @@
     <div class="sc-page-title">
         <span class="sc-page-emoji">🪷</span>
         <div>
-            <h1>@(_chant?.Name ?? "Sadhana")</h1>
+            <h1>@(_chant?.Name ?? Loc["sadhana.sadhanaLabel", "Sadhana"])</h1>
             <p class="sc-page-sub">@(_chant?.CategoryName)@(_chant is not null && _chant.DeityNames.Count > 0 ? " · " + string.Join(", ", _chant.DeityNames) : "")</p>
         </div>
     </div>
     <div class="sc-page-actions">
         <button type="button" class="sc-fav lg @(Favs.IsChant(Id) ? "on" : null)"
-                title="@(Favs.IsChant(Id) ? "Remove from favorites" : "Add to favorites")"
+                title="@(Favs.IsChant(Id) ? Loc["favorites.removeFromFavorites", "Remove from favorites"] : Loc["favorites.addToFavorites", "Add to favorites"])"
                 @onclick="ToggleFavAsync">♥</button>
-        <button class="sc-btn-ghost sc-btn-sm" @onclick="Back">← Back</button>
+        <button class="sc-btn-ghost sc-btn-sm" @onclick="Back">← @Loc["common.back", "Back"]</button>
     </div>
 </div>
 
@@ -30,11 +31,11 @@
 
 @if (_loading)
 {
-    <OmLoader FullPage="true" Message="Loading chant…" />
+    <OmLoader FullPage="true" Message="@Loc["sadhana.loadingChant", "Loading chant…"]" />
 }
 else if (_chant is null)
 {
-    <div class="sc-card sc-empty-state"><div class="sc-empty-om">🪷</div><h3>Chant not found</h3></div>
+    <div class="sc-card sc-empty-state"><div class="sc-empty-om">🪷</div><h3>@Loc["sadhana.chantNotFound", "Chant not found"]</h3></div>
 }
 else
 {
@@ -43,15 +44,15 @@ else
             <div class="sc-japa-ring @(_flash ? "flash" : "")" @onclick="Tap">
                 <div style="text-align:center">
                     <div class="sc-japa-count">@_countInMala</div>
-                    <div class="sc-japa-of">of @_chant.TargetCount</div>
-                    <div class="sc-japa-tap">Tap to chant</div>
+                    <div class="sc-japa-of">@Loc.TF("sadhana.ofCount", "of {0}", _chant.TargetCount)</div>
+                    <div class="sc-japa-tap">@Loc["sadhana.tapToChant", "Tap to chant"]</div>
                 </div>
             </div>
 
             <div class="sc-japa-malas">
                 <span class="n">@_malas</span>
-                <span>mala@(_malas == 1 ? "" : "s") today</span>
-                <span class="sc-muted">· @_total total</span>
+                <span>@(_malas == 1 ? Loc["sadhana.malaTodayOne", "mala today"] : Loc["sadhana.malasTodayMany", "malas today"])</span>
+                <span class="sc-muted">· @Loc.TF("sadhana.totalCount", "{0} total", _total)</span>
             </div>
 
             @if (_cheer is not null)
@@ -60,8 +61,8 @@ else
             }
 
             <div class="sc-japa-actions">
-                <button class="sc-btn-ghost sc-btn-sm" @onclick="Undo" disabled="@(_total == 0)">− Undo</button>
-                <button class="sc-btn-primary sc-btn-sm" @onclick="Tap">🙏 Chant +1</button>
+                <button class="sc-btn-ghost sc-btn-sm" @onclick="Undo" disabled="@(_total == 0)">− @Loc["sadhana.undo", "Undo"]</button>
+                <button class="sc-btn-primary sc-btn-sm" @onclick="Tap">🙏 @Loc["sadhana.chantPlusOne", "Chant +1"]</button>
             </div>
         </div>
     </div>
@@ -69,7 +70,7 @@ else
     @if (_chant.HasAudio)
     {
         <div class="sc-card">
-            <h3 class="sc-detail-label">Audio</h3>
+            <h3 class="sc-detail-label">@Loc["common.audio", "Audio"]</h3>
             <audio class="sc-audioplayer" controls src="@AudioUrl"></audio>
             @if (!string.IsNullOrWhiteSpace(_chant.AudioFileName))
             {
@@ -81,7 +82,7 @@ else
     @if (!string.IsNullOrWhiteSpace(_chant.Description))
     {
         <div class="sc-card">
-            <h3 class="sc-detail-label">About</h3>
+            <h3 class="sc-detail-label">@Loc["sadhana.about", "About"]</h3>
             <p>@_chant.Description</p>
         </div>
     }
@@ -89,7 +90,7 @@ else
     @if (!string.IsNullOrWhiteSpace(_chant.ChantText))
     {
         <div class="sc-card">
-            <h3 class="sc-detail-label">Chant</h3>
+            <h3 class="sc-detail-label">@Loc["sadhana.chantText", "Chant"]</h3>
             @* Server-side sanitized on save, safe to render. *@
             <div class="sc-richtext">@((MarkupString)_chant.ChantText)</div>
         </div>
@@ -116,6 +117,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        await base.OnInitializedAsync();
         Favs.OnChanged += OnFavChanged;
         await Favs.EnsureLoadedAsync();
         StateHasChanged();
@@ -197,13 +199,13 @@ else
             if (result is not null)
             {
                 if (result.StreakSecuredToday)
-                    _cheer = $"🔥 Streak secured! You're on a {result.Streak.CurrentStreak}-day streak.";
+                    _cheer = "🔥 " + Loc.TF("sadhana.streakSecured", "Streak secured! You're on a {0}-day streak.", result.Streak.CurrentStreak);
                 else if (result.MalaCompleted)
-                    _cheer = "🌸 Mala complete! Keep going.";
+                    _cheer = "🌸 " + Loc["sadhana.malaComplete", "Mala complete! Keep going."];
                 StateHasChanged();
             }
         }
-        catch (Exception ex) { _error = "Could not save your count. " + ex.Message; }
+        catch (Exception ex) { _error = Loc["sadhana.couldNotSaveCount", "Could not save your count."] + " " + ex.Message; }
     }
 
     private async Task ResetFlashAsync()
@@ -219,12 +221,13 @@ else
         Nav.NavigateTo("sadhana");
     }
 
-    public void Dispose()
+    public override void Dispose()
     {
         Favs.OnChanged -= OnFavChanged;
         _saveCts?.Cancel();
         // best-effort final save of any un-persisted taps
         if (_dirty)
             _ = Api.LogSadhanaCountAsync(new LogCountRequest { ChantConfigId = Id, TotalCount = _total });
+        base.Dispose();
     }
 }

@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Sanathana.Companion.Application.Interfaces;
 using Sanathana.Companion.Domain.Interfaces;
 using Sanathana.Companion.Infrastructure.Identity;
+using Sanathana.Companion.Infrastructure.Localization;
 using Sanathana.Companion.Infrastructure.Persistence;
 using Sanathana.Companion.Infrastructure.Persistence.Repositories;
 
@@ -30,6 +31,10 @@ public static class DependencyInjection
         services.AddScoped<IPanchangamRepository, PanchangamRepository>();
         services.AddScoped<ISadhanaRepository, SadhanaRepository>();
         services.AddScoped<IModuleRoleMappingRepository, ModuleRoleMappingRepository>();
+        services.AddScoped<ILocalizationRepository, LocalizationRepository>();
+        services.AddSingleton<ILocalizationSeedSource, EmbeddedLocalizationSeedSource>();
+        services.AddSingleton<ITermVocabularySource, EmbeddedTermVocabularySource>();
+        services.AddScoped<IVocabularyColumnReader, VocabularyColumnReader>();
         services.AddScoped<IIssueTypeRepository, IssueTypeRepository>();
         services.AddScoped<IFeedbackRepository, FeedbackRepository>();
         services.AddScoped<IUserFavoriteRepository, UserFavoriteRepository>();

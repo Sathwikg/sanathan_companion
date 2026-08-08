@@ -1,5 +1,6 @@
 @page "/roles"
 @attribute [Authorize]
+@inherits LocalizedComponentBase
 @inject IApiClient Api
 @inject ConfirmService Confirm
 @inject ToastService Toast
@@ -8,18 +9,18 @@
     <div class="sc-page-title">
         <span class="sc-page-emoji">🎭</span>
         <div>
-            <h1>Role Master</h1>
-            <p class="sc-page-sub">Manage the roles users are assigned and access rights are granted to</p>
+            <h1>@Loc["roles.title", "Role Master"]</h1>
+            <p class="sc-page-sub">@Loc["roles.sub", "Manage the roles users are assigned and access rights are granted to"]</p>
         </div>
     </div>
     @if (!_forbidden)
     {
         <div class="sc-page-actions">
             <div class="sc-viewtoggle">
-                <button class="@(_view == "grid" ? "active" : "")" @onclick='() => SetView("grid")'>▦ Cards</button>
-                <button class="@(_view == "list" ? "active" : "")" @onclick='() => SetView("list")'>☰ List</button>
+                <button class="@(_view == "grid" ? "active" : "")" @onclick='() => SetView("grid")'>▦ @Loc["common.cardView", "Cards"]</button>
+                <button class="@(_view == "list" ? "active" : "")" @onclick='() => SetView("list")'>☰ @Loc["common.listView", "List"]</button>
             </div>
-            <button class="sc-btn-primary sc-btn-sm" @onclick="OpenCreate">+ Create</button>
+            <button class="sc-btn-primary sc-btn-sm" @onclick="OpenCreate">+ @Loc["common.create", "Create"]</button>
         </div>
     }
 </div>
@@ -28,8 +29,8 @@
 {
     <div class="sc-card sc-empty-state">
         <div class="sc-empty-om">🔒</div>
-        <h3>Administrator access required</h3>
-        <p>The Role master is available to administrators only.</p>
+        <h3>@Loc["common.adminOnly", "Administrator access required"]</h3>
+        <p>@Loc["common.adminOnlyBody", "The Role master is available to administrators only."]</p>
     </div>
 }
 else
@@ -37,8 +38,8 @@ else
     <div class="sc-card sc-filtercard">
         <div class="sc-filters">
             <div class="sc-filter" style="min-width:280px">
-                <label>Search</label>
-                <input class="sc-input sc-input-sm" placeholder="Role name or description…" @bind="_search" @bind:event="oninput" @bind:after="ReloadAsync" />
+                <label>@Loc["common.search", "Search"]</label>
+                <input class="sc-input sc-input-sm" placeholder="@Loc["roles.searchPlaceholder", "Role name or description…"]" @bind="_search" @bind:event="oninput" @bind:after="ReloadAsync" />
             </div>
         </div>
     </div>
@@ -50,15 +51,17 @@ else
 
     @if (_loading)
     {
-        <OmLoader FullPage="true" Message="Loading roles…" />
+        <OmLoader FullPage="true" Message="@Loc["common.loading", "Loading…"]" />
     }
     else if (_list.Count == 0)
     {
         <div class="sc-card sc-empty-state">
             <div class="sc-empty-om">🎭</div>
-            <h3>No roles found</h3>
-            <p>@(string.IsNullOrWhiteSpace(_search) ? "Create your first role to get started." : "No roles match the current search.")</p>
-            <button class="sc-btn-primary sc-btn-sm" @onclick="OpenCreate">+ Create Role</button>
+            <h3>@Loc.TF("msg.noItemsFound", "No {0} found", Loc["roles.entityPlural", "roles"])</h3>
+            <p>@(string.IsNullOrWhiteSpace(_search)
+                    ? Loc.TF("msg.createFirst", "Create your first {0} to get started.", Loc["roles.entityName", "role"])
+                    : Loc["roles.emptySearch", "No roles match the current search."])</p>
+            <button class="sc-btn-primary sc-btn-sm" @onclick="OpenCreate">+ @Loc["roles.createTitle", "Create Role"]</button>
         </div>
     }
     else if (_view == "grid")
@@ -71,28 +74,28 @@ else
                         <div class="sc-tile-badge">🎭</div>
                         @if (r.IsSystemRole)
                         {
-                            <span class="sc-badge on">Built-in</span>
+                            <span class="sc-badge on">@Loc["roles.builtIn", "Built-in"]</span>
                         }
                     </div>
                     <h3 class="sc-tile-title">
                         @r.RoleName
                         <span class="sc-typechip @(IsAdmin(r) ? "god" : "goddess")">#@r.RoleId</span>
                     </h3>
-                    <p class="sc-tile-desc">@(string.IsNullOrWhiteSpace(r.Description) ? "No description" : r.Description)</p>
+                    <p class="sc-tile-desc">@(string.IsNullOrWhiteSpace(r.Description) ? Loc["common.noDescription", "No description"] : r.Description)</p>
                     <div class="sc-tile-meta">
-                        <span>👥 @r.UserCount @(r.UserCount == 1 ? "user" : "users")</span>
+                        <span>👥 @UserCountText(r)</span>
                         <span>@FormAccessLabel(r)</span>
                     </div>
                     <div class="sc-tile-foot">
                         @if (r.CanDelete)
                         {
-                            <button class="sc-chip chip-warn" @onclick="() => ConfirmDelete(r)">Delete</button>
+                            <button class="sc-chip chip-warn" @onclick="() => ConfirmDelete(r)">@Loc["common.delete", "Delete"]</button>
                         }
                         else
                         {
-                            <span class="sc-muted" title="@DeleteBlockedReason(r)">🔒 Protected</span>
+                            <span class="sc-muted" title="@DeleteBlockedReason(r)">🔒 @Loc["roles.protected", "Protected"]</span>
                         }
-                        <button class="sc-btn-ghost sc-btn-sm" @onclick="() => OpenEdit(r)">Edit</button>
+                        <button class="sc-btn-ghost sc-btn-sm" @onclick="() => OpenEdit(r)">@Loc["common.edit", "Edit"]</button>
                     </div>
                 </div>
             }
@@ -105,11 +108,11 @@ else
             <table class="sc-table">
                 <thead>
                     <tr>
-                        <th>Role</th>
-                        <th>Description</th>
-                        <th>Users</th>
-                        <th>Forms</th>
-                        <th>Type</th>
+                        <th>@Loc["common.role", "Role"]</th>
+                        <th>@Loc["common.description", "Description"]</th>
+                        <th>@Loc["roles.usersColumn", "Users"]</th>
+                        <th>@Loc["roles.formsColumn", "Forms"]</th>
+                        <th>@Loc["common.type", "Type"]</th>
                         <th></th>
                     </tr>
                 </thead>
@@ -120,15 +123,15 @@ else
                             <td><strong>@r.RoleName</strong></td>
                             <td class="sc-muted">@(string.IsNullOrWhiteSpace(r.Description) ? "—" : r.Description)</td>
                             <td>@r.UserCount</td>
-                            <td>@(IsAdmin(r) ? "All" : r.FormCount.ToString())</td>
+                            <td>@(IsAdmin(r) ? Loc["common.all", "All"] : r.FormCount.ToString())</td>
                             <td>
-                                <span class="sc-typechip @(r.IsSystemRole ? "god" : "goddess")">@(r.IsSystemRole ? "Built-in" : "Custom")</span>
+                                <span class="sc-typechip @(r.IsSystemRole ? "god" : "goddess")">@(r.IsSystemRole ? Loc["roles.builtIn", "Built-in"] : Loc["common.custom", "Custom"])</span>
                             </td>
                             <td>
-                                <button class="sc-btn-ghost sc-btn-sm" @onclick="() => OpenEdit(r)">Edit</button>
+                                <button class="sc-btn-ghost sc-btn-sm" @onclick="() => OpenEdit(r)">@Loc["common.edit", "Edit"]</button>
                                 @if (r.CanDelete)
                                 {
-                                    <button class="sc-chip chip-warn" @onclick="() => ConfirmDelete(r)">Delete</button>
+                                    <button class="sc-chip chip-warn" @onclick="() => ConfirmDelete(r)">@Loc["common.delete", "Delete"]</button>
                                 }
                             </td>
                         </tr>
@@ -140,7 +143,7 @@ else
     }
 }
 
-<ScModal Visible="_showForm" Title="@(_editId is null ? "Create Role" : "Edit Role")" OnClose="CloseForm">
+<ScModal Visible="_showForm" Title="@(_editId is null ? Loc["roles.createTitle", "Create Role"] : Loc["roles.editTitle", "Edit Role"])" OnClose="CloseForm">
     <EditForm Model="_model" OnValidSubmit="SaveAsync" class="sc-form">
         <DataAnnotationsValidator />
 
@@ -152,26 +155,26 @@ else
         @if (_editingSystemRole)
         {
             <div class="sc-alert sc-alert-info">
-                This is a built-in role the application depends on — its name is fixed, but you can update the description.
+                @Loc["roles.systemRoleNotice", "This is a built-in role the application depends on — its name is fixed, but you can update the description."]
             </div>
         }
 
         <div class="sc-field">
-            <label>Role Name <span class="sc-req">*</span></label>
+            <label>@Loc["roles.nameLabel", "Role Name"] <span class="sc-req">*</span></label>
             <InputText @bind-Value="_model.RoleName" class="sc-input" disabled="@_editingSystemRole" />
             <ValidationMessage For="() => _model.RoleName" />
         </div>
 
         <div class="sc-field">
-            <label>Description</label>
+            <label>@Loc["common.description", "Description"]</label>
             <InputText @bind-Value="_model.Description" class="sc-input" />
             <ValidationMessage For="() => _model.Description" />
         </div>
 
         <div class="sc-modal-actions">
-            <button type="button" class="sc-btn-ghost" @onclick="CloseForm">Cancel</button>
+            <button type="button" class="sc-btn-ghost" @onclick="CloseForm">@Loc["common.cancel", "Cancel"]</button>
             <button type="submit" class="sc-btn-primary" disabled="@_busy">
-                @if (_busy) { <OmLoader Inline="true" Size="18" Message="Saving…" /> } else { <span>@(_editId is null ? "Create" : "Update")</span> }
+                @if (_busy) { <OmLoader Inline="true" Size="18" Message="@Loc["common.saving", "Saving…"]" /> } else { <span>@(_editId is null ? Loc["common.create", "Create"] : Loc["common.update", "Update"])</span> }
             </button>
         </div>
     </EditForm>
@@ -199,7 +202,11 @@ else
     private bool _busy;
     private string? _formError;
 
-    protected override async Task OnInitializedAsync() => await ReloadAsync();
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        await ReloadAsync();
+    }
 
     private async Task ReloadAsync()
     {
@@ -225,14 +232,24 @@ else
 
     private static bool IsAdmin(RoleModel r) => string.Equals(r.RoleName, "Admin", StringComparison.OrdinalIgnoreCase);
 
-    // Admin bypasses the access matrix entirely, so a mapping count would read as "0 forms" and mislead.
-    private static string FormAccessLabel(RoleModel r)
-        => IsAdmin(r) ? "🔐 Full access" : $"🔐 {r.FormCount} {(r.FormCount == 1 ? "form" : "forms")}";
+    private string UserCountText(RoleModel r)
+    {
+        var word = r.UserCount == 1 ? Loc["roles.userWord", "user"] : Loc["roles.usersWord", "users"];
+        return r.UserCount + " " + word;
+    }
 
-    private static string DeleteBlockedReason(RoleModel r)
+    // Admin bypasses the access matrix entirely, so a mapping count would read as "0 forms" and mislead.
+    private string FormAccessLabel(RoleModel r)
+    {
+        if (IsAdmin(r)) return "🔐 " + Loc["roles.fullAccess", "Full access"];
+        var word = r.FormCount == 1 ? Loc["roles.formWord", "form"] : Loc["roles.formsWord", "forms"];
+        return "🔐 " + r.FormCount + " " + word;
+    }
+
+    private string DeleteBlockedReason(RoleModel r)
         => r.IsSystemRole
-            ? "Built-in roles cannot be deleted."
-            : $"Assigned to {r.UserCount} {(r.UserCount == 1 ? "user" : "users")} — reassign them first.";
+            ? Loc["roles.deleteBlockedSystem", "Built-in roles cannot be deleted."]
+            : Loc.TF("roles.deleteBlockedUsers", "Assigned to {0} — reassign them first.", UserCountText(r));
 
     private void OpenCreate()
     {
@@ -266,7 +283,7 @@ else
 
         if (ok)
         {
-            Toast.Success($"Role “{_model.RoleName}” saved.");
+            Toast.Success(Loc.TF("msg.savedNamed", "“{0}” saved.", _model.RoleName));
             _showForm = false;
             await ReloadAsync();
         }
@@ -280,16 +297,16 @@ else
     {
         var confirmed = await Confirm.ConfirmAsync(new ConfirmRequest
         {
-            Title = "Delete role?",
-            Message = $"“{r.RoleName}” will be removed along with its access rights. This cannot be undone.",
-            ConfirmText = "Yes, delete",
-            CancelText = "Cancel",
+            Title = Loc.TF("common.confirmDelete", "Delete {0}?", Loc["roles.entityName", "role"]),
+            Message = Loc.TF("roles.confirmDeleteBody", "“{0}” will be removed along with its access rights. This cannot be undone.", r.RoleName),
+            ConfirmText = Loc["common.yesDelete", "Yes, delete"],
+            CancelText = Loc["common.cancel", "Cancel"],
             Kind = ConfirmKind.Danger
         });
         if (!confirmed) return;
 
         var (ok, err) = await Api.DeleteRoleAsync(r.RoleId);
-        if (ok) Toast.Success($"Role “{r.RoleName}” has been deleted.");
+        if (ok) Toast.Success(Loc.TF("msg.deletedNamed", "“{0}” was deleted.", r.RoleName));
         else Toast.Error(err);
         await ReloadAsync();
     }

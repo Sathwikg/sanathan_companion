@@ -5,6 +5,8 @@ public class SadhanaChant
     public Guid Id { get; set; }
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
+    /// <summary>Stable grouping key — group on this, not the translated name.</summary>
+    public Guid CategoryId { get; set; }
     public string CategoryName { get; set; } = string.Empty;
     public List<string> DeityNames { get; set; } = new();
     public string? TextPreview { get; set; }
@@ -20,6 +22,8 @@ public class SadhanaChantDetail
     public Guid Id { get; set; }
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
+    /// <summary>Stable grouping key — group on this, not the translated name.</summary>
+    public Guid CategoryId { get; set; }
     public string CategoryName { get; set; } = string.Empty;
     public List<string> DeityNames { get; set; } = new();
     public string ChantText { get; set; } = string.Empty;

@@ -1,0 +1,12 @@
+{
+  "feedback.chooseIssueType": "ದಯವಿಟ್ಟು ಒಂದು ಸಮಸ್ಯೆ ಪ್ರಕಾರವನ್ನು ಆಯ್ಕೆಮಾಡಿ.",
+  "feedback.descriptionPlaceholder": "ನಿಮ್ಮ ಮನಸ್ಸಿನಲ್ಲಿ ಇರುವುದನ್ನು ತಿಳಿಸಿ…",
+  "feedback.issueType": "ಸಮಸ್ಯೆ ಪ್ರಕಾರ",
+  "feedback.noIssueTypes": "ಯಾವುದೇ ಸಮಸ್ಯೆ ಪ್ರಕಾರಗಳು ಲಭ್ಯವಿಲ್ಲ",
+  "feedback.noIssueTypesBody": "ಮೊದಲು ನಿರ್ವಾಹಕರು ಪ್ರತಿಕ್ರಿಯೆ ಸಮಸ್ಯೆ ಪ್ರಕಾರಗಳನ್ನು ಸೇರಿಸಬೇಕು.",
+  "feedback.selectIssueType": "— ಸಮಸ್ಯೆ ಪ್ರಕಾರ ಆಯ್ಕೆಮಾಡಿ —",
+  "feedback.sub": "ಸಲಹೆ ಅಥವಾ ಮೆಚ್ಚುಗೆಯನ್ನು ಹಂಚಿಕೊಳ್ಳಿ ಇಲ್ಲವೇ ಸಮಸ್ಯೆಯನ್ನು ವರದಿ ಮಾಡಿ",
+  "feedback.submit": "ಪ್ರತಿಕ್ರಿಯೆ ಸಲ್ಲಿಸಿ",
+  "feedback.thankYou": "🙏 ಧನ್ಯವಾದಗಳು! ನಿಮ್ಮ ಪ್ರತಿಕ್ರಿಯೆ ಸಲ್ಲಿಕೆಯಾಗಿದೆ.",
+  "feedback.title": "ಪ್ರತಿಕ್ರಿಯೆ"
+}

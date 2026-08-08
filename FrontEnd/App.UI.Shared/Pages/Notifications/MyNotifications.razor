@@ -1,5 +1,6 @@
 @page "/my-notifications"
 @attribute [Authorize]
+@inherits LocalizedComponentBase
 @inject IApiClient Api
 @inject ToastService Toast
 
@@ -7,15 +8,15 @@
     <div class="sc-page-title">
         <span class="sc-page-emoji">🔔</span>
         <div>
-            <h1>My Notifications</h1>
-            <p class="sc-page-sub">Choose what you're notified about, and when</p>
+            <h1>@Loc["myNotifications.title", "My Notifications"]</h1>
+            <p class="sc-page-sub">@Loc["myNotifications.sub", "Choose what you're notified about, and when"]</p>
         </div>
     </div>
     @if (_settings is not null)
     {
         <div class="sc-page-actions">
             <button class="sc-btn-primary sc-btn-sm" @onclick="SaveAsync" disabled="@_saving">
-                @if (_saving) { <OmLoader Inline="true" Size="18" Message="Saving…" /> } else { <span>Save</span> }
+                @if (_saving) { <OmLoader Inline="true" Size="18" Message="@Loc["common.saving", "Saving…"]" /> } else { <span>@Loc["common.save", "Save"]</span> }
             </button>
         </div>
     }
@@ -23,7 +24,7 @@
 
 @if (_loading)
 {
-    <OmLoader FullPage="true" Message="Loading your preferences…" />
+    <OmLoader FullPage="true" Message="@Loc["myNotifications.loadingPrefs", "Loading your preferences…"]" />
 }
 else if (_settings is null)
 {
@@ -39,11 +40,11 @@ else
                 <span class="sc-slider"></span>
             </label>
             <div>
-                <strong>All notifications</strong>
-                <div class="sc-muted">@(_settings.MasterEnabled ? "You'll receive the notifications selected below." : "Everything is paused — only required notices get through.")</div>
+                <strong>@Loc["myNotifications.allNotifications", "All notifications"]</strong>
+                <div class="sc-muted">@(_settings.MasterEnabled ? Loc["myNotifications.masterOn", "You'll receive the notifications selected below."] : Loc["myNotifications.masterOff", "Everything is paused — only required notices get through."])</div>
             </div>
             <span class="sc-flex-spacer"></span>
-            <span class="sc-muted">Now @_settings.CurrentTime.ToString("HH:mm") IST</span>
+            <span class="sc-muted">@Loc.TF("myNotifications.nowIst", "Now {0} IST", _settings.CurrentTime.ToString("HH:mm"))</span>
         </div>
 
         <div class="sc-notif-quiet">
@@ -53,28 +54,28 @@ else
                     <span class="sc-slider"></span>
                 </label>
                 <div>
-                    <strong>🌙 Quiet hours</strong>
-                    <div class="sc-muted">Stay silent during these hours — even for required notices.</div>
+                    <strong>🌙 @Loc["myNotifications.quietHours", "Quiet hours"]</strong>
+                    <div class="sc-muted">@Loc["myNotifications.quietHoursHint", "Stay silent during these hours — even for required notices."]</div>
                 </div>
                 @if (_settings.InQuietHoursNow)
                 {
-                    <span class="sc-badge on">Active now</span>
+                    <span class="sc-badge on">@Loc["myNotifications.activeNow", "Active now"]</span>
                 }
             </div>
             @if (_settings.QuietHoursEnabled)
             {
                 <div class="sc-notif-times">
                     <div class="sc-field">
-                        <label>From</label>
+                        <label>@Loc["common.from", "From"]</label>
                         <input type="time" class="sc-input sc-input-sm" value="@Fmt(_settings.QuietFrom)"
                                @onchange="e => _settings.QuietFrom = Parse(e.Value)" />
                     </div>
                     <div class="sc-field">
-                        <label>To</label>
+                        <label>@Loc["common.to", "To"]</label>
                         <input type="time" class="sc-input sc-input-sm" value="@Fmt(_settings.QuietTo)"
                                @onchange="e => _settings.QuietTo = Parse(e.Value)" />
                     </div>
-                    <span class="sc-hint">Crossing midnight is fine (e.g. 22:00 → 06:00).</span>
+                    <span class="sc-hint">@Loc["myNotifications.midnightHint", "Crossing midnight is fine (e.g. 22:00 → 06:00)."]</span>
                 </div>
             }
         </div>
@@ -84,15 +85,15 @@ else
     {
         <div class="sc-card sc-empty-state">
             <div class="sc-empty-om">🔕</div>
-            <h3>No notifications available yet</h3>
-            <p>An administrator hasn't enabled any notifications. Check back later.</p>
+            <h3>@Loc["myNotifications.noneAvailable", "No notifications available yet"]</h3>
+            <p>@Loc["myNotifications.noneAvailableBody", "An administrator hasn't enabled any notifications. Check back later."]</p>
         </div>
     }
     else
     {
         <div class="sc-section-head">
-            <h2>What to notify me about</h2>
-            <span class="sc-section-sub">Set an optional time window for each</span>
+            <h2>@Loc["myNotifications.whatHeading", "What to notify me about"]</h2>
+            <span class="sc-section-sub">@Loc["myNotifications.whatSub", "Set an optional time window for each"]</span>
         </div>
 
         <div class="sc-notif-list">
@@ -110,11 +111,11 @@ else
                             <div class="sc-notif-flags">
                                 @if (item.IsMandatory)
                                 {
-                                    <span class="sc-minichip">Required</span>
+                                    <span class="sc-minichip">@Loc["common.required", "Required"]</span>
                                 }
                                 @if (item.IsActiveNow)
                                 {
-                                    <span class="sc-badge on">Would notify now</span>
+                                    <span class="sc-badge on">@Loc["myNotifications.wouldNotifyNow", "Would notify now"]</span>
                                 }
                                 else if (!string.IsNullOrWhiteSpace(item.InactiveReason))
                                 {
@@ -122,7 +123,7 @@ else
                                 }
                             </div>
                         </div>
-                        <label class="sc-switch" title="@(item.IsMandatory ? "This notification is required" : "")">
+                        <label class="sc-switch" title='@(item.IsMandatory ? Loc["myNotifications.mandatoryTooltip", "This notification is required"] : "")'>
                             <input type="checkbox" checked="@item.IsEnabled" disabled="@item.IsMandatory"
                                    @onchange="e => item.IsEnabled = (bool)(e.Value ?? false)" />
                             <span class="sc-slider"></span>
@@ -133,22 +134,22 @@ else
                     {
                         <div class="sc-notif-times">
                             <div class="sc-field">
-                                <label>From</label>
+                                <label>@Loc["common.from", "From"]</label>
                                 <input type="time" class="sc-input sc-input-sm" value="@Fmt(item.FromTime)"
                                        @onchange="e => item.FromTime = Parse(e.Value)" />
                             </div>
                             <div class="sc-field">
-                                <label>To</label>
+                                <label>@Loc["common.to", "To"]</label>
                                 <input type="time" class="sc-input sc-input-sm" value="@Fmt(item.ToTime)"
                                        @onchange="e => item.ToTime = Parse(e.Value)" />
                             </div>
                             @if (item.FromTime is null && item.ToTime is null)
                             {
-                                <span class="sc-hint">Any time of day</span>
+                                <span class="sc-hint">@Loc["myNotifications.anyTime", "Any time of day"]</span>
                             }
                             else
                             {
-                                <button class="sc-btn-ghost sc-btn-sm" @onclick="() => ClearWindow(item)">Clear window</button>
+                                <button class="sc-btn-ghost sc-btn-sm" @onclick="() => ClearWindow(item)">@Loc["myNotifications.clearWindow", "Clear window"]</button>
                             }
                         </div>
                     }
@@ -164,13 +165,17 @@ else
     private bool _saving;
     private string? _error;
 
-    protected override async Task OnInitializedAsync() => await LoadAsync();
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        await LoadAsync();
+    }
 
     private async Task LoadAsync()
     {
         _loading = true;
         try { _settings = await Api.GetMyNotificationsAsync(); }
-        catch (Exception ex) { _error = "Could not load your notification settings. " + ex.Message; }
+        catch (Exception ex) { _error = Loc["myNotifications.couldNotLoad", "Could not load your notification settings."] + " " + ex.Message; }
         finally { _loading = false; }
     }
 
@@ -218,7 +223,7 @@ else
 
         if (ok)
         {
-            Toast.Success("🔔 Notification preferences saved.");
+            Toast.Success(Loc["myNotifications.saved", "🔔 Notification preferences saved."]);
             await LoadAsync();   // refresh the "would notify now" hints
         }
         else

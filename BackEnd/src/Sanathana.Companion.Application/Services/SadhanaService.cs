@@ -130,6 +130,7 @@ public class SadhanaService : ISadhanaService
             Id = c.Id,
             Name = c.Name,
             Description = c.Description,
+            CategoryId = c.ChantId,
             CategoryName = c.Chant?.Name ?? string.Empty,
             DeityNames = ResolveDeityNames(c.DeityIds, deityNames),
             ChantText = c.ChantText,
@@ -280,6 +281,7 @@ public class SadhanaService : ISadhanaService
             Id = c.Id,
             Name = c.Name,
             Description = c.Description,
+            CategoryId = c.ChantId,
             CategoryName = c.Chant?.Name ?? string.Empty,
             DeityNames = ResolveDeityNames(c.DeityIds, deityNames),
             TextPreview = HtmlSanitizer.ToPlainText(c.ChantText) is { Length: > 0 } t

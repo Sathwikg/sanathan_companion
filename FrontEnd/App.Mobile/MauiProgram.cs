@@ -28,6 +28,10 @@ public static class MauiProgram
         // Platform storage
         builder.Services.AddScoped<ITokenStore, SecureStorageTokenStore>();
         builder.Services.AddScoped<IThemeStore, PreferencesThemeStore>();
+        builder.Services.AddScoped<ILanguageStore, PreferencesLanguageStore>();
+        // Lets the app start up translated with no network — important on mobile, where the API
+        // lives on Render and a cold start (or no signal) would otherwise mean English.
+        builder.Services.AddScoped<ILocalizationCache, FileLocalizationCache>();
 
         // Where the API lives. Debug keeps the loopback targets — the Android
         // emulator reaches the host through 10.0.2.2, everything else through

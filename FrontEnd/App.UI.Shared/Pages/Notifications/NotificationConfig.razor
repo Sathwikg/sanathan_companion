@@ -1,5 +1,6 @@
 @page "/notification-config"
 @attribute [Authorize]
+@inherits LocalizedComponentBase
 @inject IApiClient Api
 @inject ToastService Toast
 
@@ -7,15 +8,15 @@
     <div class="sc-page-title">
         <span class="sc-page-emoji">🛠️</span>
         <div>
-            <h1>Notification Config</h1>
-            <p class="sc-page-sub">Choose which modules can send notifications to seekers</p>
+            <h1>@Loc["notificationConfig.title", "Notification Config"]</h1>
+            <p class="sc-page-sub">@Loc["notificationConfig.sub", "Choose which modules can send notifications to seekers"]</p>
         </div>
     </div>
     @if (!_forbidden && !_loading)
     {
         <div class="sc-page-actions">
             <button class="sc-btn-primary sc-btn-sm" @onclick="SaveAsync" disabled="@_saving">
-                @if (_saving) { <OmLoader Inline="true" Size="18" Message="Saving…" /> } else { <span>Save changes</span> }
+                @if (_saving) { <OmLoader Inline="true" Size="18" Message="@Loc["common.saving", "Saving…"]" /> } else { <span>@Loc["common.saveChanges", "Save changes"]</span> }
             </button>
         </div>
     }
@@ -23,14 +24,14 @@
 
 @if (_loading)
 {
-    <OmLoader FullPage="true" Message="Loading modules…" />
+    <OmLoader FullPage="true" Message="@Loc["notificationConfig.loadingModules", "Loading modules…"]" />
 }
 else if (_forbidden)
 {
     <div class="sc-card sc-empty-state">
         <div class="sc-empty-om">🔒</div>
-        <h3>Administrator access required</h3>
-        <p>Notification configuration is available to administrators only.</p>
+        <h3>@Loc["common.adminOnly", "Administrator access required"]</h3>
+        <p>@Loc["notificationConfig.adminOnlyBody", "Notification configuration is available to administrators only."]</p>
     </div>
 }
 else if (_error is not null)
@@ -41,14 +42,14 @@ else
 {
     <div class="sc-card sc-filtercard">
         <div class="sc-filter" style="min-width:280px">
-            <label>Search modules</label>
-            <input class="sc-input sc-input-sm" placeholder="Module name…" @bind="_search" @bind:event="oninput" />
+            <label>@Loc["notificationConfig.searchModules", "Search modules"]</label>
+            <input class="sc-input sc-input-sm" placeholder="@Loc["notificationConfig.searchPlaceholder", "Module name…"]" @bind="_search" @bind:event="oninput" />
         </div>
         <div class="sc-notif-summary">
-            <span class="sc-badge on">@_modules.Count(m => m.IsEnabled) enabled</span>
-            <span class="sc-muted">of @_modules.Count modules</span>
-            <button class="sc-btn-ghost sc-btn-sm" @onclick="ExpandAll">⊞ Expand all</button>
-            <button class="sc-btn-ghost sc-btn-sm" @onclick="CollapseAll">⊟ Collapse all</button>
+            <span class="sc-badge on">@Loc.TF("notificationConfig.enabledCount", "{0} enabled", _modules.Count(m => m.IsEnabled))</span>
+            <span class="sc-muted">@Loc.TF("notificationConfig.ofModules", "of {0} modules", _modules.Count)</span>
+            <button class="sc-btn-ghost sc-btn-sm" @onclick="ExpandAll">⊞ @Loc["common.expandAll", "Expand all"]</button>
+            <button class="sc-btn-ghost sc-btn-sm" @onclick="CollapseAll">⊟ @Loc["common.collapseAll", "Collapse all"]</button>
         </div>
     </div>
 
@@ -56,11 +57,11 @@ else
         <table class="sc-table">
             <thead>
                 <tr>
-                    <th style="width:32%">Module</th>
-                    <th style="width:16%">Notifications</th>
-                    <th>Title &amp; description shown to users</th>
-                    <th style="width:12%">Default on</th>
-                    <th style="width:12%">Mandatory</th>
+                    <th style="width:32%">@Loc["notificationConfig.colModule", "Module"]</th>
+                    <th style="width:16%">@Loc["notificationConfig.colNotifications", "Notifications"]</th>
+                    <th>@Loc["notificationConfig.colTitleDesc", "Title & description shown to users"]</th>
+                    <th style="width:12%">@Loc["notificationConfig.colDefaultOn", "Default on"]</th>
+                    <th style="width:12%">@Loc["notificationConfig.colMandatory", "Mandatory"]</th>
                 </tr>
             </thead>
             @foreach (var group in Groups)
@@ -70,11 +71,11 @@ else
                     <tr class="sc-notif-grouprow" @onclick="() => ToggleGroup(group.Key)">
                         <td colspan="5">
                             <span class="sc-mtree-caret">@(expanded ? "▾" : "▸")</span>
-                            <strong>@group.Key</strong>
+                            <strong>@(group.Key == TopLevelGroup ? Loc["notificationConfig.topLevel", "Top level"] : group.Key)</strong>
                             <span class="sc-mtree-count">@group.Count()</span>
                             @if (group.Count(m => m.IsEnabled) > 0)
                             {
-                                <span class="sc-badge on">@group.Count(m => m.IsEnabled) on</span>
+                                <span class="sc-badge on">@Loc.TF("notificationConfig.onCount", "{0} on", group.Count(m => m.IsEnabled))</span>
                             }
                         </td>
                     </tr>
@@ -88,7 +89,7 @@ else
                                     <strong>@(string.IsNullOrWhiteSpace(m.Icon) ? "" : m.Icon + " ")@m.ModuleName</strong>
                                     @if (m.OptedOutUsers > 0)
                                     {
-                                        <div class="sc-muted" style="font-size:0.72rem">@m.OptedOutUsers opted out</div>
+                                        <div class="sc-muted" style="font-size:0.72rem">@Loc.TF("notificationConfig.optedOut", "{0} opted out", m.OptedOutUsers)</div>
                                     }
                                 </td>
                                 <td>
@@ -96,12 +97,12 @@ else
                                         <input type="checkbox" checked="@m.IsEnabled" @onchange="e => SetEnabled(m, e)" />
                                         <span class="sc-slider"></span>
                                     </label>
-                                    <span class="sc-status @(m.IsEnabled ? "on" : "off")">@(m.IsEnabled ? "On" : "Off")</span>
+                                    <span class="sc-status @(m.IsEnabled ? "on" : "off")">@(m.IsEnabled ? Loc["notificationConfig.on", "On"] : Loc["notificationConfig.off", "Off"])</span>
                                 </td>
                                 <td>
-                                    <input class="sc-input sc-input-sm" placeholder="@($"e.g. {m.ModuleName} reminder")"
+                                    <input class="sc-input sc-input-sm" placeholder="@Loc.TF("notificationConfig.titlePlaceholder", "e.g. {0} reminder", m.ModuleName)"
                                            value="@m.Title" @onchange="e => m.Title = e.Value?.ToString()" disabled="@(!m.IsEnabled)" />
-                                    <input class="sc-input sc-input-sm" style="margin-top:0.35rem" placeholder="What is this notification for?"
+                                    <input class="sc-input sc-input-sm" style="margin-top:0.35rem" placeholder="@Loc["notificationConfig.descPlaceholder", "What is this notification for?"]"
                                            value="@m.Description" @onchange="e => m.Description = e.Value?.ToString()" disabled="@(!m.IsEnabled)" />
                                 </td>
                                 <td>
@@ -119,7 +120,7 @@ else
                                     </label>
                                     @if (m.IsMandatory)
                                     {
-                                        <div class="sc-muted" style="font-size:0.7rem">users can't opt out</div>
+                                        <div class="sc-muted" style="font-size:0.7rem">@Loc["notificationConfig.cannotOptOut", "users can't opt out"]</div>
                                     }
                                 </td>
                             </tr>
@@ -131,8 +132,8 @@ else
     </div>
 
     <p class="sc-hint" style="margin-top:0.6rem">
-        💡 <strong>Default on</strong> applies to users who haven't chosen for themselves — including new sign-ups.
-        Turning a module off keeps everyone's saved choices, so re-enabling it restores them.
+        💡 <strong>@Loc["notificationConfig.colDefaultOn", "Default on"]</strong>
+        @Loc["notificationConfig.defaultOnHint", "applies to users who haven't chosen for themselves — including new sign-ups. Turning a module off keeps everyone's saved choices, so re-enabling it restores them."]
     </p>
 }
 
@@ -177,7 +178,11 @@ else
 
     private void CollapseAll() => _expanded.Clear();
 
-    protected override async Task OnInitializedAsync() => await LoadAsync();
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        await LoadAsync();
+    }
 
     private async Task LoadAsync()
     {
@@ -227,7 +232,7 @@ else
 
         if (ok)
         {
-            Toast.Success("Notification configuration saved.");
+            Toast.Success(Loc["notificationConfig.saved", "Notification configuration saved."]);
             await LoadAsync();
         }
         else

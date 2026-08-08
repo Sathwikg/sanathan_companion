@@ -1,0 +1,12 @@
+{
+  "feedback.chooseIssueType": "कृपया एक समस्या प्रकार चुनें।",
+  "feedback.descriptionPlaceholder": "हमें बताएँ आपके मन में क्या है…",
+  "feedback.issueType": "समस्या प्रकार",
+  "feedback.noIssueTypes": "कोई समस्या प्रकार उपलब्ध नहीं",
+  "feedback.noIssueTypesBody": "पहले किसी व्यवस्थापक को प्रतिक्रिया के समस्या प्रकार जोड़ने होंगे।",
+  "feedback.selectIssueType": "— समस्या प्रकार चुनें —",
+  "feedback.sub": "सुझाव या सराहना साझा करें, अथवा कोई समस्या बताएँ",
+  "feedback.submit": "प्रतिक्रिया भेजें",
+  "feedback.thankYou": "🙏 धन्यवाद! आपकी प्रतिक्रिया भेज दी गई है।",
+  "feedback.title": "प्रतिक्रिया"
+}

@@ -379,6 +379,57 @@ namespace Sanathana.Companion.Infrastructure.Persistence.Migrations
                     b.ToTable("Deities", (string)null);
                 });
 
+            modelBuilder.Entity("Sanathana.Companion.Domain.Entities.EntityTranslation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("EntityKey")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("EntityType")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
+
+                    b.Property<string>("Field")
+                        .IsRequired()
+                        .HasMaxLength(80)
+                        .HasColumnType("character varying(80)");
+
+                    b.Property<Guid>("LanguageId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ModifiedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime?>("ModifiedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LanguageId", "EntityType", "EntityKey", "Field")
+                        .IsUnique()
+                        .HasDatabaseName("UX_EntityTranslations_Lang_Type_Key_Field");
+
+                    b.ToTable("EntityTranslations", (string)null);
+                });
+
             modelBuilder.Entity("Sanathana.Companion.Domain.Entities.Feedback", b =>
                 {
                     b.Property<Guid>("Id")
@@ -828,6 +879,97 @@ namespace Sanathana.Companion.Infrastructure.Persistence.Migrations
                     b.ToTable("Languages", (string)null);
                 });
 
+            modelBuilder.Entity("Sanathana.Companion.Domain.Entities.LanguageFormConfig", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("Enabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid>("LanguageId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("MenuModuleId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ModifiedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime?>("ModifiedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MenuModuleId");
+
+                    b.HasIndex("LanguageId", "MenuModuleId")
+                        .IsUnique()
+                        .HasDatabaseName("UX_LanguageFormConfigs_Language_Module");
+
+                    b.ToTable("LanguageFormConfigs", (string)null);
+                });
+
+            modelBuilder.Entity("Sanathana.Companion.Domain.Entities.LocalizationResource", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsSeeded")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<Guid>("LanguageId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ModifiedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime?>("ModifiedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Namespace")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LanguageId", "Key")
+                        .IsUnique()
+                        .HasDatabaseName("UX_LocalizationResources_Language_Key");
+
+                    b.HasIndex("LanguageId", "Namespace")
+                        .HasDatabaseName("IX_LocalizationResources_Language_Namespace");
+
+                    b.ToTable("LocalizationResources", (string)null);
+                });
+
             modelBuilder.Entity("Sanathana.Companion.Domain.Entities.MenuModule", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1248,6 +1390,21 @@ namespace Sanathana.Companion.Infrastructure.Persistence.Migrations
                             ParentId = new Guid("60606060-6060-6060-6060-606060606060"),
                             RoutePath = "/my-notifications",
                             ShowInMobile = true
+                        },
+                        new
+                        {
+                            Id = new Guid("70707070-7070-7070-7070-707070707070"),
+                            CreatedBy = "system",
+                            CreatedDate = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Translate the app and choose which forms use each language",
+                            DisplayOrder = 4,
+                            Icon = "🌐",
+                            IsActive = true,
+                            IsVisibleInMenu = true,
+                            Name = "Language Configs",
+                            ParentId = new Guid("99999999-9999-9999-9999-999999999999"),
+                            RoutePath = "/language-configs",
+                            ShowInMobile = false
                         });
                 });
 
@@ -1741,6 +1898,451 @@ namespace Sanathana.Companion.Infrastructure.Persistence.Migrations
                     b.ToTable("SadhanaStreaks", (string)null);
                 });
 
+            modelBuilder.Entity("Sanathana.Companion.Domain.Entities.TranslationSource", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)");
+
+                    b.Property<string>("ColumnName")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("MaxDistinct")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Mode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("ModifiedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime?>("ModifiedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("TableName")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TableName", "ColumnName")
+                        .IsUnique()
+                        .HasDatabaseName("UX_TranslationSources_Table_Column");
+
+                    b.ToTable("TranslationSources", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("7c000000-0000-0000-0000-000000000001"),
+                            Category = "panchangam",
+                            ColumnName = "DayOfWeek",
+                            CreatedBy = "system",
+                            CreatedDate = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            MaxDistinct = 5000,
+                            Mode = "WholeValue",
+                            TableName = "Panchangams"
+                        },
+                        new
+                        {
+                            Id = new Guid("7c000000-0000-0000-0000-000000000002"),
+                            Category = "panchangam",
+                            ColumnName = "TeluguSamvatsaram",
+                            CreatedBy = "system",
+                            CreatedDate = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            MaxDistinct = 5000,
+                            Mode = "WholeValue",
+                            TableName = "Panchangams"
+                        },
+                        new
+                        {
+                            Id = new Guid("7c000000-0000-0000-0000-000000000003"),
+                            Category = "panchangam",
+                            ColumnName = "Ayanam",
+                            CreatedBy = "system",
+                            CreatedDate = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            MaxDistinct = 5000,
+                            Mode = "WholeValue",
+                            TableName = "Panchangams"
+                        },
+                        new
+                        {
+                            Id = new Guid("7c000000-0000-0000-0000-000000000004"),
+                            Category = "panchangam",
+                            ColumnName = "Masam",
+                            CreatedBy = "system",
+                            CreatedDate = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            MaxDistinct = 5000,
+                            Mode = "WholeValue",
+                            TableName = "Panchangams"
+                        },
+                        new
+                        {
+                            Id = new Guid("7c000000-0000-0000-0000-000000000005"),
+                            Category = "panchangam",
+                            ColumnName = "Paksham",
+                            CreatedBy = "system",
+                            CreatedDate = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            MaxDistinct = 5000,
+                            Mode = "WholeValue",
+                            TableName = "Panchangams"
+                        },
+                        new
+                        {
+                            Id = new Guid("7c000000-0000-0000-0000-000000000006"),
+                            Category = "panchangam",
+                            ColumnName = "Rutuvu",
+                            CreatedBy = "system",
+                            CreatedDate = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            MaxDistinct = 5000,
+                            Mode = "WholeValue",
+                            TableName = "Panchangams"
+                        },
+                        new
+                        {
+                            Id = new Guid("7c000000-0000-0000-0000-000000000007"),
+                            Category = "panchangam",
+                            ColumnName = "TithiDetails",
+                            CreatedBy = "system",
+                            CreatedDate = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            MaxDistinct = 5000,
+                            Mode = "Words",
+                            TableName = "Panchangams"
+                        },
+                        new
+                        {
+                            Id = new Guid("7c000000-0000-0000-0000-000000000008"),
+                            Category = "panchangam",
+                            ColumnName = "NakshatramDetails",
+                            CreatedBy = "system",
+                            CreatedDate = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            MaxDistinct = 5000,
+                            Mode = "Words",
+                            TableName = "Panchangams"
+                        },
+                        new
+                        {
+                            Id = new Guid("7c000000-0000-0000-0000-000000000009"),
+                            Category = "panchangam",
+                            ColumnName = "AmruthaKalam",
+                            CreatedBy = "system",
+                            CreatedDate = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            MaxDistinct = 5000,
+                            Mode = "Words",
+                            TableName = "Panchangams"
+                        },
+                        new
+                        {
+                            Id = new Guid("7c000000-0000-0000-0000-000000000010"),
+                            Category = "panchangam",
+                            ColumnName = "AbhijitMuhurtham",
+                            CreatedBy = "system",
+                            CreatedDate = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            MaxDistinct = 5000,
+                            Mode = "Words",
+                            TableName = "Panchangams"
+                        },
+                        new
+                        {
+                            Id = new Guid("7c000000-0000-0000-0000-000000000011"),
+                            Category = "panchangam",
+                            ColumnName = "Durmuhurtham",
+                            CreatedBy = "system",
+                            CreatedDate = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            MaxDistinct = 5000,
+                            Mode = "Words",
+                            TableName = "Panchangams"
+                        },
+                        new
+                        {
+                            Id = new Guid("7c000000-0000-0000-0000-000000000012"),
+                            Category = "panchangam",
+                            ColumnName = "RahuKalam",
+                            CreatedBy = "system",
+                            CreatedDate = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            MaxDistinct = 5000,
+                            Mode = "Words",
+                            TableName = "Panchangams"
+                        },
+                        new
+                        {
+                            Id = new Guid("7c000000-0000-0000-0000-000000000013"),
+                            Category = "panchangam",
+                            ColumnName = "Yamagandam",
+                            CreatedBy = "system",
+                            CreatedDate = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            MaxDistinct = 5000,
+                            Mode = "Words",
+                            TableName = "Panchangams"
+                        },
+                        new
+                        {
+                            Id = new Guid("7c000000-0000-0000-0000-000000000014"),
+                            Category = "panchangam",
+                            ColumnName = "Varjyam",
+                            CreatedBy = "system",
+                            CreatedDate = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            MaxDistinct = 5000,
+                            Mode = "Words",
+                            TableName = "Panchangams"
+                        },
+                        new
+                        {
+                            Id = new Guid("7c000000-0000-0000-0000-000000000015"),
+                            Category = "panchangam",
+                            ColumnName = "Gulika",
+                            CreatedBy = "system",
+                            CreatedDate = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            MaxDistinct = 5000,
+                            Mode = "Words",
+                            TableName = "Panchangams"
+                        },
+                        new
+                        {
+                            Id = new Guid("7c000000-0000-0000-0000-000000000016"),
+                            Category = "day",
+                            ColumnName = "Name",
+                            CreatedBy = "system",
+                            CreatedDate = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            MaxDistinct = 5000,
+                            Mode = "WholeValue",
+                            TableName = "Days"
+                        },
+                        new
+                        {
+                            Id = new Guid("7c000000-0000-0000-0000-000000000017"),
+                            Category = "deityType",
+                            ColumnName = "DeityType",
+                            CreatedBy = "system",
+                            CreatedDate = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            MaxDistinct = 5000,
+                            Mode = "WholeValue",
+                            TableName = "Deities"
+                        },
+                        new
+                        {
+                            Id = new Guid("7c000000-0000-0000-0000-000000000018"),
+                            Category = "deity",
+                            ColumnName = "Name",
+                            CreatedBy = "system",
+                            CreatedDate = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            MaxDistinct = 5000,
+                            Mode = "WholeValue",
+                            TableName = "Deities"
+                        },
+                        new
+                        {
+                            Id = new Guid("7c000000-0000-0000-0000-000000000019"),
+                            Category = "chantCategory",
+                            ColumnName = "Name",
+                            CreatedBy = "system",
+                            CreatedDate = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            MaxDistinct = 5000,
+                            Mode = "WholeValue",
+                            TableName = "Chants"
+                        },
+                        new
+                        {
+                            Id = new Guid("7c000000-0000-0000-0000-000000000020"),
+                            Category = "festival",
+                            ColumnName = "Name",
+                            CreatedBy = "system",
+                            CreatedDate = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            MaxDistinct = 5000,
+                            Mode = "WholeValue",
+                            TableName = "Festivals"
+                        },
+                        new
+                        {
+                            Id = new Guid("7c000000-0000-0000-0000-000000000021"),
+                            Category = "region",
+                            ColumnName = "Name",
+                            CreatedBy = "system",
+                            CreatedDate = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            MaxDistinct = 5000,
+                            Mode = "WholeValue",
+                            TableName = "Regions"
+                        },
+                        new
+                        {
+                            Id = new Guid("7c000000-0000-0000-0000-000000000022"),
+                            Category = "issueType",
+                            ColumnName = "Name",
+                            CreatedBy = "system",
+                            CreatedDate = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            MaxDistinct = 5000,
+                            Mode = "WholeValue",
+                            TableName = "IssueTypes"
+                        },
+                        new
+                        {
+                            Id = new Guid("7c000000-0000-0000-0000-000000000023"),
+                            Category = "status",
+                            ColumnName = "Status",
+                            CreatedBy = "system",
+                            CreatedDate = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            MaxDistinct = 5000,
+                            Mode = "WholeValue",
+                            TableName = "Feedbacks"
+                        },
+                        new
+                        {
+                            Id = new Guid("7c000000-0000-0000-0000-000000000024"),
+                            Category = "notification",
+                            ColumnName = "Title",
+                            CreatedBy = "system",
+                            CreatedDate = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            MaxDistinct = 5000,
+                            Mode = "WholeValue",
+                            TableName = "NotificationConfigs"
+                        });
+                });
+
+            modelBuilder.Entity("Sanathana.Companion.Domain.Entities.TranslationTerm", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)");
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("MissCount")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("ModifiedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime?>("ModifiedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Origin")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasMaxLength(400)
+                        .HasColumnType("character varying(400)");
+
+                    b.Property<string>("TermKey")
+                        .IsRequired()
+                        .HasMaxLength(400)
+                        .HasColumnType("character varying(400)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TermKey")
+                        .IsUnique()
+                        .HasDatabaseName("UX_TranslationTerms_Key");
+
+                    b.HasIndex("Category", "IsActive")
+                        .HasDatabaseName("IX_TranslationTerms_Category_Active");
+
+                    b.ToTable("TranslationTerms", (string)null);
+                });
+
+            modelBuilder.Entity("Sanathana.Companion.Domain.Entities.TranslationTermText", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsSeeded")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid>("LanguageId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ModifiedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime?>("ModifiedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("TermId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TermId");
+
+                    b.HasIndex("LanguageId", "TermId")
+                        .IsUnique()
+                        .HasDatabaseName("UX_TranslationTermTexts_Lang_Term");
+
+                    b.ToTable("TranslationTermTexts", (string)null);
+                });
+
             modelBuilder.Entity("Sanathana.Companion.Domain.Entities.User", b =>
                 {
                     b.Property<Guid>("UserId")
@@ -1984,6 +2586,17 @@ namespace Sanathana.Companion.Infrastructure.Persistence.Migrations
                     b.Navigation("Language");
                 });
 
+            modelBuilder.Entity("Sanathana.Companion.Domain.Entities.EntityTranslation", b =>
+                {
+                    b.HasOne("Sanathana.Companion.Domain.Entities.Language", "Language")
+                        .WithMany()
+                        .HasForeignKey("LanguageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Language");
+                });
+
             modelBuilder.Entity("Sanathana.Companion.Domain.Entities.Feedback", b =>
                 {
                     b.HasOne("Sanathana.Companion.Domain.Entities.IssueType", "IssueType")
@@ -1993,6 +2606,36 @@ namespace Sanathana.Companion.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("IssueType");
+                });
+
+            modelBuilder.Entity("Sanathana.Companion.Domain.Entities.LanguageFormConfig", b =>
+                {
+                    b.HasOne("Sanathana.Companion.Domain.Entities.Language", "Language")
+                        .WithMany()
+                        .HasForeignKey("LanguageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Sanathana.Companion.Domain.Entities.MenuModule", "MenuModule")
+                        .WithMany()
+                        .HasForeignKey("MenuModuleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Language");
+
+                    b.Navigation("MenuModule");
+                });
+
+            modelBuilder.Entity("Sanathana.Companion.Domain.Entities.LocalizationResource", b =>
+                {
+                    b.HasOne("Sanathana.Companion.Domain.Entities.Language", "Language")
+                        .WithMany()
+                        .HasForeignKey("LanguageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Language");
                 });
 
             modelBuilder.Entity("Sanathana.Companion.Domain.Entities.MenuModule", b =>
@@ -2057,6 +2700,25 @@ namespace Sanathana.Companion.Infrastructure.Persistence.Migrations
                     b.Navigation("ChantConfig");
                 });
 
+            modelBuilder.Entity("Sanathana.Companion.Domain.Entities.TranslationTermText", b =>
+                {
+                    b.HasOne("Sanathana.Companion.Domain.Entities.Language", "Language")
+                        .WithMany()
+                        .HasForeignKey("LanguageId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Sanathana.Companion.Domain.Entities.TranslationTerm", "Term")
+                        .WithMany("Texts")
+                        .HasForeignKey("TermId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Language");
+
+                    b.Navigation("Term");
+                });
+
             modelBuilder.Entity("Sanathana.Companion.Domain.Entities.User", b =>
                 {
                     b.HasOne("Sanathana.Companion.Domain.Entities.Region", null)
@@ -2097,6 +2759,11 @@ namespace Sanathana.Companion.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("Sanathana.Companion.Domain.Entities.Role", b =>
                 {
                     b.Navigation("Users");
+                });
+
+            modelBuilder.Entity("Sanathana.Companion.Domain.Entities.TranslationTerm", b =>
+                {
+                    b.Navigation("Texts");
                 });
 #pragma warning restore 612, 618
         }

@@ -1,5 +1,6 @@
 @page "/festivals"
 @attribute [Authorize]
+@inherits LocalizedComponentBase
 @inject IApiClient Api
 @inject ConfirmService Confirm
 @inject ToastService Toast
@@ -8,13 +9,13 @@
     <div class="sc-page-title">
         <span class="sc-page-emoji">🎉</span>
         <div>
-            <h1>Festivals</h1>
-            <p class="sc-page-sub">Manage festivals by year</p>
+            <h1>@Loc["festivals.title", "Festivals"]</h1>
+            <p class="sc-page-sub">@Loc["festivals.sub", "Manage festivals by year"]</p>
         </div>
     </div>
     <div class="sc-page-actions">
         <div class="sc-yearfilter">
-            <label>Year</label>
+            <label>@Loc["common.year", "Year"]</label>
             <select class="sc-input sc-input-sm" @bind="_year" @bind:after="OnYearChanged">
                 @foreach (var y in _years)
                 {
@@ -23,10 +24,10 @@
             </select>
         </div>
         <div class="sc-viewtoggle">
-            <button class="@(_view == "grid" ? "active" : "")" @onclick='() => _view = "grid"'>▦ Grid</button>
-            <button class="@(_view == "list" ? "active" : "")" @onclick='() => _view = "list"'>☰ List</button>
+            <button class="@(_view == "grid" ? "active" : "")" @onclick='() => _view = "grid"'>▦ @Loc["common.cardView", "Grid"]</button>
+            <button class="@(_view == "list" ? "active" : "")" @onclick='() => _view = "list"'>☰ @Loc["common.listView", "List"]</button>
         </div>
-        <button class="sc-btn-primary sc-btn-sm" @onclick="OpenCreate">+ Create</button>
+        <button class="sc-btn-primary sc-btn-sm" @onclick="OpenCreate">+ @Loc["common.create", "Create"]</button>
     </div>
 </div>
 
@@ -37,15 +38,15 @@
 
 @if (_loading)
 {
-    <OmLoader FullPage="true" Message="Loading festivals…" />
+    <OmLoader FullPage="true" Message='@Loc["festivals.loadingList", "Loading festivals…"]' />
 }
 else if (_list.Count == 0)
 {
     <div class="sc-card sc-empty-state">
         <div class="sc-empty-om">🎉</div>
-        <h3>No festivals for @_year</h3>
-        <p>Create a festival for this year to get started.</p>
-        <button class="sc-btn-primary sc-btn-sm" @onclick="OpenCreate">+ Create Festival</button>
+        <h3>@(Loc.TF("festivals.emptyTitleYear", "No festivals for {0}", _year))</h3>
+        <p>@Loc["festivals.emptyBody", "Create a festival for this year to get started."]</p>
+        <button class="sc-btn-primary sc-btn-sm" @onclick="OpenCreate">+ @Loc["festivals.createFestival", "Create Festival"]</button>
     </div>
 }
 else if (_view == "grid")
@@ -59,19 +60,19 @@ else if (_view == "grid")
                         <span class="sc-tile-day">@f.Date.ToString("dd")</span>
                         <span class="sc-tile-mon">@f.Date.ToString("MMM")</span>
                     </div>
-                    <span class="sc-badge @(f.IsActive ? "on" : "off")">@(f.IsActive ? "Active" : "Inactive")</span>
+                    <span class="sc-badge @(f.IsActive ? "on" : "off")">@(f.IsActive ? Loc["common.active", "Active"] : Loc["common.inactive", "Inactive"])</span>
                 </div>
                 <h3 class="sc-tile-title">@f.Name</h3>
-                <p class="sc-tile-desc">@(string.IsNullOrWhiteSpace(f.Description) ? "No description" : f.Description)</p>
+                <p class="sc-tile-desc">@(string.IsNullOrWhiteSpace(f.Description) ? Loc["common.noDescription", "No description"] : f.Description)</p>
                 @if (f.RegionNames.Count > 0)
                 {
                     <div class="sc-chiprow">@foreach (var r in f.RegionNames) { <span class="sc-minichip">@r</span> }</div>
                 }
                 <div class="sc-tile-foot">
                     <button class="sc-chip @(f.IsActive ? "chip-warn" : "chip-ok")" @onclick="() => ConfirmToggle(f)">
-                        @(f.IsActive ? "Deactivate" : "Activate")
+                        @(f.IsActive ? Loc["common.deactivate", "Deactivate"] : Loc["common.activate", "Activate"])
                     </button>
-                    <button class="sc-btn-ghost sc-btn-sm" @onclick="() => OpenEdit(f)">Edit</button>
+                    <button class="sc-btn-ghost sc-btn-sm" @onclick="() => OpenEdit(f)">@Loc["common.edit", "Edit"]</button>
                 </div>
             </div>
         }
@@ -84,11 +85,11 @@ else
         <table class="sc-table">
             <thead>
                 <tr>
-                    <th>Date</th>
-                    <th>Festival</th>
-                    <th>Description</th>
-                    <th>Regions</th>
-                    <th>Status</th>
+                    <th>@Loc["common.date", "Date"]</th>
+                    <th>@Loc["festivals.festival", "Festival"]</th>
+                    <th>@Loc["common.description", "Description"]</th>
+                    <th>@Loc["common.regions", "Regions"]</th>
+                    <th>@Loc["common.status", "Status"]</th>
                     <th></th>
                 </tr>
             </thead>
@@ -105,9 +106,9 @@ else
                                 <input type="checkbox" checked="@f.IsActive" @onclick="() => ConfirmToggle(f)" @onclick:preventDefault />
                                 <span class="sc-slider"></span>
                             </label>
-                            <span class="sc-status @(f.IsActive ? "on" : "off")">@(f.IsActive ? "Active" : "Inactive")</span>
+                            <span class="sc-status @(f.IsActive ? "on" : "off")">@(f.IsActive ? Loc["common.active", "Active"] : Loc["common.inactive", "Inactive"])</span>
                         </td>
-                        <td><button class="sc-btn-ghost sc-btn-sm" @onclick="() => OpenEdit(f)">Edit</button></td>
+                        <td><button class="sc-btn-ghost sc-btn-sm" @onclick="() => OpenEdit(f)">@Loc["common.edit", "Edit"]</button></td>
                     </tr>
                 }
             </tbody>
@@ -116,7 +117,7 @@ else
     <Pager Page="_page" PageCount="PageCount" TotalCount="_list.Count" PageSize="PageSize" OnGoTo="GoTo" />
 }
 
-<ScModal Visible="_showForm" Title="@(_editId is null ? "Create Festival" : "Edit Festival")" OnClose="CloseForm">
+<ScModal Visible="_showForm" Title='@(_editId is null ? Loc["festivals.createFestival", "Create Festival"] : Loc["festivals.editFestival", "Edit Festival"])' OnClose="CloseForm">
     <EditForm Model="_model" OnValidSubmit="SaveAsync" class="sc-form">
         <DataAnnotationsValidator />
 
@@ -127,13 +128,13 @@ else
 
         <div class="sc-form-grid">
             <div class="sc-field sc-span-2">
-                <label>Festival Name</label>
+                <label>@Loc["festivals.festivalName", "Festival Name"]</label>
                 <InputText @bind-Value="_model.Name" class="sc-input" />
                 <ValidationMessage For="() => _model.Name" />
             </div>
 
             <div class="sc-field">
-                <label>Year</label>
+                <label>@Loc["common.year", "Year"]</label>
                 <select class="sc-input" @bind="_model.Year" @bind:after="OnFormYearChanged">
                     @foreach (var y in FormYears)
                     {
@@ -143,33 +144,33 @@ else
             </div>
 
             <div class="sc-field">
-                <label>Date <span class="sc-optional">(within @_model.Year)</span></label>
+                <label>@Loc["common.date", "Date"] <span class="sc-optional">@(Loc.TF("festivals.withinYear", "(within {0})", _model.Year))</span></label>
                 <InputDate @bind-Value="_model.Date" class="sc-input" min="@YearMin" max="@YearMax" />
                 <ValidationMessage For="() => _model.Date" />
             </div>
 
             <div class="sc-field sc-span-2">
-                <label>Description</label>
+                <label>@Loc["common.description", "Description"]</label>
                 <InputText @bind-Value="_model.Description" class="sc-input" />
             </div>
         </div>
 
         <div class="sc-field">
-            <label>Regions</label>
+            <label>@Loc["common.regions", "Regions"]</label>
             <MultiSelect Options="_regionOptions" Selected="_selRegions" SelectedChanged="v => _selRegions = v" />
         </div>
 
         <div class="sc-switches">
             <div class="sc-switchrow">
                 <label class="sc-switch"><input type="checkbox" @bind="_model.IsActive" /><span class="sc-slider"></span></label>
-                <span>Active</span>
+                <span>@Loc["common.active", "Active"]</span>
             </div>
         </div>
 
         <div class="sc-modal-actions">
-            <button type="button" class="sc-btn-ghost" @onclick="CloseForm">Cancel</button>
+            <button type="button" class="sc-btn-ghost" @onclick="CloseForm">@Loc["common.cancel", "Cancel"]</button>
             <button type="submit" class="sc-btn-primary" disabled="@_busy">
-                @if (_busy) { <OmLoader Inline="true" Size="18" Message="Saving…" /> } else { <span>@(_editId is null ? "Create" : "Update")</span> }
+                @if (_busy) { <OmLoader Inline="true" Size="18" Message='@Loc["common.saving", "Saving…"]' /> } else { <span>@(_editId is null ? Loc["common.create", "Create"] : Loc["common.update", "Update"])</span> }
             </button>
         </div>
     </EditForm>
@@ -213,6 +214,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        await base.OnInitializedAsync();
         await LoadRegionOptionsAsync();
         await LoadYearsAsync();
         await LoadFestivalsAsync();
@@ -319,7 +321,7 @@ else
 
         if (ok)
         {
-            Toast.Success($"Festival “{_model.Name}” saved.");
+            Toast.Success(Loc.TF("msg.savedNamed", "“{0}” saved.", _model.Name));
             _showForm = false;
             await LoadYearsAsync();
             _year = _model.Year;
@@ -334,18 +336,30 @@ else
     private async Task ConfirmToggle(FestivalModel f)
     {
         var activate = !f.IsActive;
+        var noun = Loc["festivals.nounSingular", "festival"];
         var confirmed = await Confirm.ConfirmAsync(new ConfirmRequest
         {
-            Title = activate ? "Activate festival?" : "Deactivate festival?",
-            Message = $"Are you sure you want to {(activate ? "activate" : "deactivate")} “{f.Name}”?",
-            ConfirmText = activate ? "Yes, activate" : "Yes, deactivate",
-            CancelText = "Cancel",
+            Title = activate
+                ? Loc.TF("common.confirmActivate", "Activate {0}?", noun)
+                : Loc.TF("common.confirmDeactivate", "Deactivate {0}?", noun),
+            Message = activate
+                ? Loc.TF("festivals.confirmActivateBody", "Are you sure you want to activate “{0}”?", f.Name)
+                : Loc.TF("festivals.confirmDeactivateBody", "Are you sure you want to deactivate “{0}”?", f.Name),
+            ConfirmText = activate
+                ? Loc["common.yesActivate", "Yes, activate"]
+                : Loc["common.yesDeactivate", "Yes, deactivate"],
+            CancelText = Loc["common.cancel", "Cancel"],
             Kind = activate ? ConfirmKind.Success : ConfirmKind.Warning
         });
         if (!confirmed) return;
 
         var (ok, err) = await Api.SetFestivalStatusAsync(f.Id, activate);
-        if (ok) Toast.Success($"“{f.Name}” has been {(activate ? "activated" : "deactivated")}.");
+        if (ok)
+        {
+            Toast.Success(activate
+                ? Loc.TF("msg.activatedNamed", "“{0}” has been activated.", f.Name)
+                : Loc.TF("msg.deactivatedNamed", "“{0}” has been deactivated.", f.Name));
+        }
         else Toast.Error(err);
         await LoadFestivalsAsync();
     }

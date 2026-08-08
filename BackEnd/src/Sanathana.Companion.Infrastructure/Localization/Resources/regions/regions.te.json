@@ -1,0 +1,20 @@
+{
+  "regions.confirmActivateBody": "“{0}”ను సక్రియం చేయాలని ఖచ్చితంగా అనుకుంటున్నారా?",
+  "regions.confirmDeactivateBody": "“{0}”ను నిష్క్రియం చేయాలని ఖచ్చితంగా అనుకుంటున్నారా?",
+  "regions.createRegion": "ప్రాంతాన్ని సృష్టించు",
+  "regions.editRegion": "ప్రాంతాన్ని సవరించు",
+  "regions.languagePlural": "భాషలు",
+  "regions.languageSingular": "భాష",
+  "regions.languagesHint": "(ఒక ప్రాంతానికి అనేక భాషలు ఉండవచ్చు)",
+  "regions.latitude": "అక్షాంశం",
+  "regions.latitudeHint": "(°ఉత్తరం, పంచాంగం కోసం)",
+  "regions.loadingList": "ప్రాంతాలు లోడ్ అవుతున్నాయి…",
+  "regions.longitude": "రేఖాంశం",
+  "regions.longitudeHint": "(°తూర్పు, పంచాంగం కోసం)",
+  "regions.noActiveLanguages": "ఇంకా సక్రియ భాషలు లేవు — భాషల మాస్టర్‌లో వాటిని జోడించండి.",
+  "regions.noun": "ప్రాంతాలు",
+  "regions.nounSingular": "ప్రాంతం",
+  "regions.regionName": "ప్రాంతం పేరు",
+  "regions.sub": "సనాతన కంపానియన్ అంతటా ప్రాంతాలను నిర్వహించండి",
+  "regions.title": "ప్రాంత మాస్టర్"
+}

@@ -6,6 +6,18 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Translation seed files. Embedded so they ship inside the assembly and work on
+         Render/Docker, where the container has no writable or predictable content root.
+         WithCulture="false" is REQUIRED: the SDK's AssignCulture task reads the ".te"/".hi"
+         segment in "common.te.json" as a culture designator and would otherwise bury every
+         file in a satellite assembly, where GetManifestResourceStream cannot reach it. -->
+    <EmbeddedResource Include="Localization\Resources\**\*.json" WithCulture="false" />
+    <!-- DB-text dictionary. WithCulture="false" for the same reason: ".te" would otherwise
+         be read as a culture and buried in a satellite assembly. -->
+    <EmbeddedResource Include="Localization\Terms\**\*.json" WithCulture="false" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="BCrypt.Net-Next" Version="4.2.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.10">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

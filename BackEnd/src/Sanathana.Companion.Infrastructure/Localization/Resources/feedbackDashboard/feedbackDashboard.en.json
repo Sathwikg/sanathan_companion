@@ -1,0 +1,19 @@
+{
+  "feedbackDashboard.adminOnlyBody": "The feedback dashboard is available to administrators only.",
+  "feedbackDashboard.awaitingReview": "awaiting review",
+  "feedbackDashboard.byIssueType": "By Issue Type",
+  "feedbackDashboard.byIssueTypeSub": "Where the feedback is coming from",
+  "feedbackDashboard.colFeedback": "Feedback",
+  "feedbackDashboard.colWhen": "When",
+  "feedbackDashboard.loading": "Loading feedback…",
+  "feedbackDashboard.markedAs": "Marked as {0}.",
+  "feedbackDashboard.noFeedback": "No feedback yet",
+  "feedbackDashboard.recent": "Recent Feedback",
+  "feedbackDashboard.recentSub": "Latest submissions",
+  "feedbackDashboard.statusNew": "New",
+  "feedbackDashboard.statusResolved": "Resolved",
+  "feedbackDashboard.statusReviewed": "Reviewed",
+  "feedbackDashboard.sub": "Suggestions and issues sent by seekers",
+  "feedbackDashboard.title": "Feedback Dashboard",
+  "feedbackDashboard.totalFeedback": "Total Feedback"
+}

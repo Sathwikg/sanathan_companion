@@ -1,0 +1,23 @@
+{
+  "myNotifications.activeNow": "अभी सक्रिय",
+  "myNotifications.allNotifications": "सभी सूचनाएँ",
+  "myNotifications.anyTime": "दिन के किसी भी समय",
+  "myNotifications.clearWindow": "अवधि हटाएँ",
+  "myNotifications.couldNotLoad": "आपकी सूचना सेटिंग्स लोड नहीं हो सकीं।",
+  "myNotifications.loadingPrefs": "आपकी प्राथमिकताएँ लोड हो रही हैं…",
+  "myNotifications.mandatoryTooltip": "यह सूचना आवश्यक है",
+  "myNotifications.masterOff": "सब कुछ रोका गया है — केवल आवश्यक सूचनाएँ ही आएँगी।",
+  "myNotifications.masterOn": "आपको नीचे चुनी गई सूचनाएँ मिलेंगी।",
+  "myNotifications.midnightHint": "मध्यरात्रि पार करना ठीक है (जैसे 22:00 → 06:00)।",
+  "myNotifications.noneAvailable": "अभी कोई सूचना उपलब्ध नहीं",
+  "myNotifications.noneAvailableBody": "व्यवस्थापक ने अभी कोई सूचना सक्षम नहीं की है। बाद में देखें।",
+  "myNotifications.nowIst": "अभी {0} भारतीय समय",
+  "myNotifications.quietHours": "शांत घंटे",
+  "myNotifications.quietHoursHint": "इन घंटों में कोई आवाज़ नहीं — आवश्यक सूचनाओं के लिए भी।",
+  "myNotifications.saved": "🔔 सूचना प्राथमिकताएँ सहेज ली गईं।",
+  "myNotifications.sub": "चुनें कि आपको किस बारे में और कब सूचना मिले",
+  "myNotifications.title": "मेरी सूचनाएँ",
+  "myNotifications.whatHeading": "मुझे किस बारे में सूचित करें",
+  "myNotifications.whatSub": "हर एक के लिए वैकल्पिक समय अवधि तय करें",
+  "myNotifications.wouldNotifyNow": "अभी सूचित करेगा"
+}

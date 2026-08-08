@@ -1,0 +1,15 @@
+{
+  "festivals.confirmActivateBody": "“{0}” ಅನ್ನು ಸಕ್ರಿಯಗೊಳಿಸಲು ನೀವು ಖಚಿತವಾಗಿದ್ದೀರಾ?",
+  "festivals.confirmDeactivateBody": "“{0}” ಅನ್ನು ನಿಷ್ಕ್ರಿಯಗೊಳಿಸಲು ನೀವು ಖಚಿತವಾಗಿದ್ದೀರಾ?",
+  "festivals.createFestival": "ಹಬ್ಬ ರಚಿಸಿ",
+  "festivals.editFestival": "ಹಬ್ಬ ಸಂಪಾದಿಸಿ",
+  "festivals.emptyBody": "ಆರಂಭಿಸಲು ಈ ವರ್ಷಕ್ಕೆ ಒಂದು ಹಬ್ಬವನ್ನು ರಚಿಸಿ.",
+  "festivals.emptyTitleYear": "{0} ವರ್ಷಕ್ಕೆ ಯಾವುದೇ ಹಬ್ಬಗಳಿಲ್ಲ",
+  "festivals.festival": "ಹಬ್ಬ",
+  "festivals.festivalName": "ಹಬ್ಬದ ಹೆಸರು",
+  "festivals.loadingList": "ಹಬ್ಬಗಳನ್ನು ಲೋಡ್ ಮಾಡಲಾಗುತ್ತಿದೆ…",
+  "festivals.nounSingular": "ಹಬ್ಬ",
+  "festivals.sub": "ವರ್ಷದ ಪ್ರಕಾರ ಹಬ್ಬಗಳನ್ನು ನಿರ್ವಹಿಸಿ",
+  "festivals.title": "ಹಬ್ಬಗಳು",
+  "festivals.withinYear": "({0} ಒಳಗೆ)"
+}

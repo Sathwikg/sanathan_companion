@@ -1,10 +1,11 @@
 @page "/"
 @attribute [Authorize]
+@inherits LocalizedComponentBase
 @inject IApiClient Api
 
 @if (_loading)
 {
-    <OmLoader FullPage="true" Message="Loading your sadhana…" />
+    <OmLoader FullPage="true" Message='@Loc["dashboard.loading", "Loading your sadhana…"]' />
 }
 else if (_model is not null)
 {
@@ -14,8 +15,8 @@ else if (_model is not null)
             <p class="sc-hero-kicker">@Greeting</p>
             <h1 class="sc-hero-title">@_model.Message</h1>
             <div class="sc-hero-meta">
-                <span class="sc-pill"><span class="sc-pill-k">Seeker</span>@(string.IsNullOrWhiteSpace(_model.SeekerName) ? _model.FullName : _model.SeekerName)</span>
-                <span class="sc-pill"><span class="sc-pill-k">Role</span>@_model.Role</span>
+                <span class="sc-pill"><span class="sc-pill-k">@Loc["dashboard.seeker", "Seeker"]</span>@(string.IsNullOrWhiteSpace(_model.SeekerName) ? _model.FullName : _model.SeekerName)</span>
+                <span class="sc-pill"><span class="sc-pill-k">@Loc["common.role", "Role"]</span>@_model.Role</span>
             </div>
         </div>
     </section>
@@ -23,8 +24,8 @@ else if (_model is not null)
     @if (_streak is not null)
     {
         <div class="sc-section-head">
-            <h2>🙏 My Sadhana</h2>
-            <span class="sc-section-sub">Your practice at a glance</span>
+            <h2>🙏 @Loc["sadhana.mySadhana", "My Sadhana"]</h2>
+            <span class="sc-section-sub">@Loc["sadhana.glance", "Your practice at a glance"]</span>
         </div>
         <div class="sc-card sc-sadhana-widget">
             <div class="sc-streak">
@@ -32,19 +33,19 @@ else if (_model is not null)
                     <span class="ic">🔥</span>
                     <div>
                         <div class="sc-streak-num">@_streak.CurrentStreak</div>
-                        <div class="sc-streak-label">day streak</div>
+                        <div class="sc-streak-label">@Loc["sadhana.dayStreak", "day streak"]</div>
                     </div>
                 </div>
                 <span class="sc-streak-today @(_streak.PracticedToday ? "done" : "pending")">
-                    @(_streak.PracticedToday ? "✓ Practiced today" : "Not yet today")
+                    @(_streak.PracticedToday ? "✓ " + Loc["sadhana.practicedToday", "Practiced today"] : Loc["sadhana.notYetToday", "Not yet today"])
                 </span>
                 <div class="sc-streak-stats">
-                    <div class="sc-streak-stat"><div class="n">@_streak.TotalMalas</div><div class="l">Total malas</div></div>
-                    <div class="sc-streak-stat"><div class="n">@_streak.LongestStreak</div><div class="l">Longest</div></div>
-                    <div class="sc-streak-stat"><div class="n">@_streak.TotalDaysPracticed</div><div class="l">Days</div></div>
+                    <div class="sc-streak-stat"><div class="n">@_streak.TotalMalas</div><div class="l">@Loc["sadhana.totalMalas", "Total malas"]</div></div>
+                    <div class="sc-streak-stat"><div class="n">@_streak.LongestStreak</div><div class="l">@Loc["sadhana.longest", "Longest"]</div></div>
+                    <div class="sc-streak-stat"><div class="n">@_streak.TotalDaysPracticed</div><div class="l">@Loc["common.days", "Days"]</div></div>
                 </div>
             </div>
-            <a href="sadhana" class="sc-btn-primary sc-btn-sm sc-sadhana-cta">Continue Sadhana →</a>
+            <a href="sadhana" class="sc-btn-primary sc-btn-sm sc-sadhana-cta">@Loc["sadhana.continueSadhana", "Continue Sadhana"] →</a>
         </div>
     }
 
@@ -55,8 +56,8 @@ else if (_model is not null)
     <PrayerTimes />
 
     <div class="sc-section-head">
-        <h2>🪔 Daily Darshan</h2>
-        <span class="sc-section-sub">Seek blessings from the divine</span>
+        <h2>🪔 @Loc["sadhana.dailyDarshan", "Daily Darshan"]</h2>
+        <span class="sc-section-sub">@Loc["sadhana.seekBlessings", "Seek blessings from the divine"]</span>
     </div>
     <div class="sc-darshan">
         @foreach (var d in Deities)
@@ -98,21 +99,23 @@ else
         get
         {
             var hour = DateTime.Now.Hour;
-            return hour < 12 ? "Suprabhatam · Good Morning"
-                 : hour < 17 ? "Namaste · Good Afternoon"
-                 : "Shubh Sandhya · Good Evening";
+            return hour < 12 ? Loc["auth.greetingMorning", "Suprabhatam · Good Morning"]
+                 : hour < 17 ? Loc["auth.greetingAfternoon", "Namaste · Good Afternoon"]
+                 : Loc["auth.greetingEvening", "Shubh Sandhya · Good Evening"];
         }
     }
 
     protected override async Task OnInitializedAsync()
     {
+        await base.OnInitializedAsync();
+
         try
         {
             _model = await Api.GetDashboardAsync();
         }
         catch (Exception ex)
         {
-            _error = "Could not load the dashboard. " + ex.Message;
+            _error = Loc["dashboard.couldNotLoad", "Could not load the dashboard."] + " " + ex.Message;
         }
         finally
         {

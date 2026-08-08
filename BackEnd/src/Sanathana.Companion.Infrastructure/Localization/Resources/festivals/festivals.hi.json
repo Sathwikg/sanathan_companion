@@ -1,0 +1,15 @@
+{
+  "festivals.confirmActivateBody": "क्या आप वाकई “{0}” को सक्रिय करना चाहते हैं?",
+  "festivals.confirmDeactivateBody": "क्या आप वाकई “{0}” को निष्क्रिय करना चाहते हैं?",
+  "festivals.createFestival": "त्योहार बनाएँ",
+  "festivals.editFestival": "त्योहार संपादित करें",
+  "festivals.emptyBody": "शुरू करने के लिए इस वर्ष का एक त्योहार बनाएँ।",
+  "festivals.emptyTitleYear": "{0} के लिए कोई त्योहार नहीं",
+  "festivals.festival": "त्योहार",
+  "festivals.festivalName": "त्योहार का नाम",
+  "festivals.loadingList": "त्योहार लोड हो रहे हैं…",
+  "festivals.nounSingular": "त्योहार",
+  "festivals.sub": "वर्ष के अनुसार त्योहार प्रबंधित करें",
+  "festivals.title": "त्योहार",
+  "festivals.withinYear": "({0} के भीतर)"
+}

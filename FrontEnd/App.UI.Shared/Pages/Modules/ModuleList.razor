@@ -1,5 +1,6 @@
 @page "/modules"
 @attribute [Authorize]
+@inherits LocalizedComponentBase
 @inject IApiClient Api
 @inject MenuRefreshService MenuRefresh
 @inject ConfirmService Confirm
@@ -7,13 +8,13 @@
 @inject NavigationManager Nav
 
 <div class="sc-page-head">
-    <h1>Modules &amp; Sub-modules</h1>
+    <h1>@Loc["modules.title", "Modules & Sub-modules"]</h1>
     <div class="sc-page-actions">
         <div class="sc-viewtoggle">
-            <button class="@(_view == "list" ? "active" : "")" @onclick='() => _view = "list"'>List View</button>
-            <button class="@(_view == "tree" ? "active" : "")" @onclick='() => _view = "tree"'>Tree View</button>
+            <button class="@(_view == "list" ? "active" : "")" @onclick='() => _view = "list"'>@Loc["common.listView", "List View"]</button>
+            <button class="@(_view == "tree" ? "active" : "")" @onclick='() => _view = "tree"'>@Loc["common.treeView", "Tree View"]</button>
         </div>
-        <button class="sc-btn-primary sc-btn-sm" @onclick='() => Nav.NavigateTo("modules/create")'>+ Create</button>
+        <button class="sc-btn-primary sc-btn-sm" @onclick='() => Nav.NavigateTo("modules/create")'>+ @Loc["common.create", "Create"]</button>
     </div>
 </div>
 
@@ -24,7 +25,7 @@
 
 @if (_loading)
 {
-    <OmLoader FullPage="true" Message="Loading modules…" />
+    <OmLoader FullPage="true" Message='@Loc["modules.loadingList", "Loading modules…"]' />
 }
 else if (_view == "list")
 {
@@ -32,8 +33,8 @@ else if (_view == "list")
         <table class="sc-table">
             <thead>
                 <tr>
-                    <th>Name</th><th>Icon</th><th>Route</th><th>Order</th>
-                    <th>In Menu</th><th>Mobile</th><th>Status</th><th></th>
+                    <th>@Loc["common.name", "Name"]</th><th>@Loc["common.icon", "Icon"]</th><th>@Loc["common.route", "Route"]</th><th>@Loc["common.order", "Order"]</th>
+                    <th>@Loc["modules.inMenu", "In Menu"]</th><th>@Loc["common.mobileApp", "Mobile"]</th><th>@Loc["common.status", "Status"]</th><th></th>
                 </tr>
             </thead>
             <tbody>
@@ -44,16 +45,16 @@ else if (_view == "list")
                         <td>@m.Icon</td>
                         <td class="sc-muted">@m.RoutePath</td>
                         <td>@m.DisplayOrder</td>
-                        <td>@(m.IsVisibleInMenu ? "Yes" : "No")</td>
-                        <td>@(m.ShowInMobile ? "Yes" : "No")</td>
+                        <td>@(m.IsVisibleInMenu ? Loc["common.yes", "Yes"] : Loc["common.no", "No"])</td>
+                        <td>@(m.ShowInMobile ? Loc["common.yes", "Yes"] : Loc["common.no", "No"])</td>
                         <td>
                             <label class="sc-switch">
                                 <input type="checkbox" checked="@m.IsActive" @onclick="@(() => ConfirmAndSet(m.Id, m.Name, !m.IsActive))" @onclick:preventDefault />
                                 <span class="sc-slider"></span>
                             </label>
-                            <span class="sc-status @(m.IsActive ? "on" : "off")">@(m.IsActive ? "Active" : "Inactive")</span>
+                            <span class="sc-status @(m.IsActive ? "on" : "off")">@(m.IsActive ? Loc["common.active", "Active"] : Loc["common.inactive", "Inactive"])</span>
                         </td>
-                        <td><button class="sc-btn-ghost sc-btn-sm" @onclick="@(() => Nav.NavigateTo($"modules/{m.Id}/edit"))">Edit</button></td>
+                        <td><button class="sc-btn-ghost sc-btn-sm" @onclick="@(() => Nav.NavigateTo($"modules/{m.Id}/edit"))">@Loc["common.edit", "Edit"]</button></td>
                     </tr>
                 }
             </tbody>
@@ -64,10 +65,12 @@ else
 {
     <div class="sc-card">
         <div class="sc-mtree-toolbar">
-            <span class="sc-muted">@_tree.Count main module@(_tree.Count == 1 ? "" : "s")</span>
+            <span class="sc-muted">@(_tree.Count == 1
+                ? Loc.TF("modules.mainModuleCountOne", "{0} main module", _tree.Count)
+                : Loc.TF("modules.mainModuleCountMany", "{0} main modules", _tree.Count))</span>
             <span class="sc-flex-spacer"></span>
-            <button class="sc-btn-ghost sc-btn-sm" @onclick="ExpandAll">⊞ Expand all</button>
-            <button class="sc-btn-ghost sc-btn-sm" @onclick="CollapseAll">⊟ Collapse all</button>
+            <button class="sc-btn-ghost sc-btn-sm" @onclick="ExpandAll">⊞ @Loc["common.expandAll", "Expand all"]</button>
+            <button class="sc-btn-ghost sc-btn-sm" @onclick="CollapseAll">⊟ @Loc["common.collapseAll", "Collapse all"]</button>
         </div>
         <ul class="sc-mtree">
             @foreach (var node in _tree)
@@ -90,7 +93,11 @@ else
     private bool _expandAll;
     private int _expandSignal;
 
-    protected override async Task OnInitializedAsync() => await LoadAsync();
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        await LoadAsync();
+    }
 
     private void ExpandAll()
     {
@@ -131,18 +138,30 @@ else
 
     private async Task ConfirmAndSet(Guid id, string name, bool activate)
     {
+        var noun = Loc["modules.nounSingular", "menu item"];
         var confirmed = await Confirm.ConfirmAsync(new ConfirmRequest
         {
-            Title = activate ? "Activate menu item?" : "Deactivate menu item?",
-            Message = $"Are you sure you want to {(activate ? "activate" : "deactivate")} “{name}”?",
-            ConfirmText = activate ? "Yes, activate" : "Yes, deactivate",
-            CancelText = "Cancel",
+            Title = activate
+                ? Loc.TF("common.confirmActivate", "Activate {0}?", noun)
+                : Loc.TF("common.confirmDeactivate", "Deactivate {0}?", noun),
+            Message = activate
+                ? Loc.TF("modules.confirmActivateBody", "Are you sure you want to activate “{0}”?", name)
+                : Loc.TF("modules.confirmDeactivateBody", "Are you sure you want to deactivate “{0}”?", name),
+            ConfirmText = activate
+                ? Loc["common.yesActivate", "Yes, activate"]
+                : Loc["common.yesDeactivate", "Yes, deactivate"],
+            CancelText = Loc["common.cancel", "Cancel"],
             Kind = activate ? ConfirmKind.Success : ConfirmKind.Warning
         });
         if (!confirmed) return;
 
         var (ok, err) = await Api.SetModuleStatusAsync(id, activate);
-        if (ok) Toast.Success($"“{name}” has been {(activate ? "activated" : "deactivated")}.");
+        if (ok)
+        {
+            Toast.Success(activate
+                ? Loc.TF("msg.activatedNamed", "“{0}” has been activated.", name)
+                : Loc.TF("msg.deactivatedNamed", "“{0}” has been deactivated.", name));
+        }
         else _error = err;
         await LoadAsync();
         MenuRefresh.NotifyChanged();

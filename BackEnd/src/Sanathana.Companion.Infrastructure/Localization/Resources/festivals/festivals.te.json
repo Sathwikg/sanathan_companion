@@ -1,0 +1,15 @@
+{
+  "festivals.confirmActivateBody": "“{0}”ను సక్రియం చేయాలని ఖచ్చితంగా అనుకుంటున్నారా?",
+  "festivals.confirmDeactivateBody": "“{0}”ను నిష్క్రియం చేయాలని ఖచ్చితంగా అనుకుంటున్నారా?",
+  "festivals.createFestival": "పండుగను సృష్టించు",
+  "festivals.editFestival": "పండుగను సవరించు",
+  "festivals.emptyBody": "ప్రారంభించడానికి ఈ సంవత్సరానికి ఒక పండుగను సృష్టించండి.",
+  "festivals.emptyTitleYear": "{0}కి పండుగలు లేవు",
+  "festivals.festival": "పండుగ",
+  "festivals.festivalName": "పండుగ పేరు",
+  "festivals.loadingList": "పండుగలు లోడ్ అవుతున్నాయి…",
+  "festivals.nounSingular": "పండుగ",
+  "festivals.sub": "సంవత్సరం వారీగా పండుగలను నిర్వహించండి",
+  "festivals.title": "పండుగలు",
+  "festivals.withinYear": "({0}లోపు)"
+}

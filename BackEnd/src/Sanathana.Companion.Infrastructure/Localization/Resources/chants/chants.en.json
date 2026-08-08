@@ -1,0 +1,16 @@
+{
+  "chants.chantName": "Chant Name",
+  "chants.confirmActivateBody": "Are you sure you want to activate “{0}”?",
+  "chants.confirmDeactivateBody": "Are you sure you want to deactivate “{0}”?",
+  "chants.countExists": "Count Exists",
+  "chants.countValue": "Count: {0}",
+  "chants.createChant": "Create Chant",
+  "chants.editChant": "Edit Chant",
+  "chants.emptyBody": "Create your first chant to get started.",
+  "chants.emptyTitle": "No chants yet",
+  "chants.entity": "chant",
+  "chants.gridView": "Grid",
+  "chants.loading": "Loading chants…",
+  "chants.sub": "Manage chants and their japa counts",
+  "chants.title": "Chants"
+}

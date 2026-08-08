@@ -1,0 +1,18 @@
+{
+  "msg.accessRightsSaved": "ప్రవేశ హక్కులు భద్రపరచబడ్డాయి.",
+  "msg.activatedNamed": "“{0}” సక్రియం చేయబడింది.",
+  "msg.couldNotLoad": "సమాచారం తీసుకురాలేకపోయాం. దయచేసి మళ్లీ ప్రయత్నించండి.",
+  "msg.couldNotSave": "భద్రపరచలేకపోయాం. దయచేసి మళ్లీ ప్రయత్నించండి.",
+  "msg.createFirst": "ప్రారంభించడానికి మీ మొదటి {0} సృష్టించండి.",
+  "msg.deactivatedNamed": "“{0}” నిష్క్రియం చేయబడింది.",
+  "msg.deletedNamed": "“{0}” తొలగించబడింది.",
+  "msg.fieldRequired": "{0} తప్పనిసరి.",
+  "msg.languageSaved": "భాషా అమరికలు భద్రపరచబడ్డాయి.",
+  "msg.noItemsFound": "{0} ఏవీ కనబడలేదు",
+  "msg.noItemsYet": "ఇంకా {0} లేవు",
+  "msg.noMatchFilters": "ప్రస్తుత వడపోతలకు సరిపోయే {0} లేవు.",
+  "msg.requestFailed": "అభ్యర్థన విఫలమైంది ({0}).",
+  "msg.saved": "భద్రపరచబడింది.",
+  "msg.savedNamed": "“{0}” భద్రపరచబడింది.",
+  "msg.translationSaved": "అనువాదం భద్రపరచబడింది."
+}

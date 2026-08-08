@@ -1,0 +1,12 @@
+{
+  "issueTypes.confirmActivateBody": "क्या आप वाकई “{0}” को सक्रिय करना चाहते हैं?",
+  "issueTypes.confirmDeactivateBody": "क्या आप वाकई “{0}” को निष्क्रिय करना चाहते हैं?",
+  "issueTypes.createTitle": "समस्या प्रकार बनाएँ",
+  "issueTypes.descriptionHint": "(फ़ॉर्म पर मार्गदर्शन के रूप में दिखाया जाएगा)",
+  "issueTypes.displayOrder": "प्रदर्शन क्रम",
+  "issueTypes.editTitle": "समस्या प्रकार संपादित करें",
+  "issueTypes.entityName": "समस्या प्रकार",
+  "issueTypes.entityPlural": "समस्या प्रकार",
+  "issueTypes.sub": "प्रतिक्रिया फ़ॉर्म पर दिखाई देने वाली सामान्य श्रेणियाँ",
+  "issueTypes.title": "समस्या प्रकार"
+}

@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Sanathana.Companion.Api.Filters;
 using Sanathana.Companion.Api.Middleware;
 using Sanathana.Companion.Api.Services;
 using Sanathana.Companion.Application;
@@ -28,7 +29,9 @@ try
     builder.WebHost.ConfigureKestrel(o => o.Limits.MaxRequestBodySize = 16 * 1024 * 1024);
 
     // MVC controllers
-    builder.Services.AddControllers();
+    // Global: translates DB text on the way out. Annotating a DTO property is the only
+    // work needed to localise a new form — see TranslationResultFilter.
+    builder.Services.AddControllers(o => o.Filters.Add<TranslationResultFilter>());
 
     // Swagger + Bearer auth button
     builder.Services.AddEndpointsApiExplorer();
@@ -129,6 +132,28 @@ try
     {
         var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         db.Database.Migrate();
+
+        // Load the shipped translation files. Idempotent, and it never overwrites a label an
+        // admin edited in the UI, so it is safe to run on every boot.
+        try
+        {
+            var localization = scope.ServiceProvider.GetRequiredService<ILocalizationService>();
+            var written = await localization.ImportSeedFilesAsync();
+            if (written > 0) Log.Information("Localization seed import wrote {Count} entries.", written);
+
+            // The DB-text dictionary: vocabulary from the Panchangam code tables, then any
+            // shipped translations for it. Both are idempotent and never overwrite admin edits.
+            var termSeed = scope.ServiceProvider.GetRequiredService<ITermSeedService>();
+            var terms = await termSeed.SeedTermsAsync();
+            var termTexts = await termSeed.ImportTermTranslationsAsync();
+            if (terms > 0 || termTexts > 0)
+                Log.Information("Term dictionary seeded {Terms} terms and {Texts} translations.", terms, termTexts);
+        }
+        catch (Exception ex)
+        {
+            // Missing translations must never stop the API from serving.
+            Log.Error(ex, "Localization seed import failed; the app will fall back to English.");
+        }
     }
 
     app.UseMiddleware<ExceptionHandlingMiddleware>();

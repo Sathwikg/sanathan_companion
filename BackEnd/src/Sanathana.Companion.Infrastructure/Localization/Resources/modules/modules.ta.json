@@ -1,0 +1,10 @@
+{
+  "modules.confirmActivateBody": "“{0}” என்பதைச் செயல்படுத்த வேண்டும் என்பது உறுதியா?",
+  "modules.confirmDeactivateBody": "“{0}” என்பதை முடக்க வேண்டும் என்பது உறுதியா?",
+  "modules.inMenu": "பட்டியில்",
+  "modules.loadingList": "தொகுதிகளை ஏற்றுகிறது…",
+  "modules.mainModuleCountMany": "{0} முதன்மைத் தொகுதிகள்",
+  "modules.mainModuleCountOne": "{0} முதன்மைத் தொகுதி",
+  "modules.nounSingular": "பட்டி உருப்படி",
+  "modules.title": "தொகுதிகளும் உபதொகுதிகளும்"
+}

@@ -1,70 +1,71 @@
 @page "/admin-dashboard"
 @attribute [Authorize]
+@inherits LocalizedComponentBase
 @inject IApiClient Api
 
 <div class="sc-page-head">
     <div class="sc-page-title">
         <span class="sc-page-emoji">📊</span>
         <div>
-            <h1>Admin Dashboard</h1>
-            <p class="sc-page-sub">Community &amp; sadhana at a glance</p>
+            <h1>@Loc["adminDashboard.title", "Admin Dashboard"]</h1>
+            <p class="sc-page-sub">@Loc["adminDashboard.sub", "Community & sadhana at a glance"]</p>
         </div>
     </div>
     @if (_model is not null)
     {
         <div class="sc-page-actions">
-            <span class="sc-updated">Updated @_model.GeneratedAtUtc.ToLocalTime().ToString("g")</span>
+            <span class="sc-updated">@Loc.TF("adminDashboard.updated", "Updated {0}", _model.GeneratedAtUtc.ToLocalTime().ToString("g"))</span>
         </div>
     }
 </div>
 
 @if (_loading)
 {
-    <OmLoader FullPage="true" Message="Gathering community insights…" />
+    <OmLoader FullPage="true" Message='@Loc["adminDashboard.loading", "Gathering community insights…"]' />
 }
 else if (_forbidden)
 {
     <div class="sc-card sc-empty-state">
         <div class="sc-empty-om">🔒</div>
-        <h3>Administrator access required</h3>
-        <p>The Admin dashboard is available to administrators only.</p>
+        <h3>@Loc["common.adminOnly", "Administrator access required"]</h3>
+        <p>@Loc["common.adminOnlyBody", "The Admin dashboard is available to administrators only."]</p>
     </div>
 }
 else if (_model is not null)
 {
     <div class="sc-section-head">
-        <h2>👥 Community</h2>
-        <span class="sc-section-sub">Seekers who have joined the companion</span>
+        <h2>👥 @Loc["adminDashboard.community", "Community"]</h2>
+        <span class="sc-section-sub">@Loc["adminDashboard.communitySub", "Seekers who have joined the companion"]</span>
     </div>
     <div class="sc-stat-grid">
-        <StatCard Icon="👥" Value="@_model.TotalUsers.ToString("N0")" Label="Total Users" Sub="onboarded" Accent="true" />
-        <StatCard Icon="🪷" Value="@_model.TotalSeekers.ToString("N0")" Label="Seekers" />
-        <StatCard Icon="🛡️" Value="@_model.TotalAdmins.ToString("N0")" Label="Admins" />
-        <StatCard Icon="✨" Value="@_model.NewThisWeek.ToString("N0")" Label="New This Week" Sub="last 7 days" />
+        <StatCard Icon="👥" Value="@_model.TotalUsers.ToString("N0")" Label='@Loc["adminDashboard.totalUsers", "Total Users"]' Sub='@Loc["adminDashboard.onboarded", "onboarded"]' Accent="true" />
+        <StatCard Icon="🪷" Value="@_model.TotalSeekers.ToString("N0")" Label='@Loc["adminDashboard.seekers", "Seekers"]' />
+        <StatCard Icon="🛡️" Value="@_model.TotalAdmins.ToString("N0")" Label='@Loc["adminDashboard.admins", "Admins"]' />
+        <StatCard Icon="✨" Value="@_model.NewThisWeek.ToString("N0")" Label='@Loc["adminDashboard.newThisWeek", "New This Week"]' Sub='@Loc["adminDashboard.last7Days", "last 7 days"]' />
     </div>
 
     <div class="sc-section-head">
-        <h2>🙏 Sadhana</h2>
-        <span class="sc-section-sub">Practice across all seekers</span>
+        <h2>🙏 @Loc["adminDashboard.sadhana", "Sadhana"]</h2>
+        <span class="sc-section-sub">@Loc["adminDashboard.sadhanaSub", "Practice across all seekers"]</span>
     </div>
     <div class="sc-stat-grid">
-        <StatCard Icon="📿" Value="@_model.TotalMalas.ToString("N0")" Label="Total Malas" Sub="completed" Accent="true" />
-        <StatCard Icon="🔢" Value="@_model.TotalJapa.ToString("N0")" Label="Total Japa" Sub="repetitions" />
-        <StatCard Icon="🔥" Value="@_model.ActiveToday.ToString("N0")" Label="Active Today" Sub="practiced today" />
-        <StatCard Icon="📖" Value="@_model.TotalSessions.ToString("N0")" Label="Sessions" Sub="sadhana logged" />
-        <StatCard Icon="📅" Value="@_model.TotalDaysPracticed.ToString("N0")" Label="Practice Days" />
-        <StatCard Icon="🏅" Value="@_model.LongestStreak.ToString("N0")" Label="Longest Streak" Sub="days" />
+        <StatCard Icon="📿" Value="@_model.TotalMalas.ToString("N0")" Label='@Loc["adminDashboard.totalMalas", "Total Malas"]' Sub='@Loc["adminDashboard.completed", "completed"]' Accent="true" />
+        <StatCard Icon="🔢" Value="@_model.TotalJapa.ToString("N0")" Label='@Loc["adminDashboard.totalJapa", "Total Japa"]' Sub='@Loc["adminDashboard.repetitions", "repetitions"]' />
+        <StatCard Icon="🔥" Value="@_model.ActiveToday.ToString("N0")" Label='@Loc["adminDashboard.activeToday", "Active Today"]' Sub='@Loc["adminDashboard.practicedToday", "practiced today"]' />
+        <StatCard Icon="📖" Value="@_model.TotalSessions.ToString("N0")" Label='@Loc["adminDashboard.sessions", "Sessions"]' Sub='@Loc["adminDashboard.sadhanaLogged", "sadhana logged"]' />
+        <StatCard Icon="📅" Value="@_model.TotalDaysPracticed.ToString("N0")" Label='@Loc["adminDashboard.practiceDays", "Practice Days"]' />
+        <StatCard Icon="🏅" Value="@_model.LongestStreak.ToString("N0")" Label='@Loc["adminDashboard.longestStreak", "Longest Streak"]' Sub='@Loc["common.days", "days"]' />
     </div>
 
     <div class="sc-section-head">
-        <h2>🗂️ Catalog</h2>
-        <span class="sc-section-sub">Content configured in the app</span>
+        <h2>🗂️ @Loc["adminDashboard.catalog", "Catalog"]</h2>
+        <span class="sc-section-sub">@Loc["adminDashboard.catalogSub", "Content configured in the app"]</span>
     </div>
     <div class="sc-stat-grid">
-        <StatCard Icon="🛕" Value="@_model.Deities.ToString("N0")" Label="Deities" />
-        <StatCard Icon="📜" Value="@_model.Chants.ToString("N0")" Label="Chants" />
-        <StatCard Icon="🎉" Value="@_model.Festivals.ToString("N0")" Label="Festivals" />
-        <StatCard Icon="🗺️" Value="@_model.Regions.ToString("N0")" Label="Regions" />
+        <StatCard Icon="🛕" Value="@_model.Deities.ToString("N0")" Label='@Loc["nav.deities", "Deities"]' />
+        <StatCard Icon="📜" Value="@_model.Chants.ToString("N0")" Label='@Loc["adminDashboard.chants", "Chants"]' />
+        <StatCard Icon="🎉" Value="@_model.Festivals.ToString("N0")" Label='@Loc["nav.festivals", "Festivals"]' />
+        <StatCard Icon="🗺️" Value="@_model.Regions.ToString("N0")" Label='@Loc["common.regions", "Regions"]' />
     </div>
 }
 else
@@ -80,17 +81,19 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        await base.OnInitializedAsync();
+
         try
         {
             var (ok, data, forbidden, error) = await Api.GetAdminDashboardAsync();
             _model = data;
             _forbidden = forbidden;
             if (!ok && !forbidden)
-                _error = "Could not load the admin dashboard. " + error;
+                _error = Loc["adminDashboard.couldNotLoad", "Could not load the admin dashboard."] + " " + error;
         }
         catch (Exception ex)
         {
-            _error = "Could not load the admin dashboard. " + ex.Message;
+            _error = Loc["adminDashboard.couldNotLoad", "Could not load the admin dashboard."] + " " + ex.Message;
         }
         finally
         {

@@ -16,6 +16,7 @@ public interface IUnitOfWork
     IPanchangamRepository Panchangams { get; }
     ISadhanaRepository Sadhana { get; }
     IModuleRoleMappingRepository ModuleRoleMappings { get; }
+    ILocalizationRepository Localization { get; }
     IIssueTypeRepository IssueTypes { get; }
     IFeedbackRepository Feedbacks { get; }
     IUserFavoriteRepository Favorites { get; }

@@ -1,0 +1,12 @@
+{
+  "issueTypes.confirmActivateBody": "“{0}” என்பதைச் செயல்படுத்த வேண்டும் என்பது உறுதியா?",
+  "issueTypes.confirmDeactivateBody": "“{0}” என்பதை முடக்க வேண்டும் என்பது உறுதியா?",
+  "issueTypes.createTitle": "சிக்கல் வகையை உருவாக்கு",
+  "issueTypes.descriptionHint": "(படிவத்தில் வழிகாட்டுதலாகக் காட்டப்படும்)",
+  "issueTypes.displayOrder": "காட்சி வரிசை",
+  "issueTypes.editTitle": "சிக்கல் வகையைத் திருத்து",
+  "issueTypes.entityName": "சிக்கல் வகை",
+  "issueTypes.entityPlural": "சிக்கல் வகைகள்",
+  "issueTypes.sub": "கருத்துப் படிவத்தில் காட்டப்படும் பொதுவான கருத்து வகைகள்",
+  "issueTypes.title": "சிக்கல் வகைகள்"
+}

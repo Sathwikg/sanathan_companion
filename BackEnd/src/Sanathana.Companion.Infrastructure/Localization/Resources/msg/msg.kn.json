@@ -1,0 +1,18 @@
+{
+  "msg.accessRightsSaved": "ಪ್ರವೇಶ ಹಕ್ಕುಗಳನ್ನು ಉಳಿಸಲಾಗಿದೆ.",
+  "msg.activatedNamed": "“{0}” ಸಕ್ರಿಯಗೊಳಿಸಲಾಗಿದೆ.",
+  "msg.couldNotLoad": "ಮಾಹಿತಿಯನ್ನು ಲೋಡ್ ಮಾಡಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ. ದಯವಿಟ್ಟು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",
+  "msg.couldNotSave": "ಉಳಿಸಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ. ದಯವಿಟ್ಟು ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ.",
+  "msg.createFirst": "ಆರಂಭಿಸಲು ನಿಮ್ಮ ಮೊದಲ {0} ರಚಿಸಿ.",
+  "msg.deactivatedNamed": "“{0}” ನಿಷ್ಕ್ರಿಯಗೊಳಿಸಲಾಗಿದೆ.",
+  "msg.deletedNamed": "“{0}” ಅಳಿಸಲಾಗಿದೆ.",
+  "msg.fieldRequired": "{0} ಅಗತ್ಯವಿದೆ.",
+  "msg.languageSaved": "ಭಾಷಾ ಸಂರಚನೆ ಉಳಿಸಲಾಗಿದೆ.",
+  "msg.noItemsFound": "ಯಾವುದೇ {0} ಕಂಡುಬಂದಿಲ್ಲ",
+  "msg.noItemsYet": "ಇನ್ನೂ ಯಾವುದೇ {0} ಇಲ್ಲ",
+  "msg.noMatchFilters": "ಪ್ರಸ್ತುತ ಶೋಧಕಗಳಿಗೆ ಹೊಂದುವ {0} ಇಲ್ಲ.",
+  "msg.requestFailed": "ವಿನಂತಿ ವಿಫಲವಾಯಿತು ({0}).",
+  "msg.saved": "ಉಳಿಸಲಾಗಿದೆ.",
+  "msg.savedNamed": "“{0}” ಉಳಿಸಲಾಗಿದೆ.",
+  "msg.translationSaved": "ಅನುವಾದ ಉಳಿಸಲಾಗಿದೆ."
+}

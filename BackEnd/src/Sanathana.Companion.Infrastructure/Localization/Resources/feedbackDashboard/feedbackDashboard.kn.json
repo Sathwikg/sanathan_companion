@@ -1,0 +1,19 @@
+{
+  "feedbackDashboard.adminOnlyBody": "ಪ್ರತಿಕ್ರಿಯೆ ಡ್ಯಾಶ್ಬೋರ್ಡ್ ನಿರ್ವಾಹಕರಿಗೆ ಮಾತ್ರ ಲಭ್ಯವಿದೆ.",
+  "feedbackDashboard.awaitingReview": "ಪರಿಶೀಲನೆಗೆ ಬಾಕಿ",
+  "feedbackDashboard.byIssueType": "ಸಮಸ್ಯೆ ಪ್ರಕಾರವಾರು",
+  "feedbackDashboard.byIssueTypeSub": "ಪ್ರತಿಕ್ರಿಯೆಗಳು ಎಲ್ಲಿಂದ ಬರುತ್ತಿವೆ",
+  "feedbackDashboard.colFeedback": "ಪ್ರತಿಕ್ರಿಯೆ",
+  "feedbackDashboard.colWhen": "ಯಾವಾಗ",
+  "feedbackDashboard.loading": "ಪ್ರತಿಕ್ರಿಯೆಗಳನ್ನು ಲೋಡ್ ಮಾಡಲಾಗುತ್ತಿದೆ…",
+  "feedbackDashboard.markedAs": "{0} ಎಂದು ಗುರುತಿಸಲಾಗಿದೆ.",
+  "feedbackDashboard.noFeedback": "ಇನ್ನೂ ಯಾವುದೇ ಪ್ರತಿಕ್ರಿಯೆ ಇಲ್ಲ",
+  "feedbackDashboard.recent": "ಇತ್ತೀಚಿನ ಪ್ರತಿಕ್ರಿಯೆಗಳು",
+  "feedbackDashboard.recentSub": "ಇತ್ತೀಚಿನ ಸಲ್ಲಿಕೆಗಳು",
+  "feedbackDashboard.statusNew": "ಹೊಸದು",
+  "feedbackDashboard.statusResolved": "ಪರಿಹರಿಸಲಾಗಿದೆ",
+  "feedbackDashboard.statusReviewed": "ಪರಿಶೀಲಿಸಲಾಗಿದೆ",
+  "feedbackDashboard.sub": "ಸಾಧಕರು ಕಳುಹಿಸಿದ ಸಲಹೆಗಳು ಮತ್ತು ಸಮಸ್ಯೆಗಳು",
+  "feedbackDashboard.title": "ಪ್ರತಿಕ್ರಿಯೆ ಡ್ಯಾಶ್ಬೋರ್ಡ್",
+  "feedbackDashboard.totalFeedback": "ಒಟ್ಟು ಪ್ರತಿಕ್ರಿಯೆಗಳು"
+}

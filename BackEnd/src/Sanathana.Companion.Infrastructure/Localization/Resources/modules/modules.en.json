@@ -1,0 +1,10 @@
+{
+  "modules.confirmActivateBody": "Are you sure you want to activate “{0}”?",
+  "modules.confirmDeactivateBody": "Are you sure you want to deactivate “{0}”?",
+  "modules.inMenu": "In Menu",
+  "modules.loadingList": "Loading modules…",
+  "modules.mainModuleCountMany": "{0} main modules",
+  "modules.mainModuleCountOne": "{0} main module",
+  "modules.nounSingular": "menu item",
+  "modules.title": "Modules & Sub-modules"
+}

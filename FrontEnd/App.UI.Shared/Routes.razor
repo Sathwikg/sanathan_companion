@@ -1,10 +1,18 @@
 @using App.UI.Shared.Layout
 @using App.UI.Shared.Components
+@inject LocalizationState Loc
+@implements IDisposable
 
 <CascadingAuthenticationState>
     <Router AppAssembly="@typeof(Routes).Assembly">
         <Found Context="routeData">
-            <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
+            @* Keyed on the language generation so switching language re-creates the page component
+               and re-runs its data load. Database text is translated server-side, so the previously
+               fetched rows are stale — a re-render alone would leave the old language's values on
+               screen. The key must sit on the RouteView (which instantiates the page), not on a
+               wrapper around @Body in the layout: that wrapper is a RenderFragment owned by the
+               Router, and keying it does not re-instantiate the component inside. *@
+            <AuthorizeRouteView @key="Loc.DataVersion" RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
                 <NotAuthorized>
                     <RedirectToLogin />
                 </NotAuthorized>
@@ -21,3 +29,11 @@
         </NotFound>
     </Router>
 </CascadingAuthenticationState>
+
+@code {
+    protected override void OnInitialized() => Loc.OnChanged += Changed;
+
+    private void Changed() => InvokeAsync(StateHasChanged);
+
+    public void Dispose() => Loc.OnChanged -= Changed;
+}

@@ -32,6 +32,7 @@ public class UserService : IUserService
                 Email = u.Email,
                 MobileNumber = u.MobileNumber,
                 RoleName = u.Role?.RoleName ?? string.Empty,
+                IsAdmin = string.Equals(u.Role?.RoleName, RoleNames.Admin, StringComparison.OrdinalIgnoreCase),
                 RegisteredOn = u.CreatedDate,
                 CurrentStreak = DisplayStreak(streak),
                 TotalMalas = streak?.TotalMalas ?? 0
@@ -60,6 +61,7 @@ public class UserService : IUserService
             Email = u.Email,
             MobileNumber = u.MobileNumber,
             RoleName = u.Role?.RoleName ?? string.Empty,
+            IsAdmin = string.Equals(u.Role?.RoleName, RoleNames.Admin, StringComparison.OrdinalIgnoreCase),
             RegisteredOn = u.CreatedDate,
             LastUpdatedOn = u.ModifiedDate,
             CurrentStreak = DisplayStreak(streak),
@@ -126,6 +128,7 @@ public class UserService : IUserService
             Email = u.Email,
             MobileNumber = u.MobileNumber,
             RoleName = u.Role?.RoleName ?? string.Empty,
+            IsAdmin = string.Equals(u.Role?.RoleName, RoleNames.Admin, StringComparison.OrdinalIgnoreCase),
             RegisteredOn = u.CreatedDate,
             LastUpdatedOn = u.ModifiedDate,
             DefaultRegionId = u.DefaultRegionId,

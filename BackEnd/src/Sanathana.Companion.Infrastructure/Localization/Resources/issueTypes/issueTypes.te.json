@@ -1,0 +1,12 @@
+{
+  "issueTypes.confirmActivateBody": "“{0}”ను సక్రియం చేయాలని ఖచ్చితంగా అనుకుంటున్నారా?",
+  "issueTypes.confirmDeactivateBody": "“{0}”ను నిష్క్రియం చేయాలని ఖచ్చితంగా అనుకుంటున్నారా?",
+  "issueTypes.createTitle": "సమస్య రకాన్ని సృష్టించు",
+  "issueTypes.descriptionHint": "(ఫారమ్‌లో సూచనగా చూపబడుతుంది)",
+  "issueTypes.displayOrder": "ప్రదర్శన క్రమం",
+  "issueTypes.editTitle": "సమస్య రకాన్ని సవరించు",
+  "issueTypes.entityName": "సమస్య రకం",
+  "issueTypes.entityPlural": "సమస్య రకాలు",
+  "issueTypes.sub": "అభిప్రాయ ఫారంలో కనిపించే సాధారణ విభాగాలు",
+  "issueTypes.title": "సమస్య రకాలు"
+}

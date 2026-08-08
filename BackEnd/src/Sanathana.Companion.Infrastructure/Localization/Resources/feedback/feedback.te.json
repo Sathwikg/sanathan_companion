@@ -1,0 +1,12 @@
+{
+  "feedback.chooseIssueType": "దయచేసి సమస్య రకాన్ని ఎంచుకోండి.",
+  "feedback.descriptionPlaceholder": "మీ మనసులోని మాట మాతో పంచుకోండి…",
+  "feedback.issueType": "సమస్య రకం",
+  "feedback.noIssueTypes": "సమస్య రకాలు అందుబాటులో లేవు",
+  "feedback.noIssueTypesBody": "ముందుగా నిర్వాహకుడు అభిప్రాయ సమస్య రకాలను జోడించాలి.",
+  "feedback.selectIssueType": "— సమస్య రకాన్ని ఎంచుకోండి —",
+  "feedback.sub": "సూచన లేదా ప్రశంస పంచుకోండి, సమస్యను తెలియజేయండి",
+  "feedback.submit": "అభిప్రాయం సమర్పించు",
+  "feedback.thankYou": "🙏 ధన్యవాదాలు! మీ అభిప్రాయం సమర్పించబడింది.",
+  "feedback.title": "అభిప్రాయం"
+}

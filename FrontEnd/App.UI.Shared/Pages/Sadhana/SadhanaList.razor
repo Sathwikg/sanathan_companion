@@ -1,5 +1,6 @@
 @page "/sadhana"
 @attribute [Authorize]
+@inherits LocalizedComponentBase
 @implements IDisposable
 @inject IApiClient Api
 @inject RegionState Region
@@ -8,7 +9,7 @@
     <div class="sc-page-title">
         <span class="sc-page-emoji">🪷</span>
         <div>
-            <h1>Today's Sadhana</h1>
+            <h1>@Loc["sadhana.title", "Today's Sadhana"]</h1>
             <p class="sc-page-sub">@_todayLabel</p>
         </div>
     </div>
@@ -21,7 +22,7 @@
 
 @if (_loading)
 {
-    <OmLoader FullPage="true" Message="Preparing your sadhana…" />
+    <OmLoader FullPage="true" Message="@Loc["sadhana.preparing", "Preparing your sadhana…"]" />
 }
 else if (_today is not null)
 {
@@ -32,32 +33,32 @@ else if (_today is not null)
                 <span class="ic">🔥</span>
                 <div>
                     <div class="sc-streak-num">@s.CurrentStreak</div>
-                    <div class="sc-streak-label">day streak</div>
+                    <div class="sc-streak-label">@Loc["sadhana.dayStreak", "day streak"]</div>
                 </div>
             </div>
             <span class="sc-streak-today @(s.PracticedToday ? "done" : "pending")">
-                @(s.PracticedToday ? "✓ Practiced today" : "Not yet today")
+                @(s.PracticedToday ? "✓ " + Loc["sadhana.practicedToday", "Practiced today"] : Loc["sadhana.notYetToday", "Not yet today"])
             </span>
             <div class="sc-streak-stats">
-                <div class="sc-streak-stat"><div class="n">@s.LongestStreak</div><div class="l">Longest</div></div>
-                <div class="sc-streak-stat"><div class="n">@_today.TodayMalas</div><div class="l">Malas today</div></div>
-                <div class="sc-streak-stat"><div class="n">@s.TotalMalas</div><div class="l">Total malas</div></div>
-                <div class="sc-streak-stat"><div class="n">@s.TotalDaysPracticed</div><div class="l">Days</div></div>
+                <div class="sc-streak-stat"><div class="n">@s.LongestStreak</div><div class="l">@Loc["sadhana.longest", "Longest"]</div></div>
+                <div class="sc-streak-stat"><div class="n">@_today.TodayMalas</div><div class="l">@Loc["sadhana.malasToday", "Malas today"]</div></div>
+                <div class="sc-streak-stat"><div class="n">@s.TotalMalas</div><div class="l">@Loc["sadhana.totalMalas", "Total malas"]</div></div>
+                <div class="sc-streak-stat"><div class="n">@s.TotalDaysPracticed</div><div class="l">@Loc["common.days", "Days"]</div></div>
             </div>
         </div>
     </div>
 
     @if (_today.IsFestivalDay)
     {
-        <div class="sc-festbanner">🎉 <span>Today is <strong>@_today.FestivalName</strong> — these chants are recommended for the festival.</span></div>
+        <div class="sc-festbanner">🎉 <span>@Loc["sadhana.todayIs", "Today is"] <strong>@_today.FestivalName</strong> @Loc["sadhana.festivalRecoNote", "— these chants are recommended for the festival."]</span></div>
     }
 
     <div class="sc-tabs">
         <button class="sc-tab @(_tab == "reco" ? "active" : "")" @onclick='() => _tab = "reco"'>
-            🪔 Recommended (@_today.Recommendations.Count)
+            🪔 @Loc["sadhana.recommended", "Recommended"] (@_today.Recommendations.Count)
         </button>
         <button class="sc-tab @(_tab == "all" ? "active" : "")" @onclick="SwitchToAll">
-            🔎 All Chants
+            🔎 @Loc["sadhana.allChants", "All Chants"]
         </button>
     </div>
 
@@ -67,9 +68,9 @@ else if (_today is not null)
         {
             <div class="sc-card sc-empty-state">
                 <div class="sc-empty-om">🪷</div>
-                <h3>No specific recommendation for @_today.DayOfWeek</h3>
-                <p>No deity is mapped to today in the Deity master. Browse all chants and practice any you wish.</p>
-                <button class="sc-btn-primary sc-btn-sm" @onclick="SwitchToAll">Browse all chants</button>
+                <h3>@Loc.TF("sadhana.noRecoForDay", "No specific recommendation for {0}", _today.DayOfWeek)</h3>
+                <p>@Loc["sadhana.noRecoBody", "No deity is mapped to today in the Deity master. Browse all chants and practice any you wish."]</p>
+                <button class="sc-btn-primary sc-btn-sm" @onclick="SwitchToAll">@Loc["sadhana.browseAllChants", "Browse all chants"]</button>
             </div>
         }
         else
@@ -86,13 +87,13 @@ else if (_today is not null)
     {
         <div class="sc-card sc-filtercard">
             <div class="sc-filter" style="min-width:280px">
-                <label>Search saved chants</label>
-                <input class="sc-input sc-input-sm" placeholder="Name, deity or category…" @bind="_search" @bind:event="oninput" @bind:after="SearchAsync" />
+                <label>@Loc["sadhana.searchSavedChants", "Search saved chants"]</label>
+                <input class="sc-input sc-input-sm" placeholder="@Loc["sadhana.searchPlaceholder", "Name, deity or category…"]" @bind="_search" @bind:event="oninput" @bind:after="SearchAsync" />
             </div>
         </div>
         @if (_allChants.Count == 0)
         {
-            <div class="sc-card sc-empty-state"><div class="sc-empty-om">🔎</div><h3>No chants found</h3></div>
+            <div class="sc-card sc-empty-state"><div class="sc-empty-om">🔎</div><h3>@Loc["sadhana.noChantsFound", "No chants found"]</h3></div>
         }
         else
         {
@@ -118,6 +119,7 @@ else if (_today is not null)
 
     protected override async Task OnInitializedAsync()
     {
+        await base.OnInitializedAsync();
         Region.OnChanged += OnRegionChanged;
         await Region.EnsureLoadedAsync();
         await LoadAsync();
@@ -141,7 +143,11 @@ else if (_today is not null)
     private void OnRegionChanged()
         => _ = InvokeAsync(async () => { await LoadAsync(); StateHasChanged(); });
 
-    public void Dispose() => Region.OnChanged -= OnRegionChanged;
+    public override void Dispose()
+    {
+        Region.OnChanged -= OnRegionChanged;
+        base.Dispose();
+    }
 
     private async Task SwitchToAll()
     {

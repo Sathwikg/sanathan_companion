@@ -27,6 +27,24 @@ public interface IApiClient
     Task<(bool Success, string Error)> UpdateRoleAsync(int roleId, RoleRequest request);
     Task<(bool Success, string Error)> DeleteRoleAsync(int roleId);
 
+    // Localization
+    Task<List<LocaleModel>> GetLocalesAsync();
+    Task<LocalizationBundle?> GetLocalizationBundleAsync(string code);
+    Task<LabelEditorModel?> GetLabelEditorAsync(Guid languageId);
+    Task<(bool Success, string Error)> SaveLabelsAsync(Guid languageId, SaveLabelsRequest request);
+    Task<LanguageFormMatrixModel?> GetLanguageFormsAsync(Guid languageId);
+    Task<(bool Success, string Error)> SaveLanguageFormsAsync(Guid languageId, SaveLanguageFormsRequest request);
+    Task<List<EntityTranslationRow>> GetEntityTranslationsAsync(Guid languageId);
+    Task<(bool Success, string Error)> SaveEntityTranslationsAsync(Guid languageId, SaveEntityTranslationsRequest request);
+    Task<Dictionary<string, string>> ExportLocalizationAsync(Guid languageId);
+    Task<TranslationMatrix?> GetTranslationMatrixAsync(string? scope);
+    Task<(bool Success, string Error)> SaveTranslationMatrixAsync(SaveMatrixRequest request);
+    Task<EntityMatrix?> GetEntityMatrixAsync();
+    Task<(bool Success, string Error)> SaveEntityMatrixAsync(SaveEntityMatrixRequest request);
+    Task<DictionaryPage?> GetDictionaryAsync(string? category, string? search, bool missingOnly, int page, int pageSize);
+    Task<(bool Success, string Error)> SaveDictionaryAsync(SaveDictionaryRequest request);
+    Task<HarvestResult?> HarvestDictionaryAsync();
+
     // Access rights (role × form × web/mobile)
     Task<List<AccessRoleModel>> GetAccessRolesAsync();
     Task<AccessMatrixModel?> GetAccessMatrixAsync(int roleId);

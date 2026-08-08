@@ -1,0 +1,19 @@
+{
+  "feedbackDashboard.adminOnlyBody": "கருத்துப் பலகை நிர்வாகிகளுக்கு மட்டுமே கிடைக்கும்.",
+  "feedbackDashboard.awaitingReview": "பரிசீலனைக்குக் காத்திருக்கிறது",
+  "feedbackDashboard.byIssueType": "சிக்கல் வகை வாரியாக",
+  "feedbackDashboard.byIssueTypeSub": "கருத்துகள் எங்கிருந்து வருகின்றன",
+  "feedbackDashboard.colFeedback": "கருத்து",
+  "feedbackDashboard.colWhen": "எப்போது",
+  "feedbackDashboard.loading": "கருத்துகளை ஏற்றுகிறது…",
+  "feedbackDashboard.markedAs": "{0} எனக் குறிக்கப்பட்டது.",
+  "feedbackDashboard.noFeedback": "இன்னும் கருத்துகள் இல்லை",
+  "feedbackDashboard.recent": "சமீபத்தியக் கருத்துகள்",
+  "feedbackDashboard.recentSub": "சமீபத்திய சமர்ப்பிப்புகள்",
+  "feedbackDashboard.statusNew": "புதியது",
+  "feedbackDashboard.statusResolved": "தீர்க்கப்பட்டது",
+  "feedbackDashboard.statusReviewed": "பரிசீலிக்கப்பட்டது",
+  "feedbackDashboard.sub": "பக்தர்கள் அனுப்பிய பரிந்துரைகளும் சிக்கல்களும்",
+  "feedbackDashboard.title": "கருத்து டாஷ்போர்டு",
+  "feedbackDashboard.totalFeedback": "மொத்தக் கருத்துகள்"
+}

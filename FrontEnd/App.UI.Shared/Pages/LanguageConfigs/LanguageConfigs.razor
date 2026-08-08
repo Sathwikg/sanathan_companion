@@ -1,0 +1,769 @@
+@page "/language-configs"
+@attribute [Authorize]
+@inherits LocalizedComponentBase
+@inject IApiClient Api
+@inject ToastService Toast
+
+<div class="sc-page-head">
+    <div class="sc-page-title">
+        <span class="sc-page-emoji">🌐</span>
+        <div>
+            <h1>@Loc["languageConfigs.title", "Language Configs"]</h1>
+            <p class="sc-page-sub">@Loc["languageConfigs.sub", "Translate the app and choose which forms use each language"]</p>
+        </div>
+    </div>
+</div>
+
+<AuthorizeView Roles="Admin">
+    <Authorized>
+        <div class="sc-tabs">
+            <button type="button" class="sc-tab @(_tab == "labels" ? "active" : "")" @onclick='() => _tab = "labels"'>
+                @Loc["langcfg.tabLabels", "Labels"]
+            </button>
+            <button type="button" class="sc-tab @(_tab == "content" ? "active" : "")" @onclick="ShowContentAsync">
+                @Loc["langcfg.tabContent", "Content"]
+            </button>
+            <button type="button" class="sc-tab @(_tab == "dictionary" ? "active" : "")" @onclick="ShowDictionaryAsync">
+                @Loc["langcfg.tabDictionary", "Dictionary"]
+            </button>
+            <button type="button" class="sc-tab @(_tab == "forms" ? "active" : "")" @onclick="ShowFormsAsync">
+                @Loc["langcfg.tabForms", "Forms"]
+            </button>
+        </div>
+
+        @if (_error is not null)
+        {
+            <div class="sc-alert sc-alert-error">@_error</div>
+        }
+
+        @* ---------------- LABELS: every language side by side, scoped per form ---------------- *@
+        @if (_tab == "labels")
+        {
+            <div class="sc-card sc-filtercard">
+                <div class="sc-filters">
+                    <div class="sc-filter">
+                        <label>@Loc["langcfg.scope", "Form / Section"]</label>
+                        <select class="sc-input sc-input-sm" value="@_scope" @onchange="OnScopeChanged">
+                            <optgroup label="@Loc["langcfg.sharedSections", "Shared"]">
+                                @foreach (var s in Scopes.Where(s => s.IsShared))
+                                {
+                                    <option value="@s.Namespace">@s.Title (@s.KeyCount)</option>
+                                }
+                            </optgroup>
+                            <optgroup label="@Loc["langcfg.forms", "Forms"]">
+                                @foreach (var s in Scopes.Where(s => !s.IsShared))
+                                {
+                                    <option value="@s.Namespace">@s.Icon @s.Title (@s.KeyCount)</option>
+                                }
+                            </optgroup>
+                        </select>
+                    </div>
+                    <div class="sc-filter">
+                        <label>@Loc["common.search", "Search"]</label>
+                        <input class="sc-input sc-input-sm" placeholder="@Loc["langcfg.searchLabels", "Search labels…"]"
+                               @bind="_search" @bind:event="oninput" @bind:after="ResetLabelPage" />
+                    </div>
+                    <div class="sc-filter sc-filter-note">
+                        <label>&nbsp;</label>
+                        <label class="sc-switchrow" style="gap:.4rem">
+                            <input type="checkbox" @bind="_gapsOnly" @bind:after="ResetLabelPage" />
+                            <span>@Loc["langcfg.gapsOnly", "Only rows with gaps"]</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            @if (_loading)
+            {
+                <OmLoader FullPage="true" Message="@Loc["common.loading", "Loading…"]" />
+            }
+            else if (_matrix is not null)
+            {
+                <div class="sc-card">
+                    <div class="sc-tablewrap">
+                        <table class="sc-table sc-matrix">
+                            <thead>
+                                <tr>
+                                    <th class="sc-matrix-key">@Loc["langcfg.key", "Key"]</th>
+                                    @foreach (var l in _matrix.Languages)
+                                    {
+                                        <th class="@(l.IsBase ? "sc-matrix-base" : "")">
+                                            @l.Name
+                                            @if (!l.IsBase)
+                                            {
+                                                <div class="sc-matrix-native">@l.DisplayName</div>
+                                                <div class="sc-access-all">
+                                                    <span class="@(Missing(l.LanguageId) > 0 ? "sc-lang-missing" : "")">
+                                                        @Missing(l.LanguageId) @Loc["langcfg.missing", "missing"]
+                                                    </span>
+                                                </div>
+                                            }
+                                        </th>
+                                    }
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var row in PagedRows)
+                                {
+                                    <tr>
+                                        <td class="sc-matrix-key"><code>@row.Key</code></td>
+                                        @foreach (var l in _matrix.Languages)
+                                        {
+                                            @if (l.IsBase)
+                                            {
+                                                <td class="sc-lang-en sc-matrix-base">@row.English</td>
+                                            }
+                                            else
+                                            {
+                                                var langId = l.LanguageId;
+                                                <td>
+                                                    <input class="sc-input sc-input-sm sc-lang-input"
+                                                           value="@row.Get(langId)"
+                                                           @onchange="e => row.Set(langId, e.Value?.ToString() ?? string.Empty)"
+                                                           placeholder="@row.English" />
+                                                </td>
+                                            }
+                                        }
+                                    </tr>
+                                }
+                                @if (!FilteredRows.Any())
+                                {
+                                    <tr><td colspan="@(_matrix.Languages.Count + 1)" class="sc-access-empty">@Loc["langcfg.noLabels", "No labels match your search."]</td></tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <Pager Page="_labelPage" PageCount="LabelPageCount" TotalCount="FilteredRows.Count()"
+                           PageSize="PageSize" OnGoTo="GoToLabelPage" />
+
+                    <div class="sc-formfoot">
+                        <div class="sc-hint">
+                            @Loc["langcfg.blankFallsBack", "Leave a cell blank to fall back to English."]
+                            @if (LabelPageCount > 1)
+                            {
+                                <span> · @Loc["langcfg.savesAllPages", "Saving stores your edits on every page, not just this one."]</span>
+                            }
+                        </div>
+                        <button class="sc-btn-primary" @onclick="SaveMatrixAsync" disabled="@_saving">
+                            @(_saving ? Loc["common.saving", "Saving…"] : Loc["langcfg.saveTranslations", "Save translations"])
+                        </button>
+                    </div>
+                </div>
+            }
+        }
+
+        @* ---------------- CONTENT: database text, all languages side by side ---------------- *@
+        else if (_tab == "content")
+        {
+            <div class="sc-card sc-filtercard">
+                <div class="sc-filters">
+                    <div class="sc-filter">
+                        <label>@Loc["common.type", "Type"]</label>
+                        <select class="sc-input sc-input-sm" @bind="_entityType" @bind:after="ResetEntityPage">
+                            <option value="">@Loc["common.all", "All"]</option>
+                            @foreach (var t in EntityTypes)
+                            {
+                                <option value="@t">@t</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="sc-filter">
+                        <label>@Loc["common.search", "Search"]</label>
+                        <input class="sc-input sc-input-sm" @bind="_entitySearch" @bind:event="oninput" @bind:after="ResetEntityPage" />
+                    </div>
+                </div>
+            </div>
+
+            @if (_loading)
+            {
+                <OmLoader FullPage="true" Message="@Loc["common.loading", "Loading…"]" />
+            }
+            else if (_entities is not null)
+            {
+                <div class="sc-card">
+                    <div class="sc-alert sc-alert-info">@Loc["langcfg.contentHint", "Text stored in the database — menu, deity, chant and region names. Blank falls back to the English original."]</div>
+                    <div class="sc-tablewrap">
+                        <table class="sc-table sc-matrix">
+                            <thead>
+                                <tr>
+                                    <th class="sc-matrix-key">@Loc["common.type", "Type"]</th>
+                                    @foreach (var l in _entities.Languages)
+                                    {
+                                        <th class="@(l.IsBase ? "sc-matrix-base" : "")">@l.Name</th>
+                                    }
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var row in PagedEntities)
+                                {
+                                    <tr>
+                                        <td class="sc-matrix-key"><span class="sc-minichip">@row.EntityType</span></td>
+                                        @foreach (var l in _entities.Languages)
+                                        {
+                                            @if (l.IsBase)
+                                            {
+                                                <td class="sc-lang-en sc-matrix-base">@row.Original</td>
+                                            }
+                                            else
+                                            {
+                                                var langId = l.LanguageId;
+                                                <td>
+                                                    <input class="sc-input sc-input-sm sc-lang-input"
+                                                           value="@row.Get(langId)"
+                                                           @onchange="e => row.Set(langId, e.Value?.ToString() ?? string.Empty)"
+                                                           placeholder="@row.Original" />
+                                                </td>
+                                            }
+                                        }
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    <Pager Page="_entityPage" PageCount="EntityPageCount" TotalCount="FilteredEntities.Count()"
+                           PageSize="PageSize" OnGoTo="GoToEntityPage" />
+
+                    <div class="sc-formfoot">
+                        <div class="sc-hint">
+                            @FilteredEntities.Count() @Loc["langcfg.rows", "rows"]
+                            @if (EntityPageCount > 1)
+                            {
+                                <span> · @Loc["langcfg.savesAllPages", "Saving stores your edits on every page, not just this one."]</span>
+                            }
+                        </div>
+                        <button class="sc-btn-primary" @onclick="SaveEntityMatrixAsync" disabled="@_saving">
+                            @(_saving ? Loc["common.saving", "Saving…"] : Loc["common.save", "Save"])
+                        </button>
+                    </div>
+                </div>
+            }
+        }
+
+        @* ---------------- DICTIONARY: the vocabulary that translates database text ---------------- *@
+        else if (_tab == "dictionary")
+        {
+            <div class="sc-card sc-filtercard">
+                <div class="sc-filters">
+                    <div class="sc-filter">
+                        <label>@Loc["langcfg.category", "Category"]</label>
+                        <select class="sc-input sc-input-sm" value="@_dictCategory" @onchange="OnDictCategoryChanged">
+                            <option value="">@Loc["common.all", "All"]</option>
+                            @foreach (var c in _dict?.Categories ?? new())
+                            {
+                                <option value="@c">@c</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="sc-filter">
+                        <label>@Loc["common.search", "Search"]</label>
+                        <input class="sc-input sc-input-sm" value="@_dictSearch" @onchange="OnDictSearchChanged" />
+                    </div>
+                    <div class="sc-filter sc-filter-note">
+                        <label>&nbsp;</label>
+                        <label class="sc-switchrow" style="gap:.4rem">
+                            <input type="checkbox" checked="@_dictMissingOnly" @onchange="OnDictMissingChanged" />
+                            <span>@Loc["langcfg.gapsOnly", "Only rows with gaps"]</span>
+                        </label>
+                    </div>
+                    <div class="sc-filter sc-filter-note">
+                        <label>&nbsp;</label>
+                        <button class="sc-btn-ghost sc-btn-sm" @onclick="HarvestAsync" disabled="@_saving">
+                            ⟳ @Loc["langcfg.harvest", "Scan for new terms"]
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            @if (_harvestNote is not null)
+            {
+                <div class="sc-alert sc-alert-info">@_harvestNote</div>
+            }
+
+            @if (_loading)
+            {
+                <OmLoader FullPage="true" Message="@Loc["common.loading", "Loading…"]" />
+            }
+            else if (_dict is not null)
+            {
+                <div class="sc-card">
+                    <div class="sc-alert sc-alert-info">
+                        @Loc["langcfg.dictionaryHint", "Vocabulary that translates text stored in the database — Panchangam terms, festival and deity names, categories and statuses. Blank falls back to English."]
+                    </div>
+                    <div class="sc-tablewrap">
+                        <table class="sc-table sc-matrix">
+                            <thead>
+                                <tr>
+                                    <th class="sc-matrix-key">@Loc["langcfg.category", "Category"]</th>
+                                    <th class="sc-matrix-base">@Loc["langcfg.english", "English"]</th>
+                                    @foreach (var l in _dict.Languages.Where(l => !l.IsBase))
+                                    {
+                                        <th>@l.Name<div class="sc-matrix-native">@l.DisplayName</div></th>
+                                    }
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var row in _dict.Rows)
+                                {
+                                    <tr>
+                                        <td class="sc-matrix-key">
+                                            <span class="sc-minichip">@row.Category</span>
+                                            @if (row.MissCount > 0)
+                                            {
+                                                <span class="sc-lang-missing" title="@Loc["langcfg.seenUntranslated", "Times the app showed this untranslated"]">⚠ @row.MissCount</span>
+                                            }
+                                        </td>
+                                        <td class="sc-lang-en sc-matrix-base">@row.Source</td>
+                                        @foreach (var l in _dict.Languages.Where(l => !l.IsBase))
+                                        {
+                                            var termId = row.TermId;
+                                            var langId = l.LanguageId;
+                                            <td>
+                                                <input class="sc-input sc-input-sm sc-lang-input"
+                                                       value="@DictValue(row, langId)"
+                                                       @onchange="e => SetDictValue(termId, langId, e.Value?.ToString() ?? string.Empty)"
+                                                       placeholder="@row.Source" />
+                                            </td>
+                                        }
+                                    </tr>
+                                }
+                                @if (_dict.Rows.Count == 0)
+                                {
+                                    <tr><td colspan="@(_dict.Languages.Count + 1)" class="sc-access-empty">@Loc["langcfg.noLabels", "No terms match your search."]</td></tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <Pager Page="_dict.Page" PageCount="DictPageCount" TotalCount="_dict.TotalCount"
+                           PageSize="_dict.PageSize" OnGoTo="GoToDictPage" />
+
+                    <div class="sc-formfoot">
+                        <div class="sc-hint">
+                            @Loc.TF("langcfg.termsMissing", "{0} of {1} terms still need a translation", _dict.MissingCount, _dict.TotalCount)
+                            @if (_dirty.Count > 0)
+                            {
+                                <strong> · @Loc.TF("langcfg.unsavedEdits", "{0} unsaved edit(s)", _dirty.Count)</strong>
+                            }
+                        </div>
+                        <button class="sc-btn-primary" @onclick="SaveDictionaryAsync" disabled="@(_saving || _dirty.Count == 0)">
+                            @(_saving ? Loc["common.saving", "Saving…"] : Loc["langcfg.saveTranslations", "Save translations"])
+                        </button>
+                    </div>
+                </div>
+            }
+        }
+
+        @* ---------------- FORMS: per-language opt-out ---------------- *@
+        else if (_tab == "forms")
+        {
+            <div class="sc-card sc-filtercard">
+                <div class="sc-filters">
+                    <div class="sc-filter">
+                        <label>@Loc["langcfg.selectLanguage", "Language"]</label>
+                        <select class="sc-input sc-input-sm" value="@_formLanguageId" @onchange="OnFormLanguageChanged">
+                            @foreach (var l in Loc.Locales.Where(l => !l.IsBase))
+                            {
+                                <option value="@l.LanguageId">@l.Name — @l.DisplayName</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            @if (_loading)
+            {
+                <OmLoader FullPage="true" Message="@Loc["common.loading", "Loading…"]" />
+            }
+            else if (_forms is not null)
+            {
+                <div class="sc-card">
+                    <div class="sc-alert sc-alert-info">@Loc["langcfg.formsHint", "Forms that are turned off stay in English even when this language is selected."]</div>
+                    <div class="sc-tablewrap">
+                        <table class="sc-table sc-access-table">
+                            <thead>
+                                <tr>
+                                    <th>@Loc["common.name", "Form"]</th>
+                                    <th class="sc-access-col">@_forms.LanguageName</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var f in _forms.Forms)
+                                {
+                                    @if (f.IsParent)
+                                    {
+                                        <tr class="sc-access-group"><td colspan="2">@f.Icon @f.ModuleName</td></tr>
+                                    }
+                                    else
+                                    {
+                                        <tr>
+                                            <td class="@(f.ParentName is not null ? "sc-access-child" : "")">
+                                                <span class="sc-access-icon">@(f.Icon ?? "•")</span> @f.ModuleName
+                                            </td>
+                                            <td class="sc-access-col">
+                                                <label class="sc-switch"><input type="checkbox" @bind="f.Enabled" /><span class="sc-slider"></span></label>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="sc-formfoot">
+                        <div class="sc-hint">@Loc.TF("langcfg.enabledForms", "{0} of {1} forms enabled", EnabledForms, LeafForms)</div>
+                        <button class="sc-btn-primary" @onclick="SaveFormsAsync" disabled="@_saving">
+                            @(_saving ? Loc["common.saving", "Saving…"] : Loc["common.save", "Save"])
+                        </button>
+                    </div>
+                </div>
+            }
+        }
+    </Authorized>
+    <NotAuthorized>
+        <div class="sc-card sc-empty-state">
+            <div class="sc-empty-om">🔒</div>
+            <h3>@Loc["common.adminOnly", "Administrator access required"]</h3>
+            <p>@Loc["common.adminOnlyBody", "This section is available to administrators only."]</p>
+        </div>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    private string _tab = "labels";
+    private TranslationMatrix? _matrix;
+    private EntityMatrix? _entities;
+    private LanguageFormMatrixModel? _forms;
+    private List<TranslationScope> _scopes = new();
+
+    private string _scope = string.Empty;
+    private string _search = string.Empty;
+    private bool _gapsOnly;
+    private string _entityType = string.Empty;
+    private string _entitySearch = string.Empty;
+    private Guid _formLanguageId;
+
+    private bool _loading;
+    private bool _saving;
+    private string? _error;
+
+    // Paging is display-only: edits live on the row objects in _matrix/_entities, so a cell
+    // changed on page 1 is still submitted when Save is pressed from page 4.
+    private const int PageSize = 25;
+    private int _labelPage = 1;
+    private int _entityPage = 1;
+
+    private IEnumerable<TranslationScope> Scopes => _matrix?.Scopes.Count > 0 ? _matrix.Scopes : _scopes;
+
+    private IEnumerable<string> EntityTypes =>
+        _entities?.Rows.Select(r => r.EntityType).Distinct().OrderBy(t => t) ?? Enumerable.Empty<string>();
+
+    private int LeafForms => _forms?.Forms.Count(f => !f.IsParent) ?? 0;
+    private int EnabledForms => _forms?.Forms.Count(f => !f.IsParent && f.Enabled) ?? 0;
+
+    /// <summary>How many rows in the current scope have no text for this language.</summary>
+    private int Missing(Guid languageId)
+        => _matrix?.Rows.Count(r => string.IsNullOrWhiteSpace(r.Get(languageId))) ?? 0;
+
+    private IEnumerable<MatrixRow> FilteredRows
+    {
+        get
+        {
+            if (_matrix is null) return Enumerable.Empty<MatrixRow>();
+            IEnumerable<MatrixRow> q = _matrix.Rows;
+
+            if (_gapsOnly)
+                q = q.Where(r => _matrix!.Languages.Any(l => !l.IsBase && string.IsNullOrWhiteSpace(r.Get(l.LanguageId))));
+
+            if (!string.IsNullOrWhiteSpace(_search))
+            {
+                var s = _search.Trim();
+                q = q.Where(r => r.Key.Contains(s, StringComparison.OrdinalIgnoreCase)
+                              || r.English.Contains(s, StringComparison.OrdinalIgnoreCase)
+                              || r.Values.Values.Any(v => v.Contains(s, StringComparison.OrdinalIgnoreCase)));
+            }
+            return q;
+        }
+    }
+
+    // ---- Dictionary tab ----
+    private DictionaryPage? _dict;
+    private string _dictCategory = string.Empty;
+    private string _dictSearch = string.Empty;
+    private bool _dictMissingOnly;
+    private int _dictPage = 1;
+    private string? _harvestNote;
+
+    /// <summary>
+    /// Edits not yet saved, keyed by term then language. The dictionary pages SERVER-side, so
+    /// unlike the Labels tab the row objects are thrown away on every page change — without this
+    /// overlay, navigating pages would silently discard whatever the admin just typed.
+    /// </summary>
+    private readonly Dictionary<Guid, Dictionary<Guid, string>> _dirty = new();
+
+    private int DictPageCount => _dict is null || _dict.PageSize == 0
+        ? 1
+        : Math.Max(1, (int)Math.Ceiling(_dict.TotalCount / (double)_dict.PageSize));
+
+    /// <summary>Pending edit if there is one, otherwise what the server sent.</summary>
+    private string DictValue(DictionaryRow row, Guid languageId)
+        => _dirty.TryGetValue(row.TermId, out var byLang) && byLang.TryGetValue(languageId, out var v)
+            ? v
+            : row.Get(languageId);
+
+    private void SetDictValue(Guid termId, Guid languageId, string value)
+    {
+        if (!_dirty.TryGetValue(termId, out var byLang))
+            _dirty[termId] = byLang = new Dictionary<Guid, string>();
+        byLang[languageId] = value;
+    }
+
+    private int LabelPageCount => PageCountFor(FilteredRows.Count());
+    private int EntityPageCount => PageCountFor(FilteredEntities.Count());
+
+    private static int PageCountFor(int total) => total == 0 ? 1 : (int)Math.Ceiling(total / (double)PageSize);
+
+    /// <summary>
+    /// The slice currently on screen. Clamped rather than trusted: narrowing a filter can leave
+    /// the stored page number past the end, which would otherwise render an empty table.
+    /// </summary>
+    private IEnumerable<MatrixRow> PagedRows
+    {
+        get
+        {
+            var rows = FilteredRows.ToList();
+            var page = Math.Clamp(_labelPage, 1, PageCountFor(rows.Count));
+            return rows.Skip((page - 1) * PageSize).Take(PageSize);
+        }
+    }
+
+    private IEnumerable<EntityMatrixRow> PagedEntities
+    {
+        get
+        {
+            var rows = FilteredEntities.ToList();
+            var page = Math.Clamp(_entityPage, 1, PageCountFor(rows.Count));
+            return rows.Skip((page - 1) * PageSize).Take(PageSize);
+        }
+    }
+
+    private void GoToLabelPage(int page) => _labelPage = Math.Clamp(page, 1, LabelPageCount);
+    private void GoToEntityPage(int page) => _entityPage = Math.Clamp(page, 1, EntityPageCount);
+
+    // Any filter change invalidates the current page — jump back to the first.
+    private void ResetLabelPage() => _labelPage = 1;
+    private void ResetEntityPage() => _entityPage = 1;
+
+    private IEnumerable<EntityMatrixRow> FilteredEntities
+    {
+        get
+        {
+            if (_entities is null) return Enumerable.Empty<EntityMatrixRow>();
+            IEnumerable<EntityMatrixRow> q = _entities.Rows;
+            if (!string.IsNullOrWhiteSpace(_entityType)) q = q.Where(r => r.EntityType == _entityType);
+            if (!string.IsNullOrWhiteSpace(_entitySearch))
+            {
+                var s = _entitySearch.Trim();
+                q = q.Where(r => r.Original.Contains(s, StringComparison.OrdinalIgnoreCase)
+                              || r.Values.Values.Any(v => v.Contains(s, StringComparison.OrdinalIgnoreCase)));
+            }
+            return q;
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        _formLanguageId = Loc.Locales.FirstOrDefault(l => !l.IsBase)?.LanguageId ?? Guid.Empty;
+
+        // First call returns the scope list only; then load the first scope's grid.
+        _loading = true;
+        try
+        {
+            var shell = await Api.GetTranslationMatrixAsync(null);
+            _scopes = shell?.Scopes ?? new();
+            _scope = _scopes.FirstOrDefault()?.Namespace ?? string.Empty;
+        }
+        catch (Exception ex) { _error = ex.Message; }
+        finally { _loading = false; }
+
+        if (!string.IsNullOrEmpty(_scope)) await LoadMatrixAsync();
+    }
+
+    private async Task OnScopeChanged(ChangeEventArgs e)
+    {
+        _scope = e.Value?.ToString() ?? string.Empty;
+        await LoadMatrixAsync();
+    }
+
+    private async Task LoadMatrixAsync()
+    {
+        _loading = true; _error = null;
+        try
+        {
+            _matrix = await Api.GetTranslationMatrixAsync(_scope);
+            ResetLabelPage();   // a new scope has its own row set
+        }
+        catch (Exception ex) { _error = ex.Message; _matrix = null; }
+        finally { _loading = false; }
+    }
+
+    private async Task ShowContentAsync()
+    {
+        _tab = "content";
+        if (_entities is not null) return;
+        _loading = true; _error = null;
+        try { _entities = await Api.GetEntityMatrixAsync(); }
+        catch (Exception ex) { _error = ex.Message; }
+        finally { _loading = false; }
+    }
+
+    private async Task ShowDictionaryAsync()
+    {
+        _tab = "dictionary";
+        if (_dict is null) await LoadDictionaryAsync();
+    }
+
+    private async Task LoadDictionaryAsync()
+    {
+        _loading = true; _error = null;
+        try
+        {
+            _dict = await Api.GetDictionaryAsync(_dictCategory, _dictSearch, _dictMissingOnly, _dictPage, 25);
+            if (_dict is not null) _dictPage = _dict.Page;
+        }
+        catch (Exception ex) { _error = ex.Message; }
+        finally { _loading = false; }
+    }
+
+    // Any filter change invalidates the current page.
+    private async Task OnDictCategoryChanged(ChangeEventArgs e)
+    { _dictCategory = e.Value?.ToString() ?? string.Empty; _dictPage = 1; await LoadDictionaryAsync(); }
+
+    private async Task OnDictSearchChanged(ChangeEventArgs e)
+    { _dictSearch = e.Value?.ToString() ?? string.Empty; _dictPage = 1; await LoadDictionaryAsync(); }
+
+    private async Task OnDictMissingChanged(ChangeEventArgs e)
+    { _dictMissingOnly = e.Value is true; _dictPage = 1; await LoadDictionaryAsync(); }
+
+    private async Task GoToDictPage(int page)
+    {
+        _dictPage = Math.Clamp(page, 1, DictPageCount);
+        await LoadDictionaryAsync();   // edits are safe: they live in _dirty, not on the rows
+    }
+
+    private async Task HarvestAsync()
+    {
+        _saving = true; _harvestNote = null;
+        try
+        {
+            var result = await Api.HarvestDictionaryAsync();
+            if (result is null) { Toast.Error(Loc["msg.couldNotSave", "Could not scan."]); return; }
+
+            _harvestNote = Loc.TF("langcfg.harvested",
+                "Found {0} new term(s), {1} from values the app could not translate, {2} filled in from shipped translations.",
+                result.Added, result.FromRuntimeMisses, result.SeededTranslations);
+
+            await LoadDictionaryAsync();
+            await Loc.ReloadAsync();
+        }
+        finally { _saving = false; }
+    }
+
+    private async Task SaveDictionaryAsync()
+    {
+        if (_dirty.Count == 0) return;
+        _saving = true;
+        try
+        {
+            var request = new SaveDictionaryRequest
+            {
+                Rows = _dirty.Select(kv => new SaveDictionaryRow { TermId = kv.Key, Values = kv.Value }).ToList()
+            };
+            var (ok, err) = await Api.SaveDictionaryAsync(request);
+            if (ok)
+            {
+                _dirty.Clear();
+                Toast.Success(Loc["msg.translationSaved", "Translation saved."]);
+                await LoadDictionaryAsync();
+                await Loc.ReloadAsync();
+            }
+            else Toast.Error(string.IsNullOrWhiteSpace(err) ? Loc["msg.couldNotSave", "Could not save."] : err);
+        }
+        finally { _saving = false; }
+    }
+
+    private async Task ShowFormsAsync()
+    {
+        _tab = "forms";
+        if (_forms is not null || _formLanguageId == Guid.Empty) return;
+        await LoadFormsAsync();
+    }
+
+    private async Task OnFormLanguageChanged(ChangeEventArgs e)
+    {
+        if (!Guid.TryParse(e.Value?.ToString(), out var id) || id == Guid.Empty) return;
+        _formLanguageId = id;
+        _forms = null;
+        await LoadFormsAsync();
+    }
+
+    private async Task LoadFormsAsync()
+    {
+        _loading = true; _error = null;
+        try { _forms = await Api.GetLanguageFormsAsync(_formLanguageId); }
+        catch (Exception ex) { _error = ex.Message; }
+        finally { _loading = false; }
+    }
+
+    private async Task SaveMatrixAsync()
+    {
+        if (_matrix is null) return;
+        _saving = true;
+        try
+        {
+            var request = new SaveMatrixRequest
+            {
+                Rows = _matrix.Rows.Select(r => new SaveMatrixRow { Key = r.Key, Values = r.Values }).ToList()
+            };
+            var (ok, err) = await Api.SaveTranslationMatrixAsync(request);
+            if (ok)
+            {
+                Toast.Success(Loc["msg.translationSaved", "Translation saved."]);
+                await Loc.ReloadAsync();   // the admin may be viewing one of the languages just edited
+            }
+            else Toast.Error(string.IsNullOrWhiteSpace(err) ? Loc["msg.couldNotSave", "Could not save."] : err);
+        }
+        finally { _saving = false; }
+    }
+
+    private async Task SaveEntityMatrixAsync()
+    {
+        if (_entities is null) return;
+        _saving = true;
+        try
+        {
+            var (ok, err) = await Api.SaveEntityMatrixAsync(new SaveEntityMatrixRequest { Rows = _entities.Rows });
+            if (ok) { Toast.Success(Loc["msg.translationSaved", "Translation saved."]); await Loc.ReloadAsync(); }
+            else Toast.Error(string.IsNullOrWhiteSpace(err) ? Loc["msg.couldNotSave", "Could not save."] : err);
+        }
+        finally { _saving = false; }
+    }
+
+    private async Task SaveFormsAsync()
+    {
+        if (_forms is null) return;
+        _saving = true;
+        try
+        {
+            var request = new SaveLanguageFormsRequest
+            {
+                Items = _forms.Forms.Where(f => !f.IsParent)
+                    .Select(f => new SaveLanguageFormItem { ModuleId = f.ModuleId, Enabled = f.Enabled }).ToList()
+            };
+            var (ok, err) = await Api.SaveLanguageFormsAsync(_formLanguageId, request);
+            if (ok) { Toast.Success(Loc["msg.languageSaved", "Language settings saved."]); await Loc.ReloadAsync(); }
+            else Toast.Error(string.IsNullOrWhiteSpace(err) ? Loc["msg.couldNotSave", "Could not save."] : err);
+        }
+        finally { _saving = false; }
+    }
+}

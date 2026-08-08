@@ -1,0 +1,16 @@
+{
+  "chants.chantName": "मंत्र का नाम",
+  "chants.confirmActivateBody": "क्या आप वाकई “{0}” को सक्रिय करना चाहते हैं?",
+  "chants.confirmDeactivateBody": "क्या आप वाकई “{0}” को निष्क्रिय करना चाहते हैं?",
+  "chants.countExists": "संख्या मौजूद है",
+  "chants.countValue": "संख्या: {0}",
+  "chants.createChant": "मंत्र बनाएँ",
+  "chants.editChant": "मंत्र संपादित करें",
+  "chants.emptyBody": "शुरू करने के लिए अपना पहला मंत्र बनाएँ।",
+  "chants.emptyTitle": "अभी कोई मंत्र नहीं",
+  "chants.entity": "मंत्र",
+  "chants.gridView": "ग्रिड",
+  "chants.loading": "मंत्र लोड हो रहे हैं…",
+  "chants.sub": "मंत्र और उनकी जप संख्या प्रबंधित करें",
+  "chants.title": "मंत्र"
+}

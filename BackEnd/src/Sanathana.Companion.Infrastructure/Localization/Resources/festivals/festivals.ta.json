@@ -1,0 +1,15 @@
+{
+  "festivals.confirmActivateBody": "“{0}” என்பதைச் செயல்படுத்த வேண்டும் என்பது உறுதியா?",
+  "festivals.confirmDeactivateBody": "“{0}” என்பதை முடக்க வேண்டும் என்பது உறுதியா?",
+  "festivals.createFestival": "பண்டிகையை உருவாக்கு",
+  "festivals.editFestival": "பண்டிகையைத் திருத்து",
+  "festivals.emptyBody": "தொடங்க இந்த ஆண்டுக்கு ஒரு பண்டிகையை உருவாக்குங்கள்.",
+  "festivals.emptyTitleYear": "{0} ஆண்டுக்குப் பண்டிகைகள் இல்லை",
+  "festivals.festival": "பண்டிகை",
+  "festivals.festivalName": "பண்டிகைப் பெயர்",
+  "festivals.loadingList": "பண்டிகைகளை ஏற்றுகிறது…",
+  "festivals.nounSingular": "பண்டிகை",
+  "festivals.sub": "ஆண்டு வாரியாகப் பண்டிகைகளை நிர்வகிக்கவும்",
+  "festivals.title": "பண்டிகைகள்",
+  "festivals.withinYear": "({0} இல்)"
+}

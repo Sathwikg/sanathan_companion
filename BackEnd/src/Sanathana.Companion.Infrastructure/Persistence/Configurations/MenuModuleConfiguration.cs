@@ -403,6 +403,21 @@ public class MenuModuleConfiguration : IEntityTypeConfiguration<MenuModule>
                 ParentId = SeedConstants.NotificationsModuleId,
                 CreatedBy = "system",
                 CreatedDate = SeedConstants.SeedTimestamp
+            },
+            new MenuModule
+            {
+                Id = SeedConstants.LanguageConfigsMenuId,
+                Name = "Language Configs",
+                Icon = "🌐",
+                Description = "Translate the app and choose which forms use each language",
+                RoutePath = "/language-configs",
+                DisplayOrder = 4,
+                IsVisibleInMenu = true,
+                ShowInMobile = false,
+                IsActive = true,
+                ParentId = SeedConstants.ConfigurationModuleId,
+                CreatedBy = "system",
+                CreatedDate = SeedConstants.SeedTimestamp
             });
     }
 }

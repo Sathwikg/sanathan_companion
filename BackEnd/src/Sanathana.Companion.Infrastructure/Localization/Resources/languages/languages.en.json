@@ -1,0 +1,23 @@
+{
+  "languages.allRegions": "All regions",
+  "languages.byRegionView": "By Region",
+  "languages.code": "Code",
+  "languages.codeHint": "(ISO, e.g. te)",
+  "languages.confirmActivateBody": "Are you sure you want to activate “{0}”?",
+  "languages.confirmDeactivateBody": "Are you sure you want to deactivate “{0}”?",
+  "languages.createTitle": "Create Language",
+  "languages.editTitle": "Edit Language",
+  "languages.entityName": "language",
+  "languages.entityPlural": "languages",
+  "languages.nameLabel": "Language Name",
+  "languages.nativeName": "Native Name",
+  "languages.nativeNameHint": "(in its own script)",
+  "languages.noRegionsBody": "Add regions in the Region Master to map languages to them.",
+  "languages.noneMapped": "No languages mapped yet",
+  "languages.regionsHint": "(a language can span several regions)",
+  "languages.regionsWord": "regions",
+  "languages.searchPlaceholder": "Name, native name or code…",
+  "languages.searchRegions": "Search regions…",
+  "languages.sub": "Manage languages and the regions they belong to",
+  "languages.title": "Languages"
+}

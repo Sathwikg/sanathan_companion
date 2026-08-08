@@ -1,6 +1,7 @@
 @page "/deities/create"
 @page "/deities/{Id:guid}/edit"
 @attribute [Authorize]
+@inherits LocalizedComponentBase
 @inject IApiClient Api
 @inject ToastService Toast
 @inject NavigationManager Nav
@@ -8,8 +9,8 @@
 @inject AppConfig Config
 
 <div class="sc-page-head">
-    <h1>@(IsEdit ? "Edit Deity" : "Create Deity")</h1>
-    <button class="sc-btn-ghost sc-btn-sm" @onclick='() => Nav.NavigateTo("deities")'>← Back to list</button>
+    <h1>@(IsEdit ? Loc["deities.editDeity", "Edit Deity"] : Loc["deities.createDeity", "Create Deity"])</h1>
+    <button class="sc-btn-ghost sc-btn-sm" @onclick='() => Nav.NavigateTo("deities")'>← @Loc["common.backToList", "Back to list"]</button>
 </div>
 
 @if (_error is not null)
@@ -19,7 +20,7 @@
 
 @if (_loading)
 {
-    <OmLoader FullPage="true" Message="Loading…" />
+    <OmLoader FullPage="true" Message='@Loc["common.loading", "Loading…"]' />
 }
 else
 {
@@ -49,49 +50,49 @@ else
                         }
                     </div>
                     <label class="sc-btn-ghost sc-btn-sm sc-upload">
-                        📷 @(HasAnyImage ? "Change" : "Add photo")
+                        📷 @(HasAnyImage ? Loc["deities.changePhoto", "Change"] : Loc["deities.addPhoto", "Add photo"])
                         <InputFile OnChange="OnImageSelected" accept="image/*" style="display:none" />
                     </label>
                     @if (HasAnyImage)
                     {
-                        <button type="button" class="sc-linkbtn" @onclick="RemoveImage">Remove</button>
+                        <button type="button" class="sc-linkbtn" @onclick="RemoveImage">@Loc["common.remove", "Remove"]</button>
                     }
                     @if (_imageError is not null)
                     {
                         <span class="sc-hint sc-hint-error">@_imageError</span>
                     }
-                    <span class="sc-hint">Compressed to WebP · stored in the DB</span>
+                    <span class="sc-hint">@Loc["deities.imageHint", "Compressed to WebP · stored in the DB"]</span>
                 </div>
 
                 <div class="sc-deity-fields sc-form-grid">
                     <div class="sc-field sc-span-2">
-                        <label>God Name</label>
+                        <label>@Loc["deities.godName", "God Name"]</label>
                         <InputText @bind-Value="_model.Name" class="sc-input" />
                         <ValidationMessage For="() => _model.Name" />
                     </div>
 
                     <div class="sc-field sc-span-2">
-                        <label>God / Goddess</label>
+                        <label>@Loc["deities.godOrGoddess", "God / Goddess"]</label>
                         <div class="sc-radios">
                             <label class="sc-radio">
                                 <input type="radio" name="dtype" checked="@(_model.DeityType == "God")" @onchange='() => _model.DeityType = "God"' />
-                                <span>God</span>
+                                <span>@Loc["deities.god", "God"]</span>
                             </label>
                             <label class="sc-radio">
                                 <input type="radio" name="dtype" checked="@(_model.DeityType == "Goddess")" @onchange='() => _model.DeityType = "Goddess"' />
-                                <span>Goddess</span>
+                                <span>@Loc["deities.goddess", "Goddess"]</span>
                             </label>
                         </div>
                     </div>
 
                     <div class="sc-field sc-span-2">
-                        <label>God Description</label>
+                        <label>@Loc["deities.godDescription", "God Description"]</label>
                         <InputTextArea @bind-Value="_model.Description" class="sc-input sc-textarea" rows="2" />
                         <ValidationMessage For="() => _model.Description" />
                     </div>
 
                     <div class="sc-field sc-span-2">
-                        <label>Welcome Note</label>
+                        <label>@Loc["deities.welcomeNote", "Welcome Note"]</label>
                         <InputTextArea @bind-Value="_model.WelcomeNote" class="sc-input sc-textarea" rows="2" />
                         <ValidationMessage For="() => _model.WelcomeNote" />
                     </div>
@@ -100,15 +101,15 @@ else
 
             <div class="sc-multigroup">
                 <div class="sc-field">
-                    <label>Regions</label>
+                    <label>@Loc["common.regions", "Regions"]</label>
                     <MultiSelect Options="_regionOptions" Selected="_selRegions" SelectedChanged="v => _selRegions = v" />
                 </div>
                 <div class="sc-field">
-                    <label>Festivals</label>
+                    <label>@Loc["deities.festivals", "Festivals"]</label>
                     <MultiSelect Options="_festivalOptions" Selected="_selFestivals" SelectedChanged="v => _selFestivals = v" />
                 </div>
                 <div class="sc-field">
-                    <label>Days</label>
+                    <label>@Loc["common.days", "Days"]</label>
                     <MultiSelect Options="_dayOptions" Selected="_selDays" SelectedChanged="v => _selDays = v" />
                 </div>
             </div>
@@ -116,14 +117,14 @@ else
             <div class="sc-switches">
                 <div class="sc-switchrow">
                     <label class="sc-switch"><input type="checkbox" @bind="_model.IsActive" /><span class="sc-slider"></span></label>
-                    <span>Active</span>
+                    <span>@Loc["common.active", "Active"]</span>
                 </div>
             </div>
 
             <div class="sc-modal-actions">
-                <button type="button" class="sc-btn-ghost" @onclick='() => Nav.NavigateTo("deities")'>Cancel</button>
+                <button type="button" class="sc-btn-ghost" @onclick='() => Nav.NavigateTo("deities")'>@Loc["common.cancel", "Cancel"]</button>
                 <button type="submit" class="sc-btn-primary" disabled="@_busy">
-                    @if (_busy) { <OmLoader Inline="true" Size="18" Message="Saving…" /> } else { <span>@(IsEdit ? "Update" : "Create")</span> }
+                    @if (_busy) { <OmLoader Inline="true" Size="18" Message='@Loc["common.saving", "Saving…"]' /> } else { <span>@(IsEdit ? Loc["common.update", "Update"] : Loc["common.create", "Create"])</span> }
                 </button>
             </div>
         </EditForm>
@@ -155,6 +156,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        await base.OnInitializedAsync();
         try
         {
             var opts = await Api.GetDeityFormOptionsAsync();
@@ -217,7 +219,7 @@ else
         }
         catch (Exception ex)
         {
-            _imageError = "Could not process image. " + ex.Message;
+            _imageError = Loc["deities.imageProcessFailed", "Could not process image."] + " " + ex.Message;
         }
     }
 
@@ -243,7 +245,7 @@ else
 
         if (ok)
         {
-            Toast.Success($"Deity “{_model.Name}” saved.");
+            Toast.Success(Loc.TF("msg.savedNamed", "“{0}” saved.", _model.Name));
             Nav.NavigateTo("deities");
         }
         else

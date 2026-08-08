@@ -123,6 +123,88 @@ public class ApiClient : IApiClient
         return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
     }
 
+    // ---- Localization ----
+
+    public async Task<List<LocaleModel>> GetLocalesAsync()
+        => await _http.GetFromJsonAsync<List<LocaleModel>>("localization/locales") ?? new();
+
+    public async Task<LocalizationBundle?> GetLocalizationBundleAsync(string code)
+        => await _http.GetFromJsonAsync<LocalizationBundle>($"localization/bundle/{Uri.EscapeDataString(code)}");
+
+    public async Task<LabelEditorModel?> GetLabelEditorAsync(Guid languageId)
+        => await _http.GetFromJsonAsync<LabelEditorModel>($"localization/labels/{languageId}");
+
+    public async Task<(bool Success, string Error)> SaveLabelsAsync(Guid languageId, SaveLabelsRequest request)
+    {
+        var response = await _http.PutAsJsonAsync($"localization/labels/{languageId}", request);
+        return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
+    }
+
+    public async Task<LanguageFormMatrixModel?> GetLanguageFormsAsync(Guid languageId)
+        => await _http.GetFromJsonAsync<LanguageFormMatrixModel>($"localization/forms/{languageId}");
+
+    public async Task<(bool Success, string Error)> SaveLanguageFormsAsync(Guid languageId, SaveLanguageFormsRequest request)
+    {
+        var response = await _http.PutAsJsonAsync($"localization/forms/{languageId}", request);
+        return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
+    }
+
+    public async Task<List<EntityTranslationRow>> GetEntityTranslationsAsync(Guid languageId)
+        => await _http.GetFromJsonAsync<List<EntityTranslationRow>>($"localization/entities/{languageId}") ?? new();
+
+    public async Task<(bool Success, string Error)> SaveEntityTranslationsAsync(Guid languageId, SaveEntityTranslationsRequest request)
+    {
+        var response = await _http.PutAsJsonAsync($"localization/entities/{languageId}", request);
+        return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
+    }
+
+    public async Task<Dictionary<string, string>> ExportLocalizationAsync(Guid languageId)
+        => await _http.GetFromJsonAsync<Dictionary<string, string>>($"localization/export/{languageId}") ?? new();
+
+    public async Task<TranslationMatrix?> GetTranslationMatrixAsync(string? scope)
+    {
+        var url = string.IsNullOrWhiteSpace(scope)
+            ? "localization/matrix"
+            : $"localization/matrix?scope={Uri.EscapeDataString(scope)}";
+        return await _http.GetFromJsonAsync<TranslationMatrix>(url);
+    }
+
+    public async Task<(bool Success, string Error)> SaveTranslationMatrixAsync(SaveMatrixRequest request)
+    {
+        var response = await _http.PutAsJsonAsync("localization/matrix", request);
+        return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
+    }
+
+    public async Task<EntityMatrix?> GetEntityMatrixAsync()
+        => await _http.GetFromJsonAsync<EntityMatrix>("localization/entity-matrix");
+
+    public async Task<(bool Success, string Error)> SaveEntityMatrixAsync(SaveEntityMatrixRequest request)
+    {
+        var response = await _http.PutAsJsonAsync("localization/entity-matrix", request);
+        return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
+    }
+
+    public async Task<DictionaryPage?> GetDictionaryAsync(string? category, string? search, bool missingOnly, int page, int pageSize)
+    {
+        var q = new List<string> { $"page={page}", $"pageSize={pageSize}" };
+        if (missingOnly) q.Add("missingOnly=true");
+        if (!string.IsNullOrWhiteSpace(category)) q.Add($"category={Uri.EscapeDataString(category)}");
+        if (!string.IsNullOrWhiteSpace(search)) q.Add($"search={Uri.EscapeDataString(search.Trim())}");
+        return await _http.GetFromJsonAsync<DictionaryPage>($"localization/dictionary?{string.Join("&", q)}");
+    }
+
+    public async Task<(bool Success, string Error)> SaveDictionaryAsync(SaveDictionaryRequest request)
+    {
+        var response = await _http.PutAsJsonAsync("localization/dictionary", request);
+        return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
+    }
+
+    public async Task<HarvestResult?> HarvestDictionaryAsync()
+    {
+        var response = await _http.PostAsJsonAsync("localization/dictionary/harvest", new { });
+        return response.IsSuccessStatusCode ? await response.Content.ReadFromJsonAsync<HarvestResult>() : null;
+    }
+
     public async Task<List<AccessRoleModel>> GetAccessRolesAsync()
         => await _http.GetFromJsonAsync<List<AccessRoleModel>>("accessrights/roles") ?? new();
 

@@ -9,6 +9,12 @@ public class UserListItemDto
     public string Email { get; set; } = string.Empty;
     public string MobileNumber { get; set; } = string.Empty;
     public string RoleName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Role-independent of the display text. UI styling and permission checks must use this,
+    /// never <see cref="RoleName"/>, because the role name is translated for display.
+    /// </summary>
+    public bool IsAdmin { get; set; }
     public DateTime RegisteredOn { get; set; }
 
     // a glance at their practice
@@ -25,6 +31,12 @@ public class UserProfileDto
     public string Email { get; set; } = string.Empty;
     public string MobileNumber { get; set; } = string.Empty;
     public string RoleName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Role-independent of the display text. UI styling and permission checks must use this,
+    /// never <see cref="RoleName"/>, because the role name is translated for display.
+    /// </summary>
+    public bool IsAdmin { get; set; }
     public DateTime RegisteredOn { get; set; }
     public DateTime? LastUpdatedOn { get; set; }
 
@@ -58,6 +70,12 @@ public class MyProfileDto
     public string Email { get; set; } = string.Empty;
     public string MobileNumber { get; set; } = string.Empty;
     public string RoleName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Role-independent of the display text. UI styling and permission checks must use this,
+    /// never <see cref="RoleName"/>, because the role name is translated for display.
+    /// </summary>
+    public bool IsAdmin { get; set; }
     public DateTime RegisteredOn { get; set; }
     public DateTime? LastUpdatedOn { get; set; }
 

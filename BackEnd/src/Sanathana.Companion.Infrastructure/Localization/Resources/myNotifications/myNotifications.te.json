@@ -1,0 +1,23 @@
+{
+  "myNotifications.activeNow": "ప్రస్తుతం సక్రియం",
+  "myNotifications.allNotifications": "అన్ని నోటిఫికేషన్‌లు",
+  "myNotifications.anyTime": "రోజులో ఏ సమయంలోనైనా",
+  "myNotifications.clearWindow": "సమయ వ్యవధిని తొలగించు",
+  "myNotifications.couldNotLoad": "మీ నోటిఫికేషన్ అమరికలను లోడ్ చేయలేకపోయాం.",
+  "myNotifications.loadingPrefs": "మీ ప్రాధాన్యతలు లోడ్ అవుతున్నాయి…",
+  "myNotifications.mandatoryTooltip": "ఈ నోటిఫికేషన్ తప్పనిసరి",
+  "myNotifications.masterOff": "అన్నీ నిలిపివేయబడ్డాయి — తప్పనిసరి సమాచారం మాత్రమే అందుతుంది.",
+  "myNotifications.masterOn": "కింద ఎంచుకున్న నోటిఫికేషన్‌లు మీకు అందుతాయి.",
+  "myNotifications.midnightHint": "అర్ధరాత్రి దాటినా ఫర్వాలేదు (ఉదా. 22:00 → 06:00).",
+  "myNotifications.noneAvailable": "ఇంకా నోటిఫికేషన్‌లు అందుబాటులో లేవు",
+  "myNotifications.noneAvailableBody": "నిర్వాహకుడు ఇంకా ఏ నోటిఫికేషన్‌నూ ప్రారంభించలేదు. తర్వాత మళ్లీ చూడండి.",
+  "myNotifications.nowIst": "ప్రస్తుతం {0} (భారత కాలమానం)",
+  "myNotifications.quietHours": "నిశ్శబ్ద సమయాలు",
+  "myNotifications.quietHoursHint": "ఈ సమయాల్లో ఏ నోటిఫికేషన్ రాదు — తప్పనిసరివి కూడా.",
+  "myNotifications.saved": "🔔 నోటిఫికేషన్ ప్రాధాన్యతలు భద్రపరచబడ్డాయి.",
+  "myNotifications.sub": "మీకు దేని గురించి, ఎప్పుడు నోటిఫికేషన్‌లు రావాలో ఎంచుకోండి",
+  "myNotifications.title": "నా నోటిఫికేషన్‌లు",
+  "myNotifications.whatHeading": "నాకు దేని గురించి తెలియజేయాలి",
+  "myNotifications.whatSub": "ప్రతిదానికీ ఐచ్ఛికంగా సమయ వ్యవధిని అమర్చుకోండి",
+  "myNotifications.wouldNotifyNow": "ఇప్పుడు తెలియజేస్తుంది"
+}

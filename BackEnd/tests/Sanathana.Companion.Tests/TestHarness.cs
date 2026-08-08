@@ -49,7 +49,8 @@ internal sealed class TestHarness : IDisposable
         var favorites = new UserFavoriteRepository(Context);
         var notificationConfigs = new NotificationConfigRepository(Context);
         var userNotifications = new UserNotificationRepository(Context);
-        UnitOfWork = new UnitOfWork(Context, users, roles, menuModules, regions, festivals, days, deities, chants, chantConfigs, languages, panchangams, sadhana, moduleRoleMappings, issueTypes, feedbacks, favorites, notificationConfigs, userNotifications);
+        var localization = new LocalizationRepository(Context);
+        UnitOfWork = new UnitOfWork(Context, users, roles, menuModules, regions, festivals, days, deities, chants, chantConfigs, languages, panchangams, sadhana, moduleRoleMappings, issueTypes, feedbacks, favorites, notificationConfigs, userNotifications, localization);
 
         Hasher = new BCryptPasswordHasher();
         Jwt = new JwtTokenService(Options.Create(new JwtSettings

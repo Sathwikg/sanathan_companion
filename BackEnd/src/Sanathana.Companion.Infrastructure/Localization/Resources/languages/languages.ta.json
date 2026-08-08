@@ -1,0 +1,23 @@
+{
+  "languages.allRegions": "அனைத்துப் பகுதிகள்",
+  "languages.byRegionView": "பகுதி வாரியாக",
+  "languages.code": "குறியீடு",
+  "languages.codeHint": "(ISO, எ.கா. ta)",
+  "languages.confirmActivateBody": "“{0}” என்பதைச் செயல்படுத்த வேண்டும் என்பது உறுதியா?",
+  "languages.confirmDeactivateBody": "“{0}” என்பதை முடக்க வேண்டும் என்பது உறுதியா?",
+  "languages.createTitle": "மொழியை உருவாக்கு",
+  "languages.editTitle": "மொழியைத் திருத்து",
+  "languages.entityName": "மொழி",
+  "languages.entityPlural": "மொழிகள்",
+  "languages.nameLabel": "மொழியின் பெயர்",
+  "languages.nativeName": "தாய்மொழிப் பெயர்",
+  "languages.nativeNameHint": "(அதன் சொந்த எழுத்தில்)",
+  "languages.noRegionsBody": "மொழிகளை இணைக்க, பகுதி முதன்மைத் தரவில் பகுதிகளைச் சேர்க்கவும்.",
+  "languages.noneMapped": "இன்னும் எந்த மொழியும் இணைக்கப்படவில்லை",
+  "languages.regionsHint": "(ஒரு மொழி பல பகுதிகளில் பரவியிருக்கலாம்)",
+  "languages.regionsWord": "பகுதிகள்",
+  "languages.searchPlaceholder": "பெயர், தாய்மொழிப் பெயர் அல்லது குறியீடு…",
+  "languages.searchRegions": "பகுதிகளைத் தேடு…",
+  "languages.sub": "மொழிகளையும் அவை சேர்ந்த பகுதிகளையும் நிர்வகிக்கவும்",
+  "languages.title": "மொழிகள்"
+}

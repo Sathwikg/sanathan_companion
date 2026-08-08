@@ -1,5 +1,6 @@
 @page "/feedback"
 @attribute [Authorize]
+@inherits LocalizedComponentBase
 @inject IApiClient Api
 @inject ToastService Toast
 
@@ -7,22 +8,22 @@
     <div class="sc-page-title">
         <span class="sc-page-emoji">📝</span>
         <div>
-            <h1>Feedback</h1>
-            <p class="sc-page-sub">Share a suggestion, appreciation or report an issue</p>
+            <h1>@Loc["feedback.title", "Feedback"]</h1>
+            <p class="sc-page-sub">@Loc["feedback.sub", "Share a suggestion, appreciation or report an issue"]</p>
         </div>
     </div>
 </div>
 
 @if (_loading)
 {
-    <OmLoader FullPage="true" Message="Loading…" />
+    <OmLoader FullPage="true" Message="@Loc["common.loading", "Loading…"]" />
 }
 else if (_types.Count == 0)
 {
     <div class="sc-card sc-empty-state">
         <div class="sc-empty-om">🏷️</div>
-        <h3>No issue types available</h3>
-        <p>An administrator needs to add feedback issue types first.</p>
+        <h3>@Loc["feedback.noIssueTypes", "No issue types available"]</h3>
+        <p>@Loc["feedback.noIssueTypesBody", "An administrator needs to add feedback issue types first."]</p>
     </div>
 }
 else
@@ -37,9 +38,9 @@ else
             }
 
             <div class="sc-field">
-                <label>Issue Type</label>
+                <label>@Loc["feedback.issueType", "Issue Type"]</label>
                 <InputSelect @bind-Value="_req.IssueTypeId" class="sc-input">
-                    <option value="@Guid.Empty">— Select an issue type —</option>
+                    <option value="@Guid.Empty">@Loc["feedback.selectIssueType", "— Select an issue type —"]</option>
                     @foreach (var t in _types)
                     {
                         <option value="@t.Id">@t.Name</option>
@@ -52,16 +53,16 @@ else
             </div>
 
             <div class="sc-field">
-                <label>Description</label>
+                <label>@Loc["common.description", "Description"]</label>
                 <InputTextArea @bind-Value="_req.Description" class="sc-input sc-textarea" rows="6"
-                               placeholder="Tell us what's on your mind…" />
+                               placeholder="@Loc["feedback.descriptionPlaceholder", "Tell us what's on your mind…"]" />
                 <ValidationMessage For="() => _req.Description" />
             </div>
 
             <div class="sc-modal-actions" style="justify-content:flex-start">
                 <button type="submit" class="sc-btn-primary" disabled="@_busy">
-                    @if (_busy) { <OmLoader Inline="true" Size="18" Message="Submitting…" /> }
-                    else { <span>Submit Feedback</span> }
+                    @if (_busy) { <OmLoader Inline="true" Size="18" Message="@Loc["common.submitting", "Submitting…"]" /> }
+                    else { <span>@Loc["feedback.submit", "Submit Feedback"]</span> }
                 </button>
             </div>
         </EditForm>
@@ -79,6 +80,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        await base.OnInitializedAsync();
         try { _types = await Api.GetActiveIssueTypesAsync(); }
         catch (Exception ex) { _error = ex.Message; }
         finally { _loading = false; }
@@ -88,7 +90,7 @@ else
     {
         if (_req.IssueTypeId == Guid.Empty)
         {
-            _error = "Please choose an issue type.";
+            _error = Loc["feedback.chooseIssueType", "Please choose an issue type."];
             return;
         }
 
@@ -99,7 +101,7 @@ else
 
         if (ok)
         {
-            Toast.Success("🙏 Thank you! Your feedback has been submitted.");
+            Toast.Success(Loc["feedback.thankYou", "🙏 Thank you! Your feedback has been submitted."]);
             _req = new();
         }
         else

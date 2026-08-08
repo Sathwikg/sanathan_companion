@@ -1,0 +1,12 @@
+{
+  "feedback.chooseIssueType": "தயவுசெய்து ஒரு சிக்கல் வகையைத் தேர்ந்தெடுக்கவும்.",
+  "feedback.descriptionPlaceholder": "உங்கள் மனதில் உள்ளதைச் சொல்லுங்கள்…",
+  "feedback.issueType": "சிக்கல் வகை",
+  "feedback.noIssueTypes": "சிக்கல் வகைகள் எதுவும் இல்லை",
+  "feedback.noIssueTypesBody": "முதலில் நிர்வாகி கருத்துச் சிக்கல் வகைகளைச் சேர்க்க வேண்டும்.",
+  "feedback.selectIssueType": "— சிக்கல் வகையைத் தேர்ந்தெடுக்கவும் —",
+  "feedback.sub": "ஒரு பரிந்துரை, பாராட்டு அல்லது சிக்கலைப் பகிரவும்",
+  "feedback.submit": "கருத்தைச் சமர்ப்பி",
+  "feedback.thankYou": "🙏 நன்றி! உங்கள் கருத்து சமர்ப்பிக்கப்பட்டது.",
+  "feedback.title": "கருத்து"
+}

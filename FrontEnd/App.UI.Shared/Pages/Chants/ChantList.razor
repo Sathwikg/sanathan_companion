@@ -1,5 +1,6 @@
 @page "/chants"
 @attribute [Authorize]
+@inherits LocalizedComponentBase
 @inject IApiClient Api
 @inject ConfirmService Confirm
 @inject ToastService Toast
@@ -8,16 +9,16 @@
     <div class="sc-page-title">
         <span class="sc-page-emoji">📿</span>
         <div>
-            <h1>Chants</h1>
-            <p class="sc-page-sub">Manage chants and their japa counts</p>
+            <h1>@Loc["chants.title", "Chants"]</h1>
+            <p class="sc-page-sub">@Loc["chants.sub", "Manage chants and their japa counts"]</p>
         </div>
     </div>
     <div class="sc-page-actions">
         <div class="sc-viewtoggle">
-            <button class="@(_view == "grid" ? "active" : "")" @onclick='() => _view = "grid"'>▦ Grid</button>
-            <button class="@(_view == "list" ? "active" : "")" @onclick='() => _view = "list"'>☰ List</button>
+            <button class="@(_view == "grid" ? "active" : "")" @onclick='() => _view = "grid"'>▦ @Loc["chants.gridView", "Grid"]</button>
+            <button class="@(_view == "list" ? "active" : "")" @onclick='() => _view = "list"'>☰ @Loc["common.listView", "List"]</button>
         </div>
-        <button class="sc-btn-primary sc-btn-sm" @onclick="OpenCreate">+ Create</button>
+        <button class="sc-btn-primary sc-btn-sm" @onclick="OpenCreate">+ @Loc["common.create", "Create"]</button>
     </div>
 </div>
 
@@ -28,15 +29,15 @@
 
 @if (_loading)
 {
-    <OmLoader FullPage="true" Message="Loading chants…" />
+    <OmLoader FullPage="true" Message="@Loc["chants.loading", "Loading chants…"]" />
 }
 else if (_list.Count == 0)
 {
     <div class="sc-card sc-empty-state">
         <div class="sc-empty-om">📿</div>
-        <h3>No chants yet</h3>
-        <p>Create your first chant to get started.</p>
-        <button class="sc-btn-primary sc-btn-sm" @onclick="OpenCreate">+ Create Chant</button>
+        <h3>@Loc["chants.emptyTitle", "No chants yet"]</h3>
+        <p>@Loc["chants.emptyBody", "Create your first chant to get started."]</p>
+        <button class="sc-btn-primary sc-btn-sm" @onclick="OpenCreate">+ @Loc["chants.createChant", "Create Chant"]</button>
     </div>
 }
 else if (_view == "grid")
@@ -47,19 +48,19 @@ else if (_view == "grid")
             <div class="sc-tile @(c.IsActive ? "" : "is-inactive")">
                 <div class="sc-tile-top">
                     <div class="sc-tile-badge">📿</div>
-                    <span class="sc-badge @(c.IsActive ? "on" : "off")">@(c.IsActive ? "Active" : "Inactive")</span>
+                    <span class="sc-badge @(c.IsActive ? "on" : "off")">@(c.IsActive ? Loc["common.active", "Active"] : Loc["common.inactive", "Inactive"])</span>
                 </div>
                 <h3 class="sc-tile-title">@c.Name</h3>
-                <p class="sc-tile-desc">@(string.IsNullOrWhiteSpace(c.Description) ? "No description" : c.Description)</p>
+                <p class="sc-tile-desc">@(string.IsNullOrWhiteSpace(c.Description) ? Loc["common.noDescription", "No description"] : c.Description)</p>
                 @if (c.HasCount)
                 {
-                    <div class="sc-chiprow"><span class="sc-minichip">Count: @c.Count</span></div>
+                    <div class="sc-chiprow"><span class="sc-minichip">@Loc.TF("chants.countValue", "Count: {0}", c.Count)</span></div>
                 }
                 <div class="sc-tile-foot">
                     <button class="sc-chip @(c.IsActive ? "chip-warn" : "chip-ok")" @onclick="() => ConfirmToggle(c)">
-                        @(c.IsActive ? "Deactivate" : "Activate")
+                        @(c.IsActive ? Loc["common.deactivate", "Deactivate"] : Loc["common.activate", "Activate"])
                     </button>
-                    <button class="sc-btn-ghost sc-btn-sm" @onclick="() => OpenEdit(c)">Edit</button>
+                    <button class="sc-btn-ghost sc-btn-sm" @onclick="() => OpenEdit(c)">@Loc["common.edit", "Edit"]</button>
                 </div>
             </div>
         }
@@ -72,10 +73,10 @@ else
         <table class="sc-table">
             <thead>
                 <tr>
-                    <th>Chant Name</th>
-                    <th>Description</th>
-                    <th>Count</th>
-                    <th>Status</th>
+                    <th>@Loc["chants.chantName", "Chant Name"]</th>
+                    <th>@Loc["common.description", "Description"]</th>
+                    <th>@Loc["common.count", "Count"]</th>
+                    <th>@Loc["common.status", "Status"]</th>
                     <th></th>
                 </tr>
             </thead>
@@ -91,9 +92,9 @@ else
                                 <input type="checkbox" checked="@c.IsActive" @onclick="() => ConfirmToggle(c)" @onclick:preventDefault />
                                 <span class="sc-slider"></span>
                             </label>
-                            <span class="sc-status @(c.IsActive ? "on" : "off")">@(c.IsActive ? "Active" : "Inactive")</span>
+                            <span class="sc-status @(c.IsActive ? "on" : "off")">@(c.IsActive ? Loc["common.active", "Active"] : Loc["common.inactive", "Inactive"])</span>
                         </td>
-                        <td><button class="sc-btn-ghost sc-btn-sm" @onclick="() => OpenEdit(c)">Edit</button></td>
+                        <td><button class="sc-btn-ghost sc-btn-sm" @onclick="() => OpenEdit(c)">@Loc["common.edit", "Edit"]</button></td>
                     </tr>
                 }
             </tbody>
@@ -102,7 +103,7 @@ else
     <Pager Page="_page" PageCount="PageCount" TotalCount="_list.Count" PageSize="PageSize" OnGoTo="GoTo" />
 }
 
-<ScModal Visible="_showForm" Title="@(_editId is null ? "Create Chant" : "Edit Chant")" OnClose="CloseForm">
+<ScModal Visible="_showForm" Title="@(_editId is null ? Loc["chants.createChant", "Create Chant"] : Loc["chants.editChant", "Edit Chant"])" OnClose="CloseForm">
     <EditForm Model="_model" OnValidSubmit="SaveAsync" class="sc-form">
         <DataAnnotationsValidator />
 
@@ -112,13 +113,13 @@ else
         }
 
         <div class="sc-field">
-            <label>Chant Name</label>
+            <label>@Loc["chants.chantName", "Chant Name"]</label>
             <InputText @bind-Value="_model.Name" class="sc-input" />
             <ValidationMessage For="() => _model.Name" />
         </div>
 
         <div class="sc-field">
-            <label>Description</label>
+            <label>@Loc["common.description", "Description"]</label>
             <InputTextArea @bind-Value="_model.Description" class="sc-input" rows="3" />
             <ValidationMessage For="() => _model.Description" />
         </div>
@@ -126,14 +127,14 @@ else
         <div class="sc-switches">
             <div class="sc-switchrow">
                 <label class="sc-switch"><input type="checkbox" @bind="_model.HasCount" @bind:after="OnHasCountChanged" /><span class="sc-slider"></span></label>
-                <span>Count Exists</span>
+                <span>@Loc["chants.countExists", "Count Exists"]</span>
             </div>
         </div>
 
         @if (_model.HasCount)
         {
             <div class="sc-field">
-                <label>Count</label>
+                <label>@Loc["common.count", "Count"]</label>
                 <InputNumber @bind-Value="_model.Count" class="sc-input" min="1" />
                 <ValidationMessage For="() => _model.Count" />
             </div>
@@ -142,14 +143,14 @@ else
         <div class="sc-switches">
             <div class="sc-switchrow">
                 <label class="sc-switch"><input type="checkbox" @bind="_model.IsActive" /><span class="sc-slider"></span></label>
-                <span>Active</span>
+                <span>@Loc["common.active", "Active"]</span>
             </div>
         </div>
 
         <div class="sc-modal-actions">
-            <button type="button" class="sc-btn-ghost" @onclick="CloseForm">Cancel</button>
+            <button type="button" class="sc-btn-ghost" @onclick="CloseForm">@Loc["common.cancel", "Cancel"]</button>
             <button type="submit" class="sc-btn-primary" disabled="@_busy">
-                @if (_busy) { <OmLoader Inline="true" Size="18" Message="Saving…" /> } else { <span>@(_editId is null ? "Create" : "Update")</span> }
+                @if (_busy) { <OmLoader Inline="true" Size="18" Message="@Loc["common.saving", "Saving…"]" /> } else { <span>@(_editId is null ? Loc["common.create", "Create"] : Loc["common.update", "Update"])</span> }
             </button>
         </div>
     </EditForm>
@@ -172,7 +173,11 @@ else
     private bool _busy;
     private string? _formError;
 
-    protected override async Task OnInitializedAsync() => await LoadAsync();
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        await LoadAsync();
+    }
 
     private async Task LoadAsync()
     {
@@ -237,7 +242,7 @@ else
 
         if (ok)
         {
-            Toast.Success($"Chant “{_model.Name}” saved.");
+            Toast.Success(Loc.TF("msg.savedNamed", "“{0}” saved.", _model.Name));
             _showForm = false;
             await LoadAsync();
         }
@@ -250,18 +255,28 @@ else
     private async Task ConfirmToggle(ChantModel c)
     {
         var activate = !c.IsActive;
+        var entity = Loc["chants.entity", "chant"];
         var confirmed = await Confirm.ConfirmAsync(new ConfirmRequest
         {
-            Title = activate ? "Activate chant?" : "Deactivate chant?",
-            Message = $"Are you sure you want to {(activate ? "activate" : "deactivate")} “{c.Name}”?",
-            ConfirmText = activate ? "Yes, activate" : "Yes, deactivate",
-            CancelText = "Cancel",
+            Title = activate
+                ? Loc.TF("common.confirmActivate", "Activate {0}?", entity)
+                : Loc.TF("common.confirmDeactivate", "Deactivate {0}?", entity),
+            Message = activate
+                ? Loc.TF("chants.confirmActivateBody", "Are you sure you want to activate “{0}”?", c.Name)
+                : Loc.TF("chants.confirmDeactivateBody", "Are you sure you want to deactivate “{0}”?", c.Name),
+            ConfirmText = activate
+                ? Loc["common.yesActivate", "Yes, activate"]
+                : Loc["common.yesDeactivate", "Yes, deactivate"],
+            CancelText = Loc["common.cancel", "Cancel"],
             Kind = activate ? ConfirmKind.Success : ConfirmKind.Warning
         });
         if (!confirmed) return;
 
         var (ok, err) = await Api.SetChantStatusAsync(c.Id, activate);
-        if (ok) Toast.Success($"“{c.Name}” has been {(activate ? "activated" : "deactivated")}.");
+        if (ok)
+            Toast.Success(activate
+                ? Loc.TF("msg.activatedNamed", "“{0}” has been activated.", c.Name)
+                : Loc.TF("msg.deactivatedNamed", "“{0}” has been deactivated.", c.Name));
         else Toast.Error(err);
         await LoadAsync();
     }

@@ -76,13 +76,15 @@
             var all = await Api.GetSadhanaChantsAsync(null, Region.SelectedRegionId);
             _categories = all
                 .Where(c => !string.IsNullOrWhiteSpace(c.CategoryName))
-                .GroupBy(c => c.CategoryName)
-                .OrderBy(g => g.Key)
+                // Grouped by id, not by name: the name is translated, and two categories could
+                // otherwise collide into one group in some language.
+                .GroupBy(c => c.CategoryId)
                 .Select(g => new CategoryGroup
                 {
-                    Name = g.Key,
+                    Name = g.First().CategoryName,
                     Chants = g.OrderBy(c => c.Name).ToList()
                 })
+                .OrderBy(g => g.Name, StringComparer.CurrentCulture)
                 .ToList();
         }
         catch

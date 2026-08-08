@@ -1,0 +1,20 @@
+{
+  "regions.confirmActivateBody": "“{0}” என்பதைச் செயல்படுத்த வேண்டும் என்பது உறுதியா?",
+  "regions.confirmDeactivateBody": "“{0}” என்பதை முடக்க வேண்டும் என்பது உறுதியா?",
+  "regions.createRegion": "பகுதியை உருவாக்கு",
+  "regions.editRegion": "பகுதியைத் திருத்து",
+  "regions.languagePlural": "மொழிகள்",
+  "regions.languageSingular": "மொழி",
+  "regions.languagesHint": "(ஒரு பகுதிக்குப் பல மொழிகள் இருக்கலாம்)",
+  "regions.latitude": "அட்சரேகை",
+  "regions.latitudeHint": "(வடக்குப் பாகை, பஞ்சாங்கத்திற்கு)",
+  "regions.loadingList": "பகுதிகளை ஏற்றுகிறது…",
+  "regions.longitude": "தீர்க்கரேகை",
+  "regions.longitudeHint": "(கிழக்குப் பாகை, பஞ்சாங்கத்திற்கு)",
+  "regions.noActiveLanguages": "இன்னும் செயலில் உள்ள மொழிகள் இல்லை — மொழி முதன்மைத் தரவில் அவற்றைச் சேர்க்கவும்.",
+  "regions.noun": "பகுதிகள்",
+  "regions.nounSingular": "பகுதி",
+  "regions.regionName": "பகுதியின் பெயர்",
+  "regions.sub": "சனாதன கம்பானியன் முழுவதும் உள்ள பகுதிகளை நிர்வகிக்கவும்",
+  "regions.title": "பகுதி முதன்மைத் தரவு"
+}

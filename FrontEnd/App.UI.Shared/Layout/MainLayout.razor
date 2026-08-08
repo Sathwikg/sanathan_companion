@@ -1,13 +1,16 @@
 @inherits LayoutComponentBase
 @inject IAuthService AuthService
 @inject NavigationManager Nav
+@inject LocalizationState Loc
+@inject LanguageContext LangContext
+@implements IDisposable
 
 <div class="sc-shell">
     <header class="sc-topbar">
         <div class="sc-topbar-left">
-            <button class="sc-hamburger" @onclick="ToggleSidebar" title="Toggle menu">☰</button>
+            <button class="sc-hamburger" @onclick="ToggleSidebar" title="@Loc["nav.toggleMenu", "Toggle menu"]">☰</button>
             <OmLogo Size="34" />
-            <span class="sc-brand-text">Sanathan Companion</span>
+            <span class="sc-brand-text">@Loc["auth.appName", "Sanathan Companion"]</span>
         </div>
         <div class="sc-topbar-right">
             <AuthorizeView>
@@ -17,16 +20,17 @@
             </AuthorizeView>
             <Clock />
             <AuthorizeView Roles="Admin">
-                <NavLink class="sc-btn-ghost sc-btn-sm" href="modules">⚙ Modules</NavLink>
+                <NavLink class="sc-btn-ghost sc-btn-sm" href="modules">⚙ @Loc["nav.modules", "Modules"]</NavLink>
             </AuthorizeView>
+            <LanguageSelector />
             <ThemeToggle />
             <AuthorizeView>
                 <Authorized>
-                    <NavLink class="sc-user sc-user-link" href="profile" title="View my profile">
+                    <NavLink class="sc-user sc-user-link" href="profile" title="@Loc["nav.viewProfile", "View my profile"]">
                         <span class="sc-user-ic">👤</span>
                         <span class="sc-user-name">@context.User.FindFirst("fullName")?.Value</span>
                     </NavLink>
-                    <button class="sc-btn-ghost sc-btn-sm" @onclick="LogoutAsync">Logout</button>
+                    <button class="sc-btn-ghost sc-btn-sm" @onclick="LogoutAsync">@Loc["common.logout", "Logout"]</button>
                 </Authorized>
             </AuthorizeView>
         </div>
@@ -37,6 +41,8 @@
             <NavSidebar />
         </aside>
         <main class="sc-content">
+            @* No @key here: @Body is a RenderFragment owned by the Router, so keying it would not
+               re-instantiate the page. The language key lives on AuthorizeRouteView in Routes.razor. *@
             @Body
         </main>
     </div>
@@ -48,11 +54,34 @@
 @code {
     private bool _sidebarOpen = true;
 
+    protected override async Task OnInitializedAsync()
+    {
+        Loc.OnChanged += LanguageChanged;
+        Nav.LocationChanged += RouteChanged;
+        SetRoute();
+        await Loc.EnsureLoadedAsync();
+    }
+
+    // The server needs the current route to honour the per-form opt-out on the Forms tab.
+    private void RouteChanged(object? sender, LocationChangedEventArgs e) => SetRoute();
+
+    private void SetRoute()
+        => LangContext.Route = "/" + Nav.ToBaseRelativePath(Nav.Uri).Split('?')[0].Split('#')[0].Trim('/');
+
+    // The shell owns the topbar text, so it has to redraw when the language changes.
+    private void LanguageChanged() => InvokeAsync(StateHasChanged);
+
     private void ToggleSidebar() => _sidebarOpen = !_sidebarOpen;
 
     private async Task LogoutAsync()
     {
         await AuthService.LogoutAsync();
         Nav.NavigateTo("login");
+    }
+
+    public void Dispose()
+    {
+        Loc.OnChanged -= LanguageChanged;
+        Nav.LocationChanged -= RouteChanged;
     }
 }

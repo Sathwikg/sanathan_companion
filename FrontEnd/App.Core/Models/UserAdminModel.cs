@@ -8,6 +8,10 @@ public class UserListItem
     public string Email { get; set; } = string.Empty;
     public string MobileNumber { get; set; } = string.Empty;
     public string RoleName { get; set; } = string.Empty;
+
+    /// <summary>Independent of the display text — use this for styling and permission checks,
+    /// never <see cref="RoleName"/>, which is translated.</summary>
+    public bool IsAdmin { get; set; }
     public DateTime RegisteredOn { get; set; }
     public int CurrentStreak { get; set; }
     public int TotalMalas { get; set; }
@@ -21,6 +25,10 @@ public class UserProfile
     public string Email { get; set; } = string.Empty;
     public string MobileNumber { get; set; } = string.Empty;
     public string RoleName { get; set; } = string.Empty;
+
+    /// <summary>Independent of the display text — use this for styling and permission checks,
+    /// never <see cref="RoleName"/>, which is translated.</summary>
+    public bool IsAdmin { get; set; }
     public DateTime RegisteredOn { get; set; }
     public DateTime? LastUpdatedOn { get; set; }
     public int CurrentStreak { get; set; }
@@ -50,6 +58,10 @@ public class MyProfile
     public string Email { get; set; } = string.Empty;
     public string MobileNumber { get; set; } = string.Empty;
     public string RoleName { get; set; } = string.Empty;
+
+    /// <summary>Independent of the display text — use this for styling and permission checks,
+    /// never <see cref="RoleName"/>, which is translated.</summary>
+    public bool IsAdmin { get; set; }
     public DateTime RegisteredOn { get; set; }
     public DateTime? LastUpdatedOn { get; set; }
 

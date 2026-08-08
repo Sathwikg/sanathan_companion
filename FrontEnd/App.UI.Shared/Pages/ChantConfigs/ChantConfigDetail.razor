@@ -1,5 +1,6 @@
 @page "/chants-config/{Id:guid}"
 @attribute [Authorize]
+@inherits LocalizedComponentBase
 @inject IApiClient Api
 @inject ConfirmService Confirm
 @inject ToastService Toast
@@ -10,15 +11,15 @@
     <div class="sc-page-title">
         <span class="sc-page-emoji">📜</span>
         <div>
-            <h1>@(_model?.Name ?? "Chant")</h1>
+            <h1>@(_model?.Name ?? Loc["chantsConfig.chant", "Chant"])</h1>
             <p class="sc-page-sub">@(_model?.ChantName ?? "")</p>
         </div>
     </div>
     <div class="sc-page-actions">
-        <button class="sc-btn-ghost sc-btn-sm" @onclick="BackToList">← Back to list</button>
+        <button class="sc-btn-ghost sc-btn-sm" @onclick="BackToList">← @Loc["common.backToList", "Back to list"]</button>
         @if (_model is not null)
         {
-            <button class="sc-btn-primary sc-btn-sm" @onclick='() => Nav.NavigateTo($"chants-config/{Id}/edit")'>✏️ Edit</button>
+            <button class="sc-btn-primary sc-btn-sm" @onclick='() => Nav.NavigateTo($"chants-config/{Id}/edit")'>✏️ @Loc["common.edit", "Edit"]</button>
         }
     </div>
 </div>
@@ -30,15 +31,15 @@
 
 @if (_loading)
 {
-    <OmLoader FullPage="true" Message="Loading chant…" />
+    <OmLoader FullPage="true" Message="@Loc["chantsConfig.loadingOne", "Loading chant…"]" />
 }
 else if (_model is null)
 {
     <div class="sc-card sc-empty-state">
         <div class="sc-empty-om">📜</div>
-        <h3>Chant not found</h3>
-        <p>It may have been deleted.</p>
-        <button class="sc-btn-primary sc-btn-sm" @onclick="BackToList">Back to list</button>
+        <h3>@Loc["chantsConfig.notFound", "Chant not found"]</h3>
+        <p>@Loc["chantsConfig.notFoundBody", "It may have been deleted."]</p>
+        <button class="sc-btn-primary sc-btn-sm" @onclick="BackToList">@Loc["common.backToList", "Back to list"]</button>
     </div>
 }
 else
@@ -46,29 +47,29 @@ else
     <div class="sc-card">
         <div class="sc-detail-grid">
             <div class="sc-detail-item">
-                <span class="sc-detail-label">Type</span>
+                <span class="sc-detail-label">@Loc["common.type", "Type"]</span>
                 <span class="sc-detail-value"><span class="sc-minichip">@_model.ChantName</span></span>
             </div>
             <div class="sc-detail-item">
-                <span class="sc-detail-label">Status</span>
-                <span class="sc-detail-value"><span class="sc-badge @(_model.IsActive ? "on" : "off")">@(_model.IsActive ? "Active" : "Inactive")</span></span>
+                <span class="sc-detail-label">@Loc["common.status", "Status"]</span>
+                <span class="sc-detail-value"><span class="sc-badge @(_model.IsActive ? "on" : "off")">@(_model.IsActive ? Loc["common.active", "Active"] : Loc["common.inactive", "Inactive"])</span></span>
             </div>
             <div class="sc-detail-item">
-                <span class="sc-detail-label">Time</span>
+                <span class="sc-detail-label">@Loc["common.time", "Time"]</span>
                 <span class="sc-detail-value">@FormatRange(_model.FromTime, _model.ToTime)</span>
             </div>
             <div class="sc-detail-item">
-                <span class="sc-detail-label">Time Description</span>
+                <span class="sc-detail-label">@Loc["chantsConfig.timeDescription", "Time Description"]</span>
                 <span class="sc-detail-value">@(string.IsNullOrWhiteSpace(_model.TimeDescription) ? "—" : _model.TimeDescription)</span>
             </div>
         </div>
 
         <div class="sc-detail-item">
-            <span class="sc-detail-label">Deities</span>
+            <span class="sc-detail-label">@Loc["chantsConfig.deities", "Deities"]</span>
             <span class="sc-detail-value">
                 @if (_model.DeityNames.Count == 0)
                 {
-                    <span class="sc-muted">Not mapped to any deity</span>
+                    <span class="sc-muted">@Loc["chantsConfig.noDeities", "Not mapped to any deity"]</span>
                 }
                 else
                 {
@@ -80,7 +81,7 @@ else
         @if (!string.IsNullOrWhiteSpace(_model.Description))
         {
             <div class="sc-detail-section">
-                <h3>Description</h3>
+                <h3>@Loc["common.description", "Description"]</h3>
                 <p>@_model.Description</p>
             </div>
         }
@@ -88,7 +89,7 @@ else
         @if (_model.HasAudio)
         {
             <div class="sc-detail-section">
-                <h3>Audio</h3>
+                <h3>@Loc["common.audio", "Audio"]</h3>
                 <audio class="sc-audioplayer" controls src="@AudioUrl"></audio>
                 @if (!string.IsNullOrWhiteSpace(_model.AudioFileName))
                 {
@@ -98,7 +99,7 @@ else
         }
 
         <div class="sc-detail-section">
-            <h3>Chant</h3>
+            <h3>@Loc["chantsConfig.chant", "Chant"]</h3>
             @* Server-side sanitized on save (HtmlSanitizer), so it is safe to render. *@
             <div class="sc-richtext">@((MarkupString)_model.ChantText)</div>
         </div>
@@ -106,7 +107,7 @@ else
         @if (_model.LanguageTexts.Count > 0)
         {
             <div class="sc-detail-section">
-                <h3>Chant in Other Languages</h3>
+                <h3>@Loc["chantsConfig.otherLanguages", "Chant in Other Languages"]</h3>
                 @foreach (var lt in _model.LanguageTexts)
                 {
                     <div class="sc-lang-block">
@@ -119,7 +120,7 @@ else
         }
 
         <div class="sc-modal-actions">
-            <button class="sc-iconbtn danger" @onclick="ConfirmDelete">🗑 Delete</button>
+            <button class="sc-iconbtn danger" @onclick="ConfirmDelete">🗑 @Loc["common.delete", "Delete"]</button>
         </div>
     </div>
 }
@@ -153,11 +154,13 @@ else
 
     private void BackToList() => Nav.NavigateTo("chants-config");
 
-    private static string FormatRange(TimeOnly? from, TimeOnly? to)
+    private string FormatRange(TimeOnly? from, TimeOnly? to)
     {
         if (from is null && to is null) return "—";
         if (from is not null && to is not null) return $"{from:HH\\:mm} – {to:HH\\:mm}";
-        return from is not null ? $"from {from:HH\\:mm}" : $"until {to:HH\\:mm}";
+        return from is not null
+            ? Loc.TF("chantsConfig.fromTime", "from {0}", from.Value.ToString("HH\\:mm"))
+            : Loc.TF("chantsConfig.untilTime", "until {0}", to!.Value.ToString("HH\\:mm"));
     }
 
     private async Task ConfirmDelete()
@@ -166,10 +169,10 @@ else
 
         var confirmed = await Confirm.ConfirmAsync(new ConfirmRequest
         {
-            Title = "Delete chant?",
-            Message = $"“{_model.Name}” and its audio will be permanently deleted. This cannot be undone.",
-            ConfirmText = "Yes, delete",
-            CancelText = "Cancel",
+            Title = Loc.TF("common.confirmDelete", "Delete {0}?", Loc["chantsConfig.entity", "chant"]),
+            Message = Loc.TF("chantsConfig.deleteBody", "“{0}” and its audio will be permanently deleted. This cannot be undone.", _model.Name),
+            ConfirmText = Loc["common.yesDelete", "Yes, delete"],
+            CancelText = Loc["common.cancel", "Cancel"],
             Kind = ConfirmKind.Danger
         });
         if (!confirmed) return;
@@ -177,7 +180,7 @@ else
         var (ok, err) = await Api.DeleteChantConfigAsync(Id);
         if (ok)
         {
-            Toast.Success($"“{_model.Name}” was deleted.");
+            Toast.Success(Loc.TF("msg.deletedNamed", "“{0}” was deleted.", _model.Name));
             Nav.NavigateTo("chants-config");
         }
         else

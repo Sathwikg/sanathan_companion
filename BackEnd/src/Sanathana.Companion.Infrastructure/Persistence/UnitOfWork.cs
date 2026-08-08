@@ -24,8 +24,9 @@ public class UnitOfWork : IUnitOfWork
     public IUserFavoriteRepository Favorites { get; }
     public INotificationConfigRepository NotificationConfigs { get; }
     public IUserNotificationRepository UserNotifications { get; }
+    public ILocalizationRepository Localization { get; }
 
-    public UnitOfWork(ApplicationDbContext context, IUserRepository users, IRoleRepository roles, IMenuModuleRepository menuModules, IRegionRepository regions, IFestivalRepository festivals, IDayRepository days, IDeityRepository deities, IChantRepository chants, IChantConfigRepository chantConfigs, ILanguageRepository languages, IPanchangamRepository panchangams, ISadhanaRepository sadhana, IModuleRoleMappingRepository moduleRoleMappings, IIssueTypeRepository issueTypes, IFeedbackRepository feedbacks, IUserFavoriteRepository favorites, INotificationConfigRepository notificationConfigs, IUserNotificationRepository userNotifications)
+    public UnitOfWork(ApplicationDbContext context, IUserRepository users, IRoleRepository roles, IMenuModuleRepository menuModules, IRegionRepository regions, IFestivalRepository festivals, IDayRepository days, IDeityRepository deities, IChantRepository chants, IChantConfigRepository chantConfigs, ILanguageRepository languages, IPanchangamRepository panchangams, ISadhanaRepository sadhana, IModuleRoleMappingRepository moduleRoleMappings, IIssueTypeRepository issueTypes, IFeedbackRepository feedbacks, IUserFavoriteRepository favorites, INotificationConfigRepository notificationConfigs, IUserNotificationRepository userNotifications, ILocalizationRepository localization)
     {
         _context = context;
         Users = users;
@@ -46,6 +47,7 @@ public class UnitOfWork : IUnitOfWork
         Favorites = favorites;
         NotificationConfigs = notificationConfigs;
         UserNotifications = userNotifications;
+        Localization = localization;
     }
 
     public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)

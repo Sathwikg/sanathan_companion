@@ -28,6 +28,12 @@ public class ApplicationDbContext : DbContext
     public DbSet<ChantLanguageConfig> ChantLanguageConfigs => Set<ChantLanguageConfig>();
     public DbSet<Language> Languages => Set<Language>();
     public DbSet<ModuleRoleMapping> ModuleRoleMappings => Set<ModuleRoleMapping>();
+    public DbSet<LocalizationResource> LocalizationResources => Set<LocalizationResource>();
+    public DbSet<EntityTranslation> EntityTranslations => Set<EntityTranslation>();
+    public DbSet<LanguageFormConfig> LanguageFormConfigs => Set<LanguageFormConfig>();
+    public DbSet<TranslationTerm> TranslationTerms => Set<TranslationTerm>();
+    public DbSet<TranslationTermText> TranslationTermTexts => Set<TranslationTermText>();
+    public DbSet<TranslationSource> TranslationSources => Set<TranslationSource>();
     public DbSet<Panchangam> Panchangams => Set<Panchangam>();
     public DbSet<SadhanaLog> SadhanaLogs => Set<SadhanaLog>();
     public DbSet<SadhanaStreak> SadhanaStreaks => Set<SadhanaStreak>();

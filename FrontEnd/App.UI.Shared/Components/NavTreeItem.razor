@@ -1,11 +1,14 @@
 @* Recursive sidebar node: parents expand/collapse, leaves are navigation links. *@
+@inject NavigationManager Nav
+@inject LocalizationState Loc
+@implements IDisposable
 
 <li class="sc-nav-item">
     @if (Node.Children.Count > 0)
     {
         <div class="sc-nav-parent" @onclick="Toggle">
             <span class="sc-nav-icon">@Icon</span>
-            <span class="sc-nav-label">@Node.Name</span>
+            <span class="sc-nav-label">@Label</span>
             <span class="sc-nav-caret">@(_expanded ? "▾" : "▸")</span>
         </div>
         @if (_expanded)
@@ -22,7 +25,7 @@
     {
         <NavLink class="sc-nav-link" href="@Href" Match="Match">
             <span class="sc-nav-icon">@Icon</span>
-            <span class="sc-nav-label">@Node.Name</span>
+            <span class="sc-nav-label">@Label</span>
         </NavLink>
     }
 </li>
@@ -30,10 +33,64 @@
 @code {
     [Parameter] public MenuTreeNode Node { get; set; } = default!;
 
-    private bool _expanded = true;
+    // Groups start collapsed; only the group holding the current page opens itself.
+    private bool _expanded;
+
     private string Icon => string.IsNullOrWhiteSpace(Node.Icon) ? "•" : Node.Icon!;
+
+    /// <summary>The menu name comes from the database, so it is translated via the entity map.</summary>
+    private string Label => Loc.Entity("MenuModule", Node.Id, "Name", Node.Name);
     private string Href => string.IsNullOrWhiteSpace(Node.RoutePath) ? "" : Node.RoutePath!.TrimStart('/');
     private NavLinkMatch Match => Href.Length == 0 ? NavLinkMatch.All : NavLinkMatch.Prefix;
 
+    protected override void OnInitialized()
+    {
+        Nav.LocationChanged += OnLocationChanged;
+        Loc.OnChanged += LanguageChanged;
+        _expanded = ContainsActiveRoute();
+    }
+
+    private void LanguageChanged() => InvokeAsync(StateHasChanged);
+
     private void Toggle() => _expanded = !_expanded;
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        // Reveal the group the user just navigated into; leave the others as they left them.
+        if (!_expanded && ContainsActiveRoute())
+        {
+            _expanded = true;
+            StateHasChanged();
+        }
+    }
+
+    private bool ContainsActiveRoute()
+    {
+        if (Node.Children.Count == 0) return false;
+
+        var current = Nav.ToBaseRelativePath(Nav.Uri);
+        var cut = current.IndexOfAny(new[] { '?', '#' });
+        if (cut >= 0) current = current[..cut];
+        current = current.Trim('/');
+
+        return Node.Children.Any(c => IsActive(c, current));
+    }
+
+    private static bool IsActive(MenuTreeNode node, string current)
+        => RouteMatches(node.RoutePath, current) || node.Children.Any(c => IsActive(c, current));
+
+    /// <summary>Segment-aware match so "/chants" does not claim the "/chants-config" page.</summary>
+    private static bool RouteMatches(string? routePath, string current)
+    {
+        var path = (routePath ?? string.Empty).Trim('/');
+        if (path.Length == 0) return current.Length == 0; // home route
+        return current.Equals(path, StringComparison.OrdinalIgnoreCase)
+            || current.StartsWith(path + "/", StringComparison.OrdinalIgnoreCase);
+    }
+
+    public void Dispose()
+    {
+        Nav.LocationChanged -= OnLocationChanged;
+        Loc.OnChanged -= LanguageChanged;
+    }
 }

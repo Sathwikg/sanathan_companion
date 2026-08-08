@@ -1,0 +1,10 @@
+{
+  "modules.confirmActivateBody": "“{0}”ను సక్రియం చేయాలని ఖచ్చితంగా అనుకుంటున్నారా?",
+  "modules.confirmDeactivateBody": "“{0}”ను నిష్క్రియం చేయాలని ఖచ్చితంగా అనుకుంటున్నారా?",
+  "modules.inMenu": "మెనూలో",
+  "modules.loadingList": "మాడ్యూళ్లు లోడ్ అవుతున్నాయి…",
+  "modules.mainModuleCountMany": "{0} ప్రధాన మాడ్యూళ్లు",
+  "modules.mainModuleCountOne": "{0} ప్రధాన మాడ్యూల్",
+  "modules.nounSingular": "మెనూ అంశం",
+  "modules.title": "మాడ్యూళ్లు మరియు ఉప మాడ్యూళ్లు"
+}

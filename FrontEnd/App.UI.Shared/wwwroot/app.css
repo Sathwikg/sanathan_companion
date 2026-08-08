@@ -788,6 +788,31 @@ body {
 .sc-access-icon { display: inline-block; width: 1.4rem; }
 .sc-access-empty { text-align: center; color: var(--color-text-muted); padding: 1rem; }
 
+/* ---- Language switcher + Language Configs ---- */
+.sc-langpick { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.2rem 0.55rem 0.2rem 0.6rem; border-radius: 999px; border: 1px solid var(--glass-border); background: color-mix(in srgb, var(--color-surface) 70%, transparent); transition: border-color .14s ease, background .14s ease; }
+.sc-langpick:hover { border-color: color-mix(in srgb, var(--color-primary) 45%, transparent); background: color-mix(in srgb, var(--color-primary) 8%, transparent); }
+.sc-langpick-ic { font-size: 0.9rem; line-height: 1; }
+.sc-langpick-select { border: none; background: none; color: var(--color-on-surface); font: inherit; font-size: 0.82rem; font-weight: 600; padding: 0.15rem 0.1rem; cursor: pointer; max-width: 140px; }
+.sc-langpick-select:focus { outline: none; }
+.sc-lang-en { color: var(--color-text-muted); }
+.sc-lang-input { width: 100%; font-family: var(--font-indic); }
+.sc-lang-ns { background: var(--color-surface-2); font-weight: 700; color: var(--color-accent); }
+.sc-lang-progress { height: 6px; border-radius: 999px; background: var(--color-surface-2); overflow: hidden; min-width: 120px; }
+.sc-lang-progress > span { display: block; height: 100%; background: var(--color-primary); }
+.sc-lang-missing { color: var(--color-error); font-weight: 700; }
+
+/* ---- All-languages translation grid ---- */
+.sc-matrix { min-width: 900px; }
+.sc-matrix th { vertical-align: top; white-space: nowrap; }
+.sc-matrix td { vertical-align: top; }
+.sc-matrix-key { max-width: 220px; word-break: break-all; font-size: 0.76rem; }
+.sc-matrix-base { background: color-mix(in srgb, var(--color-surface-2) 55%, transparent); }
+.sc-matrix-native { font-weight: 400; font-size: 0.78rem; color: var(--color-text-muted); font-family: var(--font-indic); }
+.sc-matrix .sc-lang-input { min-width: 160px; }
+
+/* Day chips shorten visually rather than by slicing the string — safe for Indic scripts. */
+.sc-daychip { max-width: 5.5rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
 /* ---- Compact form density (opt-in, so other forms keep their spacing) ---- */
 .sc-compact.sc-card { padding: 1rem 1.1rem; }
 .sc-compact .sc-form { gap: 0.5rem; }

@@ -16,8 +16,12 @@
   --color-on-error: #FFFFFF;
   --color-success: #2E7D32;
 
-  --font-heading: Georgia, "Noto Serif", "Times New Roman", serif;
-  --font-body: system-ui, "Segoe UI", "Noto Sans", sans-serif;
+  /* Indic faces are appended to every stack so Telugu, Devanagari, Tamil and Kannada text
+     renders with real glyphs instead of tofu boxes. "Nirmala UI" ships with Windows and the
+     Noto families with Android/ChromeOS, so no webfont download is required. */
+  --font-indic: "Nirmala UI", "Noto Sans Telugu", "Noto Sans Devanagari", "Noto Sans Tamil", "Noto Sans Kannada", "Noto Sans", sans-serif;
+  --font-heading: Georgia, "Noto Serif", "Times New Roman", var(--font-indic), serif;
+  --font-body: system-ui, "Segoe UI", "Noto Sans", var(--font-indic), sans-serif;
 
   --radius-sm: 8px;
   --radius-md: 12px;

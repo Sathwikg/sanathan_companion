@@ -1,0 +1,23 @@
+{
+  "languages.allRegions": "అన్ని ప్రాంతాలు",
+  "languages.byRegionView": "ప్రాంతం వారీగా",
+  "languages.code": "సంకేతం",
+  "languages.codeHint": "(ఐఎస్‌ఓ, ఉదా. te)",
+  "languages.confirmActivateBody": "“{0}”ను సక్రియం చేయాలని ఖచ్చితంగా అనుకుంటున్నారా?",
+  "languages.confirmDeactivateBody": "“{0}”ను నిష్క్రియం చేయాలని ఖచ్చితంగా అనుకుంటున్నారా?",
+  "languages.createTitle": "భాషను సృష్టించు",
+  "languages.editTitle": "భాషను సవరించు",
+  "languages.entityName": "భాష",
+  "languages.entityPlural": "భాషలు",
+  "languages.nameLabel": "భాష పేరు",
+  "languages.nativeName": "స్వభాషా పేరు",
+  "languages.nativeNameHint": "(దాని స్వంత లిపిలో)",
+  "languages.noRegionsBody": "భాషలను అనుసంధానించడానికి ప్రాంత మాస్టర్‌లో ప్రాంతాలను జోడించండి.",
+  "languages.noneMapped": "ఇంకా ఏ భాషలూ అనుసంధానించలేదు",
+  "languages.regionsHint": "(ఒక భాష అనేక ప్రాంతాలకు విస్తరించవచ్చు)",
+  "languages.regionsWord": "ప్రాంతాలు",
+  "languages.searchPlaceholder": "పేరు, స్వభాషా పేరు లేదా సంకేతం…",
+  "languages.searchRegions": "ప్రాంతాలను వెతకండి…",
+  "languages.sub": "భాషలను, అవి చెందిన ప్రాంతాలను నిర్వహించండి",
+  "languages.title": "భాషలు"
+}

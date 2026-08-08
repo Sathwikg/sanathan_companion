@@ -1,3 +1,5 @@
+using Sanathana.Companion.Application.Common.Translation;
+
 namespace Sanathana.Companion.Application.DTOs.Sadhana;
 
 /// <summary>A chant as it appears in the Sadhana list, with the current user's progress today.</summary>
@@ -6,7 +8,11 @@ public class SadhanaChantDto
     public Guid Id { get; set; }
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
+    /// <summary>Stable grouping key. Group on this, never on the translated CategoryName.</summary>
+    public Guid CategoryId { get; set; }
+    [Translatable(Category = "chantCategory")]
     public string CategoryName { get; set; } = string.Empty;
+    [Translatable(Category = "deity")]
     public List<string> DeityNames { get; set; } = new();
     public string? TextPreview { get; set; }
     public bool HasAudio { get; set; }
@@ -28,7 +34,11 @@ public class SadhanaChantDetailDto
     public Guid Id { get; set; }
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
+    /// <summary>Stable grouping key. Group on this, never on the translated CategoryName.</summary>
+    public Guid CategoryId { get; set; }
+    [Translatable(Category = "chantCategory")]
     public string CategoryName { get; set; } = string.Empty;
+    [Translatable(Category = "deity")]
     public List<string> DeityNames { get; set; } = new();
 
     /// <summary>Sanitized HTML chant body.</summary>

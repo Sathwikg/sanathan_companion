@@ -1,0 +1,19 @@
+{
+  "feedbackDashboard.adminOnlyBody": "प्रतिक्रिया डैशबोर्ड केवल व्यवस्थापकों के लिए उपलब्ध है।",
+  "feedbackDashboard.awaitingReview": "समीक्षा प्रतीक्षित",
+  "feedbackDashboard.byIssueType": "समस्या प्रकार के अनुसार",
+  "feedbackDashboard.byIssueTypeSub": "प्रतिक्रिया कहाँ से आ रही है",
+  "feedbackDashboard.colFeedback": "प्रतिक्रिया",
+  "feedbackDashboard.colWhen": "कब",
+  "feedbackDashboard.loading": "प्रतिक्रिया लोड हो रही है…",
+  "feedbackDashboard.markedAs": "{0} के रूप में चिह्नित किया गया।",
+  "feedbackDashboard.noFeedback": "अभी कोई प्रतिक्रिया नहीं",
+  "feedbackDashboard.recent": "हाल की प्रतिक्रिया",
+  "feedbackDashboard.recentSub": "नवीनतम प्रविष्टियाँ",
+  "feedbackDashboard.statusNew": "नई",
+  "feedbackDashboard.statusResolved": "समाधानित",
+  "feedbackDashboard.statusReviewed": "समीक्षित",
+  "feedbackDashboard.sub": "साधकों द्वारा भेजे गए सुझाव और समस्याएँ",
+  "feedbackDashboard.title": "प्रतिक्रिया डैशबोर्ड",
+  "feedbackDashboard.totalFeedback": "कुल प्रतिक्रिया"
+}

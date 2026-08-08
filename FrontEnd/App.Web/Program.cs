@@ -21,6 +21,8 @@ if (!Uri.IsWellFormedUriString(apiBaseUrl, UriKind.Absolute))
 // Web token/theme storage = browser localStorage.
 builder.Services.AddScoped<ITokenStore, LocalStorageTokenStore>();
 builder.Services.AddScoped<IThemeStore, LocalStorageThemeStore>();
+builder.Services.AddScoped<ILanguageStore, LocalStorageLanguageStore>();
+builder.Services.AddScoped<ILocalizationCache, LocalStorageLocalizationCache>();
 
 builder.Services.AddAppCore(new AppConfig { ApiBaseUrl = apiBaseUrl, Platform = "Web" });
 

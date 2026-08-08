@@ -1,0 +1,20 @@
+{
+  "regions.confirmActivateBody": "Are you sure you want to activate “{0}”?",
+  "regions.confirmDeactivateBody": "Are you sure you want to deactivate “{0}”?",
+  "regions.createRegion": "Create Region",
+  "regions.editRegion": "Edit Region",
+  "regions.languagePlural": "languages",
+  "regions.languageSingular": "language",
+  "regions.languagesHint": "(a region can have several languages)",
+  "regions.latitude": "Latitude",
+  "regions.latitudeHint": "(°N, for Panchangam)",
+  "regions.loadingList": "Loading regions…",
+  "regions.longitude": "Longitude",
+  "regions.longitudeHint": "(°E, for Panchangam)",
+  "regions.noActiveLanguages": "No active languages yet — add them in the Languages master.",
+  "regions.noun": "regions",
+  "regions.nounSingular": "region",
+  "regions.regionName": "Region Name",
+  "regions.sub": "Manage the regions across Sanathana Companion",
+  "regions.title": "Region Master"
+}

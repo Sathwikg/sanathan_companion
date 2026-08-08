@@ -1,0 +1,15 @@
+{
+  "festivals.confirmActivateBody": "Are you sure you want to activate “{0}”?",
+  "festivals.confirmDeactivateBody": "Are you sure you want to deactivate “{0}”?",
+  "festivals.createFestival": "Create Festival",
+  "festivals.editFestival": "Edit Festival",
+  "festivals.emptyBody": "Create a festival for this year to get started.",
+  "festivals.emptyTitleYear": "No festivals for {0}",
+  "festivals.festival": "Festival",
+  "festivals.festivalName": "Festival Name",
+  "festivals.loadingList": "Loading festivals…",
+  "festivals.nounSingular": "festival",
+  "festivals.sub": "Manage festivals by year",
+  "festivals.title": "Festivals",
+  "festivals.withinYear": "(within {0})"
+}

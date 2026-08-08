@@ -1,0 +1,23 @@
+{
+  "myNotifications.activeNow": "Active now",
+  "myNotifications.allNotifications": "All notifications",
+  "myNotifications.anyTime": "Any time of day",
+  "myNotifications.clearWindow": "Clear window",
+  "myNotifications.couldNotLoad": "Could not load your notification settings.",
+  "myNotifications.loadingPrefs": "Loading your preferences…",
+  "myNotifications.mandatoryTooltip": "This notification is required",
+  "myNotifications.masterOff": "Everything is paused — only required notices get through.",
+  "myNotifications.masterOn": "You'll receive the notifications selected below.",
+  "myNotifications.midnightHint": "Crossing midnight is fine (e.g. 22:00 → 06:00).",
+  "myNotifications.noneAvailable": "No notifications available yet",
+  "myNotifications.noneAvailableBody": "An administrator hasn't enabled any notifications. Check back later.",
+  "myNotifications.nowIst": "Now {0} IST",
+  "myNotifications.quietHours": "Quiet hours",
+  "myNotifications.quietHoursHint": "Stay silent during these hours — even for required notices.",
+  "myNotifications.saved": "🔔 Notification preferences saved.",
+  "myNotifications.sub": "Choose what you're notified about, and when",
+  "myNotifications.title": "My Notifications",
+  "myNotifications.whatHeading": "What to notify me about",
+  "myNotifications.whatSub": "Set an optional time window for each",
+  "myNotifications.wouldNotifyNow": "Would notify now"
+}

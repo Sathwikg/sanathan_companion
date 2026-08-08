@@ -1,0 +1,19 @@
+{
+  "feedbackDashboard.adminOnlyBody": "అభిప్రాయ డాష్బోర్డు నిర్వాహకులకు మాత్రమే అందుబాటులో ఉంటుంది.",
+  "feedbackDashboard.awaitingReview": "సమీక్ష కోసం వేచి ఉంది",
+  "feedbackDashboard.byIssueType": "సమస్య రకం వారీగా",
+  "feedbackDashboard.byIssueTypeSub": "అభిప్రాయం ఎక్కడి నుండి వస్తోందో తెలుసుకోండి",
+  "feedbackDashboard.colFeedback": "అభిప్రాయం",
+  "feedbackDashboard.colWhen": "ఎప్పుడు",
+  "feedbackDashboard.loading": "అభిప్రాయం లోడ్ అవుతోంది…",
+  "feedbackDashboard.markedAs": "{0}గా గుర్తించబడింది.",
+  "feedbackDashboard.noFeedback": "ఇంకా అభిప్రాయం లేదు",
+  "feedbackDashboard.recent": "ఇటీవలి అభిప్రాయాలు",
+  "feedbackDashboard.recentSub": "తాజా సమర్పణలు",
+  "feedbackDashboard.statusNew": "కొత్తది",
+  "feedbackDashboard.statusResolved": "పరిష్కృతం",
+  "feedbackDashboard.statusReviewed": "సమీక్షితం",
+  "feedbackDashboard.sub": "సాధకులు పంపిన సూచనలు మరియు సమస్యలు",
+  "feedbackDashboard.title": "అభిప్రాయ డాష్బోర్డు",
+  "feedbackDashboard.totalFeedback": "మొత్తం అభిప్రాయాలు"
+}

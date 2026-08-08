@@ -1,5 +1,6 @@
 @page "/access-rights"
 @attribute [Authorize]
+@inherits LocalizedComponentBase
 @inject IApiClient Api
 @inject ToastService Toast
 
@@ -7,8 +8,8 @@
     <div class="sc-page-title">
         <span class="sc-page-emoji">🔐</span>
         <div>
-            <h1>Access Rights</h1>
-            <p class="sc-page-sub">Choose which forms each role can open on web and mobile</p>
+            <h1>@Loc["accessRights.title", "Access Rights"]</h1>
+            <p class="sc-page-sub">@Loc["accessRights.sub", "Choose which forms each role can open on web and mobile"]</p>
         </div>
     </div>
 </div>

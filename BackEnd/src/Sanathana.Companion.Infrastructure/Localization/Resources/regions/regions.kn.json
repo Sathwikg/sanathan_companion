@@ -1,0 +1,20 @@
+{
+  "regions.confirmActivateBody": "“{0}” ಅನ್ನು ಸಕ್ರಿಯಗೊಳಿಸಲು ನೀವು ಖಚಿತವಾಗಿದ್ದೀರಾ?",
+  "regions.confirmDeactivateBody": "“{0}” ಅನ್ನು ನಿಷ್ಕ್ರಿಯಗೊಳಿಸಲು ನೀವು ಖಚಿತವಾಗಿದ್ದೀರಾ?",
+  "regions.createRegion": "ಪ್ರದೇಶ ರಚಿಸಿ",
+  "regions.editRegion": "ಪ್ರದೇಶ ಸಂಪಾದಿಸಿ",
+  "regions.languagePlural": "ಭಾಷೆಗಳು",
+  "regions.languageSingular": "ಭಾಷೆ",
+  "regions.languagesHint": "(ಒಂದು ಪ್ರದೇಶದಲ್ಲಿ ಹಲವು ಭಾಷೆಗಳಿರಬಹುದು)",
+  "regions.latitude": "ಅಕ್ಷಾಂಶ",
+  "regions.latitudeHint": "(°ಉತ್ತರ, ಪಂಚಾಂಗಕ್ಕಾಗಿ)",
+  "regions.loadingList": "ಪ್ರದೇಶಗಳನ್ನು ಲೋಡ್ ಮಾಡಲಾಗುತ್ತಿದೆ…",
+  "regions.longitude": "ರೇಖಾಂಶ",
+  "regions.longitudeHint": "(°ಪೂರ್ವ, ಪಂಚಾಂಗಕ್ಕಾಗಿ)",
+  "regions.noActiveLanguages": "ಇನ್ನೂ ಯಾವುದೇ ಸಕ್ರಿಯ ಭಾಷೆಗಳಿಲ್ಲ — ಭಾಷಾ ಮಾಸ್ಟರ್‌ನಲ್ಲಿ ಅವುಗಳನ್ನು ಸೇರಿಸಿ.",
+  "regions.noun": "ಪ್ರದೇಶಗಳು",
+  "regions.nounSingular": "ಪ್ರದೇಶ",
+  "regions.regionName": "ಪ್ರದೇಶದ ಹೆಸರು",
+  "regions.sub": "ಸನಾತನ ಕಂಪ್ಯಾನಿಯನ್‌ನಾದ್ಯಂತ ಇರುವ ಪ್ರದೇಶಗಳನ್ನು ನಿರ್ವಹಿಸಿ",
+  "regions.title": "ಪ್ರದೇಶ ಮಾಸ್ಟರ್"
+}

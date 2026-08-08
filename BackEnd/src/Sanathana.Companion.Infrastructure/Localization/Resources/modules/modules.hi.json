@@ -1,0 +1,10 @@
+{
+  "modules.confirmActivateBody": "क्या आप वाकई “{0}” को सक्रिय करना चाहते हैं?",
+  "modules.confirmDeactivateBody": "क्या आप वाकई “{0}” को निष्क्रिय करना चाहते हैं?",
+  "modules.inMenu": "मेन्यू में",
+  "modules.loadingList": "मॉड्यूल लोड हो रहे हैं…",
+  "modules.mainModuleCountMany": "{0} मुख्य मॉड्यूल",
+  "modules.mainModuleCountOne": "{0} मुख्य मॉड्यूल",
+  "modules.nounSingular": "मेन्यू आइटम",
+  "modules.title": "मॉड्यूल और उप-मॉड्यूल"
+}

@@ -1,5 +1,6 @@
 @page "/languages"
 @attribute [Authorize]
+@inherits LocalizedComponentBase
 @inject IApiClient Api
 @inject ConfirmService Confirm
 @inject ToastService Toast
@@ -8,17 +9,17 @@
     <div class="sc-page-title">
         <span class="sc-page-emoji">🗣️</span>
         <div>
-            <h1>Languages</h1>
-            <p class="sc-page-sub">Manage languages and the regions they belong to</p>
+            <h1>@Loc["languages.title", "Languages"]</h1>
+            <p class="sc-page-sub">@Loc["languages.sub", "Manage languages and the regions they belong to"]</p>
         </div>
     </div>
     <div class="sc-page-actions">
         <div class="sc-viewtoggle">
-            <button class="@(_view == "grid" ? "active" : "")" @onclick='() => SetView("grid")'>▦ Cards</button>
-            <button class="@(_view == "list" ? "active" : "")" @onclick='() => SetView("list")'>☰ List</button>
-            <button class="@(_view == "region" ? "active" : "")" @onclick='() => SetView("region")'>🗺️ By Region</button>
+            <button class="@(_view == "grid" ? "active" : "")" @onclick='() => SetView("grid")'>▦ @Loc["common.cardView", "Cards"]</button>
+            <button class="@(_view == "list" ? "active" : "")" @onclick='() => SetView("list")'>☰ @Loc["common.listView", "List"]</button>
+            <button class="@(_view == "region" ? "active" : "")" @onclick='() => SetView("region")'>🗺️ @Loc["languages.byRegionView", "By Region"]</button>
         </div>
-        <button class="sc-btn-primary sc-btn-sm" @onclick="OpenCreate">+ Create</button>
+        <button class="sc-btn-primary sc-btn-sm" @onclick="OpenCreate">+ @Loc["common.create", "Create"]</button>
     </div>
 </div>
 
@@ -27,13 +28,13 @@
     <div class="sc-card sc-filtercard">
         <div class="sc-filters">
             <div class="sc-filter">
-                <label>Region</label>
+                <label>@Loc["common.region", "Region"]</label>
                 <SearchableSelect Options="RegionOptions" Value="@_regionId" ValueChanged="OnRegionChanged"
-                                  EmptyLabel="All regions" SearchPlaceholder="Search regions…" />
+                                  EmptyLabel="@Loc["languages.allRegions", "All regions"]" SearchPlaceholder="@Loc["languages.searchRegions", "Search regions…"]" />
             </div>
             <div class="sc-filter">
-                <label>Search</label>
-                <input class="sc-input sc-input-sm" placeholder="Name, native name or code…" @bind="_search" @bind:event="oninput" @bind:after="ReloadAsync" />
+                <label>@Loc["common.search", "Search"]</label>
+                <input class="sc-input sc-input-sm" placeholder="@Loc["languages.searchPlaceholder", "Name, native name or code…"]" @bind="_search" @bind:event="oninput" @bind:after="ReloadAsync" />
             </div>
         </div>
     </div>
@@ -46,7 +47,7 @@
 
 @if (_loading)
 {
-    <OmLoader FullPage="true" Message="Loading languages…" />
+    <OmLoader FullPage="true" Message="@Loc["common.loading", "Loading…"]" />
 }
 else if (_view == "region")
 {
@@ -54,8 +55,8 @@ else if (_view == "region")
     {
         <div class="sc-card sc-empty-state">
             <div class="sc-empty-om">🗺️</div>
-            <h3>No regions yet</h3>
-            <p>Add regions in the Region Master to map languages to them.</p>
+            <h3>@Loc.TF("msg.noItemsYet", "No {0} yet", Loc["languages.regionsWord", "regions"])</h3>
+            <p>@Loc["languages.noRegionsBody", "Add regions in the Region Master to map languages to them."]</p>
         </div>
     }
     else
@@ -66,12 +67,12 @@ else if (_view == "region")
                 <div class="sc-tile">
                     <div class="sc-tile-top">
                         <div class="sc-tile-badge">🗺️</div>
-                        <span class="sc-badge on">@r.Languages.Count @(r.Languages.Count == 1 ? "language" : "languages")</span>
+                        <span class="sc-badge on">@r.Languages.Count @(r.Languages.Count == 1 ? Loc["languages.entityName", "language"] : Loc["languages.entityPlural", "languages"])</span>
                     </div>
                     <h3 class="sc-tile-title">@r.RegionName</h3>
                     @if (r.Languages.Count == 0)
                     {
-                        <p class="sc-tile-desc">No languages mapped yet</p>
+                        <p class="sc-tile-desc">@Loc["languages.noneMapped", "No languages mapped yet"]</p>
                     }
                     else
                     {
@@ -86,9 +87,11 @@ else if (_list.Count == 0)
 {
     <div class="sc-card sc-empty-state">
         <div class="sc-empty-om">🗣️</div>
-        <h3>No languages found</h3>
-        <p>@(HasFilters ? "No languages match the current filters." : "Create your first language to get started.")</p>
-        <button class="sc-btn-primary sc-btn-sm" @onclick="OpenCreate">+ Create Language</button>
+        <h3>@Loc.TF("msg.noItemsFound", "No {0} found", Loc["languages.entityPlural", "languages"])</h3>
+        <p>@(HasFilters
+                ? Loc.TF("msg.noMatchFilters", "No {0} match the current filters.", Loc["languages.entityPlural", "languages"])
+                : Loc.TF("msg.createFirst", "Create your first {0} to get started.", Loc["languages.entityName", "language"]))</p>
+        <button class="sc-btn-primary sc-btn-sm" @onclick="OpenCreate">+ @Loc["languages.createTitle", "Create Language"]</button>
     </div>
 }
 else if (_view == "grid")
@@ -99,7 +102,7 @@ else if (_view == "grid")
             <div class="sc-tile @(l.IsActive ? "" : "is-inactive")">
                 <div class="sc-tile-top">
                     <div class="sc-tile-badge">🗣️</div>
-                    <span class="sc-badge @(l.IsActive ? "on" : "off")">@(l.IsActive ? "Active" : "Inactive")</span>
+                    <span class="sc-badge @(l.IsActive ? "on" : "off")">@(l.IsActive ? Loc["common.active", "Active"] : Loc["common.inactive", "Inactive"])</span>
                 </div>
                 <h3 class="sc-tile-title">
                     @l.Name
@@ -112,16 +115,16 @@ else if (_view == "grid")
                 {
                     <p class="sc-native">@l.NativeName</p>
                 }
-                <p class="sc-tile-desc">@(string.IsNullOrWhiteSpace(l.Description) ? "No description" : l.Description)</p>
+                <p class="sc-tile-desc">@(string.IsNullOrWhiteSpace(l.Description) ? Loc["common.noDescription", "No description"] : l.Description)</p>
                 @if (l.RegionNames.Count > 0)
                 {
                     <div class="sc-chiprow">@foreach (var r in l.RegionNames) { <span class="sc-minichip">@r</span> }</div>
                 }
                 <div class="sc-tile-foot">
                     <button class="sc-chip @(l.IsActive ? "chip-warn" : "chip-ok")" @onclick="() => ConfirmToggle(l)">
-                        @(l.IsActive ? "Deactivate" : "Activate")
+                        @(l.IsActive ? Loc["common.deactivate", "Deactivate"] : Loc["common.activate", "Activate"])
                     </button>
-                    <button class="sc-btn-ghost sc-btn-sm" @onclick="() => OpenEdit(l)">Edit</button>
+                    <button class="sc-btn-ghost sc-btn-sm" @onclick="() => OpenEdit(l)">@Loc["common.edit", "Edit"]</button>
                 </div>
             </div>
         }
@@ -134,11 +137,11 @@ else
         <table class="sc-table">
             <thead>
                 <tr>
-                    <th>Language</th>
-                    <th>Native Name</th>
-                    <th>Code</th>
-                    <th>Regions</th>
-                    <th>Status</th>
+                    <th>@Loc["common.language", "Language"]</th>
+                    <th>@Loc["languages.nativeName", "Native Name"]</th>
+                    <th>@Loc["languages.code", "Code"]</th>
+                    <th>@Loc["common.regions", "Regions"]</th>
+                    <th>@Loc["common.status", "Status"]</th>
                     <th></th>
                 </tr>
             </thead>
@@ -170,9 +173,9 @@ else
                                 <input type="checkbox" checked="@l.IsActive" @onclick="() => ConfirmToggle(l)" @onclick:preventDefault />
                                 <span class="sc-slider"></span>
                             </label>
-                            <span class="sc-status @(l.IsActive ? "on" : "off")">@(l.IsActive ? "Active" : "Inactive")</span>
+                            <span class="sc-status @(l.IsActive ? "on" : "off")">@(l.IsActive ? Loc["common.active", "Active"] : Loc["common.inactive", "Inactive"])</span>
                         </td>
-                        <td><button class="sc-btn-ghost sc-btn-sm" @onclick="() => OpenEdit(l)">Edit</button></td>
+                        <td><button class="sc-btn-ghost sc-btn-sm" @onclick="() => OpenEdit(l)">@Loc["common.edit", "Edit"]</button></td>
                     </tr>
                 }
             </tbody>
@@ -181,7 +184,7 @@ else
     <Pager Page="_page" PageCount="PageCount" TotalCount="_list.Count" PageSize="PageSize" OnGoTo="GoTo" />
 }
 
-<ScModal Visible="_showForm" Title="@(_editId is null ? "Create Language" : "Edit Language")" OnClose="CloseForm">
+<ScModal Visible="_showForm" Title="@(_editId is null ? Loc["languages.createTitle", "Create Language"] : Loc["languages.editTitle", "Edit Language"])" OnClose="CloseForm">
     <EditForm Model="_model" OnValidSubmit="SaveAsync" class="sc-form">
         <DataAnnotationsValidator />
 
@@ -192,43 +195,43 @@ else
 
         <div class="sc-form-grid">
             <div class="sc-field">
-                <label>Language Name <span class="sc-req">*</span></label>
+                <label>@Loc["languages.nameLabel", "Language Name"] <span class="sc-req">*</span></label>
                 <InputText @bind-Value="_model.Name" class="sc-input" />
                 <ValidationMessage For="() => _model.Name" />
             </div>
             <div class="sc-field">
-                <label>Native Name <span class="sc-optional">(in its own script)</span></label>
+                <label>@Loc["languages.nativeName", "Native Name"] <span class="sc-optional">@Loc["languages.nativeNameHint", "(in its own script)"]</span></label>
                 <InputText @bind-Value="_model.NativeName" class="sc-input" />
                 <ValidationMessage For="() => _model.NativeName" />
             </div>
             <div class="sc-field">
-                <label>Code <span class="sc-optional">(ISO, e.g. te)</span></label>
+                <label>@Loc["languages.code", "Code"] <span class="sc-optional">@Loc["languages.codeHint", "(ISO, e.g. te)"]</span></label>
                 <InputText @bind-Value="_model.Code" class="sc-input" />
                 <ValidationMessage For="() => _model.Code" />
             </div>
             <div class="sc-field">
-                <label>Description</label>
+                <label>@Loc["common.description", "Description"]</label>
                 <InputText @bind-Value="_model.Description" class="sc-input" />
                 <ValidationMessage For="() => _model.Description" />
             </div>
         </div>
 
         <div class="sc-field">
-            <label>Regions <span class="sc-optional">(a language can span several regions)</span></label>
+            <label>@Loc["common.regions", "Regions"] <span class="sc-optional">@Loc["languages.regionsHint", "(a language can span several regions)"]</span></label>
             <MultiSelect Options="RegionOptions" Selected="_selRegions" SelectedChanged="v => _selRegions = v" />
         </div>
 
         <div class="sc-switches">
             <div class="sc-switchrow">
                 <label class="sc-switch"><input type="checkbox" @bind="_model.IsActive" /><span class="sc-slider"></span></label>
-                <span>Active</span>
+                <span>@Loc["common.active", "Active"]</span>
             </div>
         </div>
 
         <div class="sc-modal-actions">
-            <button type="button" class="sc-btn-ghost" @onclick="CloseForm">Cancel</button>
+            <button type="button" class="sc-btn-ghost" @onclick="CloseForm">@Loc["common.cancel", "Cancel"]</button>
             <button type="submit" class="sc-btn-primary" disabled="@_busy">
-                @if (_busy) { <OmLoader Inline="true" Size="18" Message="Saving…" /> } else { <span>@(_editId is null ? "Create" : "Update")</span> }
+                @if (_busy) { <OmLoader Inline="true" Size="18" Message="@Loc["common.saving", "Saving…"]" /> } else { <span>@(_editId is null ? Loc["common.create", "Create"] : Loc["common.update", "Update"])</span> }
             </button>
         </div>
     </EditForm>
@@ -266,6 +269,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        await base.OnInitializedAsync();
         try
         {
             _regions = await Api.GetRegionsAsync();
@@ -352,7 +356,7 @@ else
 
         if (ok)
         {
-            Toast.Success($"Language “{_model.Name}” saved.");
+            Toast.Success(Loc.TF("msg.savedNamed", "“{0}” saved.", _model.Name));
             _showForm = false;
             await ReloadAsync();
         }
@@ -367,16 +371,25 @@ else
         var activate = !l.IsActive;
         var confirmed = await Confirm.ConfirmAsync(new ConfirmRequest
         {
-            Title = activate ? "Activate language?" : "Deactivate language?",
-            Message = $"Are you sure you want to {(activate ? "activate" : "deactivate")} “{l.Name}”?",
-            ConfirmText = activate ? "Yes, activate" : "Yes, deactivate",
-            CancelText = "Cancel",
+            Title = activate
+                ? Loc.TF("common.confirmActivate", "Activate {0}?", Loc["languages.entityName", "language"])
+                : Loc.TF("common.confirmDeactivate", "Deactivate {0}?", Loc["languages.entityName", "language"]),
+            Message = activate
+                ? Loc.TF("languages.confirmActivateBody", "Are you sure you want to activate “{0}”?", l.Name)
+                : Loc.TF("languages.confirmDeactivateBody", "Are you sure you want to deactivate “{0}”?", l.Name),
+            ConfirmText = activate ? Loc["common.yesActivate", "Yes, activate"] : Loc["common.yesDeactivate", "Yes, deactivate"],
+            CancelText = Loc["common.cancel", "Cancel"],
             Kind = activate ? ConfirmKind.Success : ConfirmKind.Warning
         });
         if (!confirmed) return;
 
         var (ok, err) = await Api.SetLanguageStatusAsync(l.Id, activate);
-        if (ok) Toast.Success($"“{l.Name}” has been {(activate ? "activated" : "deactivated")}.");
+        if (ok)
+        {
+            Toast.Success(activate
+                ? Loc.TF("msg.activatedNamed", "“{0}” has been activated.", l.Name)
+                : Loc.TF("msg.deactivatedNamed", "“{0}” has been deactivated.", l.Name));
+        }
         else Toast.Error(err);
         await ReloadAsync();
     }

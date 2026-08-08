@@ -1,5 +1,6 @@
 @page "/panchangam"
 @attribute [Authorize]
+@inherits LocalizedComponentBase
 @implements IDisposable
 @inject IApiClient Api
 @inject ToastService Toast
@@ -11,38 +12,39 @@
     <div class="sc-page-title">
         <span class="sc-page-emoji">🗓️</span>
         <div>
-            <h1>Panchangam</h1>
-            <p class="sc-page-sub">Daily Panchangam by region, or computed for your exact location</p>
+            <h1>@Loc["panchangam.title", "Panchangam"]</h1>
+            <p class="sc-page-sub">@Loc["panchangam.sub", "Daily Panchangam by region, or computed for your exact location"]</p>
         </div>
     </div>
     <div class="sc-page-actions">
         <button class="sc-btn-ghost sc-btn-sm sc-locbtn" @onclick="UseMyLocation" disabled="@_locating">
-            @if (_locating) { <OmLoader Inline="true" Size="16" Message="Locating…" /> } else { <span>📍 My Location</span> }
+            @if (_locating) { <OmLoader Inline="true" Size="16" Message='@Loc["common.locating", "Locating…"]' /> } else { <span>📍 @Loc["panchangam.myLocation", "My Location"]</span> }
         </button>
-        <button class="sc-btn-ghost sc-btn-sm" @onclick="OpenGenerate">⚙ Generate</button>
+        <button class="sc-btn-ghost sc-btn-sm" @onclick="OpenGenerate">⚙ @Loc["panchangam.generate", "Generate"]</button>
     </div>
 </div>
 
 <div class="sc-card sc-filtercard">
     <div class="sc-pchg-bar">
         <div class="sc-filter">
-            <label>Date</label>
+            <label>@Loc["common.date", "Date"]</label>
             <div class="sc-daynav">
-                <button type="button" title="Previous day" @onclick="() => Shift(-1)">‹</button>
+                <button type="button" title="@Loc["panchangam.previousDay", "Previous day"]" @onclick="() => Shift(-1)">‹</button>
                 <input type="date" class="sc-input sc-input-sm" value="@_date.ToString("yyyy-MM-dd")" @onchange="OnDateChanged" />
-                <button type="button" title="Next day" @onclick="() => Shift(1)">›</button>
+                <button type="button" title="@Loc["panchangam.nextDay", "Next day"]" @onclick="() => Shift(1)">›</button>
             </div>
         </div>
         <div class="sc-filter">
-            <label>Region</label>
+            <label>@Loc["common.region", "Region"]</label>
             <SearchableSelect Options="RegionOptions" Value="@_regionId" ValueChanged="OnRegionChanged"
-                              PlaceholderLabel="Select region" SearchPlaceholder="Search regions…" />
+                              PlaceholderLabel='@Loc["panchangam.selectRegion", "Select region"]'
+                              SearchPlaceholder='@Loc["panchangam.searchRegions", "Search regions…"]' />
         </div>
-        <button class="sc-btn-ghost sc-btn-sm" @onclick="GoToday">Today</button>
+        <button class="sc-btn-ghost sc-btn-sm" @onclick="GoToday">@Loc["panchangam.today", "Today"]</button>
     </div>
     @if (_missingCoords)
     {
-        <div class="sc-hint sc-hint-error">This region has no coordinates set — add them in the Region Master to generate its Panchangam.</div>
+        <div class="sc-hint sc-hint-error">@Loc["panchangam.missingCoords", "This region has no coordinates set — add them in the Region Master to generate its Panchangam."]</div>
     }
 </div>
 
@@ -53,14 +55,16 @@
 
 @if (_loading)
 {
-    <OmLoader FullPage="true" Message="Loading Panchangam…" />
+    <OmLoader FullPage="true" Message='@Loc["panchangam.loading", "Loading Panchangam…"]' />
 }
 else if (_current is null)
 {
     <div class="sc-card sc-empty-state">
         <div class="sc-empty-om">🗓️</div>
-        <h3>No Panchangam for this day</h3>
-        <p>@(_missingCoords ? "Set the region's coordinates first." : "No stored data for this date and region. Try “Generate”, or use “My Location” for an on-the-fly calculation.")</p>
+        <h3>@Loc["panchangam.noDataTitle", "No Panchangam for this day"]</h3>
+        <p>@(_missingCoords
+            ? Loc["panchangam.setCoordsFirst", "Set the region's coordinates first."]
+            : Loc["panchangam.noDataBody", "No stored data for this date and region. Try “Generate”, or use “My Location” for an on-the-fly calculation."])</p>
     </div>
 }
 else
@@ -74,7 +78,7 @@ else
                     @if (p.IsComputed)
                     {
                         <span>📍 @p.PlaceLabel</span>
-                        <span class="sc-livechip">Live · your location</span>
+                        <span class="sc-livechip">@Loc["panchangam.liveLocation", "Live · your location"]</span>
                     }
                     else
                     {
@@ -86,69 +90,69 @@ else
 
         <div class="sc-pchg-groups">
             <div class="sc-pchg-group">
-                <h4>Calendar</h4>
-                <PchgRow K="Samvatsaram" V="@p.TeluguSamvatsaram" />
-                <PchgRow K="Masam" V="@p.Masam" />
-                <PchgRow K="Paksham" V="@p.Paksham" />
-                <PchgRow K="Rutuvu" V="@p.Rutuvu" />
-                <PchgRow K="Ayanam" V="@p.Ayanam" />
-                <PchgRow K="Saka / Vikrama" V="@($"{p.SakaSamvatsaram} / {p.VikramaSamvatsaram}")" />
+                <h4>@Loc["panchangam.groupCalendar", "Calendar"]</h4>
+                <PchgRow K='@Loc["panchangam.samvatsaram", "Samvatsaram"]' V="@p.TeluguSamvatsaram" />
+                <PchgRow K='@Loc["panchangam.masam", "Masam"]' V="@p.Masam" />
+                <PchgRow K='@Loc["panchangam.paksham", "Paksham"]' V="@p.Paksham" />
+                <PchgRow K='@Loc["panchangam.rutuvu", "Rutuvu"]' V="@p.Rutuvu" />
+                <PchgRow K='@Loc["panchangam.ayanam", "Ayanam"]' V="@p.Ayanam" />
+                <PchgRow K='@Loc["panchangam.sakaVikrama", "Saka / Vikrama"]' V="@($"{p.SakaSamvatsaram} / {p.VikramaSamvatsaram}")" />
             </div>
 
             <div class="sc-pchg-group">
-                <h4>Day & Elements</h4>
-                <PchgRow K="Vaaram (Day)" V="@p.DayOfWeek" />
-                <PchgRow K="Sunrise" V="@Fmt(p.Sunrise)" />
-                <PchgRow K="Sunset" V="@Fmt(p.Sunset)" />
-                <PchgRow K="Tithi" V="@p.TithiDetails" />
-                <PchgRow K="Nakshatram" V="@p.NakshatramDetails" />
+                <h4>@Loc["panchangam.groupDayElements", "Day & Elements"]</h4>
+                <PchgRow K='@Loc["panchangam.vaaram", "Vaaram (Day)"]' V="@p.DayOfWeek" />
+                <PchgRow K='@Loc["panchangam.sunrise", "Sunrise"]' V="@Fmt(p.Sunrise)" />
+                <PchgRow K='@Loc["panchangam.sunset", "Sunset"]' V="@Fmt(p.Sunset)" />
+                <PchgRow K='@Loc["panchangam.tithi", "Tithi"]' V="@p.TithiDetails" />
+                <PchgRow K='@Loc["panchangam.nakshatram", "Nakshatram"]' V="@p.NakshatramDetails" />
             </div>
 
             <div class="sc-pchg-group good">
-                <h4>Auspicious</h4>
-                <PchgRow K="Abhijit Muhurtham" V="@p.AbhijitMuhurtham" />
-                <PchgRow K="Amrutha Kalam" V="@p.AmruthaKalam" />
+                <h4>@Loc["panchangam.groupAuspicious", "Auspicious"]</h4>
+                <PchgRow K='@Loc["panchangam.abhijitMuhurtham", "Abhijit Muhurtham"]' V="@p.AbhijitMuhurtham" />
+                <PchgRow K='@Loc["panchangam.amruthaKalam", "Amrutha Kalam"]' V="@p.AmruthaKalam" />
             </div>
 
             <div class="sc-pchg-group warn">
-                <h4>Inauspicious</h4>
-                <PchgRow K="Rahu Kalam" V="@p.RahuKalam" />
-                <PchgRow K="Yamagandam" V="@p.Yamagandam" />
-                <PchgRow K="Gulika" V="@p.Gulika" />
-                <PchgRow K="Durmuhurtham" V="@p.Durmuhurtham" />
-                <PchgRow K="Varjyam" V="@p.Varjyam" />
+                <h4>@Loc["panchangam.groupInauspicious", "Inauspicious"]</h4>
+                <PchgRow K='@Loc["panchangam.rahuKalam", "Rahu Kalam"]' V="@p.RahuKalam" />
+                <PchgRow K='@Loc["panchangam.yamagandam", "Yamagandam"]' V="@p.Yamagandam" />
+                <PchgRow K='@Loc["panchangam.gulika", "Gulika"]' V="@p.Gulika" />
+                <PchgRow K='@Loc["panchangam.durmuhurtham", "Durmuhurtham"]' V="@p.Durmuhurtham" />
+                <PchgRow K='@Loc["panchangam.varjyam", "Varjyam"]' V="@p.Varjyam" />
             </div>
         </div>
     </div>
 }
 
-<ScModal Visible="_showGenerate" Title="Generate Panchangam Data" OnClose="() => _showGenerate = false">
+<ScModal Visible="_showGenerate" Title='@Loc["panchangam.generateTitle", "Generate Panchangam Data"]' OnClose="() => _showGenerate = false">
     <div class="sc-form">
-        <p class="sc-muted">Compute and store a full year for a region. Existing days are skipped unless you overwrite.</p>
+        <p class="sc-muted">@Loc["panchangam.generateHelp", "Compute and store a full year for a region. Existing days are skipped unless you overwrite."]</p>
         <div class="sc-form-grid">
             <div class="sc-field">
-                <label>Year</label>
+                <label>@Loc["common.year", "Year"]</label>
                 <InputNumber @bind-Value="_genYear" class="sc-input" />
             </div>
             <div class="sc-field">
-                <label>Region</label>
+                <label>@Loc["common.region", "Region"]</label>
                 <select class="sc-input" @bind="_genRegionId">
-                    <option value="">All regions with coordinates</option>
+                    <option value="">@Loc["panchangam.allRegionsWithCoords", "All regions with coordinates"]</option>
                     @foreach (var r in _options.Regions)
                     {
-                        <option value="@r.Id" disabled="@(!r.HasCoordinates)">@r.Name @(r.HasCoordinates ? "" : "(no coordinates)")</option>
+                        <option value="@r.Id" disabled="@(!r.HasCoordinates)">@r.Name @(r.HasCoordinates ? "" : Loc["panchangam.noCoordinates", "(no coordinates)"])</option>
                     }
                 </select>
             </div>
         </div>
         <div class="sc-switchrow">
             <label class="sc-switch"><input type="checkbox" @bind="_genOverwrite" /><span class="sc-slider"></span></label>
-            <span>Overwrite existing days</span>
+            <span>@Loc["panchangam.overwriteExisting", "Overwrite existing days"]</span>
         </div>
         <div class="sc-modal-actions">
-            <button type="button" class="sc-btn-ghost" @onclick="() => _showGenerate = false">Cancel</button>
+            <button type="button" class="sc-btn-ghost" @onclick="() => _showGenerate = false">@Loc["common.cancel", "Cancel"]</button>
             <button type="button" class="sc-btn-primary" disabled="@_generating" @onclick="RunGenerate">
-                @if (_generating) { <OmLoader Inline="true" Size="18" Message="Generating…" /> } else { <span>Generate</span> }
+                @if (_generating) { <OmLoader Inline="true" Size="18" Message='@Loc["common.generating", "Generating…"]' /> } else { <span>@Loc["panchangam.generate", "Generate"]</span> }
             </button>
         </div>
     </div>
@@ -176,11 +180,13 @@ else
 
     private List<SelectOption> RegionOptions =>
         _options.Regions.Select(r => new SelectOption(r.Id.ToString(), r.Name))
-            .Prepend(new SelectOption(CurrentLocationValue, "📍 My Current Location"))
+            .Prepend(new SelectOption(CurrentLocationValue, "📍 " + Loc["panchangam.myCurrentLocation", "My Current Location"]))
             .ToList();
 
     protected override async Task OnInitializedAsync()
     {
+        await base.OnInitializedAsync();
+
         Region.OnChanged += OnGlobalRegionChanged;
         await Region.EnsureLoadedAsync();
 
@@ -215,7 +221,11 @@ else
             StateHasChanged();
         });
 
-    public void Dispose() => Region.OnChanged -= OnGlobalRegionChanged;
+    public override void Dispose()
+    {
+        Region.OnChanged -= OnGlobalRegionChanged;
+        base.Dispose();
+    }
 
     private async Task LoadStoredAsync()
     {
@@ -290,12 +300,13 @@ else
             }
             else
             {
-                _current = await Api.ComputePanchangamAsync(geo.Latitude, geo.Longitude, _date, "My current location");
+                _current = await Api.ComputePanchangamAsync(geo.Latitude, geo.Longitude, _date, Loc["panchangam.myCurrentLocation", "My Current Location"]);
                 if (_current is not null)
-                    Toast.Success($"Panchangam computed for your location ({geo.Latitude:F3}, {geo.Longitude:F3}).");
+                    Toast.Success(Loc.TF("panchangam.computedForLocation", "Panchangam computed for your location ({0}, {1}).",
+                        geo.Latitude.ToString("F3"), geo.Longitude.ToString("F3")));
             }
         }
-        catch (Exception ex) { _geoError = "Could not compute for your location. " + ex.Message; _current = null; }
+        catch (Exception ex) { _geoError = Loc["panchangam.couldNotCompute", "Could not compute for your location."] + " " + ex.Message; _current = null; }
         finally { _locating = false; }
     }
 
@@ -322,7 +333,8 @@ else
 
         if (ok && result is not null)
         {
-            Toast.Success($"Generated {result.Created} new, {result.Updated} updated, {result.Skipped} skipped for [{string.Join(", ", result.Regions)}].");
+            Toast.Success(Loc.TF("panchangam.generateResult", "Generated {0} new, {1} updated, {2} skipped for [{3}].",
+                result.Created, result.Updated, result.Skipped, string.Join(", ", result.Regions)));
             foreach (var w in result.Warnings) Toast.Info(w);
             _showGenerate = false;
             _options = await Api.GetPanchangamOptionsAsync();

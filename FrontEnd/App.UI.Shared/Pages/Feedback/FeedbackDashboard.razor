@@ -1,5 +1,6 @@
 @page "/feedback-dashboard"
 @attribute [Authorize]
+@inherits LocalizedComponentBase
 @inject IApiClient Api
 @inject ToastService Toast
 
@@ -7,22 +8,22 @@
     <div class="sc-page-title">
         <span class="sc-page-emoji">📊</span>
         <div>
-            <h1>Feedback Dashboard</h1>
-            <p class="sc-page-sub">Suggestions and issues sent by seekers</p>
+            <h1>@Loc["feedbackDashboard.title", "Feedback Dashboard"]</h1>
+            <p class="sc-page-sub">@Loc["feedbackDashboard.sub", "Suggestions and issues sent by seekers"]</p>
         </div>
     </div>
 </div>
 
 @if (_loading)
 {
-    <OmLoader FullPage="true" Message="Loading feedback…" />
+    <OmLoader FullPage="true" Message="@Loc["feedbackDashboard.loading", "Loading feedback…"]" />
 }
 else if (_forbidden)
 {
     <div class="sc-card sc-empty-state">
         <div class="sc-empty-om">🔒</div>
-        <h3>Administrator access required</h3>
-        <p>The feedback dashboard is available to administrators only.</p>
+        <h3>@Loc["common.adminOnly", "Administrator access required"]</h3>
+        <p>@Loc["feedbackDashboard.adminOnlyBody", "The feedback dashboard is available to administrators only."]</p>
     </div>
 }
 else if (_error is not null)
@@ -32,15 +33,15 @@ else if (_error is not null)
 else if (_model is not null)
 {
     <div class="sc-stat-grid">
-        <StatCard Icon="💬" Value="@_model.Total.ToString("N0")" Label="Total Feedback" Accent="true" />
-        <StatCard Icon="🆕" Value="@_model.New.ToString("N0")" Label="New" Sub="awaiting review" />
-        <StatCard Icon="👀" Value="@_model.Reviewed.ToString("N0")" Label="Reviewed" />
-        <StatCard Icon="✅" Value="@_model.Resolved.ToString("N0")" Label="Resolved" />
+        <StatCard Icon="💬" Value="@_model.Total.ToString("N0")" Label="@Loc["feedbackDashboard.totalFeedback", "Total Feedback"]" Accent="true" />
+        <StatCard Icon="🆕" Value="@_model.New.ToString("N0")" Label="@Loc["feedbackDashboard.statusNew", "New"]" Sub="@Loc["feedbackDashboard.awaitingReview", "awaiting review"]" />
+        <StatCard Icon="👀" Value="@_model.Reviewed.ToString("N0")" Label="@Loc["feedbackDashboard.statusReviewed", "Reviewed"]" />
+        <StatCard Icon="✅" Value="@_model.Resolved.ToString("N0")" Label="@Loc["feedbackDashboard.statusResolved", "Resolved"]" />
     </div>
 
     @if (_model.ByIssueType.Count > 0)
     {
-        <div class="sc-section-head"><h2>🏷️ By Issue Type</h2><span class="sc-section-sub">Where the feedback is coming from</span></div>
+        <div class="sc-section-head"><h2>🏷️ @Loc["feedbackDashboard.byIssueType", "By Issue Type"]</h2><span class="sc-section-sub">@Loc["feedbackDashboard.byIssueTypeSub", "Where the feedback is coming from"]</span></div>
         <div class="sc-card">
             <div class="sc-bars">
                 @foreach (var b in _model.ByIssueType)
@@ -55,17 +56,23 @@ else if (_model is not null)
         </div>
     }
 
-    <div class="sc-section-head"><h2>🕒 Recent Feedback</h2><span class="sc-section-sub">Latest submissions</span></div>
+    <div class="sc-section-head"><h2>🕒 @Loc["feedbackDashboard.recent", "Recent Feedback"]</h2><span class="sc-section-sub">@Loc["feedbackDashboard.recentSub", "Latest submissions"]</span></div>
     @if (_model.Recent.Count == 0)
     {
-        <div class="sc-card sc-empty-state"><div class="sc-empty-om">💬</div><h3>No feedback yet</h3></div>
+        <div class="sc-card sc-empty-state"><div class="sc-empty-om">💬</div><h3>@Loc["feedbackDashboard.noFeedback", "No feedback yet"]</h3></div>
     }
     else
     {
         <div class="sc-card sc-tablewrap">
             <table class="sc-table">
                 <thead>
-                    <tr><th>Type</th><th>Feedback</th><th>From</th><th>When</th><th>Status</th></tr>
+                    <tr>
+                        <th>@Loc["common.type", "Type"]</th>
+                        <th>@Loc["feedbackDashboard.colFeedback", "Feedback"]</th>
+                        <th>@Loc["common.from", "From"]</th>
+                        <th>@Loc["feedbackDashboard.colWhen", "When"]</th>
+                        <th>@Loc["common.status", "Status"]</th>
+                    </tr>
                 </thead>
                 <tbody>
                     @foreach (var f in _model.Recent)
@@ -78,9 +85,9 @@ else if (_model is not null)
                             <td>
                                 <select class="sc-input sc-input-sm sc-status-@f.Status.ToLower()" value="@f.Status"
                                         @onchange="e => ChangeStatusAsync(f, e.Value?.ToString())">
-                                    <option value="New">New</option>
-                                    <option value="Reviewed">Reviewed</option>
-                                    <option value="Resolved">Resolved</option>
+                                    <option value="New">@Loc["feedbackDashboard.statusNew", "New"]</option>
+                                    <option value="Reviewed">@Loc["feedbackDashboard.statusReviewed", "Reviewed"]</option>
+                                    <option value="Resolved">@Loc["feedbackDashboard.statusResolved", "Resolved"]</option>
                                 </select>
                             </td>
                         </tr>
@@ -97,7 +104,11 @@ else if (_model is not null)
     private bool _forbidden;
     private string? _error;
 
-    protected override async Task OnInitializedAsync() => await LoadAsync();
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        await LoadAsync();
+    }
 
     private async Task LoadAsync()
     {
@@ -121,7 +132,7 @@ else if (_model is not null)
         var (ok, err) = await Api.SetFeedbackStatusAsync(f.Id, status);
         if (ok)
         {
-            Toast.Success($"Marked as {status}.");
+            Toast.Success(Loc.TF("feedbackDashboard.markedAs", "Marked as {0}.", status));
             await LoadAsync();
         }
         else

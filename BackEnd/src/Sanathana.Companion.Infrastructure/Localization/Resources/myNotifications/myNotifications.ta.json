@@ -1,0 +1,23 @@
+{
+  "myNotifications.activeNow": "இப்போது செயலில்",
+  "myNotifications.allNotifications": "அனைத்து அறிவிப்புகள்",
+  "myNotifications.anyTime": "நாளின் எந்த நேரமும்",
+  "myNotifications.clearWindow": "நேர வரம்பை அழி",
+  "myNotifications.couldNotLoad": "உங்கள் அறிவிப்பு அமைப்புகளை ஏற்ற முடியவில்லை.",
+  "myNotifications.loadingPrefs": "உங்கள் விருப்பங்களை ஏற்றுகிறது…",
+  "myNotifications.mandatoryTooltip": "இந்த அறிவிப்பு கட்டாயமானது",
+  "myNotifications.masterOff": "அனைத்தும் நிறுத்தப்பட்டுள்ளன — கட்டாய அறிவிப்புகள் மட்டுமே வரும்.",
+  "myNotifications.masterOn": "கீழே தேர்ந்தெடுக்கப்பட்ட அறிவிப்புகளை நீங்கள் பெறுவீர்கள்.",
+  "myNotifications.midnightHint": "நள்ளிரவைக் கடப்பதில் சிக்கல் இல்லை (எ.கா. 22:00 → 06:00).",
+  "myNotifications.noneAvailable": "இன்னும் அறிவிப்புகள் எதுவும் இல்லை",
+  "myNotifications.noneAvailableBody": "நிர்வாகி இன்னும் எந்த அறிவிப்பையும் இயக்கவில்லை. பிறகு பாருங்கள்.",
+  "myNotifications.nowIst": "இப்போது {0} இந்திய நேரம்",
+  "myNotifications.quietHours": "அமைதி நேரம்",
+  "myNotifications.quietHoursHint": "இந்த நேரங்களில் அமைதியாக இருக்கும் — கட்டாய அறிவிப்புகளுக்கும் கூட.",
+  "myNotifications.saved": "🔔 அறிவிப்பு விருப்பங்கள் சேமிக்கப்பட்டன.",
+  "myNotifications.sub": "உங்களுக்கு எதைப் பற்றி, எப்போது அறிவிக்க வேண்டும் என்பதைத் தேர்ந்தெடுக்கவும்",
+  "myNotifications.title": "என் அறிவிப்புகள்",
+  "myNotifications.whatHeading": "எதைப் பற்றி எனக்கு அறிவிக்க வேண்டும்",
+  "myNotifications.whatSub": "ஒவ்வொன்றுக்கும் விருப்பமான நேர வரம்பை அமைக்கவும்",
+  "myNotifications.wouldNotifyNow": "இப்போது அறிவிக்கும்"
+}

@@ -1,0 +1,18 @@
+{
+  "msg.saved": "Saved.",
+  "msg.savedNamed": "“{0}” saved.",
+  "msg.deletedNamed": "“{0}” was deleted.",
+  "msg.activatedNamed": "“{0}” has been activated.",
+  "msg.deactivatedNamed": "“{0}” has been deactivated.",
+  "msg.couldNotSave": "Could not save. Please try again.",
+  "msg.couldNotLoad": "Could not load the data. Please try again.",
+  "msg.requestFailed": "Request failed ({0}).",
+  "msg.noItemsYet": "No {0} yet",
+  "msg.noItemsFound": "No {0} found",
+  "msg.noMatchFilters": "No {0} match the current filters.",
+  "msg.createFirst": "Create your first {0} to get started.",
+  "msg.fieldRequired": "{0} is required.",
+  "msg.languageSaved": "Language settings saved.",
+  "msg.translationSaved": "Translation saved.",
+  "msg.accessRightsSaved": "Access rights saved."
+}

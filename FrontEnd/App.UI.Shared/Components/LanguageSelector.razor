@@ -1,0 +1,35 @@
+@* Top-bar language switcher. Independent of the region picker beside it. *@
+@implements IDisposable
+@inject LocalizationState Loc
+
+@if (Loc.Locales.Count > 1)
+{
+    <div class="sc-langpick" title="@Loc["nav.selectLanguage", "Select language"]">
+        <span class="sc-langpick-ic">🌐</span>
+        <select class="sc-langpick-select" value="@Loc.CurrentCode" @onchange="OnChangedAsync"
+                aria-label="@Loc["nav.selectLanguage", "Select language"]">
+            @foreach (var l in Loc.Locales)
+            {
+                <option value="@l.Code">@l.DisplayName</option>
+            }
+        </select>
+    </div>
+}
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        Loc.OnChanged += Changed;
+        await Loc.EnsureLoadedAsync();
+    }
+
+    private void Changed() => InvokeAsync(StateHasChanged);
+
+    private async Task OnChangedAsync(ChangeEventArgs e)
+    {
+        var code = e.Value?.ToString();
+        if (!string.IsNullOrWhiteSpace(code)) await Loc.SelectAsync(code!);
+    }
+
+    public void Dispose() => Loc.OnChanged -= Changed;
+}

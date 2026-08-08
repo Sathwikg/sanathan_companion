@@ -1,0 +1,16 @@
+{
+  "chants.chantName": "మంత్రం పేరు",
+  "chants.confirmActivateBody": "“{0}”ను సక్రియం చేయాలని ఖచ్చితంగా అనుకుంటున్నారా?",
+  "chants.confirmDeactivateBody": "“{0}”ను నిష్క్రియం చేయాలని ఖచ్చితంగా అనుకుంటున్నారా?",
+  "chants.countExists": "సంఖ్య ఉంది",
+  "chants.countValue": "సంఖ్య: {0}",
+  "chants.createChant": "మంత్రాన్ని సృష్టించు",
+  "chants.editChant": "మంత్రాన్ని సవరించు",
+  "chants.emptyBody": "ప్రారంభించడానికి మీ మొదటి మంత్రాన్ని సృష్టించండి.",
+  "chants.emptyTitle": "ఇంకా మంత్రాలు లేవు",
+  "chants.entity": "మంత్రం",
+  "chants.gridView": "గ్రిడ్",
+  "chants.loading": "మంత్రాలు లోడ్ అవుతున్నాయి…",
+  "chants.sub": "మంత్రాలను, వాటి జప సంఖ్యలను నిర్వహించండి",
+  "chants.title": "మంత్రాలు"
+}

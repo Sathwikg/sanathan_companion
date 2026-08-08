@@ -17,6 +17,11 @@ public static class CoreServiceCollectionExtensions
         services.AddSingleton(config);
 
         services.AddScoped<BearerTokenHandler>();
+        // SINGLETON, not scoped: HttpClientFactory resolves message handlers from its own scope, so
+        // a scoped context would give LanguageHeaderHandler a different instance than the one
+        // LocalizationState writes to — and every request would ship a stale language.
+        services.AddSingleton<LanguageContext>();
+        services.AddScoped<LanguageHeaderHandler>();
         services.AddScoped<JwtAuthenticationStateProvider>();
         services.AddScoped<AuthenticationStateProvider>(sp => sp.GetRequiredService<JwtAuthenticationStateProvider>());
         services.AddAuthorizationCore();
@@ -29,12 +34,15 @@ public static class CoreServiceCollectionExtensions
         // acts on the very same instances the components inject.
         services.AddScoped<FavoritesState>();
         services.AddScoped<RegionState>();
+        services.AddScoped<LocalizationState>();
         services.AddScoped<IUserSessionState>(sp => sp.GetRequiredService<FavoritesState>());
         services.AddScoped<IUserSessionState>(sp => sp.GetRequiredService<RegionState>());
 
         var baseUrl = config.ApiBaseUrl.EndsWith('/') ? config.ApiBaseUrl : config.ApiBaseUrl + "/";
         services.AddHttpClient<IApiClient, ApiClient>(client => client.BaseAddress = new Uri(baseUrl))
-            .AddHttpMessageHandler<BearerTokenHandler>();
+            .AddHttpMessageHandler<BearerTokenHandler>()
+            // Stamps X-App-Language so the server translates database text for this user.
+            .AddHttpMessageHandler<LanguageHeaderHandler>();
 
         return services;
     }
