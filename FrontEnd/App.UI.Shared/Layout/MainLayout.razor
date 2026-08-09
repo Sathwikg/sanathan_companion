@@ -3,6 +3,7 @@
 @inject NavigationManager Nav
 @inject LocalizationState Loc
 @inject LanguageContext LangContext
+@inject IJSRuntime JS
 @implements IDisposable
 
 <div class="sc-shell">
@@ -12,6 +13,9 @@
             <OmLogo Size="34" />
             <span class="sc-brand-text">@Loc["auth.appName", "Sanathan Companion"]</span>
         </div>
+        @* Below the drawer breakpoint this whole group is hidden and its contents move into the
+           drawer instead. Wrapping it onto a second row was the alternative, but that spends ~14%
+           of a phone screen on chrome; relocating is the adaptive answer. *@
         <div class="sc-topbar-right">
             <AuthorizeView>
                 <Authorized>
@@ -37,9 +41,39 @@
     </header>
 
     <div class="sc-body">
+        @* Rendered only while open, and only visible below the breakpoint: catching taps outside
+           the drawer is the gesture users reach for first on a phone. *@
+        @if (_sidebarOpen)
+        {
+            <div class="sc-scrim" @onclick="CloseSidebar" aria-hidden="true"></div>
+        }
+
         <aside class="sc-sidebar @(_sidebarOpen ? "open" : "closed")">
             <NavSidebar />
+
+            @* The topbar controls, relocated. Hidden above the breakpoint, where the bar has room. *@
+            <div class="sc-drawer-tools">
+                <AuthorizeView>
+                    <Authorized>
+                        <RegionSelector />
+                    </Authorized>
+                </AuthorizeView>
+                <LanguageSelector />
+                <div class="sc-drawer-tools-row">
+                    <ThemeToggle />
+                    <AuthorizeView>
+                        <Authorized>
+                            <NavLink class="sc-user sc-user-link" href="profile">
+                                <span class="sc-user-ic">👤</span>
+                                <span class="sc-user-name">@context.User.FindFirst("fullName")?.Value</span>
+                            </NavLink>
+                            <button class="sc-btn-ghost sc-btn-sm" @onclick="LogoutAsync">@Loc["common.logout", "Logout"]</button>
+                        </Authorized>
+                    </AuthorizeView>
+                </div>
+            </div>
         </aside>
+
         <main class="sc-content">
             @* No @key here: @Body is a RenderFragment owned by the Router, so keying it would not
                re-instantiate the page. The language key lives on AuthorizeRouteView in Routes.razor. *@
@@ -52,7 +86,12 @@
 </div>
 
 @code {
-    private bool _sidebarOpen = true;
+    /// <summary>
+    /// Closed is the only safe default: below 820px the sidebar is a fixed drawer, so starting
+    /// open covered two thirds of a phone screen on first paint with no obvious way out. Above the
+    /// breakpoint CSS pins the rail open regardless of this flag, so desktop is unaffected.
+    /// </summary>
+    private bool _sidebarOpen;
 
     protected override async Task OnInitializedAsync()
     {
@@ -63,7 +102,18 @@
     }
 
     // The server needs the current route to honour the per-form opt-out on the Forms tab.
-    private void RouteChanged(object? sender, LocationChangedEventArgs e) => SetRoute();
+    private void RouteChanged(object? sender, LocationChangedEventArgs e)
+    {
+        SetRoute();
+
+        // Tapping a nav link should reveal the page, not leave the drawer sitting on top of it.
+        // Harmless on desktop, where the flag no longer controls visibility.
+        if (_sidebarOpen)
+        {
+            _sidebarOpen = false;
+            InvokeAsync(StateHasChanged);
+        }
+    }
 
     private void SetRoute()
         => LangContext.Route = "/" + Nav.ToBaseRelativePath(Nav.Uri).Split('?')[0].Split('#')[0].Trim('/');
@@ -71,7 +121,27 @@
     // The shell owns the topbar text, so it has to redraw when the language changes.
     private void LanguageChanged() => InvokeAsync(StateHasChanged);
 
+    private bool _scrollLocked;
+
     private void ToggleSidebar() => _sidebarOpen = !_sidebarOpen;
+
+    private void CloseSidebar() => _sidebarOpen = false;
+
+    /// <summary>
+    /// The drawer only overlays content below the breakpoint, but locking on desktop too is
+    /// harmless there — the rail is in normal flow, so nothing is covering the page to scroll past.
+    /// Kept in sync after every render rather than in the click handlers, so navigation-driven
+    /// closes release the lock as well.
+    /// </summary>
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_sidebarOpen == _scrollLocked) return;
+
+        _scrollLocked = _sidebarOpen;
+        try { await JS.InvokeVoidAsync(_sidebarOpen ? "scScroll.lock" : "scScroll.release"); }
+        catch (JSDisconnectedException) { }
+        catch (InvalidOperationException) { }
+    }
 
     private async Task LogoutAsync()
     {
@@ -83,5 +153,11 @@
     {
         Loc.OnChanged -= LanguageChanged;
         Nav.LocationChanged -= RouteChanged;
+
+        if (_scrollLocked)
+        {
+            // Fire-and-forget: Dispose cannot await, and a stranded lock would freeze the page.
+            _ = JS.InvokeVoidAsync("scScroll.reset").AsTask();
+        }
     }
 }

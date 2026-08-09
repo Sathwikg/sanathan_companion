@@ -16,6 +16,16 @@
   --color-on-error: #FFFFFF;
   --color-success: #2E7D32;
 
+  /* Referenced across app.css (group header rows, progress tracks, muted chips) but previously
+     never defined, so those rules silently resolved to nothing. Sticky table columns need an
+     OPAQUE cell background or scrolled content smears through them. */
+  --color-surface-2: #F3EDE0;
+  --color-text: var(--color-on-surface);
+  --color-text-muted: var(--color-secondary);
+
+  /* Tells the browser to render native controls, scrollbars and form widgets in the right theme. */
+  color-scheme: light;
+
   /* Indic faces are appended to every stack so Telugu, Devanagari, Tamil and Kannada text
      renders with real glyphs instead of tofu boxes. "Nirmala UI" ships with Windows and the
      Noto families with Android/ChromeOS, so no webfont download is required. */
@@ -48,6 +58,10 @@
 }
 
 :root[data-theme="dark"] {
+  color-scheme: dark;
+  --color-surface-2: #362413;
+  --color-text: var(--color-on-surface);
+  --color-text-muted: var(--color-secondary);
   --color-primary: #F39F5A;
   --color-on-primary: #1E140B;
   --color-primary-container: #5A2A04;

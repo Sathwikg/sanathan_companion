@@ -1,4 +1,6 @@
 @* Reusable popup modal shell (header + close + body). Themed to match the app. *@
+@implements IAsyncDisposable
+@inject IJSRuntime JS
 @if (Visible)
 {
     <div class="sc-modal-backdrop" @onclick="CloseAsync">
@@ -20,5 +22,35 @@
     [Parameter] public RenderFragment? ChildContent { get; set; }
     [Parameter] public EventCallback OnClose { get; set; }
 
+    private bool _locked;
+
     private Task CloseAsync() => OnClose.InvokeAsync();
+
+    /// <summary>
+    /// Holds the body-scroll lock for exactly as long as the dialog is on screen. Tracked with a
+    /// flag because Visible can be re-set to the same value on any render, and the lock is counted.
+    /// </summary>
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Visible == _locked) return;
+
+        _locked = Visible;
+        await SafeInvokeAsync(Visible ? "scScroll.lock" : "scScroll.release");
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        // A modal can be torn down while still open (page navigation), which would strand the lock.
+        if (_locked) await SafeInvokeAsync("scScroll.release");
+    }
+
+    private async Task SafeInvokeAsync(string fn)
+    {
+        // Prerender and teardown both make interop unavailable; a stuck scrollbar is not worth
+        // crashing a dialog over.
+        try { await JS.InvokeVoidAsync(fn); }
+        catch (JSDisconnectedException) { }
+        catch (InvalidOperationException) { }
+        catch (TaskCanceledException) { }
+    }
 }
