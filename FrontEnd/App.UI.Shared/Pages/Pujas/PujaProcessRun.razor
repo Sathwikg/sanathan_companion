@@ -2,7 +2,6 @@
 @attribute [Authorize]
 @inherits LocalizedComponentBase
 @inject IApiClient Api
-@inject ConfirmService Confirm
 @inject ToastService Toast
 
 <div class="sc-page-head">
@@ -66,10 +65,6 @@ else
                     <button type="button" class="sc-tile sc-puja-pick" @onclick="() => OpenAsync(p.PujaId)">
                         <div class="sc-tile-top">
                             <div class="sc-tile-badge">🛐</div>
-                            @if (p.IsCompleted)
-                            {
-                                <span class="sc-badge on">✓ @Loc["pujaProcess.done", "Completed"]</span>
-                            }
                         </div>
                         <h3 class="sc-tile-title">@p.Name</h3>
                         <p class="sc-tile-desc">@p.Description</p>
@@ -82,7 +77,7 @@ else
                             {
                                 <span class="sc-minichip">🕉️ @p.DeityName</span>
                             }
-                            <span class="sc-minichip">@Loc.TF("pujaProcess.stepsOf", "{0} of {1} steps", p.CompletedCount, p.StepCount)</span>
+                            <span class="sc-minichip">@Loc.TF("pujaProcess.stepCount", "{0} steps", p.StepCount)</span>
                         </div>
                     </button>
                 }
@@ -123,7 +118,7 @@ else
             <div class="sc-progress-track"><div class="sc-progress-fill" style="width:@(_process.PercentComplete)%"></div></div>
             @if (_process.CompletedCount > 0)
             {
-                <button type="button" class="sc-linkbtn" @onclick="ResetAsync">@Loc["pujaProcess.startOver", "Start over"]</button>
+                <button type="button" class="sc-linkbtn" @onclick="StartOver">@Loc["pujaProcess.startOver", "Start over"]</button>
             }
         </div>
 
@@ -156,7 +151,7 @@ else
         {
             var isNext = !s.IsCompleted && s.StepNumber == _process.CurrentStepNumber;
             <div class="sc-card sc-runstep @(s.IsCompleted ? "done" : null) @(isNext ? "next" : null)">
-                <button type="button" class="sc-runstep-check" @onclick="() => ToggleAsync(s)"
+                <button type="button" class="sc-runstep-check" @onclick="() => ToggleStep(s)"
                         title="@(s.IsCompleted ? Loc["pujaProcess.undo", "Mark as not done"] : Loc["pujaProcess.markDone", "Mark done"])">
                     @(s.IsCompleted ? "✓" : s.StepNumber.ToString())
                 </button>
@@ -236,55 +231,26 @@ else
             Guid.TryParse(_festivalId, out var id) ? id : null);
     }
 
-    private async Task ToggleAsync(PujaStepViewModel step)
+    /// <summary>
+    /// Ticking a step is page state only — nothing is sent to the server. A puja is performed
+    /// afresh each time, so leaving and coming back should offer a clean slate rather than
+    /// restoring a half-finished attempt.
+    /// </summary>
+    private void ToggleStep(PujaStepViewModel step)
     {
         if (_process is null) return;
 
-        var wasCompleted = step.IsCompleted;
+        var wasCompleted = _process.IsCompleted;
+        step.IsCompleted = !step.IsCompleted;
 
-        // Flip locally first so the tap feels immediate, then reconcile with the server's counts.
-        step.IsCompleted = !wasCompleted;
-
-        var result = wasCompleted
-            ? await Api.UndoPujaStepAsync(step.StepId)
-            : await Api.CompletePujaStepAsync(step.StepId);
-
-        if (result is null)
-        {
-            step.IsCompleted = wasCompleted;   // roll back the optimistic flip
-            Toast.Error(Loc["pujaProcess.couldNotSave", "Could not save your progress."]);
-            return;
-        }
-
-        var justFinished = result.IsCompleted && !_process.IsCompleted;
-
-        _process.CompletedCount = result.CompletedCount;
-        _process.TotalSteps = result.TotalSteps;
-        _process.IsCompleted = result.IsCompleted;
-        _process.CurrentStepNumber = result.CurrentStepNumber;
-
-        if (justFinished) Toast.Success(Loc["pujaProcess.completedTitle", "Puja completed"]);
+        if (!wasCompleted && _process.IsCompleted)
+            Toast.Success(Loc["pujaProcess.completedTitle", "Puja completed"]);
     }
 
-    private async Task ResetAsync()
+    /// <summary>Clears the tick marks. No confirmation needed — nothing durable is being lost.</summary>
+    private void StartOver()
     {
         if (_process is null) return;
-
-        var confirmed = await Confirm.ConfirmAsync(
-            Loc["pujaProcess.startOver", "Start over"],
-            Loc["pujaProcess.startOverBody", "This clears every completed step for this puja so you can perform it again."],
-            Loc["pujaProcess.startOver", "Start over"],
-            Loc["common.cancel", "Cancel"],
-            ConfirmKind.Warning);
-
-        if (!confirmed) return;
-
-        var result = await Api.ResetPujaProgressAsync(_process.PujaId);
-        if (result is null) { Toast.Error(Loc["pujaProcess.couldNotSave", "Could not save your progress."]); return; }
-
         foreach (var s in _process.Steps) s.IsCompleted = false;
-        _process.CompletedCount = result.CompletedCount;
-        _process.IsCompleted = result.IsCompleted;
-        _process.CurrentStepNumber = result.CurrentStepNumber;
     }
 }

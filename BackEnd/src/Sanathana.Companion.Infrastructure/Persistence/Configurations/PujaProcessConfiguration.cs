@@ -69,32 +69,3 @@ public class PujaStepTextConfiguration : IEntityTypeConfiguration<PujaStepText>
             .HasForeignKey(x => x.LanguageId).OnDelete(DeleteBehavior.Restrict);
     }
 }
-
-public class UserPujaStepProgressConfiguration : IEntityTypeConfiguration<UserPujaStepProgress>
-{
-    public void Configure(EntityTypeBuilder<UserPujaStepProgress> builder)
-    {
-        builder.ToTable("UserPujaStepProgress");
-        builder.HasKey(x => x.Id);
-        builder.Property(x => x.Id).ValueGeneratedNever();
-
-        builder.Property(x => x.CreatedBy).HasMaxLength(100);
-        builder.Property(x => x.ModifiedBy).HasMaxLength(100);
-
-        // A step can only be completed once per user; the unique index makes a double tap
-        // (or two devices) idempotent at the database rather than trusting the client.
-        builder.HasIndex(x => new { x.UserId, x.PujaStepId })
-            .IsUnique().HasDatabaseName("UX_UserPujaStepProgress_User_Step");
-
-        // Resetting one puja's progress reads by this pair.
-        builder.HasIndex(x => new { x.UserId, x.PujaId }).HasDatabaseName("IX_UserPujaStepProgress_User_Puja");
-
-        builder.HasOne(x => x.User).WithMany()
-            .HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
-
-        // Deleting a step should take its progress rows with it, otherwise a reconfigured puja
-        // would leave orphaned completions that inflate the count.
-        builder.HasOne(x => x.PujaStep).WithMany()
-            .HasForeignKey(x => x.PujaStepId).OnDelete(DeleteBehavior.Cascade);
-    }
-}

@@ -70,25 +70,7 @@ public class PujaProcessController : ControllerBase
     public async Task<IActionResult> GetProcess(Guid pujaId, CancellationToken cancellationToken)
     {
         var lang = Request.Headers[TranslationResultFilter.LanguageHeader].ToString();
-        var dto = await _service.GetProcessAsync(RequireUserId(), pujaId, lang, cancellationToken);
+        var dto = await _service.GetProcessAsync(pujaId, lang, cancellationToken);
         return dto is null ? NotFound() : Ok(dto);
     }
-
-    [HttpPost("step/{stepId:guid}/complete")]
-    [ProducesResponseType(typeof(PujaProgressResultDto), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> CompleteStep(Guid stepId, CancellationToken cancellationToken)
-        => Ok(await _service.CompleteStepAsync(RequireUserId(), stepId, cancellationToken));
-
-    [HttpDelete("step/{stepId:guid}/complete")]
-    [ProducesResponseType(typeof(PujaProgressResultDto), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> UndoStep(Guid stepId, CancellationToken cancellationToken)
-        => Ok(await _service.UndoStepAsync(RequireUserId(), stepId, cancellationToken));
-
-    /// <summary>Clears progress so a recurring puja can be performed again.</summary>
-    [HttpPost("puja/{pujaId:guid}/reset")]
-    [ProducesResponseType(typeof(PujaProgressResultDto), StatusCodes.Status200OK)]
-    public async Task<IActionResult> Reset(Guid pujaId, CancellationToken cancellationToken)
-        => Ok(await _service.ResetAsync(RequireUserId(), pujaId, cancellationToken));
 }

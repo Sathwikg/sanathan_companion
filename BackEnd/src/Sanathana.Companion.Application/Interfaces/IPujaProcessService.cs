@@ -18,10 +18,6 @@ public interface IPujaProcessService
     /// </summary>
     Task<IReadOnlyList<ProcessPujaSummaryDto>> GetPujasAsync(Guid userId, Guid? festivalId, CancellationToken cancellationToken = default);
 
-    /// <summary>The process resolved into <paramref name="languageCode"/>, with the user's progress applied.</summary>
-    Task<PujaProcessViewDto?> GetProcessAsync(Guid userId, Guid pujaId, string? languageCode, CancellationToken cancellationToken = default);
-
-    Task<PujaProgressResultDto> CompleteStepAsync(Guid userId, Guid stepId, CancellationToken cancellationToken = default);
-    Task<PujaProgressResultDto> UndoStepAsync(Guid userId, Guid stepId, CancellationToken cancellationToken = default);
-    Task<PujaProgressResultDto> ResetAsync(Guid userId, Guid pujaId, CancellationToken cancellationToken = default);
+    /// <summary>The process resolved into <paramref name="languageCode"/>.</summary>
+    Task<PujaProcessViewDto?> GetProcessAsync(Guid pujaId, string? languageCode, CancellationToken cancellationToken = default);
 }

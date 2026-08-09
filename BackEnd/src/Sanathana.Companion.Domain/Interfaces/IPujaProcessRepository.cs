@@ -24,13 +24,4 @@ public interface IPujaProcessRepository
 
     /// <summary>How many steps each puja has, so a list can show it without a query per row.</summary>
     Task<IReadOnlyDictionary<Guid, int>> GetStepCountsAsync(CancellationToken cancellationToken = default);
-
-    // ---- Per-user progress ----
-    Task<IReadOnlyList<UserPujaStepProgress>> GetProgressAsync(Guid userId, Guid pujaId, CancellationToken cancellationToken = default);
-    Task<UserPujaStepProgress?> GetProgressEntryAsync(Guid userId, Guid pujaStepId, CancellationToken cancellationToken = default);
-    Task AddProgressAsync(UserPujaStepProgress entry, CancellationToken cancellationToken = default);
-    void RemoveProgress(UserPujaStepProgress entry);
-
-    /// <summary>Clears a user's progress for one puja, so a recurring rite can be started again.</summary>
-    Task<List<UserPujaStepProgress>> GetProgressTrackedAsync(Guid userId, Guid pujaId, CancellationToken cancellationToken = default);
 }

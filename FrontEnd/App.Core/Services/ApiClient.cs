@@ -585,24 +585,6 @@ public class ApiClient : IApiClient
     public async Task<PujaProcessViewModel?> GetPujaProcessAsync(Guid pujaId)
         => await _http.GetFromJsonAsync<PujaProcessViewModel>($"pujaprocess/puja/{pujaId}");
 
-    public async Task<PujaProgressResult?> CompletePujaStepAsync(Guid stepId)
-    {
-        var response = await _http.PostAsync($"pujaprocess/step/{stepId}/complete", null);
-        return response.IsSuccessStatusCode ? await response.Content.ReadFromJsonAsync<PujaProgressResult>() : null;
-    }
-
-    public async Task<PujaProgressResult?> UndoPujaStepAsync(Guid stepId)
-    {
-        var response = await _http.DeleteAsync($"pujaprocess/step/{stepId}/complete");
-        return response.IsSuccessStatusCode ? await response.Content.ReadFromJsonAsync<PujaProgressResult>() : null;
-    }
-
-    public async Task<PujaProgressResult?> ResetPujaProgressAsync(Guid pujaId)
-    {
-        var response = await _http.PostAsync($"pujaprocess/puja/{pujaId}/reset", null);
-        return response.IsSuccessStatusCode ? await response.Content.ReadFromJsonAsync<PujaProgressResult>() : null;
-    }
-
     // ---- Pujas ----
 
     public async Task<List<PujaModel>> GetPujasAsync()

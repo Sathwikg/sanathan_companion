@@ -145,9 +145,6 @@ public interface IApiClient
     Task<List<ProcessFestivalModel>> GetProcessFestivalsAsync();
     Task<List<ProcessPujaSummaryModel>> GetProcessPujasAsync(Guid? festivalId = null);
     Task<PujaProcessViewModel?> GetPujaProcessAsync(Guid pujaId);
-    Task<PujaProgressResult?> CompletePujaStepAsync(Guid stepId);
-    Task<PujaProgressResult?> UndoPujaStepAsync(Guid stepId);
-    Task<PujaProgressResult?> ResetPujaProgressAsync(Guid pujaId);
 
     // Pujas
     Task<List<PujaModel>> GetPujasAsync();

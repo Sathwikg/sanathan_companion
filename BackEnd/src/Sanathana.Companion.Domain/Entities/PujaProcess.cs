@@ -56,23 +56,3 @@ public class PujaStepText : BaseEntity
     /// <summary>What the devotee actually does, as sanitized HTML.</summary>
     public string? Content { get; set; }
 }
-
-/// <summary>
-/// Records that one user finished one step. A row exists only for completed steps, so absence
-/// means "not done" and undoing is a delete rather than a flag flip.
-/// </summary>
-public class UserPujaStepProgress : BaseEntity
-{
-    public Guid Id { get; set; } = Guid.NewGuid();
-
-    public Guid UserId { get; set; }
-    public User? User { get; set; }
-
-    /// <summary>Denormalised so a whole puja's progress can be reset in one query.</summary>
-    public Guid PujaId { get; set; }
-
-    public Guid PujaStepId { get; set; }
-    public PujaStep? PujaStep { get; set; }
-
-    public DateTime CompletedAtUtc { get; set; } = DateTime.UtcNow;
-}

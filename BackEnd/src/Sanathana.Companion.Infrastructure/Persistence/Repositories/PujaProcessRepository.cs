@@ -13,7 +13,6 @@ public class PujaProcessRepository : IPujaProcessRepository
     private DbSet<PujaMaterial> Materials => _context.Set<PujaMaterial>();
     private DbSet<PujaStep> Steps => _context.Set<PujaStep>();
     private DbSet<PujaStepText> Texts => _context.Set<PujaStepText>();
-    private DbSet<UserPujaStepProgress> Progress => _context.Set<UserPujaStepProgress>();
 
     // ---- Materials ----
 
@@ -63,26 +62,4 @@ public class PujaProcessRepository : IPujaProcessRepository
             .GroupBy(s => s.PujaId)
             .Select(g => new { PujaId = g.Key, Count = g.Count() })
             .ToDictionaryAsync(x => x.PujaId, x => x.Count, cancellationToken);
-
-    // ---- Per-user progress ----
-
-    public async Task<IReadOnlyList<UserPujaStepProgress>> GetProgressAsync(
-        Guid userId, Guid pujaId, CancellationToken cancellationToken = default)
-        => await Progress.AsNoTracking()
-            .Where(p => p.UserId == userId && p.PujaId == pujaId)
-            .ToListAsync(cancellationToken);
-
-    public async Task<UserPujaStepProgress?> GetProgressEntryAsync(
-        Guid userId, Guid pujaStepId, CancellationToken cancellationToken = default)
-        => await Progress.FirstOrDefaultAsync(
-            p => p.UserId == userId && p.PujaStepId == pujaStepId, cancellationToken);
-
-    public async Task AddProgressAsync(UserPujaStepProgress entry, CancellationToken cancellationToken = default)
-        => await Progress.AddAsync(entry, cancellationToken);
-
-    public void RemoveProgress(UserPujaStepProgress entry) => Progress.Remove(entry);
-
-    public async Task<List<UserPujaStepProgress>> GetProgressTrackedAsync(
-        Guid userId, Guid pujaId, CancellationToken cancellationToken = default)
-        => await Progress.Where(p => p.UserId == userId && p.PujaId == pujaId).ToListAsync(cancellationToken);
 }

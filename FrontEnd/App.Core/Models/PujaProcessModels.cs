@@ -95,8 +95,6 @@ public class ProcessPujaSummaryModel
     public string? FestivalName { get; set; }
     public int? FestivalYear { get; set; }
     public int StepCount { get; set; }
-    public int CompletedCount { get; set; }
-    public bool IsCompleted { get; set; }
 
     public bool HasFestival => FestivalId is not null && !string.IsNullOrWhiteSpace(FestivalName);
     public string FestivalLabel => FestivalYear is > 0 ? $"{FestivalName} ({FestivalYear})" : FestivalName ?? string.Empty;
@@ -109,6 +107,8 @@ public class PujaStepViewModel
     public string? Title { get; set; }
     public string? Content { get; set; }
     public bool IsFallback { get; set; }
+
+    /// <summary>Ticked in the page only — deliberately never sent to or stored on the server.</summary>
     public bool IsCompleted { get; set; }
 }
 
@@ -125,17 +125,11 @@ public class PujaProcessViewModel
     public List<PujaStepViewModel> Steps { get; set; } = new();
 
     public int TotalSteps { get; set; }
-    public int CompletedCount { get; set; }
-    public bool IsCompleted { get; set; }
-    public int? CurrentStepNumber { get; set; }
 
-    public int PercentComplete => TotalSteps == 0 ? 0 : (int)Math.Round(CompletedCount * 100.0 / TotalSteps);
-}
+    // Progress is derived from the in-page tick marks, so a fresh load always starts at zero.
+    public int CompletedCount => Steps.Count(s => s.IsCompleted);
+    public bool IsCompleted => Steps.Count > 0 && Steps.All(s => s.IsCompleted);
+    public int? CurrentStepNumber => Steps.FirstOrDefault(s => !s.IsCompleted)?.StepNumber;
 
-public class PujaProgressResult
-{
-    public int CompletedCount { get; set; }
-    public int TotalSteps { get; set; }
-    public bool IsCompleted { get; set; }
-    public int? CurrentStepNumber { get; set; }
+    public int PercentComplete => Steps.Count == 0 ? 0 : (int)Math.Round(CompletedCount * 100.0 / Steps.Count);
 }

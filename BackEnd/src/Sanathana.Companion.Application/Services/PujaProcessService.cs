@@ -66,10 +66,8 @@ public class PujaProcessService : IPujaProcessService
     /// Saves the whole process in one call.
     /// </summary>
     /// <remarks>
-    /// Steps are matched by id rather than replaced wholesale. Deleting and re-creating them would
-    /// be simpler, but progress rows cascade off the step, so every devotee mid-way through the
-    /// puja would silently lose their place the moment an admin fixed a typo. Only steps the admin
-    /// actually removed are deleted.
+    /// Steps are matched by id rather than replaced wholesale, so editing one word does not churn
+    /// every row and its per-language text. Only steps the admin actually removed are deleted.
     /// </remarks>
     public async Task SaveConfigAsync(Guid pujaId, SavePujaProcessDto dto, CancellationToken cancellationToken = default)
     {
@@ -89,7 +87,7 @@ public class PujaProcessService : IPujaProcessService
 
     private async Task SaveMaterialsAsync(Guid pujaId, List<PujaMaterialDto> incoming, CancellationToken ct)
     {
-        // Materials carry no progress, so a straight replace is safe and keeps the code honest.
+        // Materials have no per-language rows hanging off them, so a straight replace is safe.
         var existing = await _uow.PujaProcess.GetMaterialsTrackedAsync(pujaId, ct);
         foreach (var row in existing) _uow.PujaProcess.RemoveMaterial(row);
 
@@ -129,7 +127,7 @@ public class PujaProcessService : IPujaProcessService
             {
                 step = found;
                 // Renumber in place so the order reflects what the admin sees, without
-                // disturbing the step's identity or anyone's progress against it.
+                // disturbing the step's identity or its text rows.
                 if (step.StepNumber != number)
                 {
                     step.StepNumber = number;
@@ -245,13 +243,8 @@ public class PujaProcessService : IPujaProcessService
                         && (festivalId is null || p.FestivalId == festivalId))
             .ToList();
 
-        var result = new List<ProcessPujaSummaryDto>(matching.Count);
-        foreach (var p in matching)
-        {
-            var total = stepCounts[p.Id];
-            var done = (await _uow.PujaProcess.GetProgressAsync(userId, p.Id, cancellationToken)).Count;
-
-            result.Add(new ProcessPujaSummaryDto
+        return matching
+            .Select(p => new ProcessPujaSummaryDto
             {
                 PujaId = p.Id,
                 Name = p.Name,
@@ -260,17 +253,20 @@ public class PujaProcessService : IPujaProcessService
                 FestivalId = p.FestivalId,
                 FestivalName = p.Festival?.Name,
                 FestivalYear = p.Festival?.Year,
-                StepCount = total,
-                CompletedCount = Math.Min(done, total),
-                IsCompleted = total > 0 && done >= total
-            });
-        }
-
-        return result.OrderBy(r => r.Name).ToList();
+                StepCount = stepCounts[p.Id]
+            })
+            .OrderBy(r => r.Name)
+            .ToList();
     }
 
+    /// <remarks>
+    /// Returns the process only. Which steps a devotee has ticked off is deliberately not stored:
+    /// a puja is performed afresh each time, so coming back should offer a clean slate rather
+    /// than last time's half-finished state. The tick marks live in the page for as long as it
+    /// is open and are gone on the next visit.
+    /// </remarks>
     public async Task<PujaProcessViewDto?> GetProcessAsync(
-        Guid userId, Guid pujaId, string? languageCode, CancellationToken cancellationToken = default)
+        Guid pujaId, string? languageCode, CancellationToken cancellationToken = default)
     {
         var pujas = await _uow.Pujas.GetAllWithLinksAsync(cancellationToken);
         var puja = pujas.FirstOrDefault(p => p.Id == pujaId);
@@ -283,8 +279,6 @@ public class PujaProcessService : IPujaProcessService
 
         var materials = await _uow.PujaProcess.GetMaterialsAsync(pujaId, cancellationToken);
         var steps = await _uow.PujaProcess.GetStepsWithTextsAsync(pujaId, cancellationToken);
-        var doneStepIds = (await _uow.PujaProcess.GetProgressAsync(userId, pujaId, cancellationToken))
-            .Select(p => p.PujaStepId).ToHashSet();
 
         var view = new PujaProcessViewDto
         {
@@ -311,14 +305,9 @@ public class PujaProcessService : IPujaProcessService
                 StepNumber = s.StepNumber,
                 Title = text?.Title,
                 Content = text?.Content,
-                IsFallback = isFallback,
-                IsCompleted = doneStepIds.Contains(s.Id)
+                IsFallback = isFallback
             });
         }
-
-        view.CompletedCount = view.Steps.Count(s => s.IsCompleted);
-        view.IsCompleted = view.TotalSteps > 0 && view.CompletedCount >= view.TotalSteps;
-        view.CurrentStepNumber = view.Steps.FirstOrDefault(s => !s.IsCompleted)?.StepNumber;
 
         return view;
     }
@@ -343,88 +332,6 @@ public class PujaProcessService : IPujaProcessService
 
         var any = step.Texts.FirstOrDefault();
         return (any, any is not null);
-    }
-
-    public async Task<PujaProgressResultDto> CompleteStepAsync(
-        Guid userId, Guid stepId, CancellationToken cancellationToken = default)
-    {
-        var step = await FindStepAsync(stepId, cancellationToken);
-
-        var existing = await _uow.PujaProcess.GetProgressEntryAsync(userId, stepId, cancellationToken);
-        if (existing is null)
-        {
-            await _uow.PujaProcess.AddProgressAsync(new UserPujaStepProgress
-            {
-                UserId = userId,
-                PujaId = step.PujaId,
-                PujaStepId = stepId,
-                CompletedAtUtc = DateTime.UtcNow
-            }, cancellationToken);
-
-            await _uow.SaveChangesAsync(cancellationToken);
-        }
-        // Already complete: treat a repeat tap as a no-op rather than an error.
-
-        return await BuildProgressAsync(userId, step.PujaId, cancellationToken);
-    }
-
-    public async Task<PujaProgressResultDto> UndoStepAsync(
-        Guid userId, Guid stepId, CancellationToken cancellationToken = default)
-    {
-        var step = await FindStepAsync(stepId, cancellationToken);
-
-        var existing = await _uow.PujaProcess.GetProgressEntryAsync(userId, stepId, cancellationToken);
-        if (existing is not null)
-        {
-            _uow.PujaProcess.RemoveProgress(existing);
-            await _uow.SaveChangesAsync(cancellationToken);
-        }
-
-        return await BuildProgressAsync(userId, step.PujaId, cancellationToken);
-    }
-
-    public async Task<PujaProgressResultDto> ResetAsync(
-        Guid userId, Guid pujaId, CancellationToken cancellationToken = default)
-    {
-        var rows = await _uow.PujaProcess.GetProgressTrackedAsync(userId, pujaId, cancellationToken);
-        foreach (var row in rows) _uow.PujaProcess.RemoveProgress(row);
-
-        if (rows.Count > 0) await _uow.SaveChangesAsync(cancellationToken);
-
-        return await BuildProgressAsync(userId, pujaId, cancellationToken);
-    }
-
-    private async Task<PujaStep> FindStepAsync(Guid stepId, CancellationToken ct)
-    {
-        // Steps are only reachable through their puja, so there is no by-id repository read;
-        // the counts dictionary tells us which pujas exist and the step list is small.
-        var pujas = await _uow.Pujas.GetAllWithLinksAsync(ct);
-        foreach (var p in pujas)
-        {
-            var steps = await _uow.PujaProcess.GetStepsWithTextsAsync(p.Id, ct);
-            var match = steps.FirstOrDefault(s => s.Id == stepId);
-            if (match is not null) return match;
-        }
-
-        throw new NotFoundException($"Puja step '{stepId}' was not found.");
-    }
-
-    private async Task<PujaProgressResultDto> BuildProgressAsync(Guid userId, Guid pujaId, CancellationToken ct)
-    {
-        var steps = await _uow.PujaProcess.GetStepsWithTextsAsync(pujaId, ct);
-        var done = (await _uow.PujaProcess.GetProgressAsync(userId, pujaId, ct))
-            .Select(p => p.PujaStepId).ToHashSet();
-
-        var completed = steps.Count(s => done.Contains(s.Id));
-
-        return new PujaProgressResultDto
-        {
-            CompletedCount = completed,
-            TotalSteps = steps.Count,
-            IsCompleted = steps.Count > 0 && completed >= steps.Count,
-            CurrentStepNumber = steps.OrderBy(s => s.StepNumber)
-                                     .FirstOrDefault(s => !done.Contains(s.Id))?.StepNumber
-        };
     }
 
     /// <summary>
