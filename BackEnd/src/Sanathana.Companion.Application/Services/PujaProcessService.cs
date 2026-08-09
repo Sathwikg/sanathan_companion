@@ -194,8 +194,9 @@ public class PujaProcessService : IPujaProcessService
         var pujas = await _uow.Pujas.GetAllWithLinksAsync(cancellationToken);
         var stepCounts = await _uow.PujaProcess.GetStepCountsAsync(cancellationToken);
 
-        // Only festivals whose pujas actually have a configured process — offering an empty
-        // one would be a dead end.
+        // Festivals here are only the filter's options, so a puja with no festival simply
+        // contributes nothing to this list — it must not be excluded from the pujas themselves,
+        // which is what happened when the festival was still mandatory.
         var configured = pujas
             .Where(p => p.IsActive && p.FestivalId is not null && stepCounts.ContainsKey(p.Id))
             .GroupBy(p => p.FestivalId!.Value)
@@ -230,18 +231,22 @@ public class PujaProcessService : IPujaProcessService
         return list;
     }
 
-    public async Task<IReadOnlyList<ProcessPujaSummaryDto>> GetPujasForFestivalAsync(
-        Guid userId, Guid festivalId, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<ProcessPujaSummaryDto>> GetPujasAsync(
+        Guid userId, Guid? festivalId, CancellationToken cancellationToken = default)
     {
         var pujas = await _uow.Pujas.GetAllWithLinksAsync(cancellationToken);
         var stepCounts = await _uow.PujaProcess.GetStepCountsAsync(cancellationToken);
 
-        var forFestival = pujas
-            .Where(p => p.IsActive && p.FestivalId == festivalId && stepCounts.ContainsKey(p.Id))
+        // The only hard requirement is a configured process; the festival narrows the list when
+        // one is supplied. A puja mapped to no festival is still perfectly performable.
+        var matching = pujas
+            .Where(p => p.IsActive
+                        && stepCounts.ContainsKey(p.Id)
+                        && (festivalId is null || p.FestivalId == festivalId))
             .ToList();
 
-        var result = new List<ProcessPujaSummaryDto>(forFestival.Count);
-        foreach (var p in forFestival)
+        var result = new List<ProcessPujaSummaryDto>(matching.Count);
+        foreach (var p in matching)
         {
             var total = stepCounts[p.Id];
             var done = (await _uow.PujaProcess.GetProgressAsync(userId, p.Id, cancellationToken)).Count;
@@ -252,6 +257,9 @@ public class PujaProcessService : IPujaProcessService
                 Name = p.Name,
                 Description = p.Description,
                 DeityName = p.Deity?.Name,
+                FestivalId = p.FestivalId,
+                FestivalName = p.Festival?.Name,
+                FestivalYear = p.Festival?.Year,
                 StepCount = total,
                 CompletedCount = Math.Min(done, total),
                 IsCompleted = total > 0 && done >= total

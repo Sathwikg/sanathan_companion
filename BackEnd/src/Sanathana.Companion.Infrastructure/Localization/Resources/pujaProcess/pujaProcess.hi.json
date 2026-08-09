@@ -1,4 +1,5 @@
 {
+  "pujaProcess.allFestivals": "सभी पूजाएँ ({0})",
   "pujaProcess.allPujas": "सभी पूजाएँ",
   "pujaProcess.completedBody": "आपने सभी चरण पूरे कर लिए। आपकी प्रार्थनाएँ स्वीकार हों।",
   "pujaProcess.completedTitle": "पूजा पूर्ण हुई",
@@ -7,6 +8,7 @@
   "pujaProcess.daysAgo": "{0} दिन पहले",
   "pujaProcess.done": "पूर्ण",
   "pujaProcess.festival": "त्योहार",
+  "pujaProcess.filterByFestival": "त्योहार से छाँटें",
   "pujaProcess.inDays": "{0} दिनों में",
   "pujaProcess.loading": "लोड हो रहा है…",
   "pujaProcess.markDone": "पूर्ण चिह्नित करें",
@@ -15,6 +17,7 @@
   "pujaProcess.noPujas": "इस त्योहार के लिए अभी कोई पूजा सेट नहीं है।",
   "pujaProcess.notTranslated": "अभी आपकी भाषा में उपलब्ध नहीं है।",
   "pujaProcess.nothingConfigured": "अभी तक कोई पूजा विधि सेट नहीं की गई है।",
+  "pujaProcess.showAll": "सभी पूजाएँ दिखाएँ",
   "pujaProcess.startOver": "फिर से शुरू करें",
   "pujaProcess.startOverBody": "इस पूजा के सभी पूर्ण चरण हट जाएँगे ताकि आप इसे फिर से कर सकें।",
   "pujaProcess.stepN": "चरण {0}",

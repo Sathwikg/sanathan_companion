@@ -91,9 +91,15 @@ public class ProcessPujaSummaryModel
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
     public string? DeityName { get; set; }
+    public Guid? FestivalId { get; set; }
+    public string? FestivalName { get; set; }
+    public int? FestivalYear { get; set; }
     public int StepCount { get; set; }
     public int CompletedCount { get; set; }
     public bool IsCompleted { get; set; }
+
+    public bool HasFestival => FestivalId is not null && !string.IsNullOrWhiteSpace(FestivalName);
+    public string FestivalLabel => FestivalYear is > 0 ? $"{FestivalName} ({FestivalYear})" : FestivalName ?? string.Empty;
 }
 
 public class PujaStepViewModel

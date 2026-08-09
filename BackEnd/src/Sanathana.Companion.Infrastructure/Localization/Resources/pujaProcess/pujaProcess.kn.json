@@ -1,4 +1,5 @@
 {
+  "pujaProcess.allFestivals": "ಎಲ್ಲಾ ಪೂಜೆಗಳು ({0})",
   "pujaProcess.allPujas": "ಎಲ್ಲಾ ಪೂಜೆಗಳು",
   "pujaProcess.completedBody": "ನೀವು ಎಲ್ಲಾ ಹಂತಗಳನ್ನು ಮುಗಿಸಿದ್ದೀರಿ. ನಿಮ್ಮ ಪ್ರಾರ್ಥನೆಗಳು ಫಲಿಸಲಿ.",
   "pujaProcess.completedTitle": "ಪೂಜೆ ಪೂರ್ಣಗೊಂಡಿದೆ",
@@ -7,6 +8,7 @@
   "pujaProcess.daysAgo": "{0} ದಿನಗಳ ಹಿಂದೆ",
   "pujaProcess.done": "ಪೂರ್ಣಗೊಂಡಿದೆ",
   "pujaProcess.festival": "ಹಬ್ಬ",
+  "pujaProcess.filterByFestival": "ಹಬ್ಬದ ಪ್ರಕಾರ ಶೋಧಿಸಿ",
   "pujaProcess.inDays": "{0} ದಿನಗಳಲ್ಲಿ",
   "pujaProcess.loading": "ಲೋಡ್ ಆಗುತ್ತಿದೆ…",
   "pujaProcess.markDone": "ಪೂರ್ಣಗೊಂಡಿದೆ ಎಂದು ಗುರುತಿಸಿ",
@@ -15,6 +17,7 @@
   "pujaProcess.noPujas": "ಈ ಹಬ್ಬಕ್ಕೆ ಇನ್ನೂ ಪೂಜೆ ಹೊಂದಿಸಿಲ್ಲ.",
   "pujaProcess.notTranslated": "ಇನ್ನೂ ನಿಮ್ಮ ಭಾಷೆಯಲ್ಲಿ ಲಭ್ಯವಿಲ್ಲ.",
   "pujaProcess.nothingConfigured": "ಇನ್ನೂ ಯಾವುದೇ ಪೂಜಾ ವಿಧಾನ ಹೊಂದಿಸಿಲ್ಲ.",
+  "pujaProcess.showAll": "ಎಲ್ಲಾ ಪೂಜೆಗಳನ್ನು ತೋರಿಸಿ",
   "pujaProcess.startOver": "ಮತ್ತೆ ಪ್ರಾರಂಭಿಸಿ",
   "pujaProcess.startOverBody": "ಈ ಪೂಜೆಯ ಎಲ್ಲಾ ಪೂರ್ಣಗೊಂಡ ಹಂತಗಳು ಅಳಿಸಲ್ಪಡುತ್ತವೆ, ಮತ್ತೆ ಮಾಡಬಹುದು.",
   "pujaProcess.stepN": "ಹಂತ {0}",

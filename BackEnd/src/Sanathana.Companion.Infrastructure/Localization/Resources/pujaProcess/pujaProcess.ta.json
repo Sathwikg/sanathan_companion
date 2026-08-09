@@ -1,4 +1,5 @@
 {
+  "pujaProcess.allFestivals": "அனைத்துப் பூஜைகள் ({0})",
   "pujaProcess.allPujas": "அனைத்துப் பூஜைகள்",
   "pujaProcess.completedBody": "எல்லாப் படிகளையும் முடித்துவிட்டீர்கள். உங்கள் பிரார்த்தனைகள் நிறைவேறட்டும்.",
   "pujaProcess.completedTitle": "பூஜை முடிந்தது",
@@ -7,6 +8,7 @@
   "pujaProcess.daysAgo": "{0} நாட்களுக்கு முன்",
   "pujaProcess.done": "முடிந்தது",
   "pujaProcess.festival": "திருவிழா",
+  "pujaProcess.filterByFestival": "திருவிழா வாரியாக வடிகட்டு",
   "pujaProcess.inDays": "{0} நாட்களில்",
   "pujaProcess.loading": "ஏற்றுகிறது…",
   "pujaProcess.markDone": "முடிந்ததெனக் குறி",
@@ -15,6 +17,7 @@
   "pujaProcess.noPujas": "இந்தத் திருவிழாவுக்கு இதுவரை பூஜை அமைக்கப்படவில்லை.",
   "pujaProcess.notTranslated": "இதுவரை உங்கள் மொழியில் கிடைக்கவில்லை.",
   "pujaProcess.nothingConfigured": "இதுவரை எந்தப் பூஜை முறையும் அமைக்கப்படவில்லை.",
+  "pujaProcess.showAll": "அனைத்துப் பூஜைகளையும் காட்டு",
   "pujaProcess.startOver": "மீண்டும் தொடங்கு",
   "pujaProcess.startOverBody": "இந்தப் பூஜையின் முடிக்கப்பட்ட எல்லாப் படிகளும் அழிக்கப்படும், மீண்டும் செய்யலாம்.",
   "pujaProcess.stepN": "படி {0}",

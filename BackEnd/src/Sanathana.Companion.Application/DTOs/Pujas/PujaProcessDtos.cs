@@ -104,6 +104,14 @@ public class ProcessPujaSummaryDto
     [Translatable(Category = "deity")]
     public string? DeityName { get; set; }
 
+    /// <summary>Null when the puja is not tied to a festival — shown as a chip, not a requirement.</summary>
+    public Guid? FestivalId { get; set; }
+
+    [Translatable(Category = "festival")]
+    public string? FestivalName { get; set; }
+
+    public int? FestivalYear { get; set; }
+
     public int StepCount { get; set; }
     public int CompletedCount { get; set; }
     public bool IsCompleted { get; set; }

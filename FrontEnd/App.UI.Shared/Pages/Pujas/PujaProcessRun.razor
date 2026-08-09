@@ -19,7 +19,7 @@
 {
     <OmLoader FullPage="true" Message="@Loc["pujaProcess.loading", "Loading…"]" />
 }
-else if (_festivals.Count == 0)
+else if (_allCount == 0)
 {
     <div class="sc-card sc-empty-state">
         <div class="sc-empty-om">📿</div>
@@ -28,16 +28,18 @@ else if (_festivals.Count == 0)
 }
 else
 {
+    @* Pujas are the point of this screen; the festival only narrows the list. *@
     <div class="sc-card sc-filtercard">
         <div class="sc-field">
-            <label>@Loc["pujaProcess.festival", "Festival"]</label>
+            <label>@Loc["pujaProcess.filterByFestival", "Filter by festival"]</label>
             <select class="sc-input" value="@_festivalId" @onchange="OnFestivalChanged">
+                <option value="">@Loc.TF("pujaProcess.allFestivals", "All pujas ({0})", _allCount)</option>
                 @foreach (var f in _festivals)
                 {
-                    <option value="@f.Id">@f.Label@(f.IsCurrent ? $" — {Loc["pujaProcess.current", "current"]}" : "")</option>
+                    <option value="@f.Id">@f.Label (@f.PujaCount)@(f.IsCurrent ? $" — {Loc["pujaProcess.current", "current"]}" : "")</option>
                 }
             </select>
-            @if (CurrentFestival is { } cf)
+            @if (SelectedFestival is { } cf)
             {
                 <span class="sc-hint">@WhenLabel(cf)</span>
             }
@@ -51,6 +53,9 @@ else
             <div class="sc-card sc-empty-state">
                 <div class="sc-empty-om">📿</div>
                 <p>@Loc["pujaProcess.noPujas", "No puja is configured for this festival yet."]</p>
+                <button type="button" class="sc-btn-ghost sc-btn-sm" @onclick="() => ApplyFilterAsync(null)">
+                    @Loc["pujaProcess.showAll", "Show all pujas"]
+                </button>
             </div>
         }
         else
@@ -69,6 +74,10 @@ else
                         <h3 class="sc-tile-title">@p.Name</h3>
                         <p class="sc-tile-desc">@p.Description</p>
                         <div class="sc-chiprow">
+                            @if (p.HasFestival)
+                            {
+                                <span class="sc-minichip">🎉 @p.FestivalLabel</span>
+                            }
                             @if (!string.IsNullOrWhiteSpace(p.DeityName))
                             {
                                 <span class="sc-minichip">🕉️ @p.DeityName</span>
@@ -181,25 +190,20 @@ else
     private string _festivalId = string.Empty;
     private bool _loading = true;
 
-    private ProcessFestivalModel? CurrentFestival
+    private int _allCount;
+
+    private ProcessFestivalModel? SelectedFestival
         => _festivals.FirstOrDefault(f => f.Id.ToString() == _festivalId);
 
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
 
+        // Unfiltered by default. Opening on the current festival would hide every puja that is
+        // not tied to one, which is exactly how configured pujas went missing before.
         _festivals = await Api.GetProcessFestivalsAsync();
-
-        // Open on the current or next festival rather than making the devotee hunt for it.
-        var start = _festivals.FirstOrDefault(f => f.IsCurrent) ?? _festivals.FirstOrDefault();
-        if (start is not null)
-        {
-            _festivalId = start.Id.ToString();
-            _pujas = await Api.GetProcessPujasAsync(start.Id);
-
-            // A festival with exactly one puja has nothing to choose — go straight in.
-            if (_pujas.Count == 1) _process = await Api.GetPujaProcessAsync(_pujas[0].PujaId);
-        }
+        _pujas = await Api.GetProcessPujasAsync();
+        _allCount = _pujas.Count;
 
         _loading = false;
     }
@@ -213,15 +217,14 @@ else
         _ => Loc.TF("pujaProcess.daysAgo", "{0} days ago", -f.DaysAway)
     };
 
-    private async Task OnFestivalChanged(ChangeEventArgs e)
+    private Task OnFestivalChanged(ChangeEventArgs e)
+        => ApplyFilterAsync(Guid.TryParse(e.Value?.ToString(), out var id) ? id : null);
+
+    private async Task ApplyFilterAsync(Guid? festivalId)
     {
-        _festivalId = e.Value?.ToString() ?? string.Empty;
+        _festivalId = festivalId?.ToString() ?? string.Empty;
         _process = null;
-
-        if (!Guid.TryParse(_festivalId, out var id)) { _pujas = new(); return; }
-
-        _pujas = await Api.GetProcessPujasAsync(id);
-        if (_pujas.Count == 1) _process = await Api.GetPujaProcessAsync(_pujas[0].PujaId);
+        _pujas = await Api.GetProcessPujasAsync(festivalId);
     }
 
     private async Task OpenAsync(Guid pujaId) => _process = await Api.GetPujaProcessAsync(pujaId);
@@ -229,7 +232,8 @@ else
     private async Task BackToList()
     {
         _process = null;
-        if (Guid.TryParse(_festivalId, out var id)) _pujas = await Api.GetProcessPujasAsync(id);
+        _pujas = await Api.GetProcessPujasAsync(
+            Guid.TryParse(_festivalId, out var id) ? id : null);
     }
 
     private async Task ToggleAsync(PujaStepViewModel step)

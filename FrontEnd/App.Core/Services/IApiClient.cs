@@ -143,7 +143,7 @@ public interface IApiClient
     Task<PujaProcessConfigModel?> GetPujaProcessConfigAsync(Guid pujaId);
     Task<(bool Success, string Error)> SavePujaProcessConfigAsync(Guid pujaId, SavePujaProcessRequest request);
     Task<List<ProcessFestivalModel>> GetProcessFestivalsAsync();
-    Task<List<ProcessPujaSummaryModel>> GetProcessPujasAsync(Guid festivalId);
+    Task<List<ProcessPujaSummaryModel>> GetProcessPujasAsync(Guid? festivalId = null);
     Task<PujaProcessViewModel?> GetPujaProcessAsync(Guid pujaId);
     Task<PujaProgressResult?> CompletePujaStepAsync(Guid stepId);
     Task<PujaProgressResult?> UndoPujaStepAsync(Guid stepId);

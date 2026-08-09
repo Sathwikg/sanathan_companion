@@ -1,4 +1,5 @@
 {
+  "pujaProcess.allFestivals": "All pujas ({0})",
   "pujaProcess.allPujas": "All pujas",
   "pujaProcess.completedBody": "You have finished every step. May your prayers be answered.",
   "pujaProcess.completedTitle": "Puja completed",
@@ -7,6 +8,7 @@
   "pujaProcess.daysAgo": "{0} days ago",
   "pujaProcess.done": "Completed",
   "pujaProcess.festival": "Festival",
+  "pujaProcess.filterByFestival": "Filter by festival",
   "pujaProcess.inDays": "In {0} days",
   "pujaProcess.loading": "Loading…",
   "pujaProcess.markDone": "Mark done",
@@ -15,6 +17,7 @@
   "pujaProcess.noPujas": "No puja is configured for this festival yet.",
   "pujaProcess.notTranslated": "Not available in your language yet.",
   "pujaProcess.nothingConfigured": "No puja process has been set up yet.",
+  "pujaProcess.showAll": "Show all pujas",
   "pujaProcess.startOver": "Start over",
   "pujaProcess.startOverBody": "This clears every completed step for this puja so you can perform it again.",
   "pujaProcess.stepN": "Step {0}",

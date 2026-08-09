@@ -50,10 +50,14 @@ public class PujaProcessController : ControllerBase
     public async Task<IActionResult> GetFestivals(CancellationToken cancellationToken)
         => Ok(await _service.GetFestivalsAsync(RequireUserId(), cancellationToken));
 
-    [HttpGet("festival/{festivalId:guid}")]
+    /// <summary>
+    /// Every puja with a configured process. <c>festivalId</c> filters the list; omitting it
+    /// returns all of them, including pujas that are not tied to a festival.
+    /// </summary>
+    [HttpGet("pujas")]
     [ProducesResponseType(typeof(IReadOnlyList<ProcessPujaSummaryDto>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetPujasForFestival(Guid festivalId, CancellationToken cancellationToken)
-        => Ok(await _service.GetPujasForFestivalAsync(RequireUserId(), festivalId, cancellationToken));
+    public async Task<IActionResult> GetPujas([FromQuery] Guid? festivalId, CancellationToken cancellationToken)
+        => Ok(await _service.GetPujasAsync(RequireUserId(), festivalId, cancellationToken));
 
     /// <summary>
     /// The process itself. Step wording is authored per language, so it is resolved here from the

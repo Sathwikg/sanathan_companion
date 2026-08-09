@@ -9,10 +9,14 @@ public interface IPujaProcessService
     Task SaveConfigAsync(Guid pujaId, SavePujaProcessDto dto, CancellationToken cancellationToken = default);
 
     // ---- user runtime ----
-    /// <summary>Festivals that actually have a configured puja, with the current one flagged.</summary>
+    /// <summary>Festivals available as a filter — only those with a configured puja, current flagged.</summary>
     Task<IReadOnlyList<ProcessFestivalDto>> GetFestivalsAsync(Guid userId, CancellationToken cancellationToken = default);
 
-    Task<IReadOnlyList<ProcessPujaSummaryDto>> GetPujasForFestivalAsync(Guid userId, Guid festivalId, CancellationToken cancellationToken = default);
+    /// <summary>
+    /// Every puja with a configured process. <paramref name="festivalId"/> is a filter, not a
+    /// requirement: null returns all of them, including pujas not linked to any festival.
+    /// </summary>
+    Task<IReadOnlyList<ProcessPujaSummaryDto>> GetPujasAsync(Guid userId, Guid? festivalId, CancellationToken cancellationToken = default);
 
     /// <summary>The process resolved into <paramref name="languageCode"/>, with the user's progress applied.</summary>
     Task<PujaProcessViewDto?> GetProcessAsync(Guid userId, Guid pujaId, string? languageCode, CancellationToken cancellationToken = default);

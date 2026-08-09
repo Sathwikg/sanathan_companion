@@ -578,8 +578,9 @@ public class ApiClient : IApiClient
     public async Task<List<ProcessFestivalModel>> GetProcessFestivalsAsync()
         => await _http.GetFromJsonAsync<List<ProcessFestivalModel>>("pujaprocess/festivals") ?? new();
 
-    public async Task<List<ProcessPujaSummaryModel>> GetProcessPujasAsync(Guid festivalId)
-        => await _http.GetFromJsonAsync<List<ProcessPujaSummaryModel>>($"pujaprocess/festival/{festivalId}") ?? new();
+    public async Task<List<ProcessPujaSummaryModel>> GetProcessPujasAsync(Guid? festivalId = null)
+        => await _http.GetFromJsonAsync<List<ProcessPujaSummaryModel>>(
+               festivalId is null ? "pujaprocess/pujas" : $"pujaprocess/pujas?festivalId={festivalId}") ?? new();
 
     public async Task<PujaProcessViewModel?> GetPujaProcessAsync(Guid pujaId)
         => await _http.GetFromJsonAsync<PujaProcessViewModel>($"pujaprocess/puja/{pujaId}");
