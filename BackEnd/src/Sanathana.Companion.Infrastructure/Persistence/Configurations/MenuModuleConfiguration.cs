@@ -256,6 +256,36 @@ public class MenuModuleConfiguration : IEntityTypeConfiguration<MenuModule>
             },
             new MenuModule
             {
+                Id = SeedConstants.PujaProcessConfigMenuId,
+                Name = "Puja Process",
+                Icon = "📜",
+                Description = "Required materials and step-by-step process for each puja",
+                RoutePath = "/puja-process-config",
+                DisplayOrder = 6,
+                IsVisibleInMenu = true,
+                ShowInMobile = false,
+                IsActive = true,
+                ParentId = SeedConstants.ConfigurationModuleId,
+                CreatedBy = "system",
+                CreatedDate = SeedConstants.SeedTimestamp
+            },
+            new MenuModule
+            {
+                Id = SeedConstants.PujaProcessMenuId,
+                Name = "Puja Process",
+                Icon = "📿",
+                Description = "Follow a puja step by step",
+                RoutePath = "/puja-process",
+                DisplayOrder = 3,
+                IsVisibleInMenu = true,
+                ShowInMobile = true,
+                IsActive = true,
+                ParentId = SeedConstants.SadhanaModuleId,
+                CreatedBy = "system",
+                CreatedDate = SeedConstants.SeedTimestamp
+            },
+            new MenuModule
+            {
                 Id = SeedConstants.PujaMasterMenuId,
                 Name = "Puja",
                 Icon = "🛐",

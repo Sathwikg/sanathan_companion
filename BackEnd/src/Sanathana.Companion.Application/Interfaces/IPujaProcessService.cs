@@ -1,0 +1,23 @@
+using Sanathana.Companion.Application.DTOs.Pujas;
+
+namespace Sanathana.Companion.Application.Interfaces;
+
+public interface IPujaProcessService
+{
+    // ---- admin configuration ----
+    Task<PujaProcessConfigDto> GetConfigAsync(Guid pujaId, CancellationToken cancellationToken = default);
+    Task SaveConfigAsync(Guid pujaId, SavePujaProcessDto dto, CancellationToken cancellationToken = default);
+
+    // ---- user runtime ----
+    /// <summary>Festivals that actually have a configured puja, with the current one flagged.</summary>
+    Task<IReadOnlyList<ProcessFestivalDto>> GetFestivalsAsync(Guid userId, CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<ProcessPujaSummaryDto>> GetPujasForFestivalAsync(Guid userId, Guid festivalId, CancellationToken cancellationToken = default);
+
+    /// <summary>The process resolved into <paramref name="languageCode"/>, with the user's progress applied.</summary>
+    Task<PujaProcessViewDto?> GetProcessAsync(Guid userId, Guid pujaId, string? languageCode, CancellationToken cancellationToken = default);
+
+    Task<PujaProgressResultDto> CompleteStepAsync(Guid userId, Guid stepId, CancellationToken cancellationToken = default);
+    Task<PujaProgressResultDto> UndoStepAsync(Guid userId, Guid stepId, CancellationToken cancellationToken = default);
+    Task<PujaProgressResultDto> ResetAsync(Guid userId, Guid pujaId, CancellationToken cancellationToken = default);
+}

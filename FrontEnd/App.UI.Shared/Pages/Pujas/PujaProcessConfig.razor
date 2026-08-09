@@ -1,0 +1,282 @@
+@page "/puja-process-config"
+@attribute [Authorize(Roles = "Admin")]
+@inherits LocalizedComponentBase
+@inject IApiClient Api
+@inject ConfirmService Confirm
+@inject ToastService Toast
+
+<div class="sc-page-head">
+    <div class="sc-page-title">
+        <span class="sc-page-emoji">📜</span>
+        <div>
+            <h1>@Loc["pujaProcessConfig.title", "Puja Process"]</h1>
+            <p class="sc-page-sub">@Loc["pujaProcessConfig.sub", "Required materials and the step-by-step process"]</p>
+        </div>
+    </div>
+</div>
+
+<div class="sc-card sc-filtercard">
+    <div class="sc-field">
+        <label>@Loc["pujaProcessConfig.selectPuja", "Puja"]</label>
+        <select class="sc-input" value="@_pujaId" @onchange="OnPujaChanged">
+            <option value="">@Loc["pujaProcessConfig.choosePuja", "— Select a puja —"]</option>
+            @foreach (var p in _pujas)
+            {
+                <option value="@p.Id">@p.Name@(p.HasFestival ? $" · {p.FestivalLabel}" : "")</option>
+            }
+        </select>
+    </div>
+</div>
+
+@if (_loading)
+{
+    <OmLoader Message="@Loc["pujaProcessConfig.loading", "Loading process…"]" />
+}
+else if (_config is null)
+{
+    <div class="sc-card sc-empty-state">
+        <div class="sc-empty-om">📜</div>
+        <p>@Loc["pujaProcessConfig.pickFirst", "Choose a puja to configure its materials and steps."]</p>
+    </div>
+}
+else
+{
+    @* ---------------- required materials ---------------- *@
+    <div class="sc-section-head">
+        <h2>🧺 @Loc["pujaProcessConfig.materials", "Required Materials"]</h2>
+        <span class="sc-section-sub">@Loc["pujaProcessConfig.materialsSub", "What the devotee needs to gather"]</span>
+    </div>
+
+    <div class="sc-card">
+        <div class="sc-material-add">
+            <input class="sc-input" placeholder="@Loc["pujaProcessConfig.itemName", "Item"]"
+                   @bind="_newItem" @bind:event="oninput" @onkeydown="OnMaterialKeyDown" />
+            <input class="sc-input" placeholder="@Loc["pujaProcessConfig.quantity", "Quantity"]"
+                   @bind="_newQty" @bind:event="oninput" @onkeydown="OnMaterialKeyDown" />
+            <button type="button" class="sc-btn-primary sc-btn-sm" @onclick="AddMaterial" disabled="@string.IsNullOrWhiteSpace(_newItem)">
+                + @Loc["common.add", "Add"]
+            </button>
+        </div>
+
+        @if (_config.Materials.Count == 0)
+        {
+            <p class="sc-muted sc-material-empty">@Loc["pujaProcessConfig.noMaterials", "No materials added yet."]</p>
+        }
+        else
+        {
+            <ul class="sc-material-list">
+                @foreach (var m in _config.Materials)
+                {
+                    <li>
+                        <span class="sc-material-name">@m.ItemName</span>
+                        <span class="sc-material-qty">@(string.IsNullOrWhiteSpace(m.Quantity) ? "—" : m.Quantity)</span>
+                        <button type="button" class="sc-linkbtn danger" @onclick="() => _config.Materials.Remove(m)">
+                            @Loc["common.remove", "Remove"]
+                        </button>
+                    </li>
+                }
+            </ul>
+        }
+    </div>
+
+    @* ---------------- steps ---------------- *@
+    <div class="sc-section-head">
+        <h2>🪔 @Loc["pujaProcessConfig.steps", "Steps"]</h2>
+        <span class="sc-section-sub">@Loc["pujaProcessConfig.stepsSub", "Numbered automatically in the order shown"]</span>
+    </div>
+
+    @if (_config.Steps.Count == 0)
+    {
+        <div class="sc-card sc-empty-state">
+            <div class="sc-empty-om">🪔</div>
+            <p>@Loc["pujaProcessConfig.noSteps", "No steps yet. Add the first one below."]</p>
+        </div>
+    }
+
+    @foreach (var step in _config.Steps)
+    {
+        var index = _config.Steps.IndexOf(step);
+        <div class="sc-card sc-step-card">
+            <div class="sc-step-head">
+                <span class="sc-step-badge">@Loc.TF("pujaProcessConfig.stepN", "Step {0}", index + 1)</span>
+                <span class="sc-step-langcount">
+                    @Loc.TF("pujaProcessConfig.langFilled", "{0} of {1} languages", step.FilledLanguageCount, _config.Languages.Count)
+                </span>
+                <span class="sc-step-actions">
+                    <button type="button" class="sc-linkbtn" disabled="@(index == 0)" @onclick="() => MoveStep(step, -1)">↑</button>
+                    <button type="button" class="sc-linkbtn" disabled="@(index == _config.Steps.Count - 1)" @onclick="() => MoveStep(step, 1)">↓</button>
+                    <button type="button" class="sc-linkbtn danger" @onclick="() => RemoveStep(step)">@Loc["common.delete", "Delete"]</button>
+                </span>
+            </div>
+
+            @* One tab per configured language; a dot marks the ones already written. *@
+            <div class="sc-tabs">
+                @foreach (var lang in _config.Languages)
+                {
+                    <button type="button" class="sc-tab @(ActiveLang(step) == lang.Id ? "active" : "")"
+                            @onclick="() => SetActiveLang(step, lang.Id)">
+                        @lang.Name@(step.HasText(lang.Id) ? " ●" : "")
+                    </button>
+                }
+            </div>
+
+            @{
+                var activeId = ActiveLang(step);
+                var text = step.TextFor(activeId);
+            }
+            <div class="sc-field">
+                <label>@Loc["pujaProcessConfig.stepTitle", "Step title"]</label>
+                <input class="sc-input" @bind="text.Title" @bind:event="oninput" />
+            </div>
+            <div class="sc-field">
+                <label>@Loc["pujaProcessConfig.stepContent", "What to do"]</label>
+                <RichTextEditor @bind-Value="text.Content" />
+            </div>
+        </div>
+    }
+
+    <div class="sc-process-actions">
+        <button type="button" class="sc-btn-ghost" @onclick="AddStep">
+            + @Loc["pujaProcessConfig.addStep", "Add Step"]
+        </button>
+        <button type="button" class="sc-btn-primary" @onclick="SaveAsync" disabled="@_saving">
+            @if (_saving) { <OmLoader Inline="true" Size="18" Message="@Loc["common.saving", "Saving…"]" /> }
+            else { <span>@Loc["common.save", "Save"]</span> }
+        </button>
+    </div>
+}
+
+@code {
+    private List<PujaModel> _pujas = new();
+    private PujaProcessConfigModel? _config;
+    private string _pujaId = string.Empty;
+    private bool _loading;
+    private bool _saving;
+
+    private string _newItem = string.Empty;
+    private string _newQty = string.Empty;
+
+    /// <summary>Which language tab is open, per step. Kept outside the model so it is not saved.</summary>
+    private readonly Dictionary<PujaStepConfigModel, Guid> _activeLang = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        _pujas = await Api.GetPujasAsync();
+    }
+
+    private Guid ActiveLang(PujaStepConfigModel step)
+    {
+        if (_activeLang.TryGetValue(step, out var id) && _config!.Languages.Any(l => l.Id == id)) return id;
+
+        // Default to the base language so the first thing an admin types is the fallback everyone sees.
+        var fallback = _config!.Languages.FirstOrDefault(l => l.IsBase)?.Id
+                       ?? _config.Languages.FirstOrDefault()?.Id
+                       ?? Guid.Empty;
+        _activeLang[step] = fallback;
+        return fallback;
+    }
+
+    private void SetActiveLang(PujaStepConfigModel step, Guid languageId) => _activeLang[step] = languageId;
+
+    private async Task OnPujaChanged(ChangeEventArgs e)
+    {
+        _pujaId = e.Value?.ToString() ?? string.Empty;
+        _activeLang.Clear();
+
+        if (!Guid.TryParse(_pujaId, out var id)) { _config = null; return; }
+
+        _loading = true;
+        _config = await Api.GetPujaProcessConfigAsync(id);
+        _loading = false;
+    }
+
+    private void OnMaterialKeyDown(KeyboardEventArgs e)
+    {
+        // Enter adds the row, so a long list can be typed without reaching for the mouse.
+        if (e.Key == "Enter") AddMaterial();
+    }
+
+    private void AddMaterial()
+    {
+        if (_config is null || string.IsNullOrWhiteSpace(_newItem)) return;
+
+        _config.Materials.Add(new PujaMaterialModel
+        {
+            ItemName = _newItem.Trim(),
+            Quantity = string.IsNullOrWhiteSpace(_newQty) ? null : _newQty.Trim(),
+            DisplayOrder = _config.Materials.Count + 1
+        });
+
+        _newItem = string.Empty;
+        _newQty = string.Empty;
+    }
+
+    private void AddStep()
+    {
+        if (_config is null) return;
+
+        // The number is positional — it is recomputed on render and again on save, so it stays
+        // correct after a move or a delete without anyone maintaining it by hand.
+        _config.Steps.Add(new PujaStepConfigModel { StepNumber = _config.Steps.Count + 1 });
+    }
+
+    private void MoveStep(PujaStepConfigModel step, int delta)
+    {
+        if (_config is null) return;
+
+        var from = _config.Steps.IndexOf(step);
+        var to = from + delta;
+        if (to < 0 || to >= _config.Steps.Count) return;
+
+        _config.Steps.RemoveAt(from);
+        _config.Steps.Insert(to, step);
+    }
+
+    private async Task RemoveStep(PujaStepConfigModel step)
+    {
+        if (_config is null) return;
+
+        var n = _config.Steps.IndexOf(step) + 1;
+        var confirmed = await Confirm.ConfirmAsync(
+            Loc.TF("pujaProcessConfig.deleteStepTitle", "Delete step {0}?", n),
+            Loc["pujaProcessConfig.deleteStepBody", "Its text in every language is removed, and anyone who had completed it loses that progress."],
+            Loc["common.delete", "Delete"],
+            Loc["common.cancel", "Cancel"],
+            ConfirmKind.Warning);
+
+        if (!confirmed) return;
+
+        _config.Steps.Remove(step);
+        _activeLang.Remove(step);
+    }
+
+    private async Task SaveAsync()
+    {
+        if (_config is null) return;
+
+        _saving = true;
+
+        // Renumber from the on-screen order; the server renumbers too, but sending a coherent
+        // payload keeps the two from disagreeing if the request is ever replayed.
+        for (var i = 0; i < _config.Steps.Count; i++) _config.Steps[i].StepNumber = i + 1;
+        for (var i = 0; i < _config.Materials.Count; i++) _config.Materials[i].DisplayOrder = i + 1;
+
+        var (ok, error) = await Api.SavePujaProcessConfigAsync(_config.PujaId, new SavePujaProcessRequest
+        {
+            Materials = _config.Materials,
+            Steps = _config.Steps
+        });
+
+        _saving = false;
+
+        if (!ok) { Toast.Error(error); return; }
+
+        Toast.Success(Loc["pujaProcessConfig.saved", "Puja process saved."]);
+
+        // Reload so newly created steps come back with their ids — without this a second save
+        // would create duplicates instead of updating what was just stored.
+        _config = await Api.GetPujaProcessConfigAsync(_config.PujaId);
+        _activeLang.Clear();
+    }
+}

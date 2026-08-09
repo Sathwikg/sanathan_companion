@@ -13,6 +13,7 @@ public interface IUnitOfWork
     IChantRepository Chants { get; }
     IWallpaperRepository Wallpapers { get; }
     IPujaRepository Pujas { get; }
+    IPujaProcessRepository PujaProcess { get; }
     IChantConfigRepository ChantConfigs { get; }
     ILanguageRepository Languages { get; }
     IPanchangamRepository Panchangams { get; }

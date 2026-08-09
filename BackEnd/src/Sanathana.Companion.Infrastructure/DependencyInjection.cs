@@ -28,6 +28,7 @@ public static class DependencyInjection
         services.AddScoped<IChantRepository, ChantRepository>();
         services.AddScoped<IWallpaperRepository, WallpaperRepository>();
         services.AddScoped<IPujaRepository, PujaRepository>();
+        services.AddScoped<IPujaProcessRepository, PujaProcessRepository>();
         services.AddScoped<IChantConfigRepository, ChantConfigRepository>();
         services.AddScoped<ILanguageRepository, LanguageRepository>();
         services.AddScoped<IPanchangamRepository, PanchangamRepository>();

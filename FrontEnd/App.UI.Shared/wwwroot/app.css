@@ -1011,3 +1011,49 @@ body {
 
 /* Marks a form field that may be left blank. */
 .sc-optional { font-weight: 400; font-size: 0.8rem; color: var(--color-secondary); }
+
+/* ---- Puja process ---- */
+.sc-material-add { display: grid; grid-template-columns: 2fr 1fr auto; gap: 0.6rem; align-items: center; margin-bottom: 0.8rem; }
+.sc-material-empty { margin: 0; }
+.sc-material-list { list-style: none; margin: 0; padding: 0; }
+.sc-material-list li { display: grid; grid-template-columns: 1fr auto auto; gap: 0.8rem; align-items: center; padding: 0.45rem 0; border-top: 1px solid color-mix(in srgb, var(--color-outline) 55%, transparent); }
+.sc-material-list li:first-child { border-top: none; }
+.sc-material-list.readonly li { grid-template-columns: 1fr auto; }
+.sc-material-name { font-weight: 600; }
+.sc-material-qty { color: var(--color-secondary); font-size: 0.9rem; }
+
+.sc-step-card { margin-bottom: 1rem; }
+.sc-step-head { display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem; margin-bottom: 0.6rem; }
+.sc-step-badge { font-weight: 700; color: var(--color-primary); }
+.sc-step-langcount { font-size: 0.8rem; color: var(--color-secondary); }
+.sc-step-actions { margin-left: auto; display: flex; gap: 0.5rem; }
+.sc-linkbtn.danger { color: #B4531B; }
+
+.sc-process-actions { display: flex; justify-content: space-between; gap: 1rem; margin: 1rem 0 2rem; }
+
+/* runtime */
+.sc-progress-card { display: flex; flex-direction: column; gap: 0.6rem; }
+.sc-progress-card.done { border-color: #2F7D4F; }
+.sc-progress-line { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.5rem; }
+.sc-progress-track { height: 8px; border-radius: 999px; background: color-mix(in srgb, var(--color-outline) 60%, transparent); overflow: hidden; }
+.sc-progress-fill { height: 100%; background: var(--color-primary); transition: width 0.25s ease; }
+.sc-puja-done { display: flex; align-items: center; gap: 0.8rem; }
+.sc-puja-done-icon { font-size: 2rem; }
+.sc-puja-done p { margin: 0.1rem 0 0; }
+
+.sc-puja-pick { cursor: pointer; text-align: left; }
+
+.sc-runstep { display: flex; gap: 0.9rem; align-items: flex-start; margin-bottom: 0.8rem; transition: border-color 0.15s; }
+.sc-runstep.next { border-color: var(--color-primary); }
+.sc-runstep.done { opacity: 0.72; }
+.sc-runstep-check { flex-shrink: 0; width: 38px; height: 38px; border-radius: 50%; border: 2px solid var(--color-outline); background: var(--color-surface); color: var(--color-on-surface); font-weight: 700; cursor: pointer; transition: background 0.15s, border-color 0.15s, color 0.15s; }
+.sc-runstep-check:hover { border-color: var(--color-primary); }
+.sc-runstep.done .sc-runstep-check { background: #2F7D4F; border-color: #2F7D4F; color: #fff; }
+.sc-runstep.next .sc-runstep-check { border-color: var(--color-primary); color: var(--color-primary); }
+.sc-runstep-body { flex: 1; min-width: 0; }
+.sc-runstep-head { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem; }
+.sc-runstep.done .sc-runstep-head strong { text-decoration: line-through; }
+
+@media (max-width: 560px) {
+  .sc-material-add { grid-template-columns: 1fr; }
+}

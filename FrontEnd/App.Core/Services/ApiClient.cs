@@ -564,6 +564,44 @@ public class ApiClient : IApiClient
         return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
     }
 
+    // ---- Puja process ----
+
+    public async Task<PujaProcessConfigModel?> GetPujaProcessConfigAsync(Guid pujaId)
+        => await _http.GetFromJsonAsync<PujaProcessConfigModel>($"pujaprocess/config/{pujaId}");
+
+    public async Task<(bool Success, string Error)> SavePujaProcessConfigAsync(Guid pujaId, SavePujaProcessRequest request)
+    {
+        var response = await _http.PutAsJsonAsync($"pujaprocess/config/{pujaId}", request);
+        return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
+    }
+
+    public async Task<List<ProcessFestivalModel>> GetProcessFestivalsAsync()
+        => await _http.GetFromJsonAsync<List<ProcessFestivalModel>>("pujaprocess/festivals") ?? new();
+
+    public async Task<List<ProcessPujaSummaryModel>> GetProcessPujasAsync(Guid festivalId)
+        => await _http.GetFromJsonAsync<List<ProcessPujaSummaryModel>>($"pujaprocess/festival/{festivalId}") ?? new();
+
+    public async Task<PujaProcessViewModel?> GetPujaProcessAsync(Guid pujaId)
+        => await _http.GetFromJsonAsync<PujaProcessViewModel>($"pujaprocess/puja/{pujaId}");
+
+    public async Task<PujaProgressResult?> CompletePujaStepAsync(Guid stepId)
+    {
+        var response = await _http.PostAsync($"pujaprocess/step/{stepId}/complete", null);
+        return response.IsSuccessStatusCode ? await response.Content.ReadFromJsonAsync<PujaProgressResult>() : null;
+    }
+
+    public async Task<PujaProgressResult?> UndoPujaStepAsync(Guid stepId)
+    {
+        var response = await _http.DeleteAsync($"pujaprocess/step/{stepId}/complete");
+        return response.IsSuccessStatusCode ? await response.Content.ReadFromJsonAsync<PujaProgressResult>() : null;
+    }
+
+    public async Task<PujaProgressResult?> ResetPujaProgressAsync(Guid pujaId)
+    {
+        var response = await _http.PostAsync($"pujaprocess/puja/{pujaId}/reset", null);
+        return response.IsSuccessStatusCode ? await response.Content.ReadFromJsonAsync<PujaProgressResult>() : null;
+    }
+
     // ---- Pujas ----
 
     public async Task<List<PujaModel>> GetPujasAsync()

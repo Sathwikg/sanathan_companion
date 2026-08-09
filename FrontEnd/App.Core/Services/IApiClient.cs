@@ -139,6 +139,16 @@ public interface IApiClient
     Task<(bool Ok, FeedbackDashboardModel? Data, bool Forbidden, string Error)> GetFeedbackDashboardAsync();
     Task<(bool Success, string Error)> SetFeedbackStatusAsync(Guid id, string status);
 
+    // Puja process (admin config + user runtime)
+    Task<PujaProcessConfigModel?> GetPujaProcessConfigAsync(Guid pujaId);
+    Task<(bool Success, string Error)> SavePujaProcessConfigAsync(Guid pujaId, SavePujaProcessRequest request);
+    Task<List<ProcessFestivalModel>> GetProcessFestivalsAsync();
+    Task<List<ProcessPujaSummaryModel>> GetProcessPujasAsync(Guid festivalId);
+    Task<PujaProcessViewModel?> GetPujaProcessAsync(Guid pujaId);
+    Task<PujaProgressResult?> CompletePujaStepAsync(Guid stepId);
+    Task<PujaProgressResult?> UndoPujaStepAsync(Guid stepId);
+    Task<PujaProgressResult?> ResetPujaProgressAsync(Guid pujaId);
+
     // Pujas
     Task<List<PujaModel>> GetPujasAsync();
     Task<PujaModel?> GetPujaAsync(Guid id);

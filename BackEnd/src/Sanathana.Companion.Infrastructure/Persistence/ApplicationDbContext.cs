@@ -25,6 +25,10 @@ public class ApplicationDbContext : DbContext
     public DbSet<Chant> Chants => Set<Chant>();
     public DbSet<Wallpaper> Wallpapers => Set<Wallpaper>();
     public DbSet<Puja> Pujas => Set<Puja>();
+    public DbSet<PujaMaterial> PujaMaterials => Set<PujaMaterial>();
+    public DbSet<PujaStep> PujaSteps => Set<PujaStep>();
+    public DbSet<PujaStepText> PujaStepTexts => Set<PujaStepText>();
+    public DbSet<UserPujaStepProgress> UserPujaStepProgress => Set<UserPujaStepProgress>();
     public DbSet<ChantConfig> ChantConfigs => Set<ChantConfig>();
     public DbSet<ChantConfigAudio> ChantConfigAudios => Set<ChantConfigAudio>();
     public DbSet<ChantLanguageConfig> ChantLanguageConfigs => Set<ChantLanguageConfig>();
