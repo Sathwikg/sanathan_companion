@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- SecureStorageTokenStore keeps the JWT in the iOS Keychain. On a device build the write
+         throws without this entitlement — and SetTokenAsync is not guarded, so it would surface
+         as a crash at sign-in rather than a silent degrade.
+
+         $(AppIdentifierPrefix) is substituted with the team prefix at build time; the bundle id
+         must match <ApplicationId> in App.Mobile.csproj and the App ID in the developer portal. -->
+    <key>keychain-access-groups</key>
+    <array>
+        <string>$(AppIdentifierPrefix)com.sanathana.companion</string>
+    </array>
+</dict>
+</plist>

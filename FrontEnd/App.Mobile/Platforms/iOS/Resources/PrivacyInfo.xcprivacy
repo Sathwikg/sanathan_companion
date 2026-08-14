@@ -36,8 +36,9 @@ More information: https://aka.ms/maui-privacy-manifest
                 <string>E174.1</string>
             </array>
         </dict>
-        <!--
-            The entry below is only needed when you're using the Preferences API in your app.
+        <!-- Required: PreferencesThemeStore and PreferencesLanguageStore both use the MAUI
+             Preferences API, which is UserDefaults. Leaving this commented out (the template
+             default) fails App Store validation. -->
         <dict>
             <key>NSPrivacyAccessedAPIType</key>
             <string>NSPrivacyAccessedAPICategoryUserDefaults</string>
@@ -45,7 +46,15 @@ More information: https://aka.ms/maui-privacy-manifest
             <array>
                 <string>CA92.1</string>
             </array>
-        </dict> -->
+        </dict>
     </array>
+
+    <!-- Nothing here is used for tracking, and no data leaves the app except to its own API. -->
+    <key>NSPrivacyTracking</key>
+    <false/>
+    <key>NSPrivacyTrackingDomains</key>
+    <array/>
+    <key>NSPrivacyCollectedDataTypes</key>
+    <array/>
 </dict>
 </plist>

@@ -90,10 +90,9 @@ else
     private WallpaperDeityModel? _selected;
     private bool _loading = true;
 
-    private string ApiRoot => Config.ApiBaseUrl.TrimEnd('/');
-    private string ImgSrc(Guid id) => $"{ApiRoot}/wallpapers/{id}/image";
-    private string DownloadUrl(Guid id) => $"{ApiRoot}/wallpapers/{id}/download";
-    private string DeityImg(Guid id) => $"{ApiRoot}/deities/{id}/image";
+    private string ImgSrc(Guid id) => Config.Absolute(ApiRoutes.Media.WallpaperImage(id));
+    private string DownloadUrl(Guid id) => Config.Absolute(ApiRoutes.Media.WallpaperDownload(id));
+    private string DeityImg(Guid id) => Config.Absolute(ApiRoutes.Media.DeityImage(id));
 
     protected override async Task OnInitializedAsync()
     {

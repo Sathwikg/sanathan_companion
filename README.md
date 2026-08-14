@@ -10,19 +10,56 @@ Application/
 
 ## Tech stack
 - **API:** .NET 10, Clean Architecture (Domain / Application / Infrastructure / Api / Modules), repository + unit-of-work, EF Core + Npgsql, JWT bearer auth, FluentValidation, Serilog, Swagger.
-- **Frontend:** .NET 10 Blazor. `App.Core` (models/services/auth), `App.UI.Shared` (shared Razor components + Hindu Dharma theme), `App.Web` (Blazor WebAssembly), `App.Mobile` (.NET MAUI Blazor Hybrid — Android + Windows), `App.Tests`.
+- **Frontend:** .NET 10 Blazor. `App.Core` (models/services/auth), `App.UI.Shared` (shared Razor components + Hindu Dharma theme), `App.Web` (Blazor WebAssembly), `App.Mobile` (.NET MAUI Blazor Hybrid — **Android, iOS, Mac Catalyst** + Windows), `App.Tests`.
 - **Database:** PostgreSQL on `localhost:5432`, database `sanathana_companion` (created + seeded automatically on first API run).
 
 ## Prerequisites
 - .NET 10 SDK, `dotnet-ef` 10.x (`dotnet tool update --global dotnet-ef --version 10.*`).
 - A running **PostgreSQL** on `localhost:5432`. Adjust credentials in `BackEnd/src/Sanathana.Companion.Api/appsettings.json` (`ConnectionStrings:DefaultConnection`).
-- For the mobile app: MAUI workloads (`maui-android`, `maui-windows`). iOS/macOS require a Mac.
+- For the mobile app: `dotnet workload install maui-android maui-ios maui-maccatalyst maui-windows`.
+- **Android additionally needs JDK 21** — the .NET 10 Android SDK rejects anything else (`error XA0030`). Android Studio ships one at `%LOCALAPPDATA%\Android\jdk`; point the build at it rather than changing `JAVA_HOME`:
+
+  ```bash
+  dotnet build FrontEnd/App.Mobile -f net10.0-android -p:JavaSdkDirectory="$LOCALAPPDATA/Android/jdk"
+  ```
+- iOS/Mac Catalyst **compile** on Windows, but producing a runnable app, an `.ipa` or a store upload needs a Mac (Pair to Mac, or a macOS build agent).
 
 ## Run
 1. **Backend:** `RunBackend.cmd` → API on `http://localhost:7050`, Swagger at `/swagger`. Migrations + seed apply automatically on startup.
 2. **Web:** `RunFrontend.cmd` → `http://localhost:7001` (calls the API at `:7050`).
-3. **Mobile (Windows):** `dotnet build FrontEnd/App.Mobile -t:Run -f net10.0-windows10.0.19041.0`
-   **Mobile (Android emulator):** `dotnet build FrontEnd/App.Mobile -t:Run -f net10.0-android` (API reached via `http://10.0.2.2:7050`).
+3. **Mobile (Android emulator):** `dotnet build FrontEnd/App.Mobile -t:Run -f net10.0-android` (API reached via `http://10.0.2.2:7050`).
+   **Mobile (iOS simulator, on a Mac):** `dotnet build FrontEnd/App.Mobile -t:Run -f net10.0-ios`
+   **Mobile (Windows):** `dotnet build FrontEnd/App.Mobile -t:Run -f net10.0-windows10.0.19041.0`
+
+## The mobile app
+
+`App.Mobile` is a MAUI Blazor Hybrid host: iOS and Android run the *same* Razor pages as the web,
+so every feature exists on both without being written twice. What differs is the shell.
+
+| | Web | Mobile |
+|---|---|---|
+| Layout | `MainLayout` — top bar + left drawer | `MobileLayout` — top bar + **bottom navigation** |
+| Chosen by | `Routes.razor`, from `AppConfig.Platform` | same |
+| Skin | `theme.css` + `app.css` | the same, plus `mobile.css` (frosted chrome, gradients, safe-area insets) |
+| Navigation | full menu tree in the rail | first four leaves of the menu as tabs; the rest behind **More** |
+| Notifications | a page | a **bell in the top bar** with a live "active right now" panel |
+| Profile | `/profile` | `/profile`, plus an account sheet on the avatar (streak, region, language, theme) |
+
+The bottom bar is **not hardcoded**. It is built from `GET /api/menumodules/menu?platform=Mobile`,
+so publishing a form to mobile (Modules → *Show in mobile*) or reordering it changes the tabs with
+no app release. A form appears on a phone only when its **`ShowInMobile`** flag is set — including
+for Admin — and, for every other role, only when Access Rights also grants it the *Mobile* column.
+
+### Configuration, in one place each
+
+| Host | File | Notes |
+|---|---|---|
+| Mobile | `FrontEnd/App.Mobile/Resources/Raw/appsettings.json` | API URL per build configuration, app name, timeout. Read once at start-up by `MobileSettings.Load()`. Packaged, so changing it means a rebuild. |
+| Web | `FrontEnd/App.Web/wwwroot/appsettings.json` | API URL and `Platform`. Docker rewrites `ApiBaseUrl` at container start. |
+| Both | `FrontEnd/App.Core/Config/ApiRoutes.cs` | **Every REST path the clients call.** No URL string is spelled out anywhere else. |
+
+Set `"Platform": "Mobile"` in the *web* `appsettings.json` to render the phone shell in a desktop
+browser's device emulation — the quickest way to review mobile UI without a device.
 
 ## Run with Docker (single server, API under `/api`)
 
@@ -100,5 +137,8 @@ docker compose down            # stop
 | GET  | `/api/dashboard` | Bearer | Protected placeholder dashboard |
 
 ## Tests
-- Backend: `dotnet test BackEnd/Sanathana.Companion.slnx` (14 tests — seeding, register/login, JWT, BCrypt, validation).
-- Frontend: `dotnet test FrontEnd/App.Tests` (6 tests — request validation).
+- Backend: `dotnet test BackEnd/Sanathana.Companion.slnx` (279 tests — seeding, register/login, JWT, BCrypt, validation, menu/platform filtering, localization).
+- Frontend: `dotnet test FrontEnd/App.Tests` (73 tests — request validation, the API route table, the mobile bottom-navigation rule).
+
+Stop the API before running the backend suite: `dotnet test` cannot overwrite the DLLs a running
+`Sanathana.Companion.Api` holds open.

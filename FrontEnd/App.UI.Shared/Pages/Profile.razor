@@ -4,6 +4,7 @@
 @inject IApiClient Api
 @inject RegionState Region
 @inject ToastService Toast
+@inject AppConfig Config
 
 <div class="sc-page-head">
     <div class="sc-page-title">
@@ -100,6 +101,43 @@ else if (_p is not null)
                     @if (_savingRegion) { <span>@Loc["common.saving", "Saving…"]</span> }
                     else { <span>@Loc["profile.regionSwitchHint", "You can still switch region any time from the selector at the top."]</span> }
                 </span>
+            </div>
+        </div>
+
+        <div class="sc-card sc-prefcard">
+            <div class="sc-section-head" style="margin-bottom:0.6rem">
+                <h2>⚙️ @Loc["profile.preferences", "Preferences"]</h2>
+                <span class="sc-section-sub">@Loc["profile.preferencesSub", "How the app looks and speaks to you on this device"]</span>
+            </div>
+            <div class="sc-preflist">
+                <div class="sc-prefrow">
+                    <span class="sc-prefrow-label">🌐 @Loc["nav.selectLanguage", "Select language"]</span>
+                    <LanguageSelector />
+                </div>
+                <div class="sc-prefrow">
+                    <span class="sc-prefrow-label">🎨 @Loc["profile.appearance", "Appearance"]</span>
+                    <ThemeToggle />
+                </div>
+                <a class="sc-prefrow sc-prefrow-link" href="my-notifications">
+                    <span class="sc-prefrow-label">🔔 @Loc["nav.notifications", "Notifications"]</span>
+                    <span class="sc-prefrow-chev">›</span>
+                </a>
+                <a class="sc-prefrow sc-prefrow-link" href="favorites">
+                    <span class="sc-prefrow-label">❤️ @Loc["nav.favorites", "Favorites"]</span>
+                    <span class="sc-prefrow-chev">›</span>
+                </a>
+            </div>
+        </div>
+
+        <div class="sc-card sc-prefcard sc-aboutcard">
+            <div class="sc-section-head" style="margin-bottom:0.6rem">
+                <h2>ℹ️ @Loc["profile.about", "About"]</h2>
+            </div>
+            <div class="sc-detail-grid">
+                <div class="sc-detail-item"><span class="sc-detail-label">@Loc["profile.app", "App"]</span><span class="sc-detail-value">@Config.AppName</span></div>
+                <div class="sc-detail-item"><span class="sc-detail-label">@Loc["profile.version", "Version"]</span><span class="sc-detail-value">@Config.AppVersion</span></div>
+                <div class="sc-detail-item"><span class="sc-detail-label">@Loc["profile.platform", "Platform"]</span><span class="sc-detail-value">@Config.Platform</span></div>
+                <div class="sc-detail-item"><span class="sc-detail-label">@Loc["profile.environment", "Environment"]</span><span class="sc-detail-value">@Config.Environment</span></div>
             </div>
         </div>
     }

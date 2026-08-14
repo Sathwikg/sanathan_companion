@@ -1,15 +1,16 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
+<Project Sdk="Microsoft.NET.Sdk.Razor">
 
     <PropertyGroup>
-        <!-- iOS/MacCatalyst intentionally omitted (require a Mac); add back on macOS. -->
-        <TargetFrameworks>net10.0-android;net10.0-windows10.0.19041.0</TargetFrameworks>
+        <!-- iOS and Mac Catalyst need the matching workloads:
+               dotnet workload install maui-ios maui-maccatalyst
+             They compile on Windows; producing a runnable .app or an App Store package still needs
+             a Mac (Pair to Mac from Visual Studio, or a macOS build agent). Windows is included
+             only when building on Windows, because its TFM cannot be restored elsewhere. -->
+        <TargetFrameworks>net10.0-android;net10.0-ios;net10.0-maccatalyst</TargetFrameworks>
+        <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net10.0-windows10.0.19041.0</TargetFrameworks>
 
-        <!-- Note for MacCatalyst:
-            The default runtime is maccatalyst-x64, except in Release config, in which case the default is maccatalyst-x64;maccatalyst-arm64.
-            When specifying both architectures, use the plural <RuntimeIdentifiers> instead of the singular <RuntimeIdentifier>.
-            The Mac App Store will NOT accept apps with ONLY maccatalyst-arm64 indicated;
-            either BOTH runtimes must be indicated or ONLY macatalyst-x64. -->
-        <!-- For example: <RuntimeIdentifiers>maccatalyst-x64;maccatalyst-arm64</RuntimeIdentifiers> -->
+        <!-- The Mac App Store rejects a package built for maccatalyst-arm64 alone; ship both. -->
+        <RuntimeIdentifiers Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst' and '$(Configuration)' == 'Release'">maccatalyst-x64;maccatalyst-arm64</RuntimeIdentifiers>
 
         <OutputType>Exe</OutputType>
         <RootNamespace>App.Mobile</RootNamespace>
@@ -28,42 +29,58 @@
         <MauiXamlInflator>SourceGen</MauiXamlInflator>
 
         <!-- Display name -->
-        <ApplicationTitle>App.Mobile</ApplicationTitle>
+        <ApplicationTitle>Sanathan Companion</ApplicationTitle>
 
-        <!-- App Identifier -->
-        <ApplicationId>com.companyname.app.mobile</ApplicationId>
+        <!-- App Identifier. Reverse-DNS and stable: changing it after a store release orphans every
+             installed copy, so it is deliberately not derived from the assembly name. -->
+        <ApplicationId>com.sanathana.companion</ApplicationId>
+        <ApplicationIdGuid>9F1C6A44-2E0B-4D18-9B6C-1B7A4E2C55D1</ApplicationIdGuid>
 
-        <!-- Versions -->
-        <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
+        <!-- Versions. DisplayVersion is what the stores show; ApplicationVersion is the build
+             number and must increase with every upload. -->
+        <ApplicationDisplayVersion>1.0.0</ApplicationDisplayVersion>
         <ApplicationVersion>1</ApplicationVersion>
 
         <!-- To develop, package, and publish an app to the Microsoft Store, see: https://aka.ms/MauiTemplateUnpackaged -->
         <WindowsPackageType>None</WindowsPackageType>
 
+        <!-- 15.0 covers every device Apple still signs updates for and is the floor for .NET 10 iOS. -->
         <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">15.0</SupportedOSPlatformVersion>
         <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">15.0</SupportedOSPlatformVersion>
+        <!-- 24 (Android 7.0) is the floor for the Android WebView features the Blazor host relies on. -->
         <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">24.0</SupportedOSPlatformVersion>
         <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
         <TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
     </PropertyGroup>
 
     <ItemGroup>
-        <!-- App Icon -->
-        <MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#512BD4" />
+        <!-- App Icon. The colour is the theme's divine-saffron primary, so the launcher badge, the
+             splash and the app's own chrome are one palette. -->
+        <MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#8D4E19" />
 
         <!-- Splash Screen -->
-        <MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#512BD4" BaseSize="128,128" />
+        <MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#FDFBF7" BaseSize="128,128" />
 
-        <!-- Images -->
+        <!-- Images. The template's dotnet_bot.svg is gone — nothing referenced it, and it was
+             shipping inside every APK and IPA. -->
         <MauiImage Include="Resources\Images\*" />
-        <MauiImage Update="Resources\Images\dotnet_bot.svg" BaseSize="168,208" />
 
         <!-- Custom Fonts -->
         <MauiFont Include="Resources\Fonts\*" />
 
-        <!-- Raw Assets (also remove the "Resources\Raw" prefix) -->
+        <!-- Raw Assets (also remove the "Resources\Raw" prefix). appsettings.json rides in here —
+             it is the single configuration file the app reads at start-up. -->
         <MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
     </ItemGroup>
+
+    <!-- Codesigning entitlements. Both platforms need keychain access for SecureStorageTokenStore;
+         without it the JWT write throws at sign-in on a real device. -->
+    <PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'ios'">
+        <CodesignEntitlements>Platforms\iOS\Entitlements.plist</CodesignEntitlements>
+    </PropertyGroup>
+    <PropertyGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">
+        <CodesignEntitlements>Platforms\MacCatalyst\Entitlements.plist</CodesignEntitlements>
+    </PropertyGroup>
 
     <ItemGroup>
         <PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />

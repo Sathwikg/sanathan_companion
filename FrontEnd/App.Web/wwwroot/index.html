@@ -9,12 +9,16 @@
     <link rel="preload" id="webassembly" />
     <link rel="stylesheet" href="_content/App.UI.Shared/theme.css" />
     <link rel="stylesheet" href="_content/App.UI.Shared/app.css" />
+    <!-- Every rule in here is scoped to .scm-*, which only MobileLayout renders, so on the web
+         it is inert. It is linked anyway so that setting Platform to Mobile in appsettings.json
+         previews the real phone UI in a browser's device emulation. -->
+    <link rel="stylesheet" href="_content/App.UI.Shared/mobile.css" />
     <link rel="icon" type="image/png" href="favicon.png" />
     <link href="App.Web.styles.css" rel="stylesheet" />
-    <script>
-        // Apply the saved theme before render to avoid a flash of the wrong theme.
-        try { var t = localStorage.getItem('sc-theme'); if (t) document.documentElement.setAttribute('data-theme', t); } catch (e) { }
-    </script>
+    <!-- Applies the saved theme before render to avoid a flash of the wrong theme. Shared with
+         the MAUI host, which needs the same behaviour for a different reason (see theme.js). -->
+    <script src="_content/App.UI.Shared/theme.js"></script>
+    <script>scTheme.boot();</script>
     <script type="importmap"></script>
 </head>
 

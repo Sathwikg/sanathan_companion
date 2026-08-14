@@ -101,7 +101,7 @@ else
         _deities = await Api.GetWallpaperDeitiesAsync();
     }
 
-    private string ImgSrc(Guid id) => $"{Config.ApiBaseUrl.TrimEnd('/')}/wallpapers/{id}/image";
+    private string ImgSrc(Guid id) => Config.Absolute(ApiRoutes.Media.WallpaperImage(id));
 
     private async Task OnDeityChanged(ChangeEventArgs e)
     {

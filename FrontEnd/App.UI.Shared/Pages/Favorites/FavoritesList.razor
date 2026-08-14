@@ -142,5 +142,5 @@ else
         await LoadAsync();
     }
 
-    private string ImgSrc(Guid id) => $"{Config.ApiBaseUrl.TrimEnd('/')}/deities/{id}/image";
+    private string ImgSrc(Guid id) => Config.Absolute(ApiRoutes.Media.DeityImage(id));
 }

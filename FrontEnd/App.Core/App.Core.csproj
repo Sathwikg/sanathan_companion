@@ -9,6 +9,9 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="10.0.10" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.10" />
+    <!-- For JsGeolocationProvider. Components.Authorization does not surface IJSRuntime to
+         referencing projects, so it has to be asked for by name. -->
+    <PackageReference Include="Microsoft.JSInterop" Version="10.0.10" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.21.0" />
   </ItemGroup>
 

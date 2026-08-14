@@ -1,6 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    The native chrome around the WebView: splash theme, status bar tint, task-switcher card.
+    These are the same values theme.css uses for color-primary, color-accent and color-background,
+    so the launch screen and the app itself are one palette instead of the template's .NET purple.
+
+    Note for editors: XML forbids a double hyphen inside a comment, so the CSS custom properties
+    are named here without their leading dashes. aapt2 rejects the file outright otherwise, and
+    only the Android build ever compiles it.
+-->
 <resources>
-    <color name="colorPrimary">#512BD4</color>
-    <color name="colorPrimaryDark">#2B0B98</color>
-    <color name="colorAccent">#2B0B98</color>
+    <color name="colorPrimary">#8D4E19</color>
+    <color name="colorPrimaryDark">#5A2A04</color>
+    <color name="colorAccent">#D47222</color>
+    <color name="colorBackground">#FDFBF7</color>
 </resources>

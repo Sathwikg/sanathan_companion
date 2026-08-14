@@ -1,0 +1,133 @@
+@* Tapping the avatar opens this: who you are, how your practice is going, and the four settings
+   a seeker actually changes on a phone — region, language, theme, notifications. The full
+   profile and timeline stay one tap away at /profile rather than being duplicated here. *@
+@implements IDisposable
+@inject IApiClient Api
+@inject LocalizationState Loc
+@inject AppConfig Config
+
+<AuthorizeView>
+    <Authorized>
+        <div class="scm-acct-hero">
+            <div class="scm-acct-avatar">@Initials(context.User.FindFirst("fullName")?.Value)</div>
+            <div class="scm-acct-id">
+                <strong>@(_profile?.FullName ?? context.User.FindFirst("fullName")?.Value)</strong>
+                <span class="sc-muted">
+                    @if (!string.IsNullOrWhiteSpace(_profile?.SeekerName))
+                    {
+                        <span>🕉️ @_profile!.SeekerName · </span>
+                    }
+                    <span class="sc-typechip @(IsAdmin(context) ? "god" : "goddess")">@RoleName(context)</span>
+                </span>
+            </div>
+        </div>
+
+        @if (_profile is not null)
+        {
+            <div class="scm-acct-stats">
+                <div class="scm-acct-stat @(_profile.CurrentStreak > 0 ? "hot" : "")">
+                    <span class="n">🔥 @_profile.CurrentStreak</span>
+                    <span class="l">@Loc["sadhana.dayStreak", "day streak"]</span>
+                </div>
+                <div class="scm-acct-stat">
+                    <span class="n">@_profile.TotalMalas</span>
+                    <span class="l">@Loc["sadhana.totalMalas", "Total malas"]</span>
+                </div>
+                <div class="scm-acct-stat">
+                    <span class="n">@_profile.TotalDaysPracticed</span>
+                    <span class="l">@Loc["common.days", "Days"]</span>
+                </div>
+            </div>
+        }
+
+        <a class="scm-acct-cta" href="profile" @onclick="Navigated" @onclick:preventDefault="false">
+            <span>👤 @Loc["profile.viewFull", "View full profile & sadhana timeline"]</span>
+            <span class="scm-row-chev">›</span>
+        </a>
+
+        <div class="scm-acct-section">
+            <h3>@Loc["profile.preferences", "Preferences"]</h3>
+
+            <div class="scm-acct-pref">
+                <span class="scm-acct-pref-label">📍 @Loc["common.region", "Region"]</span>
+                <RegionSelector />
+            </div>
+
+            <div class="scm-acct-pref">
+                <span class="scm-acct-pref-label">🌐 @Loc["nav.selectLanguage", "Select language"]</span>
+                <LanguageSelector />
+            </div>
+
+            <div class="scm-acct-pref">
+                <span class="scm-acct-pref-label">🎨 @Loc["profile.appearance", "Appearance"]</span>
+                <ThemeToggle />
+            </div>
+        </div>
+
+        <div class="scm-acct-section">
+            <h3>@Loc["profile.quickLinks", "Quick links"]</h3>
+            <a class="scm-row" href="my-notifications" @onclick="Navigated" @onclick:preventDefault="false">
+                <span class="scm-row-ic">🔔</span>
+                <span class="scm-row-label">@Loc["nav.notifications", "Notifications"]</span>
+                <span class="scm-row-chev">›</span>
+            </a>
+            <a class="scm-row" href="favorites" @onclick="Navigated" @onclick:preventDefault="false">
+                <span class="scm-row-ic">❤️</span>
+                <span class="scm-row-label">@Loc["nav.favorites", "Favorites"]</span>
+                <span class="scm-row-chev">›</span>
+            </a>
+            <a class="scm-row" href="feedback" @onclick="Navigated" @onclick:preventDefault="false">
+                <span class="scm-row-ic">💬</span>
+                <span class="scm-row-label">@Loc["nav.feedback", "Feedback"]</span>
+                <span class="scm-row-chev">›</span>
+            </a>
+        </div>
+
+        <button class="scm-acct-logout" @onclick="LogoutAsync">
+            @Loc["common.logout", "Logout"]
+        </button>
+
+        @* Parenthesised on purpose: Razor reads a bare "v@Config.AppVersion" as an email address
+           and emits it verbatim, so the version rendered as the literal text "v@@Config.AppVersion". *@
+        <p class="scm-acct-about">
+            @Config.AppName · v@(Config.AppVersion) · @Config.Environment
+        </p>
+    </Authorized>
+</AuthorizeView>
+
+@code {
+    [Parameter] public EventCallback OnNavigate { get; set; }
+    [Parameter] public EventCallback OnLogout { get; set; }
+
+    private MyProfile? _profile;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Loc.OnChanged += LanguageChanged;
+        // Best-effort: the sheet's identity block comes from the JWT and renders without this.
+        try { _profile = await Api.GetMyProfileAsync(); }
+        catch { /* leave the streak strip out */ }
+    }
+
+    private static bool IsAdmin(AuthenticationState state) => state.User.IsInRole("Admin");
+
+    private static string RoleName(AuthenticationState state)
+        => state.User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "Sanathan";
+
+    private Task Navigated() => OnNavigate.InvokeAsync();
+
+    private Task LogoutAsync() => OnLogout.InvokeAsync();
+
+    private void LanguageChanged() => InvokeAsync(StateHasChanged);
+
+    private static string Initials(string? name)
+    {
+        var parts = (name ?? string.Empty).Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length == 0) return "🕉";
+        return parts.Length == 1
+            ? parts[0][..1].ToUpperInvariant()
+            : (parts[0][..1] + parts[^1][..1]).ToUpperInvariant();
+    }
+
+    public void Dispose() => Loc.OnChanged -= LanguageChanged;
+}

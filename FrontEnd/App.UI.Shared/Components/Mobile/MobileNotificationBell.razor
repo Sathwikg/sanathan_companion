@@ -1,0 +1,38 @@
+@* Just the bell and its badge. The panel it opens is rendered by MobileLayout as a sibling of the
+   top bar, not here: this button sits inside .scm-topbar, whose backdrop-filter makes it the
+   containing block for any position:fixed descendant — a scrim rendered here would collapse to the
+   bar's own box and tapping outside it would dismiss nothing. NotificationCenterState carries the
+   state across the gap. *@
+@implements IDisposable
+@inject NotificationCenterState Center
+@inject LocalizationState Loc
+
+<button class="scm-bell @(Center.ActiveCount > 0 ? "has-active" : "")" @onclick="OpenAsync"
+        title="@Loc["nav.notifications", "Notifications"]" aria-label="@Loc["nav.notifications", "Notifications"]"
+        aria-expanded="@(Center.IsOpen ? "true" : "false")">
+    <span class="scm-bell-ic">@(Center.IsMuted ? "🔕" : "🔔")</span>
+    @if (Center.ActiveCount > 0)
+    {
+        <span class="scm-bell-badge">@(Center.ActiveCount > 9 ? "9+" : Center.ActiveCount.ToString())</span>
+    }
+</button>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        Center.OnChanged += Changed;
+        Loc.OnChanged += Changed;
+        // Loaded up front so the badge is truthful before the seeker taps anything.
+        await Center.PrimeAsync();
+    }
+
+    private Task OpenAsync() => Center.OpenAsync();
+
+    private void Changed() => InvokeAsync(StateHasChanged);
+
+    public void Dispose()
+    {
+        Center.OnChanged -= Changed;
+        Loc.OnChanged -= Changed;
+    }
+}

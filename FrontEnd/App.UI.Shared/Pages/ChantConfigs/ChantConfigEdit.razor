@@ -203,7 +203,8 @@ else
     private void SetLangText(Guid id, string v) => _langTexts[id] = v;
     private bool HasLangText(Guid id) => _langTexts.TryGetValue(id, out var t) && !IsRichTextEmpty(t);
 
-    private string ExistingAudioUrl => $"{Config.ApiBaseUrl.TrimEnd('/')}/chantconfigs/{Id}/audio";
+    // Only reachable behind HasAnyAudio, which requires IsEdit and therefore a non-null Id.
+    private string ExistingAudioUrl => Config.Absolute(ApiRoutes.Media.ChantAudio(Id.GetValueOrDefault()));
     private bool HasAnyAudio => _newAudioDataUrl is not null || (IsEdit && _hasExistingAudio && !_model.RemoveAudio);
 
     private string AudioLabel => _newAudioDataUrl is not null

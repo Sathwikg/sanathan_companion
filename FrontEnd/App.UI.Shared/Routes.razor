@@ -1,6 +1,7 @@
 @using App.UI.Shared.Layout
 @using App.UI.Shared.Components
 @inject LocalizationState Loc
+@inject AppConfig Config
 @implements IDisposable
 
 <CascadingAuthenticationState>
@@ -12,7 +13,7 @@
                screen. The key must sit on the RouteView (which instantiates the page), not on a
                wrapper around @Body in the layout: that wrapper is a RenderFragment owned by the
                Router, and keying it does not re-instantiate the component inside. *@
-            <AuthorizeRouteView @key="Loc.DataVersion" RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
+            <AuthorizeRouteView @key="Loc.DataVersion" RouteData="@routeData" DefaultLayout="@Shell">
                 <NotAuthorized>
                     <RedirectToLogin />
                 </NotAuthorized>
@@ -23,7 +24,7 @@
             <FocusOnNavigate RouteData="@routeData" Selector="h1" />
         </Found>
         <NotFound>
-            <LayoutView Layout="@typeof(MainLayout)">
+            <LayoutView Layout="@Shell">
                 <div class="sc-center">Page not found.</div>
             </LayoutView>
         </NotFound>
@@ -31,6 +32,14 @@
 </CascadingAuthenticationState>
 
 @code {
+    /// <summary>
+    /// The shell each host gets. Decided here from the injected config rather than passed in as a
+    /// root-component parameter, so the two hosts stay identical at their mount points and the
+    /// choice lives next to the routing it affects. Pages that set their own <c>@@layout</c>
+    /// (Login, Register → AuthLayout) still override this.
+    /// </summary>
+    private Type Shell => Config.IsMobile ? typeof(MobileLayout) : typeof(MainLayout);
+
     protected override void OnInitialized() => Loc.OnChanged += Changed;
 
     private void Changed() => InvokeAsync(StateHasChanged);

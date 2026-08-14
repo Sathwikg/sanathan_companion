@@ -22,6 +22,10 @@
         await ApplyAsync();
     }
 
+    /// <summary>
+    /// Goes through scTheme so the choice is also cached for the next cold start — on mobile the
+    /// real store is MAUI Preferences, which the WebView cannot read before Blazor has booted.
+    /// </summary>
     private async Task ApplyAsync()
-        => await JS.InvokeVoidAsync("document.documentElement.setAttribute", "data-theme", _dark ? "dark" : "light");
+        => await JS.InvokeVoidAsync("scTheme.apply", _dark ? "dark" : "light");
 }

@@ -1,0 +1,30 @@
+@* Bottom sheet: the phone's answer to a dialog. Anchored to the thumb, dismissed by the scrim,
+   the grabber, or Escape. Rendered only while open so nothing offscreen stays in the tab order. *@
+
+@if (Open)
+{
+    <div class="scm-sheet-scrim" @onclick="CloseAsync" aria-hidden="true"></div>
+    <div class="scm-sheet" role="dialog" aria-modal="true" aria-label="@Title" @onkeydown="OnKeyDown" tabindex="-1">
+        <button class="scm-sheet-grab" @onclick="CloseAsync" aria-label="@CloseLabel"></button>
+        <div class="scm-sheet-head">
+            <h2 class="scm-sheet-title">@Title</h2>
+            <button class="scm-sheet-x" @onclick="CloseAsync" aria-label="@CloseLabel">✕</button>
+        </div>
+        <div class="scm-sheet-body">
+            @ChildContent
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public bool Open { get; set; }
+    [Parameter] public string? Title { get; set; }
+    [Parameter] public string CloseLabel { get; set; } = "Close";
+    [Parameter] public EventCallback OnClose { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private Task CloseAsync() => OnClose.InvokeAsync();
+
+    private Task OnKeyDown(KeyboardEventArgs e)
+        => e.Key == "Escape" ? CloseAsync() : Task.CompletedTask;
+}

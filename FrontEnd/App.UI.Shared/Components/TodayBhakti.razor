@@ -225,7 +225,7 @@
 
     private void GoToSadhana(TodaySadhana s) => Nav.NavigateTo($"sadhana/chant/{s.ChantConfigId}");
 
-    private string ImgSrc(Guid id) => $"{Config.ApiBaseUrl.TrimEnd('/')}/deities/{id}/image";
+    private string ImgSrc(Guid id) => Config.Absolute(ApiRoutes.Media.DeityImage(id));
 
     private static string Fallback(TodayDeity d)
         => string.Equals(d.DeityType, "Goddess", StringComparison.OrdinalIgnoreCase) ? "🙏" : "🕉️";

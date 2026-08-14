@@ -1,0 +1,104 @@
+@* Everything the bottom bar had no room for: the rest of the menu as a tappable grid, then the
+   whole tree grouped exactly as the server sent it. Same data as the sidebar, phone-shaped. *@
+@implements IDisposable
+@inject NavigationManager Nav
+@inject LocalizationState Loc
+
+@if (Menu is null)
+{
+    <div class="scm-more-loading"><OmLoader Size="44" Message="@Loc["common.loading", "Loading…"]" /></div>
+}
+else if (Menu.Count == 0)
+{
+    <div class="scm-empty">
+        <div class="scm-empty-om">🪷</div>
+        <p>@Loc["nav.noModules", "No sections are available on mobile for your role yet."]</p>
+        <p class="sc-muted">@Loc["nav.noModulesHint", "An administrator can publish a form to mobile from Modules → Show in mobile, and grant it under Access Rights."]</p>
+    </div>
+}
+else
+{
+    @if (_plan.Secondary.Count > 0)
+    {
+        <div class="scm-quickgrid">
+            @foreach (var node in _plan.Secondary)
+            {
+                <a class="scm-quick @(MobileMenu.IsActive(node, _current) ? "active" : "")"
+                   href="@MobileMenu.Href(node)" @onclick="Navigated" @onclick:preventDefault="false">
+                    <span class="scm-quick-ic">@Icon(node)</span>
+                    <span class="scm-quick-label">@Label(node)</span>
+                </a>
+            }
+        </div>
+    }
+
+    <div class="scm-more-tree">
+        @foreach (var root in Menu)
+        {
+            <section class="scm-group">
+                <h3 class="scm-group-head">
+                    <span class="scm-group-ic">@Icon(root)</span>
+                    <span>@Label(root)</span>
+                </h3>
+
+                @if (root.Children.Count == 0)
+                {
+                    @if (!string.IsNullOrWhiteSpace(root.RoutePath))
+                    {
+                        <a class="scm-row @(MobileMenu.IsActive(root, _current) ? "active" : "")"
+                           href="@MobileMenu.Href(root)" @onclick="Navigated" @onclick:preventDefault="false">
+                            <span class="scm-row-label">@Loc["nav.open", "Open"]</span>
+                            <span class="scm-row-chev">›</span>
+                        </a>
+                    }
+                }
+                else
+                {
+                    <ul class="scm-rows">
+                        @foreach (var child in root.Children)
+                        {
+                            <li>
+                                <a class="scm-row @(MobileMenu.IsActive(child, _current) ? "active" : "")"
+                                   href="@MobileMenu.Href(child)" @onclick="Navigated" @onclick:preventDefault="false">
+                                    <span class="scm-row-ic">@Icon(child)</span>
+                                    <span class="scm-row-label">@Label(child)</span>
+                                    <span class="scm-row-chev">›</span>
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                }
+            </section>
+        }
+    </div>
+}
+
+@code {
+    [Parameter] public List<MenuTreeNode>? Menu { get; set; }
+    [Parameter] public EventCallback OnNavigate { get; set; }
+
+    private MobileMenu.Plan _plan = MobileMenu.Build(null);
+    private string _current = string.Empty;
+
+    protected override void OnInitialized()
+    {
+        Loc.OnChanged += LanguageChanged;
+        _current = Nav.ToBaseRelativePath(Nav.Uri);
+    }
+
+    protected override void OnParametersSet() => _plan = MobileMenu.Build(Menu);
+
+    private string Label(MenuTreeNode node) => Loc.Entity("MenuModule", node.Id, "Name", node.Name);
+
+    private string Icon(MenuTreeNode node) => string.IsNullOrWhiteSpace(node.Icon) ? "•" : node.Icon!;
+
+    /// <summary>
+    /// Closes the sheet on tap. The anchor still performs the navigation — intercepting it would
+    /// cost the browser's own handling of long-press, middle-click and "open in new tab".
+    /// </summary>
+    private Task Navigated() => OnNavigate.InvokeAsync();
+
+    private void LanguageChanged() => InvokeAsync(StateHasChanged);
+
+    public void Dispose() => Loc.OnChanged -= LanguageChanged;
+}

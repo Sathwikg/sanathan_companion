@@ -149,7 +149,7 @@ else
     private int PageCount => Math.Max(1, (int)Math.Ceiling(_filtered.Count / (double)PageSize));
     private IEnumerable<DeityModel> Paged => _filtered.Skip((_page - 1) * PageSize).Take(PageSize);
 
-    private string ImgSrc(DeityModel d) => $"{Config.ApiBaseUrl.TrimEnd('/')}/deities/{d.Id}/image";
+    private string ImgSrc(DeityModel d) => Config.Absolute(ApiRoutes.Media.DeityImage(d.Id));
 
     protected override async Task OnInitializedAsync()
     {

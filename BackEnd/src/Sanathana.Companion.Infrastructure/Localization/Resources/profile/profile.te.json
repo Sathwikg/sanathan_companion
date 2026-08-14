@@ -1,5 +1,8 @@
 {
+  "profile.about": "గురించి",
   "profile.allRegions": "అన్ని ప్రాంతాలు",
+  "profile.app": "యాప్",
+  "profile.appearance": "రూపం",
   "profile.beginSadhana": "సాధన ప్రారంభించు",
   "profile.chantCountMany": "{0} మంత్రాలు",
   "profile.chantCountOne": "{0} మంత్రం",
@@ -7,6 +10,7 @@
   "profile.defaultRegion": "డిఫాల్ట్ ప్రాంతం",
   "profile.defaultRegionSet": "డిఫాల్ట్ ప్రాంతం {0}గా అమర్చబడింది.",
   "profile.defaultRegionSub": "అనువర్తనం అంతటా చూపబడే దేవతలు, మంత్రాలు ఈ ప్రాంతానికి అనుగుణంగా ఉంటాయి",
+  "profile.environment": "పరిసరం",
   "profile.fullName": "పూర్తి పేరు",
   "profile.lastPractice": "చివరి సాధన",
   "profile.loading": "మీ ప్రొఫైల్ లోడ్ అవుతోంది…",
@@ -15,12 +19,18 @@
   "profile.noSadhanaBody": "మీరు ప్రారంభించిన తర్వాత మీ రోజువారీ సాధన ఇక్కడ కనిపిస్తుంది.",
   "profile.noSadhanaYet": "ఇంకా సాధన లేదు",
   "profile.notYet": "ఇంకా లేదు",
+  "profile.platform": "వేదిక",
   "profile.practisedToday": "ఈ రోజు సాధన పూర్తి",
+  "profile.preferences": "ప్రాధాన్యతలు",
+  "profile.preferencesSub": "ఈ పరికరంలో యాప్ ఎలా కనిపిస్తుంది, ఏ భాషలో మాట్లాడుతుంది",
+  "profile.quickLinks": "త్వరిత లింకులు",
   "profile.regionSwitchHint": "పైన ఉన్న ఎంపిక ద్వారా మీరు ఎప్పుడైనా ప్రాంతాన్ని మార్చుకోవచ్చు.",
   "profile.registered": "నమోదైన తేదీ",
   "profile.sadhanaTimeline": "సాధన కాలరేఖ",
   "profile.seekerName": "సాధకుని పేరు",
   "profile.sub": "మీ వివరాలు మరియు సాధన ప్రయాణం",
   "profile.title": "నా ప్రొఫైల్",
-  "profile.totalCount": "మొత్తం లెక్క {0}"
+  "profile.totalCount": "మొత్తం లెక్క {0}",
+  "profile.version": "వెర్షన్",
+  "profile.viewFull": "పూర్తి ప్రొఫైల్ మరియు సాధన కాలరేఖ చూడు"
 }

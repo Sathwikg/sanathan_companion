@@ -1,0 +1,120 @@
+@* The panel the bell opens.
+
+   Rendered by MobileLayout as a SIBLING of the top bar so its fixed scrim resolves against the
+   viewport — see MobileNotificationBell for why it cannot live next to the button.
+
+   The API has no message feed: `GET notifications/me` returns which reminder types the seeker has
+   switched on, with the server's own verdict on whether each would fire *right now* (IsActiveNow /
+   InactiveReason / quiet hours). So this is a live "what is watching over you today" panel rather
+   than an inbox, and the badge counts active reminders, not unread items. It is labelled that way
+   so nobody taps it expecting messages. *@
+@implements IDisposable
+@inject NotificationCenterState Center
+@inject LocalizationState Loc
+
+@if (Center.IsOpen)
+{
+    <div class="scm-panel-scrim" @onclick="Close" aria-hidden="true"></div>
+    <div class="scm-panel" role="dialog" aria-label="@Loc["nav.notifications", "Notifications"]">
+        <div class="scm-panel-head">
+            <div>
+                <h2>@Loc["nav.notifications", "Notifications"]</h2>
+                <span class="scm-panel-sub">
+                    @if (Center.Settings is null)
+                    {
+                        @Loc["common.loading", "Loading…"]
+                    }
+                    else if (Center.Settings.InQuietHoursNow)
+                    {
+                        @Loc["nav.notifQuiet", "Quiet hours — the app is staying silent"]
+                    }
+                    else if (!Center.Settings.MasterEnabled)
+                    {
+                        @Loc["nav.notifPaused", "All notifications are paused"]
+                    }
+                    else
+                    {
+                        @Loc.TF("nav.notifActiveCount", "{0} active right now", Center.ActiveCount)
+                    }
+                </span>
+            </div>
+            <button class="scm-panel-x" @onclick="Close" aria-label="@Loc["common.close", "Close"]">✕</button>
+        </div>
+
+        <div class="scm-panel-body">
+            @if (Center.IsLoading && Center.Settings is null)
+            {
+                <OmLoader Size="40" Message="@Loc["common.loading", "Loading…"]" />
+            }
+            else if (Center.Error is not null && Center.Settings is null)
+            {
+                <div class="sc-alert sc-alert-error">
+                    @Loc["myNotifications.couldNotLoad", "Could not load your notification settings."] @Center.Error
+                </div>
+            }
+            else if (Center.Settings is null || Center.Settings.Items.Count == 0)
+            {
+                <div class="scm-empty">
+                    <div class="scm-empty-om">🪔</div>
+                    <p>@Loc["nav.notifNone", "No reminders are set up yet."]</p>
+                </div>
+            }
+            else
+            {
+                <ul class="scm-notif-list">
+                    @foreach (var item in Center.Settings.Items.OrderByDescending(i => i.IsActiveNow))
+                    {
+                        <li class="scm-notif @(item.IsActiveNow ? "on" : "off")">
+                            <span class="scm-notif-ic">@(string.IsNullOrWhiteSpace(item.Icon) ? "🔔" : item.Icon)</span>
+                            <div class="scm-notif-text">
+                                <strong>@item.Title</strong>
+                                @if (!string.IsNullOrWhiteSpace(item.Description))
+                                {
+                                    <span class="scm-notif-desc">@item.Description</span>
+                                }
+                                <span class="scm-notif-meta">
+                                    @if (item.IsActiveNow)
+                                    {
+                                        <span class="scm-notif-live">● @Loc["nav.notifActiveNow", "Active now"]</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="scm-notif-off">@(item.InactiveReason ?? Loc["nav.notifInactive", "Not active"])</span>
+                                    }
+                                    @if (item.FromTime is not null && item.ToTime is not null)
+                                    {
+                                        <span class="scm-notif-window">@item.FromTime.Value.ToString("HH:mm")–@item.ToTime.Value.ToString("HH:mm")</span>
+                                    }
+                                </span>
+                            </div>
+                        </li>
+                    }
+                </ul>
+            }
+        </div>
+
+        <div class="scm-panel-foot">
+            <a class="sc-btn-primary sc-btn-sm" href="my-notifications" @onclick="Close" @onclick:preventDefault="false">
+                @Loc["nav.notifManage", "Manage notifications"] →
+            </a>
+        </div>
+    </div>
+}
+
+@code {
+    protected override void OnInitialized()
+    {
+        Center.OnChanged += Changed;
+        Loc.OnChanged += Changed;
+    }
+
+    private void Close() => Center.Close();
+
+    private void Changed() => InvokeAsync(StateHasChanged);
+
+    public void Dispose()
+    {
+        Center.OnChanged -= Changed;
+        Loc.OnChanged -= Changed;
+    }
+}

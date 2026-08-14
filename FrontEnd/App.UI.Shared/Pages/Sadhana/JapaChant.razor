@@ -113,7 +113,7 @@ else
     private CancellationTokenSource? _saveCts;
     private bool _dirty;
 
-    private string AudioUrl => $"{Config.ApiBaseUrl.TrimEnd('/')}/chantconfigs/{Id}/audio";
+    private string AudioUrl => Config.Absolute(ApiRoutes.Media.ChantAudio(Id));
 
     protected override async Task OnInitializedAsync()
     {

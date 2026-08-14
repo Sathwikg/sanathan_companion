@@ -5,6 +5,10 @@ using App.Core.Models;
 
 namespace App.Core.Services;
 
+/// <summary>
+/// The single HTTP surface between the apps and the API. Every route it calls comes from
+/// <see cref="ApiRoutes"/>, so no URL is spelled out here.
+/// </summary>
 public class ApiClient : IApiClient
 {
     private readonly HttpClient _http;
@@ -18,7 +22,7 @@ public class ApiClient : IApiClient
 
     public async Task<(bool Success, string Message)> RegisterAsync(RegisterRequest request)
     {
-        var response = await _http.PostAsJsonAsync("auth/register", request);
+        var response = await _http.PostAsJsonAsync(ApiRoutes.Auth.Register, request);
         if (response.IsSuccessStatusCode)
         {
             var body = await response.Content.ReadFromJsonAsync<MessageResponse>();
@@ -29,7 +33,7 @@ public class ApiClient : IApiClient
 
     public async Task<(bool Success, AuthResponse? Data, string Error)> LoginAsync(LoginRequest request)
     {
-        var response = await _http.PostAsJsonAsync("auth/login", request);
+        var response = await _http.PostAsJsonAsync(ApiRoutes.Auth.Login, request);
         if (response.IsSuccessStatusCode)
         {
             var data = await response.Content.ReadFromJsonAsync<AuthResponse>();
@@ -41,11 +45,11 @@ public class ApiClient : IApiClient
     }
 
     public async Task<DashboardModel?> GetDashboardAsync()
-        => await _http.GetFromJsonAsync<DashboardModel>("dashboard");
+        => await _http.GetFromJsonAsync<DashboardModel>(ApiRoutes.Dashboard.Mine);
 
     public async Task<(bool Ok, AdminDashboardModel? Data, bool Forbidden, string Error)> GetAdminDashboardAsync()
     {
-        var response = await _http.GetAsync("dashboard/admin");
+        var response = await _http.GetAsync(ApiRoutes.Dashboard.Admin);
         if (response.IsSuccessStatusCode)
             return (true, await response.Content.ReadFromJsonAsync<AdminDashboardModel>(), false, string.Empty);
         if (response.StatusCode == HttpStatusCode.Forbidden)
@@ -54,47 +58,44 @@ public class ApiClient : IApiClient
     }
 
     public async Task<TodayBhakti?> GetTodayBhaktiAsync(Guid? regionId = null)
-        => await _http.GetFromJsonAsync<TodayBhakti>(
-            regionId is null ? "dashboard/today-bhakti" : $"dashboard/today-bhakti?regionId={regionId}");
+        => await _http.GetFromJsonAsync<TodayBhakti>(ApiRoutes.Dashboard.TodayBhakti(regionId));
 
     public async Task<PrayersResult?> GetPrayersAsync(Guid? regionId = null)
-        => await _http.GetFromJsonAsync<PrayersResult>(
-            regionId is null ? "dashboard/prayers" : $"dashboard/prayers?regionId={regionId}");
+        => await _http.GetFromJsonAsync<PrayersResult>(ApiRoutes.Dashboard.Prayers(regionId));
 
     public async Task<List<MenuTreeNode>> GetMenuAsync()
-        => await _http.GetFromJsonAsync<List<MenuTreeNode>>($"menumodules/menu?platform={Uri.EscapeDataString(_config.Platform)}") ?? new();
+        => await _http.GetFromJsonAsync<List<MenuTreeNode>>(ApiRoutes.MenuModules.Menu(_config.Platform)) ?? new();
 
     public async Task<List<MenuTreeNode>> GetModuleTreeAsync()
-        => await _http.GetFromJsonAsync<List<MenuTreeNode>>("menumodules/tree") ?? new();
+        => await _http.GetFromJsonAsync<List<MenuTreeNode>>(ApiRoutes.MenuModules.Tree) ?? new();
 
     public async Task<List<MenuModuleModel>> GetModulesAsync()
-        => await _http.GetFromJsonAsync<List<MenuModuleModel>>("menumodules") ?? new();
+        => await _http.GetFromJsonAsync<List<MenuModuleModel>>(ApiRoutes.MenuModules.Root) ?? new();
 
     public async Task<MenuModuleModel?> GetModuleAsync(Guid id)
-        => await _http.GetFromJsonAsync<MenuModuleModel>($"menumodules/{id}");
+        => await _http.GetFromJsonAsync<MenuModuleModel>(ApiRoutes.MenuModules.ById(id));
 
     public async Task<(bool Success, string Error)> CreateModuleAsync(MenuModuleRequest request)
     {
-        var response = await _http.PostAsJsonAsync("menumodules", request);
+        var response = await _http.PostAsJsonAsync(ApiRoutes.MenuModules.Root, request);
         return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
     }
 
     public async Task<(bool Success, string Error)> UpdateModuleAsync(Guid id, MenuModuleRequest request)
     {
-        var response = await _http.PutAsJsonAsync($"menumodules/{id}", request);
+        var response = await _http.PutAsJsonAsync(ApiRoutes.MenuModules.ById(id), request);
         return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
     }
 
     public async Task<(bool Success, string Error)> SetModuleStatusAsync(Guid id, bool isActive)
     {
-        var response = await _http.PutAsJsonAsync($"menumodules/{id}/status", new { isActive });
+        var response = await _http.PutAsJsonAsync(ApiRoutes.MenuModules.Status(id), new { isActive });
         return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
     }
 
     public async Task<(bool Ok, List<RoleModel> Roles, bool Forbidden, string Error)> GetRolesAsync(string? search = null)
     {
-        var url = string.IsNullOrWhiteSpace(search) ? "roles" : $"roles?search={Uri.EscapeDataString(search.Trim())}";
-        var response = await _http.GetAsync(url);
+        var response = await _http.GetAsync(ApiRoutes.Roles.Search(search));
         if (response.IsSuccessStatusCode)
             return (true, await response.Content.ReadFromJsonAsync<List<RoleModel>>() ?? new(), false, string.Empty);
         if (response.StatusCode == HttpStatusCode.Forbidden)
@@ -103,204 +104,194 @@ public class ApiClient : IApiClient
     }
 
     public async Task<RoleModel?> GetRoleAsync(int roleId)
-        => await _http.GetFromJsonAsync<RoleModel>($"roles/{roleId}");
+        => await _http.GetFromJsonAsync<RoleModel>(ApiRoutes.Roles.ById(roleId));
 
     public async Task<(bool Success, string Error)> CreateRoleAsync(RoleRequest request)
     {
-        var response = await _http.PostAsJsonAsync("roles", request);
+        var response = await _http.PostAsJsonAsync(ApiRoutes.Roles.Root, request);
         return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
     }
 
     public async Task<(bool Success, string Error)> UpdateRoleAsync(int roleId, RoleRequest request)
     {
-        var response = await _http.PutAsJsonAsync($"roles/{roleId}", request);
+        var response = await _http.PutAsJsonAsync(ApiRoutes.Roles.ById(roleId), request);
         return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
     }
 
     public async Task<(bool Success, string Error)> DeleteRoleAsync(int roleId)
     {
-        var response = await _http.DeleteAsync($"roles/{roleId}");
+        var response = await _http.DeleteAsync(ApiRoutes.Roles.ById(roleId));
         return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
     }
 
     // ---- Localization ----
 
     public async Task<List<LocaleModel>> GetLocalesAsync()
-        => await _http.GetFromJsonAsync<List<LocaleModel>>("localization/locales") ?? new();
+        => await _http.GetFromJsonAsync<List<LocaleModel>>(ApiRoutes.Localization.Locales) ?? new();
 
     public async Task<LocalizationBundle?> GetLocalizationBundleAsync(string code)
-        => await _http.GetFromJsonAsync<LocalizationBundle>($"localization/bundle/{Uri.EscapeDataString(code)}");
+        => await _http.GetFromJsonAsync<LocalizationBundle>(ApiRoutes.Localization.Bundle(code));
 
     public async Task<LabelEditorModel?> GetLabelEditorAsync(Guid languageId)
-        => await _http.GetFromJsonAsync<LabelEditorModel>($"localization/labels/{languageId}");
+        => await _http.GetFromJsonAsync<LabelEditorModel>(ApiRoutes.Localization.Labels(languageId));
 
     public async Task<(bool Success, string Error)> SaveLabelsAsync(Guid languageId, SaveLabelsRequest request)
     {
-        var response = await _http.PutAsJsonAsync($"localization/labels/{languageId}", request);
+        var response = await _http.PutAsJsonAsync(ApiRoutes.Localization.Labels(languageId), request);
         return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
     }
 
     public async Task<LanguageFormMatrixModel?> GetLanguageFormsAsync(Guid languageId)
-        => await _http.GetFromJsonAsync<LanguageFormMatrixModel>($"localization/forms/{languageId}");
+        => await _http.GetFromJsonAsync<LanguageFormMatrixModel>(ApiRoutes.Localization.Forms(languageId));
 
     public async Task<(bool Success, string Error)> SaveLanguageFormsAsync(Guid languageId, SaveLanguageFormsRequest request)
     {
-        var response = await _http.PutAsJsonAsync($"localization/forms/{languageId}", request);
+        var response = await _http.PutAsJsonAsync(ApiRoutes.Localization.Forms(languageId), request);
         return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
     }
 
     public async Task<List<EntityTranslationRow>> GetEntityTranslationsAsync(Guid languageId)
-        => await _http.GetFromJsonAsync<List<EntityTranslationRow>>($"localization/entities/{languageId}") ?? new();
+        => await _http.GetFromJsonAsync<List<EntityTranslationRow>>(ApiRoutes.Localization.Entities(languageId)) ?? new();
 
     public async Task<(bool Success, string Error)> SaveEntityTranslationsAsync(Guid languageId, SaveEntityTranslationsRequest request)
     {
-        var response = await _http.PutAsJsonAsync($"localization/entities/{languageId}", request);
+        var response = await _http.PutAsJsonAsync(ApiRoutes.Localization.Entities(languageId), request);
         return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
     }
 
     public async Task<Dictionary<string, string>> ExportLocalizationAsync(Guid languageId)
-        => await _http.GetFromJsonAsync<Dictionary<string, string>>($"localization/export/{languageId}") ?? new();
+        => await _http.GetFromJsonAsync<Dictionary<string, string>>(ApiRoutes.Localization.Export(languageId)) ?? new();
 
     public async Task<TranslationMatrix?> GetTranslationMatrixAsync(string? scope)
-    {
-        var url = string.IsNullOrWhiteSpace(scope)
-            ? "localization/matrix"
-            : $"localization/matrix?scope={Uri.EscapeDataString(scope)}";
-        return await _http.GetFromJsonAsync<TranslationMatrix>(url);
-    }
+        => await _http.GetFromJsonAsync<TranslationMatrix>(ApiRoutes.Localization.MatrixScoped(scope));
 
     public async Task<(bool Success, string Error)> SaveTranslationMatrixAsync(SaveMatrixRequest request)
     {
-        var response = await _http.PutAsJsonAsync("localization/matrix", request);
+        var response = await _http.PutAsJsonAsync(ApiRoutes.Localization.Matrix, request);
         return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
     }
 
     public async Task<EntityMatrix?> GetEntityMatrixAsync()
-        => await _http.GetFromJsonAsync<EntityMatrix>("localization/entity-matrix");
+        => await _http.GetFromJsonAsync<EntityMatrix>(ApiRoutes.Localization.EntityMatrix);
 
     public async Task<(bool Success, string Error)> SaveEntityMatrixAsync(SaveEntityMatrixRequest request)
     {
-        var response = await _http.PutAsJsonAsync("localization/entity-matrix", request);
+        var response = await _http.PutAsJsonAsync(ApiRoutes.Localization.EntityMatrix, request);
         return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
     }
 
     public async Task<DictionaryPage?> GetDictionaryAsync(string? category, string? search, bool missingOnly, int page, int pageSize)
-    {
-        var q = new List<string> { $"page={page}", $"pageSize={pageSize}" };
-        if (missingOnly) q.Add("missingOnly=true");
-        if (!string.IsNullOrWhiteSpace(category)) q.Add($"category={Uri.EscapeDataString(category)}");
-        if (!string.IsNullOrWhiteSpace(search)) q.Add($"search={Uri.EscapeDataString(search.Trim())}");
-        return await _http.GetFromJsonAsync<DictionaryPage>($"localization/dictionary?{string.Join("&", q)}");
-    }
+        => await _http.GetFromJsonAsync<DictionaryPage>(
+               ApiRoutes.Localization.DictionaryPage(category, search, missingOnly, page, pageSize));
 
     public async Task<(bool Success, string Error)> SaveDictionaryAsync(SaveDictionaryRequest request)
     {
-        var response = await _http.PutAsJsonAsync("localization/dictionary", request);
+        var response = await _http.PutAsJsonAsync(ApiRoutes.Localization.Dictionary, request);
         return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
     }
 
     public async Task<HarvestResult?> HarvestDictionaryAsync()
     {
-        var response = await _http.PostAsJsonAsync("localization/dictionary/harvest", new { });
+        var response = await _http.PostAsJsonAsync(ApiRoutes.Localization.HarvestDictionary, new { });
         return response.IsSuccessStatusCode ? await response.Content.ReadFromJsonAsync<HarvestResult>() : null;
     }
 
     public async Task<List<AccessRoleModel>> GetAccessRolesAsync()
-        => await _http.GetFromJsonAsync<List<AccessRoleModel>>("accessrights/roles") ?? new();
+        => await _http.GetFromJsonAsync<List<AccessRoleModel>>(ApiRoutes.AccessRights.Roles) ?? new();
 
     public async Task<AccessMatrixModel?> GetAccessMatrixAsync(int roleId)
-        => await _http.GetFromJsonAsync<AccessMatrixModel>($"accessrights/{roleId}");
+        => await _http.GetFromJsonAsync<AccessMatrixModel>(ApiRoutes.AccessRights.ForRole(roleId));
 
     public async Task<(bool Success, string Error)> SaveAccessRightsAsync(int roleId, SaveAccessRightsRequest request)
     {
-        var response = await _http.PutAsJsonAsync($"accessrights/{roleId}", request);
+        var response = await _http.PutAsJsonAsync(ApiRoutes.AccessRights.ForRole(roleId), request);
         return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
     }
 
     public async Task<List<RegionModel>> GetRegionsAsync()
-        => await _http.GetFromJsonAsync<List<RegionModel>>("regions") ?? new();
+        => await _http.GetFromJsonAsync<List<RegionModel>>(ApiRoutes.Regions.Root) ?? new();
 
     public async Task<List<RegionOption>> GetRegionOptionsAsync()
-        => await _http.GetFromJsonAsync<List<RegionOption>>("regions/options") ?? new();
+        => await _http.GetFromJsonAsync<List<RegionOption>>(ApiRoutes.Regions.Options) ?? new();
 
     public async Task<RegionModel?> GetRegionAsync(Guid id)
-        => await _http.GetFromJsonAsync<RegionModel>($"regions/{id}");
+        => await _http.GetFromJsonAsync<RegionModel>(ApiRoutes.Regions.ById(id));
 
     public async Task<(bool Success, string Error)> CreateRegionAsync(RegionRequest request)
     {
-        var response = await _http.PostAsJsonAsync("regions", request);
+        var response = await _http.PostAsJsonAsync(ApiRoutes.Regions.Root, request);
         return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
     }
 
     public async Task<(bool Success, string Error)> UpdateRegionAsync(Guid id, RegionRequest request)
     {
-        var response = await _http.PutAsJsonAsync($"regions/{id}", request);
+        var response = await _http.PutAsJsonAsync(ApiRoutes.Regions.ById(id), request);
         return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
     }
 
     public async Task<(bool Success, string Error)> SetRegionStatusAsync(Guid id, bool isActive)
     {
-        var response = await _http.PutAsJsonAsync($"regions/{id}/status", new { isActive });
+        var response = await _http.PutAsJsonAsync(ApiRoutes.Regions.Status(id), new { isActive });
         return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
     }
 
     public async Task<List<int>> GetFestivalYearsAsync()
-        => await _http.GetFromJsonAsync<List<int>>("festivals/years") ?? new();
+        => await _http.GetFromJsonAsync<List<int>>(ApiRoutes.Festivals.Years) ?? new();
 
     public async Task<List<FestivalModel>> GetFestivalsAsync(int year)
-        => await _http.GetFromJsonAsync<List<FestivalModel>>($"festivals?year={year}") ?? new();
+        => await _http.GetFromJsonAsync<List<FestivalModel>>(ApiRoutes.Festivals.ForYear(year)) ?? new();
 
     public async Task<FestivalModel?> GetFestivalAsync(Guid id)
-        => await _http.GetFromJsonAsync<FestivalModel>($"festivals/{id}");
+        => await _http.GetFromJsonAsync<FestivalModel>(ApiRoutes.Festivals.ById(id));
 
     public async Task<(bool Success, string Error)> CreateFestivalAsync(FestivalRequest request)
     {
-        var response = await _http.PostAsJsonAsync("festivals", request);
+        var response = await _http.PostAsJsonAsync(ApiRoutes.Festivals.Root, request);
         return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
     }
 
     public async Task<(bool Success, string Error)> UpdateFestivalAsync(Guid id, FestivalRequest request)
     {
-        var response = await _http.PutAsJsonAsync($"festivals/{id}", request);
+        var response = await _http.PutAsJsonAsync(ApiRoutes.Festivals.ById(id), request);
         return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
     }
 
     public async Task<(bool Success, string Error)> SetFestivalStatusAsync(Guid id, bool isActive)
     {
-        var response = await _http.PutAsJsonAsync($"festivals/{id}/status", new { isActive });
+        var response = await _http.PutAsJsonAsync(ApiRoutes.Festivals.Status(id), new { isActive });
         return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
     }
 
     public async Task<List<DeityModel>> GetDeitiesAsync()
-        => await _http.GetFromJsonAsync<List<DeityModel>>("deities") ?? new();
+        => await _http.GetFromJsonAsync<List<DeityModel>>(ApiRoutes.Deities.Root) ?? new();
 
     public async Task<DeityModel?> GetDeityAsync(Guid id)
-        => await _http.GetFromJsonAsync<DeityModel>($"deities/{id}");
+        => await _http.GetFromJsonAsync<DeityModel>(ApiRoutes.Deities.ById(id));
 
     public async Task<DeityFormOptions> GetDeityFormOptionsAsync()
-        => await _http.GetFromJsonAsync<DeityFormOptions>("deities/form-options") ?? new();
+        => await _http.GetFromJsonAsync<DeityFormOptions>(ApiRoutes.Deities.FormOptions) ?? new();
 
     public async Task<(bool Success, string Error)> CreateDeityAsync(DeityRequest request)
     {
-        var response = await _http.PostAsJsonAsync("deities", request);
+        var response = await _http.PostAsJsonAsync(ApiRoutes.Deities.Root, request);
         return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
     }
 
     public async Task<(bool Success, string Error)> UpdateDeityAsync(Guid id, DeityRequest request)
     {
-        var response = await _http.PutAsJsonAsync($"deities/{id}", request);
+        var response = await _http.PutAsJsonAsync(ApiRoutes.Deities.ById(id), request);
         return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
     }
 
     public async Task<(bool Success, string Error)> SetDeityStatusAsync(Guid id, bool isActive)
     {
-        var response = await _http.PutAsJsonAsync($"deities/{id}/status", new { isActive });
+        var response = await _http.PutAsJsonAsync(ApiRoutes.Deities.Status(id), new { isActive });
         return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
     }
 
     public async Task<(bool Ok, List<UserListItem> Users, bool Forbidden, string Error)> GetUsersAsync()
     {
-        var response = await _http.GetAsync("users");
+        var response = await _http.GetAsync(ApiRoutes.Users.Root);
         if (response.IsSuccessStatusCode)
             return (true, await response.Content.ReadFromJsonAsync<List<UserListItem>>() ?? new(), false, string.Empty);
         if (response.StatusCode == HttpStatusCode.Forbidden)
@@ -309,159 +300,123 @@ public class ApiClient : IApiClient
     }
 
     public async Task<UserProfile?> GetUserProfileAsync(Guid id)
-        => await _http.GetFromJsonAsync<UserProfile>($"users/{id}");
+        => await _http.GetFromJsonAsync<UserProfile>(ApiRoutes.Users.ById(id));
 
     public async Task<MyProfile?> GetMyProfileAsync()
-        => await _http.GetFromJsonAsync<MyProfile>("profile/me");
+        => await _http.GetFromJsonAsync<MyProfile>(ApiRoutes.Profile.Me);
 
     public async Task<(bool Success, string Error)> SetDefaultRegionAsync(Guid? regionId)
     {
-        var response = await _http.PutAsJsonAsync("profile/region", new { regionId });
+        var response = await _http.PutAsJsonAsync(ApiRoutes.Profile.Region, new { regionId });
         return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
     }
 
     public async Task<SadhanaToday?> GetSadhanaTodayAsync(Guid? regionId = null)
-    {
-        var url = regionId is null ? "sadhana/today" : $"sadhana/today?regionId={regionId}";
-        return await _http.GetFromJsonAsync<SadhanaToday>(url);
-    }
+        => await _http.GetFromJsonAsync<SadhanaToday>(ApiRoutes.Sadhana.Today(regionId));
 
     public async Task<List<SadhanaChant>> GetSadhanaChantsAsync(string? search = null, Guid? regionId = null)
-    {
-        var q = new List<string>();
-        if (!string.IsNullOrWhiteSpace(search)) q.Add($"search={Uri.EscapeDataString(search.Trim())}");
-        if (regionId is not null) q.Add($"regionId={regionId}");
-        var url = q.Count == 0 ? "sadhana/chants" : $"sadhana/chants?{string.Join("&", q)}";
-        return await _http.GetFromJsonAsync<List<SadhanaChant>>(url) ?? new();
-    }
+        => await _http.GetFromJsonAsync<List<SadhanaChant>>(ApiRoutes.Sadhana.Chants(search, regionId)) ?? new();
 
     public async Task<SadhanaChantDetail?> GetSadhanaChantAsync(Guid id)
-        => await _http.GetFromJsonAsync<SadhanaChantDetail>($"sadhana/chants/{id}");
+        => await _http.GetFromJsonAsync<SadhanaChantDetail>(ApiRoutes.Sadhana.Chant(id));
 
     public async Task<LogCountResult?> LogSadhanaCountAsync(LogCountRequest request)
     {
-        var response = await _http.PostAsJsonAsync("sadhana/log", request);
+        var response = await _http.PostAsJsonAsync(ApiRoutes.Sadhana.Log, request);
         return response.IsSuccessStatusCode ? await response.Content.ReadFromJsonAsync<LogCountResult>() : null;
     }
 
     public async Task<SadhanaStreak?> GetSadhanaStreakAsync()
-        => await _http.GetFromJsonAsync<SadhanaStreak>("sadhana/streak");
+        => await _http.GetFromJsonAsync<SadhanaStreak>(ApiRoutes.Sadhana.Streak);
 
     public async Task<PanchangamOptions> GetPanchangamOptionsAsync()
-        => await _http.GetFromJsonAsync<PanchangamOptions>("panchangam/options") ?? new();
+        => await _http.GetFromJsonAsync<PanchangamOptions>(ApiRoutes.Panchangam.Options) ?? new();
 
     public async Task<List<PanchangamModel>> GetPanchangamsAsync(int? year = null, Guid? regionId = null, DateOnly? from = null, DateOnly? to = null, string? search = null)
-    {
-        var q = new List<string>();
-        if (year is not null) q.Add($"year={year}");
-        if (regionId is not null) q.Add($"regionId={regionId}");
-        if (from is not null) q.Add($"from={from:yyyy-MM-dd}");
-        if (to is not null) q.Add($"to={to:yyyy-MM-dd}");
-        if (!string.IsNullOrWhiteSpace(search)) q.Add($"search={Uri.EscapeDataString(search.Trim())}");
-        var url = q.Count == 0 ? "panchangam" : $"panchangam?{string.Join("&", q)}";
-        return await _http.GetFromJsonAsync<List<PanchangamModel>>(url) ?? new();
-    }
+        => await _http.GetFromJsonAsync<List<PanchangamModel>>(ApiRoutes.Panchangam.List(year, regionId, from, to, search)) ?? new();
 
     public async Task<PanchangamModel?> GetPanchangamByDateAsync(DateOnly date, Guid regionId)
     {
-        var response = await _http.GetAsync($"panchangam/by-date?date={date:yyyy-MM-dd}&regionId={regionId}");
+        var response = await _http.GetAsync(ApiRoutes.Panchangam.ByDate(date, regionId));
         return response.IsSuccessStatusCode
             ? await response.Content.ReadFromJsonAsync<PanchangamModel>()
             : null;
     }
 
     public async Task<PanchangamModel?> ComputePanchangamAsync(double lat, double lon, DateOnly? date = null, string? place = null)
-    {
-        var q = new List<string> { $"lat={lat.ToString(System.Globalization.CultureInfo.InvariantCulture)}", $"lon={lon.ToString(System.Globalization.CultureInfo.InvariantCulture)}" };
-        if (date is not null) q.Add($"date={date:yyyy-MM-dd}");
-        if (!string.IsNullOrWhiteSpace(place)) q.Add($"place={Uri.EscapeDataString(place.Trim())}");
-        return await _http.GetFromJsonAsync<PanchangamModel>($"panchangam/compute?{string.Join("&", q)}");
-    }
+        => await _http.GetFromJsonAsync<PanchangamModel>(ApiRoutes.Panchangam.Compute(lat, lon, date, place));
 
     public async Task<(bool Success, GenerateResult? Result, string Error)> GeneratePanchangamAsync(GeneratePanchangamRequest request)
     {
-        var response = await _http.PostAsJsonAsync("panchangam/generate", request);
+        var response = await _http.PostAsJsonAsync(ApiRoutes.Panchangam.Generate, request);
         if (response.IsSuccessStatusCode)
             return (true, await response.Content.ReadFromJsonAsync<GenerateResult>(), string.Empty);
         return (false, null, await ExtractErrorAsync(response));
     }
 
     public async Task<List<LanguageModel>> GetLanguagesAsync(Guid? regionId = null, string? search = null)
-    {
-        var query = new List<string>();
-        if (regionId is not null) query.Add($"regionId={regionId}");
-        if (!string.IsNullOrWhiteSpace(search)) query.Add($"search={Uri.EscapeDataString(search.Trim())}");
-        var url = query.Count == 0 ? "languages" : $"languages?{string.Join("&", query)}";
-        return await _http.GetFromJsonAsync<List<LanguageModel>>(url) ?? new();
-    }
+        => await _http.GetFromJsonAsync<List<LanguageModel>>(ApiRoutes.Languages.List(regionId, search)) ?? new();
 
     public async Task<LanguageModel?> GetLanguageAsync(Guid id)
-        => await _http.GetFromJsonAsync<LanguageModel>($"languages/{id}");
+        => await _http.GetFromJsonAsync<LanguageModel>(ApiRoutes.Languages.ById(id));
 
     public async Task<List<RegionLanguagesModel>> GetLanguagesByRegionAsync()
-        => await _http.GetFromJsonAsync<List<RegionLanguagesModel>>("languages/by-region") ?? new();
+        => await _http.GetFromJsonAsync<List<RegionLanguagesModel>>(ApiRoutes.Languages.ByRegion) ?? new();
 
     public async Task<(bool Success, string Error)> CreateLanguageAsync(LanguageRequest request)
     {
-        var response = await _http.PostAsJsonAsync("languages", request);
+        var response = await _http.PostAsJsonAsync(ApiRoutes.Languages.Root, request);
         return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
     }
 
     public async Task<(bool Success, string Error)> UpdateLanguageAsync(Guid id, LanguageRequest request)
     {
-        var response = await _http.PutAsJsonAsync($"languages/{id}", request);
+        var response = await _http.PutAsJsonAsync(ApiRoutes.Languages.ById(id), request);
         return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
     }
 
     public async Task<(bool Success, string Error)> SetLanguageStatusAsync(Guid id, bool isActive)
     {
-        var response = await _http.PutAsJsonAsync($"languages/{id}/status", new { isActive });
+        var response = await _http.PutAsJsonAsync(ApiRoutes.Languages.Status(id), new { isActive });
         return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
     }
 
     public async Task<List<ChantConfigListItem>> GetChantConfigsAsync(Guid? chantId = null, Guid? deityId = null, string? search = null)
-    {
-        var query = new List<string>();
-        if (chantId is not null) query.Add($"chantId={chantId}");
-        if (deityId is not null) query.Add($"deityId={deityId}");
-        if (!string.IsNullOrWhiteSpace(search)) query.Add($"search={Uri.EscapeDataString(search.Trim())}");
-        var url = query.Count == 0 ? "chantconfigs" : $"chantconfigs?{string.Join("&", query)}";
-        return await _http.GetFromJsonAsync<List<ChantConfigListItem>>(url) ?? new();
-    }
+        => await _http.GetFromJsonAsync<List<ChantConfigListItem>>(ApiRoutes.ChantConfigs.List(chantId, deityId, search)) ?? new();
 
     public async Task<ChantConfigModel?> GetChantConfigAsync(Guid id)
-        => await _http.GetFromJsonAsync<ChantConfigModel>($"chantconfigs/{id}");
+        => await _http.GetFromJsonAsync<ChantConfigModel>(ApiRoutes.ChantConfigs.ById(id));
 
     public async Task<ChantConfigFormOptions> GetChantConfigFormOptionsAsync()
-        => await _http.GetFromJsonAsync<ChantConfigFormOptions>("chantconfigs/form-options") ?? new();
+        => await _http.GetFromJsonAsync<ChantConfigFormOptions>(ApiRoutes.ChantConfigs.FormOptions) ?? new();
 
     public async Task<(bool Success, string Error)> CreateChantConfigAsync(ChantConfigRequest request)
     {
-        var response = await _http.PostAsJsonAsync("chantconfigs", request);
+        var response = await _http.PostAsJsonAsync(ApiRoutes.ChantConfigs.Root, request);
         return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
     }
 
     public async Task<(bool Success, string Error)> UpdateChantConfigAsync(Guid id, ChantConfigRequest request)
     {
-        var response = await _http.PutAsJsonAsync($"chantconfigs/{id}", request);
+        var response = await _http.PutAsJsonAsync(ApiRoutes.ChantConfigs.ById(id), request);
         return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
     }
 
     public async Task<(bool Success, string Error)> SetChantConfigStatusAsync(Guid id, bool isActive)
     {
-        var response = await _http.PutAsJsonAsync($"chantconfigs/{id}/status", new { isActive });
+        var response = await _http.PutAsJsonAsync(ApiRoutes.ChantConfigs.Status(id), new { isActive });
         return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
     }
 
     public async Task<(bool Success, string Error)> DeleteChantConfigAsync(Guid id)
     {
-        var response = await _http.DeleteAsync($"chantconfigs/{id}");
+        var response = await _http.DeleteAsync(ApiRoutes.ChantConfigs.ById(id));
         return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
     }
 
     public async Task<(bool Ok, NotificationConfigList? Data, bool Forbidden, string Error)> GetNotificationConfigAsync()
     {
-        var response = await _http.GetAsync("notificationconfig");
+        var response = await _http.GetAsync(ApiRoutes.Notifications.Config);
         if (response.IsSuccessStatusCode)
             return (true, await response.Content.ReadFromJsonAsync<NotificationConfigList>(), false, string.Empty);
         if (response.StatusCode == HttpStatusCode.Forbidden)
@@ -471,22 +426,22 @@ public class ApiClient : IApiClient
 
     public async Task<(bool Success, string Error)> SaveNotificationConfigAsync(SaveNotificationConfigRequest request)
     {
-        var response = await _http.PutAsJsonAsync("notificationconfig", request);
+        var response = await _http.PutAsJsonAsync(ApiRoutes.Notifications.Config, request);
         return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
     }
 
     public async Task<MyNotificationSettings?> GetMyNotificationsAsync()
-        => await _http.GetFromJsonAsync<MyNotificationSettings>("notifications/me");
+        => await _http.GetFromJsonAsync<MyNotificationSettings>(ApiRoutes.Notifications.Mine);
 
     public async Task<(bool Success, string Error)> SaveMyNotificationsAsync(SaveMyNotificationSettingsRequest request)
     {
-        var response = await _http.PutAsJsonAsync("notifications/me", request);
+        var response = await _http.PutAsJsonAsync(ApiRoutes.Notifications.Mine, request);
         return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
     }
 
     public async Task<(bool Ok, List<IssueTypeModel> Items, bool Forbidden, string Error)> GetIssueTypesAsync()
     {
-        var response = await _http.GetAsync("issuetypes");
+        var response = await _http.GetAsync(ApiRoutes.IssueTypes.Root);
         if (response.IsSuccessStatusCode)
             return (true, await response.Content.ReadFromJsonAsync<List<IssueTypeModel>>() ?? new(), false, string.Empty);
         if (response.StatusCode == HttpStatusCode.Forbidden)
@@ -495,35 +450,35 @@ public class ApiClient : IApiClient
     }
 
     public async Task<List<IssueTypeModel>> GetActiveIssueTypesAsync()
-        => await _http.GetFromJsonAsync<List<IssueTypeModel>>("issuetypes/active") ?? new();
+        => await _http.GetFromJsonAsync<List<IssueTypeModel>>(ApiRoutes.IssueTypes.Active) ?? new();
 
     public async Task<(bool Success, string Error)> CreateIssueTypeAsync(IssueTypeRequest request)
     {
-        var response = await _http.PostAsJsonAsync("issuetypes", request);
+        var response = await _http.PostAsJsonAsync(ApiRoutes.IssueTypes.Root, request);
         return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
     }
 
     public async Task<(bool Success, string Error)> UpdateIssueTypeAsync(Guid id, IssueTypeRequest request)
     {
-        var response = await _http.PutAsJsonAsync($"issuetypes/{id}", request);
+        var response = await _http.PutAsJsonAsync(ApiRoutes.IssueTypes.ById(id), request);
         return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
     }
 
     public async Task<(bool Success, string Error)> SetIssueTypeStatusAsync(Guid id, bool isActive)
     {
-        var response = await _http.PutAsJsonAsync($"issuetypes/{id}/status", new { isActive });
+        var response = await _http.PutAsJsonAsync(ApiRoutes.IssueTypes.Status(id), new { isActive });
         return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
     }
 
     public async Task<Favorites> GetFavoritesAsync()
-        => await _http.GetFromJsonAsync<Favorites>("favorites") ?? new();
+        => await _http.GetFromJsonAsync<Favorites>(ApiRoutes.Favorites.Root) ?? new();
 
     public async Task<FavoriteIds> GetFavoriteIdsAsync()
-        => await _http.GetFromJsonAsync<FavoriteIds>("favorites/ids") ?? new();
+        => await _http.GetFromJsonAsync<FavoriteIds>(ApiRoutes.Favorites.Ids) ?? new();
 
     public async Task<(bool Ok, bool IsFavorite, string Error)> ToggleFavoriteAsync(string type, Guid itemId)
     {
-        var response = await _http.PostAsJsonAsync("favorites/toggle", new { type, itemId });
+        var response = await _http.PostAsJsonAsync(ApiRoutes.Favorites.Toggle, new { type, itemId });
         if (response.IsSuccessStatusCode)
         {
             var result = await response.Content.ReadFromJsonAsync<ToggleFavoriteResult>();
@@ -534,13 +489,13 @@ public class ApiClient : IApiClient
 
     public async Task<(bool Success, string Error)> SubmitFeedbackAsync(SubmitFeedbackRequest request)
     {
-        var response = await _http.PostAsJsonAsync("feedback", request);
+        var response = await _http.PostAsJsonAsync(ApiRoutes.Feedback.Root, request);
         return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
     }
 
     public async Task<(bool Ok, List<FeedbackItem> Items, bool Forbidden, string Error)> GetFeedbacksAsync()
     {
-        var response = await _http.GetAsync("feedback");
+        var response = await _http.GetAsync(ApiRoutes.Feedback.Root);
         if (response.IsSuccessStatusCode)
             return (true, await response.Content.ReadFromJsonAsync<List<FeedbackItem>>() ?? new(), false, string.Empty);
         if (response.StatusCode == HttpStatusCode.Forbidden)
@@ -550,7 +505,7 @@ public class ApiClient : IApiClient
 
     public async Task<(bool Ok, FeedbackDashboardModel? Data, bool Forbidden, string Error)> GetFeedbackDashboardAsync()
     {
-        var response = await _http.GetAsync("feedback/dashboard");
+        var response = await _http.GetAsync(ApiRoutes.Feedback.Dashboard);
         if (response.IsSuccessStatusCode)
             return (true, await response.Content.ReadFromJsonAsync<FeedbackDashboardModel>(), false, string.Empty);
         if (response.StatusCode == HttpStatusCode.Forbidden)
@@ -560,110 +515,107 @@ public class ApiClient : IApiClient
 
     public async Task<(bool Success, string Error)> SetFeedbackStatusAsync(Guid id, string status)
     {
-        var response = await _http.PutAsJsonAsync($"feedback/{id}/status", new { status });
+        var response = await _http.PutAsJsonAsync(ApiRoutes.Feedback.Status(id), new { status });
         return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
     }
 
     // ---- Puja process ----
 
     public async Task<PujaProcessConfigModel?> GetPujaProcessConfigAsync(Guid pujaId)
-        => await _http.GetFromJsonAsync<PujaProcessConfigModel>($"pujaprocess/config/{pujaId}");
+        => await _http.GetFromJsonAsync<PujaProcessConfigModel>(ApiRoutes.PujaProcess.Config(pujaId));
 
     public async Task<(bool Success, string Error)> SavePujaProcessConfigAsync(Guid pujaId, SavePujaProcessRequest request)
     {
-        var response = await _http.PutAsJsonAsync($"pujaprocess/config/{pujaId}", request);
+        var response = await _http.PutAsJsonAsync(ApiRoutes.PujaProcess.Config(pujaId), request);
         return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
     }
 
     public async Task<List<ProcessFestivalModel>> GetProcessFestivalsAsync()
-        => await _http.GetFromJsonAsync<List<ProcessFestivalModel>>("pujaprocess/festivals") ?? new();
+        => await _http.GetFromJsonAsync<List<ProcessFestivalModel>>(ApiRoutes.PujaProcess.Festivals) ?? new();
 
     public async Task<List<ProcessPujaSummaryModel>> GetProcessPujasAsync(Guid? festivalId = null)
-        => await _http.GetFromJsonAsync<List<ProcessPujaSummaryModel>>(
-               festivalId is null ? "pujaprocess/pujas" : $"pujaprocess/pujas?festivalId={festivalId}") ?? new();
+        => await _http.GetFromJsonAsync<List<ProcessPujaSummaryModel>>(ApiRoutes.PujaProcess.Pujas(festivalId)) ?? new();
 
     public async Task<PujaProcessViewModel?> GetPujaProcessAsync(Guid pujaId)
-        => await _http.GetFromJsonAsync<PujaProcessViewModel>($"pujaprocess/puja/{pujaId}");
+        => await _http.GetFromJsonAsync<PujaProcessViewModel>(ApiRoutes.PujaProcess.Puja(pujaId));
 
     // ---- Pujas ----
 
     public async Task<List<PujaModel>> GetPujasAsync()
-        => await _http.GetFromJsonAsync<List<PujaModel>>("pujas") ?? new();
+        => await _http.GetFromJsonAsync<List<PujaModel>>(ApiRoutes.Pujas.Root) ?? new();
 
     public async Task<PujaModel?> GetPujaAsync(Guid id)
-        => await _http.GetFromJsonAsync<PujaModel>($"pujas/{id}");
+        => await _http.GetFromJsonAsync<PujaModel>(ApiRoutes.Pujas.ById(id));
 
     public async Task<PujaFormOptions> GetPujaFormOptionsAsync()
-        => await _http.GetFromJsonAsync<PujaFormOptions>("pujas/form-options") ?? new();
+        => await _http.GetFromJsonAsync<PujaFormOptions>(ApiRoutes.Pujas.FormOptions) ?? new();
 
     public async Task<(bool Success, string Error)> CreatePujaAsync(PujaRequest request)
     {
-        var response = await _http.PostAsJsonAsync("pujas", request);
+        var response = await _http.PostAsJsonAsync(ApiRoutes.Pujas.Root, request);
         return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
     }
 
     public async Task<(bool Success, string Error)> UpdatePujaAsync(Guid id, PujaRequest request)
     {
-        var response = await _http.PutAsJsonAsync($"pujas/{id}", request);
+        var response = await _http.PutAsJsonAsync(ApiRoutes.Pujas.ById(id), request);
         return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
     }
 
     public async Task<(bool Success, string Error)> SetPujaStatusAsync(Guid id, bool isActive)
     {
-        var response = await _http.PutAsJsonAsync($"pujas/{id}/status", new { isActive });
+        var response = await _http.PutAsJsonAsync(ApiRoutes.Pujas.Status(id), new { isActive });
         return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
     }
 
     // ---- Wallpapers ----
 
     public async Task<List<WallpaperDeityModel>> GetWallpaperDeitiesAsync(bool onlyWithWallpapers = false)
-        => await _http.GetFromJsonAsync<List<WallpaperDeityModel>>(
-               $"wallpapers/deities?onlyWithWallpapers={(onlyWithWallpapers ? "true" : "false")}") ?? new();
+        => await _http.GetFromJsonAsync<List<WallpaperDeityModel>>(ApiRoutes.Wallpapers.Deities(onlyWithWallpapers)) ?? new();
 
     public async Task<List<WallpaperModel>> GetWallpapersByDeityAsync(Guid deityId, bool activeOnly = true)
-        => await _http.GetFromJsonAsync<List<WallpaperModel>>(
-               $"wallpapers/deity/{deityId}?activeOnly={(activeOnly ? "true" : "false")}") ?? new();
+        => await _http.GetFromJsonAsync<List<WallpaperModel>>(ApiRoutes.Wallpapers.ForDeity(deityId, activeOnly)) ?? new();
 
     public async Task<(bool Success, WallpaperUploadResult? Result, string Error)> UploadWallpapersAsync(CreateWallpapersRequest request)
     {
-        var response = await _http.PostAsJsonAsync("wallpapers", request);
+        var response = await _http.PostAsJsonAsync(ApiRoutes.Wallpapers.Root, request);
         if (!response.IsSuccessStatusCode) return (false, null, await ExtractErrorAsync(response));
         return (true, await response.Content.ReadFromJsonAsync<WallpaperUploadResult>(), string.Empty);
     }
 
     public async Task<(bool Success, string Error)> UpdateWallpaperAsync(Guid id, UpdateWallpaperRequest request)
     {
-        var response = await _http.PutAsJsonAsync($"wallpapers/{id}", request);
+        var response = await _http.PutAsJsonAsync(ApiRoutes.Wallpapers.ById(id), request);
         return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
     }
 
     public async Task<(bool Success, string Error)> DeleteWallpaperAsync(Guid id)
     {
-        var response = await _http.DeleteAsync($"wallpapers/{id}");
+        var response = await _http.DeleteAsync(ApiRoutes.Wallpapers.ById(id));
         return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
     }
 
     public async Task<List<ChantModel>> GetChantsAsync()
-        => await _http.GetFromJsonAsync<List<ChantModel>>("chants") ?? new();
+        => await _http.GetFromJsonAsync<List<ChantModel>>(ApiRoutes.Chants.Root) ?? new();
 
     public async Task<ChantModel?> GetChantAsync(Guid id)
-        => await _http.GetFromJsonAsync<ChantModel>($"chants/{id}");
+        => await _http.GetFromJsonAsync<ChantModel>(ApiRoutes.Chants.ById(id));
 
     public async Task<(bool Success, string Error)> CreateChantAsync(ChantRequest request)
     {
-        var response = await _http.PostAsJsonAsync("chants", request);
+        var response = await _http.PostAsJsonAsync(ApiRoutes.Chants.Root, request);
         return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
     }
 
     public async Task<(bool Success, string Error)> UpdateChantAsync(Guid id, ChantRequest request)
     {
-        var response = await _http.PutAsJsonAsync($"chants/{id}", request);
+        var response = await _http.PutAsJsonAsync(ApiRoutes.Chants.ById(id), request);
         return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
     }
 
     public async Task<(bool Success, string Error)> SetChantStatusAsync(Guid id, bool isActive)
     {
-        var response = await _http.PutAsJsonAsync($"chants/{id}/status", new { isActive });
+        var response = await _http.PutAsJsonAsync(ApiRoutes.Chants.Status(id), new { isActive });
         return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
     }
 

@@ -1,5 +1,8 @@
 {
+  "profile.about": "ಕುರಿತು",
   "profile.allRegions": "ಎಲ್ಲಾ ಪ್ರದೇಶಗಳು",
+  "profile.app": "ಅಪ್ಲಿಕೇಶನ್",
+  "profile.appearance": "ಗೋಚರತೆ",
   "profile.beginSadhana": "ಸಾಧನೆ ಆರಂಭಿಸಿ",
   "profile.chantCountMany": "{0} ಮಂತ್ರಗಳು",
   "profile.chantCountOne": "{0} ಮಂತ್ರ",
@@ -7,6 +10,7 @@
   "profile.defaultRegion": "ಪೂರ್ವನಿಯೋಜಿತ ಪ್ರದೇಶ",
   "profile.defaultRegionSet": "ಪೂರ್ವನಿಯೋಜಿತ ಪ್ರದೇಶವನ್ನು {0} ಗೆ ಹೊಂದಿಸಲಾಗಿದೆ.",
   "profile.defaultRegionSub": "ಅನ್ವಯದಾದ್ಯಂತ ತೋರಿಸುವ ದೇವರುಗಳು ಮತ್ತು ಮಂತ್ರಗಳು ಪೂರ್ವನಿಯೋಜಿತವಾಗಿ ಈ ಪ್ರದೇಶದವು ಆಗಿರುತ್ತವೆ",
+  "profile.environment": "ಪರಿಸರ",
   "profile.fullName": "ಪೂರ್ಣ ಹೆಸರು",
   "profile.lastPractice": "ಕೊನೆಯ ಅಭ್ಯಾಸ",
   "profile.loading": "ನಿಮ್ಮ ಪ್ರೊಫೈಲ್ ಲೋಡ್ ಆಗುತ್ತಿದೆ…",
@@ -15,12 +19,18 @@
   "profile.noSadhanaBody": "ನೀವು ಆರಂಭಿಸಿದ ನಂತರ ನಿಮ್ಮ ದೈನಂದಿನ ಅಭ್ಯಾಸ ಇಲ್ಲಿ ಕಾಣಿಸುತ್ತದೆ.",
   "profile.noSadhanaYet": "ಇನ್ನೂ ಯಾವುದೇ ಸಾಧನೆ ಇಲ್ಲ",
   "profile.notYet": "ಇನ್ನೂ ಇಲ್ಲ",
+  "profile.platform": "ವೇದಿಕೆ",
   "profile.practisedToday": "ಇಂದು ಅಭ್ಯಾಸ ಮಾಡಿದ್ದೀರಿ",
+  "profile.preferences": "ಆದ್ಯತೆಗಳು",
+  "profile.preferencesSub": "ಈ ಸಾಧನದಲ್ಲಿ ಅಪ್ಲಿಕೇಶನ್ ಹೇಗೆ ಕಾಣುತ್ತದೆ ಮತ್ತು ಯಾವ ಭಾಷೆಯಲ್ಲಿ ಮಾತನಾಡುತ್ತದೆ",
+  "profile.quickLinks": "ತ್ವರಿತ ಕೊಂಡಿಗಳು",
   "profile.regionSwitchHint": "ಮೇಲಿನ ಆಯ್ಕೆಪಟ್ಟಿಯಿಂದ ನೀವು ಯಾವಾಗ ಬೇಕಾದರೂ ಪ್ರದೇಶವನ್ನು ಬದಲಾಯಿಸಬಹುದು.",
   "profile.registered": "ನೋಂದಣಿ",
   "profile.sadhanaTimeline": "ಸಾಧನೆಯ ಕಾಲಾನುಕ್ರಮ",
   "profile.seekerName": "ಸಾಧಕ ಹೆಸರು",
   "profile.sub": "ನಿಮ್ಮ ವಿವರಗಳು ಮತ್ತು ಸಾಧನಾ ಪಯಣ",
   "profile.title": "ನನ್ನ ಪ್ರೊಫೈಲ್",
-  "profile.totalCount": "ಒಟ್ಟು {0} ಎಣಿಕೆ"
+  "profile.totalCount": "ಒಟ್ಟು {0} ಎಣಿಕೆ",
+  "profile.version": "ಆವೃತ್ತಿ",
+  "profile.viewFull": "ಪೂರ್ಣ ಪ್ರೋಫೈಲ್ ಮತ್ತು ಸಾಧನಾ ಕಾಲರೇಖೆ ನೋಡಿ"
 }

@@ -27,9 +27,13 @@ public static class CoreServiceCollectionExtensions
         services.AddAuthorizationCore();
 
         services.AddScoped<IAuthService, AuthService>();
+        // Browser geolocation by default. A native host registers its own AFTER calling this, so
+        // the last registration wins and the WebView's blocked navigator.geolocation is bypassed.
+        services.AddScoped<IGeolocationProvider, JsGeolocationProvider>();
         services.AddScoped<MenuRefreshService>();
         services.AddScoped<ConfirmService>();
         services.AddScoped<ToastService>();
+        services.AddScoped<NotificationCenterState>();
         // Per-user caches. Registered twice so the IUserSessionState reset (on sign-in/out)
         // acts on the very same instances the components inject.
         services.AddScoped<FavoritesState>();
@@ -38,8 +42,13 @@ public static class CoreServiceCollectionExtensions
         services.AddScoped<IUserSessionState>(sp => sp.GetRequiredService<FavoritesState>());
         services.AddScoped<IUserSessionState>(sp => sp.GetRequiredService<RegionState>());
 
-        var baseUrl = config.ApiBaseUrl.EndsWith('/') ? config.ApiBaseUrl : config.ApiBaseUrl + "/";
-        services.AddHttpClient<IApiClient, ApiClient>(client => client.BaseAddress = new Uri(baseUrl))
+        services.AddHttpClient<IApiClient, ApiClient>(client =>
+            {
+                // Absolute by contract: each host resolves a relative setting such as "/api"
+                // against its own origin before it ever reaches AppConfig.
+                client.BaseAddress = new Uri(config.NormalisedApiBaseUrl);
+                client.Timeout = TimeSpan.FromSeconds(config.HttpTimeoutSeconds);
+            })
             .AddHttpMessageHandler<BearerTokenHandler>()
             // Stamps X-App-Language so the server translates database text for this user.
             .AddHttpMessageHandler<LanguageHeaderHandler>();

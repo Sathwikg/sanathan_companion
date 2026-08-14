@@ -132,7 +132,7 @@ else
     private bool _loading = true;
     private string? _error;
 
-    private string AudioUrl => $"{Config.ApiBaseUrl.TrimEnd('/')}/chantconfigs/{Id}/audio";
+    private string AudioUrl => Config.Absolute(ApiRoutes.Media.ChantAudio(Id));
 
     protected override async Task OnParametersSetAsync()
     {

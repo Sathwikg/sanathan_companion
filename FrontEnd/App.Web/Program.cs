@@ -24,6 +24,21 @@ builder.Services.AddScoped<IThemeStore, LocalStorageThemeStore>();
 builder.Services.AddScoped<ILanguageStore, LocalStorageLanguageStore>();
 builder.Services.AddScoped<ILocalizationCache, LocalStorageLocalizationCache>();
 
-builder.Services.AddAppCore(new AppConfig { ApiBaseUrl = apiBaseUrl, Platform = "Web" });
+// Almost always "Web". Setting it to "Mobile" in wwwroot/appsettings.json makes this host render
+// the phone shell — bottom navigation, top notifications, the mobile skin — and ask the API for
+// the mobile menu, which is how the MAUI app's UI is reviewed in a desktop browser's device
+// emulation without a device or an emulator. Not for production: it also switches every non-Admin
+// user to the Mobile column of the access matrix.
+var platform = string.Equals(builder.Configuration["Platform"], PlatformNames.Mobile, StringComparison.OrdinalIgnoreCase)
+    ? PlatformNames.Mobile
+    : PlatformNames.Web;
+
+builder.Services.AddAppCore(new AppConfig
+{
+    ApiBaseUrl = apiBaseUrl,
+    Platform = platform,
+    AppName = builder.Configuration["AppName"] ?? "Sanathan Companion",
+    Environment = builder.Configuration["Environment"] ?? "Production"
+});
 
 await builder.Build().RunAsync();

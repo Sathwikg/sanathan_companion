@@ -73,6 +73,69 @@ public class MenuModuleServiceTests
     }
 
     [Fact]
+    public async Task Mobile_menu_hides_forms_not_published_to_mobile_even_from_admin()
+    {
+        using var harness = new TestHarness();
+        var service = NewService(harness);
+
+        var webOnly = await service.CreateAsync(new CreateMenuModuleDto { Name = "Desk Only", RoutePath = "/desk-only", ShowInMobile = false });
+        var both = await service.CreateAsync(new CreateMenuModuleDto { Name = "Everywhere", RoutePath = "/everywhere", ShowInMobile = true });
+
+        var web = await service.GetMenuAsync("Web", "Admin");
+        Assert.Contains(web, n => n.Id == webOnly);
+        Assert.Contains(web, n => n.Id == both);
+
+        // An admin holding a phone is still holding a phone.
+        var mobile = await service.GetMenuAsync("Mobile", "Admin");
+        Assert.DoesNotContain(mobile, n => n.Id == webOnly);
+        Assert.Contains(mobile, n => n.Id == both);
+    }
+
+    [Fact]
+    public async Task Mobile_menu_keeps_a_desktop_only_group_that_holds_a_mobile_form()
+    {
+        using var harness = new TestHarness();
+        var service = NewService(harness);
+
+        // Containers are pure navigation, so their own flag is not consulted — otherwise a
+        // mobile-published form would be stranded under a group nobody ticked.
+        var group = await service.CreateAsync(new CreateMenuModuleDto { Name = "Masters Zone", ShowInMobile = false });
+        var child = await service.CreateAsync(new CreateMenuModuleDto { Name = "Festivals Zone", RoutePath = "/festivals-zone", ShowInMobile = true, ParentId = group });
+        var hidden = await service.CreateAsync(new CreateMenuModuleDto { Name = "Roles Zone", RoutePath = "/roles-zone", ShowInMobile = false, ParentId = group });
+
+        var mobile = await service.GetMenuAsync("Mobile", "Admin");
+        var node = Assert.Single(mobile, n => n.Id == group);
+        Assert.Equal(child, Assert.Single(node.Children).Id);
+        Assert.DoesNotContain(node.Children, c => c.Id == hidden);
+    }
+
+    [Fact]
+    public async Task Mobile_group_disappears_once_its_last_mobile_form_does()
+    {
+        using var harness = new TestHarness();
+        var service = NewService(harness);
+
+        var group = await service.CreateAsync(new CreateMenuModuleDto { Name = "Empty Zone", ShowInMobile = true });
+        await service.CreateAsync(new CreateMenuModuleDto { Name = "Desk Form", RoutePath = "/desk-form", ShowInMobile = false, ParentId = group });
+
+        var mobile = await service.GetMenuAsync("Mobile", "Admin");
+        Assert.DoesNotContain(mobile, n => n.Id == group);
+    }
+
+    [Fact]
+    public async Task Web_menu_ignores_the_mobile_flag_entirely()
+    {
+        using var harness = new TestHarness();
+        var service = NewService(harness);
+
+        var id = await service.CreateAsync(new CreateMenuModuleDto { Name = "Desk Master", RoutePath = "/desk-master", ShowInMobile = false });
+
+        // Null platform means Web, which is what an older client that sends no platform gets.
+        Assert.Contains(await service.GetMenuAsync("Web", "Admin"), n => n.Id == id);
+        Assert.Contains(await service.GetMenuAsync(null, "Admin"), n => n.Id == id);
+    }
+
+    [Fact]
     public async Task Update_changes_fields()
     {
         using var harness = new TestHarness();

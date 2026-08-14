@@ -1,0 +1,206 @@
+@* The phone shell: a compact top bar that owns notifications, the page in the middle, and a
+   bottom navigation built from the same Modules API the sidebar uses. Chosen by Routes.razor
+   whenever AppConfig.Platform is Mobile, so the web app is untouched by anything in here. *@
+@inherits LayoutComponentBase
+@inject IAuthService AuthService
+@inject NavigationManager Nav
+@inject LocalizationState Loc
+@inject LanguageContext LangContext
+@inject IApiClient Api
+@inject MenuRefreshService MenuRefresh
+@inject AppConfig Config
+@inject IJSRuntime JS
+@implements IDisposable
+
+<div class="sc-shell scm-shell">
+    <header class="scm-topbar">
+        <div class="scm-topbar-brand">
+            <OmLogo Size="30" />
+            <div class="scm-topbar-titles">
+                <span class="scm-topbar-title">@Title</span>
+                <span class="scm-topbar-sub">@Loc["auth.appName", "Sanathan Companion"]</span>
+            </div>
+        </div>
+
+        <div class="scm-topbar-actions">
+            <AuthorizeView>
+                <Authorized>
+                    @* Notifications sit at the top, where a phone user's eye goes first and where
+                       every other app puts them. Everything else lives in the account sheet.
+                       Only the bell is here — its panel is rendered below, outside the bar. *@
+                    <MobileNotificationBell />
+                    <button class="scm-avatar-btn" @onclick="OpenAccount"
+                            title="@Loc["nav.viewProfile", "View my profile"]"
+                            aria-label="@Loc["nav.viewProfile", "View my profile"]">
+                        <span class="scm-avatar">@Initials(context.User.FindFirst("fullName")?.Value)</span>
+                    </button>
+                </Authorized>
+                <NotAuthorized>
+                    <ThemeToggle />
+                </NotAuthorized>
+            </AuthorizeView>
+        </div>
+    </header>
+
+    @* Deliberately a sibling of the header, not a child of it. .scm-topbar carries a
+       backdrop-filter, which makes it the containing block for any position:fixed descendant —
+       the panel's full-screen scrim would otherwise collapse to the height of the bar, and
+       tapping outside it would dismiss nothing. Being outside the bar's stacking context also
+       lets the panel paint above the bottom navigation. *@
+    <AuthorizeView>
+        <Authorized>
+            <MobileNotificationPanel />
+        </Authorized>
+    </AuthorizeView>
+
+    <main class="sc-content scm-content">
+        @* No @key here: @Body is a RenderFragment owned by the Router, so keying it would not
+           re-instantiate the page. The language key lives on AuthorizeRouteView in Routes.razor. *@
+        @Body
+    </main>
+
+    <AuthorizeView>
+        <Authorized>
+            <MobileBottomNav Menu="_menu" Loading="_menu is null" OnMore="OpenMore" />
+        </Authorized>
+    </AuthorizeView>
+
+    <MobileSheet Open="_moreOpen" OnClose="CloseSheets" Title="@Loc["nav.allSections", "All sections"]">
+        <MobileMoreSheet Menu="_menu" OnNavigate="CloseSheets" />
+    </MobileSheet>
+
+    <MobileSheet Open="_accountOpen" OnClose="CloseSheets" Title="@Loc["profile.title", "My Profile"]">
+        <MobileAccountSheet OnNavigate="CloseSheets" OnLogout="LogoutAsync" />
+    </MobileSheet>
+
+    <ConfirmDialog />
+    <ToastHost />
+</div>
+
+@code {
+    private List<MenuTreeNode>? _menu;
+    private bool _moreOpen;
+    private bool _accountOpen;
+    private bool _scrollLocked;
+
+    /// <summary>
+    /// The bar shows where you are, not what the app is called — on a 390px screen the product
+    /// name is the least useful thing that could occupy the widest element.
+    /// </summary>
+    private string Title
+    {
+        get
+        {
+            if (_menu is null) return Loc["auth.appName", "Sanathan Companion"];
+
+            var current = Nav.ToBaseRelativePath(Nav.Uri);
+            var match = MobileMenu.Leaves(_menu).FirstOrDefault(n => MobileMenu.IsActive(n, current));
+            return match is null
+                ? Loc["auth.appName", "Sanathan Companion"]
+                : Loc.Entity("MenuModule", match.Id, "Name", match.Name);
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Loc.OnChanged += LanguageChanged;
+        Nav.LocationChanged += RouteChanged;
+        MenuRefresh.OnChanged += MenuChanged;
+
+        SetRoute();
+        await Loc.EnsureLoadedAsync();
+        await LoadMenuAsync();
+    }
+
+    private async Task LoadMenuAsync()
+    {
+        // An empty menu is the honest answer to "the API is unreachable": the bottom bar then
+        // shows its offline state rather than a row of tabs that would 404.
+        try { _menu = await Api.GetMenuAsync(); }
+        catch { _menu = new(); }
+    }
+
+    private void MenuChanged()
+        => _ = InvokeAsync(async () => { await LoadMenuAsync(); StateHasChanged(); });
+
+    // The server needs the current route to honour the per-form opt-out on the Forms tab.
+    private void RouteChanged(object? sender, LocationChangedEventArgs e)
+    {
+        SetRoute();
+
+        // A sheet left open over the page the user just navigated to is the classic phone-nav bug.
+        if (_moreOpen || _accountOpen)
+        {
+            _moreOpen = _accountOpen = false;
+        }
+
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void SetRoute()
+        => LangContext.Route = "/" + Nav.ToBaseRelativePath(Nav.Uri).Split('?')[0].Split('#')[0].Trim('/');
+
+    private void LanguageChanged() => InvokeAsync(StateHasChanged);
+
+    private void OpenMore()
+    {
+        _accountOpen = false;
+        _moreOpen = true;
+    }
+
+    private void OpenAccount()
+    {
+        _moreOpen = false;
+        _accountOpen = true;
+    }
+
+    private void CloseSheets()
+    {
+        _moreOpen = false;
+        _accountOpen = false;
+    }
+
+    /// <summary>
+    /// Kept in sync after every render rather than in the handlers, so a navigation-driven close
+    /// releases the lock too. A stranded lock would leave the page unscrollable with no way back.
+    /// </summary>
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        var wanted = _moreOpen || _accountOpen;
+        if (wanted == _scrollLocked) return;
+
+        _scrollLocked = wanted;
+        try { await JS.InvokeVoidAsync(wanted ? "scScroll.lock" : "scScroll.release"); }
+        catch (JSDisconnectedException) { }
+        catch (InvalidOperationException) { }
+    }
+
+    private async Task LogoutAsync()
+    {
+        CloseSheets();
+        await AuthService.LogoutAsync();
+        Nav.NavigateTo("login");
+    }
+
+    private static string Initials(string? name)
+    {
+        var parts = (name ?? string.Empty).Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length == 0) return "🕉";
+        return parts.Length == 1
+            ? parts[0][..1].ToUpperInvariant()
+            : (parts[0][..1] + parts[^1][..1]).ToUpperInvariant();
+    }
+
+    public void Dispose()
+    {
+        Loc.OnChanged -= LanguageChanged;
+        Nav.LocationChanged -= RouteChanged;
+        MenuRefresh.OnChanged -= MenuChanged;
+
+        if (_scrollLocked)
+        {
+            // Fire-and-forget: Dispose cannot await, and a stranded lock would freeze the page.
+            _ = JS.InvokeVoidAsync("scScroll.reset").AsTask();
+        }
+    }
+}

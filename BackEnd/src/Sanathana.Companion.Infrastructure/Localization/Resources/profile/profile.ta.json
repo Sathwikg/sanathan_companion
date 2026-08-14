@@ -1,5 +1,8 @@
 {
+  "profile.about": "பற்றி",
   "profile.allRegions": "அனைத்துப் பகுதிகள்",
+  "profile.app": "செயலி",
+  "profile.appearance": "தோற்றம்",
   "profile.beginSadhana": "சாதனாவைத் தொடங்கு",
   "profile.chantCountMany": "{0} மந்திரங்கள்",
   "profile.chantCountOne": "{0} மந்திரம்",
@@ -7,6 +10,7 @@
   "profile.defaultRegion": "இயல்புப் பகுதி",
   "profile.defaultRegionSet": "இயல்புப் பகுதி {0} ஆக அமைக்கப்பட்டது.",
   "profile.defaultRegionSub": "பயன்பாட்டில் காட்டப்படும் தெய்வங்களும் மந்திரங்களும் இயல்பாக இந்தப் பகுதிக்கானவை",
+  "profile.environment": "சூழல்",
   "profile.fullName": "முழுப் பெயர்",
   "profile.lastPractice": "கடைசிப் பயிற்சி",
   "profile.loading": "உங்கள் சுயவிவரத்தை ஏற்றுகிறது…",
@@ -15,12 +19,18 @@
   "profile.noSadhanaBody": "நீங்கள் தொடங்கியதும் உங்கள் தினசரிப் பயிற்சி இங்கே தோன்றும்.",
   "profile.noSadhanaYet": "இன்னும் சாதனா இல்லை",
   "profile.notYet": "இன்னும் இல்லை",
+  "profile.platform": "தளம்",
   "profile.practisedToday": "இன்று பயிற்சி முடிந்தது",
+  "profile.preferences": "விருப்பங்கள்",
+  "profile.preferencesSub": "இந்தச் சாதனத்தில் செயலி எப்படித் தோன்றும், எந்த மொழியில் பேசும்",
+  "profile.quickLinks": "விரைவு இணைப்புகள்",
   "profile.regionSwitchHint": "மேலே உள்ள தேர்விலிருந்து எப்போது வேண்டுமானாலும் பகுதியை மாற்றிக்கொள்ளலாம்.",
   "profile.registered": "பதிவு செய்த நாள்",
   "profile.sadhanaTimeline": "சாதனா காலவரிசை",
   "profile.seekerName": "பக்தர் பெயர்",
   "profile.sub": "உங்கள் விவரங்களும் சாதனா பயணமும்",
   "profile.title": "என் சுயவிவரம்",
-  "profile.totalCount": "மொத்த எண்ணிக்கை {0}"
+  "profile.totalCount": "மொத்த எண்ணிக்கை {0}",
+  "profile.version": "பதிப்பு",
+  "profile.viewFull": "முழு சுயவிவரம் மற்றும் சாதனா காலவரிசையைப் பார்"
 }

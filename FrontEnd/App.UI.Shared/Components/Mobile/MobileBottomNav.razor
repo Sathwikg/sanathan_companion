@@ -1,0 +1,82 @@
+@* The bottom bar. Its tabs are not hardcoded: they are the first few leaves of the menu the
+   server returned for platform=Mobile, so publishing a module to mobile or reordering it in the
+   Modules master changes this bar with no app release. *@
+@implements IDisposable
+@inject NavigationManager Nav
+@inject LocalizationState Loc
+
+<nav class="scm-bottomnav" aria-label="@Loc["nav.primary", "Primary"]">
+    @if (Loading)
+    {
+        @* Placeholder tabs rather than an empty bar: the shell must not change height when the
+           menu lands, or the page would jump under the user's thumb. *@
+        for (var i = 0; i < MobileMenu.PrimarySlots + 1; i++)
+        {
+            <span class="scm-tab is-skeleton" aria-hidden="true">
+                <span class="scm-tab-ic"></span>
+                <span class="scm-tab-label"></span>
+            </span>
+        }
+    }
+    else
+    {
+        foreach (var node in _plan.Primary)
+        {
+            <a class="scm-tab @(MobileMenu.IsActive(node, _current) ? "active" : "")"
+               href="@MobileMenu.Href(node)"
+               aria-current="@(MobileMenu.IsActive(node, _current) ? "page" : null)">
+                <span class="scm-tab-ic">@Icon(node)</span>
+                <span class="scm-tab-label">@Label(node)</span>
+            </a>
+        }
+
+        <button class="scm-tab scm-tab-more" @onclick="MoreAsync"
+                aria-label="@Loc["nav.more", "More"]">
+            <span class="scm-tab-ic">☰</span>
+            <span class="scm-tab-label">@Loc["nav.more", "More"]</span>
+            @if (_plan.Secondary.Count > 0)
+            {
+                <span class="scm-tab-count">@_plan.Secondary.Count</span>
+            }
+        </button>
+    }
+</nav>
+
+@code {
+    [Parameter] public List<MenuTreeNode>? Menu { get; set; }
+    [Parameter] public bool Loading { get; set; }
+    [Parameter] public EventCallback OnMore { get; set; }
+
+    private MobileMenu.Plan _plan = MobileMenu.Build(null);
+    private string _current = string.Empty;
+
+    private Task MoreAsync() => OnMore.InvokeAsync();
+
+    protected override void OnInitialized()
+    {
+        Nav.LocationChanged += LocationChanged;
+        Loc.OnChanged += LanguageChanged;
+        _current = Nav.ToBaseRelativePath(Nav.Uri);
+    }
+
+    protected override void OnParametersSet() => _plan = MobileMenu.Build(Menu);
+
+    /// <summary>Menu names come from the database, so they go through the entity translation map.</summary>
+    private string Label(MenuTreeNode node) => Loc.Entity("MenuModule", node.Id, "Name", node.Name);
+
+    private string Icon(MenuTreeNode node) => string.IsNullOrWhiteSpace(node.Icon) ? "•" : node.Icon!;
+
+    private void LocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        _current = Nav.ToBaseRelativePath(Nav.Uri);
+        StateHasChanged();
+    }
+
+    private void LanguageChanged() => InvokeAsync(StateHasChanged);
+
+    public void Dispose()
+    {
+        Nav.LocationChanged -= LocationChanged;
+        Loc.OnChanged -= LanguageChanged;
+    }
+}

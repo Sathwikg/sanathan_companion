@@ -1,5 +1,8 @@
 {
+  "profile.about": "About",
   "profile.allRegions": "All Regions",
+  "profile.app": "App",
+  "profile.appearance": "Appearance",
   "profile.beginSadhana": "Begin Sadhana",
   "profile.chantCountMany": "{0} chants",
   "profile.chantCountOne": "{0} chant",
@@ -7,6 +10,7 @@
   "profile.defaultRegion": "Default Region",
   "profile.defaultRegionSet": "Default region set to {0}.",
   "profile.defaultRegionSub": "Gods and chants shown across the app default to this region",
+  "profile.environment": "Environment",
   "profile.fullName": "Full name",
   "profile.lastPractice": "Last practice",
   "profile.loading": "Loading your profile…",
@@ -15,12 +19,18 @@
   "profile.noSadhanaBody": "Your daily practice will appear here once you begin.",
   "profile.noSadhanaYet": "No sadhana yet",
   "profile.notYet": "Not yet",
+  "profile.platform": "Platform",
   "profile.practisedToday": "Practised today",
+  "profile.preferences": "Preferences",
+  "profile.preferencesSub": "How the app looks and speaks to you on this device",
+  "profile.quickLinks": "Quick links",
   "profile.regionSwitchHint": "You can still switch region any time from the selector at the top.",
   "profile.registered": "Registered",
   "profile.sadhanaTimeline": "Sadhana Timeline",
   "profile.seekerName": "Seeker name",
   "profile.sub": "Your details and sadhana journey",
   "profile.title": "My Profile",
-  "profile.totalCount": "{0} total count"
+  "profile.totalCount": "{0} total count",
+  "profile.version": "Version",
+  "profile.viewFull": "View full profile & sadhana timeline"
 }

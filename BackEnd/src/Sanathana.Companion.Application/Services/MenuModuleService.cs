@@ -42,13 +42,14 @@ public class MenuModuleService : IMenuModuleService
         var all = await _uow.MenuModules.GetAllOrderedAsync(cancellationToken);
         var candidates = all.Where(m => m.IsActive && m.IsVisibleInMenu).ToList();
 
-        // Admin always sees every form — no per-role filtering.
-        if (string.Equals(roleName, RoleNames.Admin, StringComparison.OrdinalIgnoreCase))
-            return BuildTree(candidates, requireParentPresent: true);
+        var isMobile = string.Equals(platform, PlatformNames.Mobile, StringComparison.OrdinalIgnoreCase);
+        var isAdmin = string.Equals(roleName, RoleNames.Admin, StringComparison.OrdinalIgnoreCase);
 
-        // Non-Admin: keep only forms this role may access on this platform (default-deny).
+        // Admin sees every form its role allows — no per-role filtering — but "allowed" and
+        // "published to this platform" are different questions, and only the second one is asked
+        // of ShowInMobile below.
         var mappings = new Dictionary<Guid, ModuleRoleMapping>();
-        if (!string.IsNullOrWhiteSpace(roleName))
+        if (!isAdmin && !string.IsNullOrWhiteSpace(roleName))
         {
             var role = await _uow.Roles.GetByNameAsync(roleName!, cancellationToken);
             if (role is not null)
@@ -56,13 +57,25 @@ public class MenuModuleService : IMenuModuleService
                     mappings[mr.MenuModuleId] = mr;
         }
 
-        var isMobile = string.Equals(platform, "Mobile", StringComparison.OrdinalIgnoreCase);
         var parentIds = all.Where(m => m.ParentId.HasValue).Select(m => m.ParentId!.Value).ToHashSet();
 
         bool LeafAllowed(MenuModule m)
-            => mappings.TryGetValue(m.Id, out var f) && (isMobile ? f.MobileEnabled : f.WebEnabled);
+        {
+            // Publication to the platform is asked first and applies to everyone, Admin included:
+            // a phone has no room for the master-data screens, and an admin holding a phone is
+            // still holding a phone. This is what the "Show in mobile" switch on the module form
+            // has always promised — before this it was recorded and then ignored.
+            if (isMobile && !m.ShowInMobile) return false;
 
-        // Leaf forms are visible when the role is granted them; a container is visible when it has a visible child.
+            // Then the per-role, per-platform grant (default-deny). Admin bypasses it.
+            return isAdmin
+                || (mappings.TryGetValue(m.Id, out var f) && (isMobile ? f.MobileEnabled : f.WebEnabled));
+        }
+
+        // Leaf forms are visible when the rules above admit them; a container is visible when it
+        // has a visible child. A container's own ShowInMobile is deliberately not consulted —
+        // containers are pure navigation, and requiring the flag on them too would strand every
+        // mobile-published form that happens to sit under a desktop-only group.
         var visible = new HashSet<Guid>();
         foreach (var m in candidates)
             if (!parentIds.Contains(m.Id) && LeafAllowed(m))

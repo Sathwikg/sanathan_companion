@@ -13,11 +13,13 @@
     <array>
         <string>arm64</string>
     </array>
+
+    <!-- Portrait only on iPhone: the shell is a single column with a bottom bar, and landscape
+         would spend half a short screen on chrome. iPad keeps every orientation because there is
+         room for the wider layout mobile.css switches to at 700px. -->
     <key>UISupportedInterfaceOrientations</key>
     <array>
         <string>UIInterfaceOrientationPortrait</string>
-        <string>UIInterfaceOrientationLandscapeLeft</string>
-        <string>UIInterfaceOrientationLandscapeRight</string>
     </array>
     <key>UISupportedInterfaceOrientations~ipad</key>
     <array>
@@ -26,6 +28,48 @@
         <string>UIInterfaceOrientationLandscapeLeft</string>
         <string>UIInterfaceOrientationLandscapeRight</string>
     </array>
+
+    <!-- Left view-controller-based so the status bar can follow the in-app light/dark theme.
+         A fixed UIStatusBarStyle here would be wrong in one of the two themes. -->
+    <key>UIViewControllerBasedStatusBarAppearance</key>
+    <true/>
+
+    <!-- Debug builds call http://localhost:7050/api, which App Transport Security blocks by
+         default. NSAllowsLocalNetworking exempts localhost, *.local and link-local addresses
+         only — unlike NSAllowsArbitraryLoads it needs no App Review justification, and the
+         Release target (https://…onrender.com) does not rely on it. -->
+    <key>NSAppTransportSecurity</key>
+    <dict>
+        <key>NSAllowsLocalNetworking</key>
+        <true/>
+    </dict>
+
+    <!-- On a physical device "localhost" is the phone itself, so debugging against an API on the
+         development machine means its LAN address, which raises the iOS 14+ local-network prompt. -->
+    <key>NSLocalNetworkUsageDescription</key>
+    <string>Sanathan Companion connects to a Panchangam service running on your local network while the app is in development.</string>
+
+    <!-- geo.js calls navigator.geolocation for the Panchangam page. WKWebView denies the call
+         outright unless the host app declares the purpose. -->
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>Sanathan Companion uses your location to calculate today's Panchangam — sunrise, tithi and the auspicious timings — for exactly where you are.</string>
+
+    <!-- The deity, wallpaper and chant-audio screens open the system picker from inside the
+         WebView. Choosing "Take Photo" without the camera string terminates the app. -->
+    <key>NSCameraUsageDescription</key>
+    <string>Sanathan Companion needs the camera so you can photograph a deity image to upload.</string>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>Sanathan Companion needs your photo library so you can choose deity images and wallpapers to upload.</string>
+    <key>NSPhotoLibraryAddUsageDescription</key>
+    <string>Sanathan Companion saves the wallpapers you download to your photo library.</string>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>Sanathan Companion needs the microphone only if you record chant audio to upload.</string>
+
+    <!-- Answers the export-compliance question once, instead of on every TestFlight upload. The
+         app uses only HTTPS, which is exempt. -->
+    <key>ITSAppUsesNonExemptEncryption</key>
+    <false/>
+
     <key>XSAppIconAssets</key>
     <string>Assets.xcassets/appicon.appiconset</string>
 </dict>

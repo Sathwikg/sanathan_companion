@@ -6,6 +6,7 @@
 @inject ToastService Toast
 @inject ConfirmService Confirm
 @inject IJSRuntime JS
+@inject IGeolocationProvider Geo
 @inject RegionState Region
 
 <div class="sc-page-head">
@@ -292,7 +293,9 @@ else
         _regionId = CurrentLocationValue;
         try
         {
-            var geo = await JS.InvokeAsync<GeoPosition>("scGeo.current");
+            // Through the provider, not straight to JS: inside a Blazor WebView the browser call
+            // is denied, so the mobile host substitutes MAUI's native Geolocation here.
+            var geo = await Geo.GetCurrentAsync();
             if (!string.IsNullOrEmpty(geo.Error))
             {
                 _geoError = geo.Error;

@@ -3,8 +3,18 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:shared="clr-namespace:App.UI.Shared;assembly=App.UI.Shared"
              x:Class="App.Mobile.MainPage"
-             BackgroundColor="#FDFBF7">
+             SafeAreaEdges="None"
+             BackgroundColor="{AppThemeBinding Light=#FDFBF7, Dark=#1E140B}">
 
+    <!-- SafeAreaEdges="None" hands the notch and home-indicator regions to the WebView, so the
+         env(safe-area-inset-*) rules in mobile.css are the single mechanism that pads for them.
+         Leaving MAUI's default on would inset the WebView natively AND leave the CSS resolving to
+         zero — one inset applied, in the wrong layer, with the top bar's translucency wasted on a
+         letterbox. Turning it on again means deleting those CSS rules, not keeping both.
+         (This replaces the older ios:Page.UseSafeArea, which .NET 10 marks obsolete.)
+
+         BackgroundColor follows the system theme so the strip behind the status bar and the iOS
+         overscroll rubber band match the web content instead of flashing cream in dark mode. -->
     <BlazorWebView x:Name="blazorWebView" HostPage="wwwroot/index.html">
         <BlazorWebView.RootComponents>
             <RootComponent Selector="#app" ComponentType="{x:Type shared:Routes}" />

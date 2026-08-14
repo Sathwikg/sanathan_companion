@@ -151,7 +151,8 @@ else
     private string? _formError;
     private string? _imageError;
 
-    private string ExistingImageUrl => $"{Config.ApiBaseUrl.TrimEnd('/')}/deities/{Id}/image";
+    // Only reachable behind HasAnyImage, which requires IsEdit and therefore a non-null Id.
+    private string ExistingImageUrl => Config.Absolute(ApiRoutes.Media.DeityImage(Id.GetValueOrDefault()));
     private bool HasAnyImage => _previewUrl is not null || (IsEdit && _hasExistingImage && !_model.RemoveImage);
 
     protected override async Task OnInitializedAsync()

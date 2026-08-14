@@ -2,18 +2,57 @@
 <html lang="en">
 <head>
     <meta charset="utf-8" />
+    <!-- viewport-fit=cover hands the notch and home-indicator regions to CSS, which is what every
+         env(safe-area-inset-*) rule in mobile.css depends on. It only works because MainPage sets
+         ios:Page.UseSafeArea="False" — otherwise MAUI insets the WebView natively and the CSS
+         insets all resolve to 0. -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content" />
+    <meta name="color-scheme" content="light dark" />
     <title>Sanathan Companion</title>
     <base href="/" />
     <link rel="stylesheet" href="_content/App.UI.Shared/theme.css" />
     <link rel="stylesheet" href="_content/App.UI.Shared/app.css" />
-    <link rel="stylesheet" href="App.Mobile.styles.css" />
+    <!-- Mobile skin last: it deepens the shared styles rather than replacing them. -->
+    <link rel="stylesheet" href="_content/App.UI.Shared/mobile.css" />
     <link rel="icon" href="data:,">
+
+    <!-- Blocking on purpose: settles the theme attribute before first paint, so a dark-theme
+         seeker does not get a full-screen cream flash on every cold start. -->
+    <script src="_content/App.UI.Shared/theme.js"></script>
+    <script>scTheme.boot();</script>
+
+    <style>
+        /* WebView-level concerns, kept out of mobile.css because that file is shared with the
+           web host and may only touch .scm-* classes. */
+
+        /* The shell owns the scroll, so the document must not bounce a second time — on iOS a
+           double scroller shows the page's own background behind the rubber band, which reads
+           as a rendering fault. */
+        html, body {
+            overscroll-behavior-y: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Blazor's error strip carries no styling of its own here (App.Web inlines its own).
+           Without this it renders as permanent body text at the top of every screen. */
+        #blazor-error-ui {
+            display: none;
+            position: fixed;
+            left: 0; right: 0; bottom: 0;
+            z-index: 100;
+            padding: 0.7rem 1rem;
+            padding-bottom: max(0.7rem, env(safe-area-inset-bottom, 0px));
+            background: var(--color-error);
+            color: var(--color-on-error);
+            font-size: 0.9rem;
+            box-shadow: var(--shadow-lg);
+        }
+        #blazor-error-ui .dismiss { float: right; cursor: pointer; }
+        #blazor-error-ui .reload { color: inherit; text-decoration: underline; }
+    </style>
 </head>
 
 <body>
-    <div class="status-bar-safe-area"></div>
-
     <div id="app">
         <div class="om-loader is-full">
             <div class="om-loader-ring" style="width:76px;height:76px;">
