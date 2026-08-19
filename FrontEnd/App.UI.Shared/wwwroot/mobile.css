@@ -198,8 +198,13 @@
 
 .scm-bell-ic { display: block; }
 
+/* Three swings, then still.
+   `infinite` here was a permanent repaint on every screen of the app: the bell sits in the top
+   bar, which is a backdrop-filter surface, so each frame re-blurred the strip behind it for as
+   long as any reminder was active — i.e. most of the day. Three iterations draw the eye once,
+   which is all the animation was for. */
 .scm-bell.has-active .scm-bell-ic {
-  animation: scm-bell-swing 4.5s ease-in-out infinite;
+  animation: scm-bell-swing 4.5s ease-in-out 3;
   transform-origin: 50% 12%;
 }
 
@@ -481,6 +486,11 @@
 .scm-tab.is-skeleton .scm-tab-label { width: 34px; height: 8px; }
 
 @keyframes scm-pulse { 0%, 100% { opacity: 0.45; } 50% { opacity: 0.9; } }
+
+/* A phone that never reaches the API keeps the skeleton on screen indefinitely, so the pulse is
+   bounded: after ~20 iterations it settles rather than animating at 60fps until the app closes. */
+.scm-tab.is-skeleton .scm-tab-ic,
+.scm-tab.is-skeleton .scm-tab-label { animation-iteration-count: 20; }
 
 /* ---------------------------------------------------------------- bottom sheet */
 

@@ -17,11 +17,16 @@ namespace App.Core.Services;
 /// user session.
 /// </para>
 /// </remarks>
-public class NotificationCenterState
+public class NotificationCenterState : IUserSessionState
 {
     private readonly IApiClient _api;
+    private readonly IReminderScheduler _reminders;
 
-    public NotificationCenterState(IApiClient api) => _api = api;
+    public NotificationCenterState(IApiClient api, IReminderScheduler reminders)
+    {
+        _api = api;
+        _reminders = reminders;
+    }
 
     public MyNotificationSettings? Settings { get; private set; }
     public bool IsOpen { get; private set; }
@@ -49,11 +54,42 @@ public class NotificationCenterState
         {
             Settings = await _api.GetMyNotificationsAsync();
             OnChanged?.Invoke();
+            await SyncRemindersAsync();
         }
         catch
         {
             // No badge is a better answer than a wrong one.
         }
+    }
+
+    /// <summary>
+    /// Hands the current preferences to the OS scheduler.
+    /// </summary>
+    /// <remarks>
+    /// Only ever called with settings that were actually fetched. An empty plan means "cancel
+    /// everything", so syncing after a FAILED fetch would silently delete the seeker's reminders —
+    /// opening the notification panel once with no signal would leave them with no reminders at
+    /// all, and nothing on screen would say so.
+    /// </remarks>
+    public async Task SyncRemindersAsync()
+    {
+        if (Settings is null) return;
+
+        try { await _reminders.SyncAsync(Settings); }
+        catch { /* scheduling is best-effort; never break the panel over it */ }
+    }
+
+    /// <summary>
+    /// Drops the previous seeker's settings AND their scheduled reminders on sign-out — otherwise
+    /// one account's 06:00 sadhana reminder would keep firing on the next account's phone.
+    /// </summary>
+    public void Reset()
+    {
+        Settings = null;
+        IsOpen = false;
+        Error = null;
+        _ = _reminders.ClearAsync();
+        OnChanged?.Invoke();
     }
 
     /// <summary>
@@ -80,6 +116,9 @@ public class NotificationCenterState
             IsLoading = false;
             OnChanged?.Invoke();
         }
+
+        // Only when the refetch actually produced settings — see SyncRemindersAsync.
+        if (Error is null) await SyncRemindersAsync();
     }
 
     public void Close()

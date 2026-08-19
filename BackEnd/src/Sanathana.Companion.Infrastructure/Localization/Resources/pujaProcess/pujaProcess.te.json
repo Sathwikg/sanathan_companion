@@ -3,6 +3,7 @@
   "pujaProcess.allPujas": "అన్ని పూజలు",
   "pujaProcess.completedBody": "మీరు అన్ని దశలను పూర్తి చేశారు. మీ ప్రార్థనలు ఫలించాలి.",
   "pujaProcess.completedTitle": "పూజ పూర్తయింది",
+  "pujaProcess.couldNotLoad": "పూజా విధానం లోడ్ చేయలేకపోయాం.",
   "pujaProcess.current": "ప్రస్తుతం",
   "pujaProcess.daysAgo": "{0} రోజుల క్రితం",
   "pujaProcess.filterByFestival": "పండుగ ఆధారంగా వడపోత",

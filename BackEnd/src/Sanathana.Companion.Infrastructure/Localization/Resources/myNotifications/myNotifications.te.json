@@ -12,6 +12,7 @@
   "myNotifications.noneAvailable": "ఇంకా నోటిఫికేషన్‌లు అందుబాటులో లేవు",
   "myNotifications.noneAvailableBody": "నిర్వాహకుడు ఇంకా ఏ నోటిఫికేషన్‌నూ ప్రారంభించలేదు. తర్వాత మళ్లీ చూడండి.",
   "myNotifications.nowIst": "ప్రస్తుతం {0} (భారత కాలమానం)",
+  "myNotifications.osBlocked": "మీ పరికర సెట్టింగ్స్‌లో ఈ యాప్‌కు నోటిఫికేషన్‌లు ఆఫ్ చేయబడ్డాయి, కాబట్టి ఈ రిమైండర్‌లు మీకు చేరవు. వాటిని సెట్టింగ్స్‌లో ఆన్ చేయండి.",
   "myNotifications.quietHours": "నిశ్శబ్ద సమయాలు",
   "myNotifications.quietHoursHint": "ఈ సమయాల్లో ఏ నోటిఫికేషన్ రాదు — తప్పనిసరివి కూడా.",
   "myNotifications.saved": "🔔 నోటిఫికేషన్ ప్రాధాన్యతలు భద్రపరచబడ్డాయి.",

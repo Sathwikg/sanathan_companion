@@ -16,6 +16,10 @@
 {
     <OmLoader FullPage="true" Message='@Loc["wallpapersDownload.loading", "Loading wallpapers…"]' />
 }
+else if (_error is not null)
+{
+    <div class="sc-alert sc-alert-error">@_error</div>
+}
 else if (_selected is null)
 {
     @if (_deities.Count == 0)
@@ -89,6 +93,7 @@ else
     private List<WallpaperModel> _wallpapers = new();
     private WallpaperDeityModel? _selected;
     private bool _loading = true;
+    private string? _error;
 
     private string ImgSrc(Guid id) => Config.Absolute(ApiRoutes.Media.WallpaperImage(id));
     private string DownloadUrl(Guid id) => Config.Absolute(ApiRoutes.Media.WallpaperDownload(id));
@@ -99,16 +104,20 @@ else
         await base.OnInitializedAsync();
 
         // Only deities that actually have something to download.
-        _deities = await Api.GetWallpaperDeitiesAsync(onlyWithWallpapers: true);
-        _loading = false;
+        // try/finally, not a bare await: _loading is cleared on the line after this call, so any
+        // throw (an expired token is a 401 here) would leave the loader spinning for good.
+        try { _deities = await Api.GetWallpaperDeitiesAsync(onlyWithWallpapers: true); }
+        catch { _error = Loc["wallpapersDownload.couldNotLoad", "Could not load wallpapers."]; }
+        finally { _loading = false; }
     }
 
     private async Task SelectAsync(WallpaperDeityModel deity)
     {
         _loading = true;
         _selected = deity;
-        _wallpapers = await Api.GetWallpapersByDeityAsync(deity.DeityId);
-        _loading = false;
+        try { _wallpapers = await Api.GetWallpapersByDeityAsync(deity.DeityId); }
+        catch { _error = Loc["wallpapersDownload.couldNotLoad", "Could not load wallpapers."]; }
+        finally { _loading = false; }
     }
 
     private void BackToDeities()

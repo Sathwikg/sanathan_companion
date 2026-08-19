@@ -20,6 +20,7 @@
   "auth.registrationSuccess": "నమోదు విజయవంతమైంది",
   "auth.seekerName": "సాధకుని పేరు",
   "auth.seekerNamePlaceholder": "మీ ఆధ్యాత్మిక నామం",
+  "auth.sessionEnded": "మీ సెషన్ ముగిసింది. దయచేసి మళ్లీ సైన్ ఇన్ చెయ్యండి.",
   "auth.signIn": "భక్తి ప్రారంభించు",
   "auth.signInInstead": "ప్రవేశించండి",
   "auth.tagline": "రోజువారీ సాధనకు మీ పవిత్ర మార్గదర్శి",

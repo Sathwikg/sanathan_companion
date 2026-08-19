@@ -12,6 +12,7 @@
   "myNotifications.noneAvailable": "No notifications available yet",
   "myNotifications.noneAvailableBody": "An administrator hasn't enabled any notifications. Check back later.",
   "myNotifications.nowIst": "Now {0} IST",
+  "myNotifications.osBlocked": "Notifications are turned off for this app in your device settings, so none of these reminders can reach you. Enable them in Settings to start receiving them.",
   "myNotifications.quietHours": "Quiet hours",
   "myNotifications.quietHoursHint": "Stay silent during these hours — even for required notices.",
   "myNotifications.saved": "🔔 Notification preferences saved.",

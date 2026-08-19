@@ -2,6 +2,7 @@
    configured for it. Tapping the deity opens details; tapping a sadhana opens its japa screen. *@
 @implements IDisposable
 @inject IApiClient Api
+@inject IAppLifecycle Lifecycle
 @inject NavigationManager Nav
 @inject AppConfig Config
 @inject FavoritesState Favs
@@ -167,6 +168,7 @@
 
     protected override async Task OnInitializedAsync()
     {
+        Lifecycle.Changed += OnLifecycleChanged;
         Region.OnChanged += OnRegionChanged;
         await Region.EnsureLoadedAsync();
         await LoadAsync();
@@ -195,12 +197,24 @@
             // Best-effort widget — stay hidden if it can't load.
         }
 
-        // Only rotate when the (possibly region-filtered) list has more than one deity.
+        RestartTimer();
+    }
+
+    /// <summary>
+    /// Rotates only when there is more than one deity AND the app is actually in front of the
+    /// seeker. This is a .NET timer, so pausing the WebView does not stop it: without the
+    /// lifecycle gate it kept waking every few seconds behind the lock screen, re-rendering
+    /// through the WebView each time, for a carousel nobody was looking at.
+    /// </summary>
+    private void RestartTimer()
+    {
         _timer?.Dispose();
-        _timer = _deities.Count > 1
+        _timer = _deities.Count > 1 && Lifecycle.IsActive
             ? new System.Threading.Timer(_ => Rotate(), null, RotateMs, RotateMs)
             : null;
     }
+
+    private void OnLifecycleChanged() => InvokeAsync(RestartTimer);
 
     private void OnRegionChanged()
         => _ = InvokeAsync(async () => { await LoadAsync(); StateHasChanged(); });
@@ -235,5 +249,8 @@
         _timer?.Dispose();
         Favs.OnChanged -= OnFavChanged;
         Region.OnChanged -= OnRegionChanged;
+        // The lifecycle service is a singleton, so a missed unsubscribe would keep this component
+        // — and the deity list it holds — alive for the rest of the process.
+        Lifecycle.Changed -= OnLifecycleChanged;
     }
 }

@@ -20,6 +20,7 @@
   "auth.registrationSuccess": "पंजीकरण सफल",
   "auth.seekerName": "साधक नाम",
   "auth.seekerNamePlaceholder": "आपका आध्यात्मिक नाम",
+  "auth.sessionEnded": "आपका सत्र समाप्त हो गया। कृपया फिर से साइन इन करें।",
   "auth.signIn": "भक्ति आरंभ करें",
   "auth.signInInstead": "साइन इन करें",
   "auth.tagline": "दैनिक साधना के लिए आपका पावन मार्गदर्शक",

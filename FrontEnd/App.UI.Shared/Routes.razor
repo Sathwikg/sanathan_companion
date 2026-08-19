@@ -2,6 +2,10 @@
 @using App.UI.Shared.Components
 @inject LocalizationState Loc
 @inject AppConfig Config
+@inject SessionExpiredNotifier SessionExpired
+@inject IAuthService AuthService
+@inject NavigationManager Nav
+@inject ToastService Toast
 @implements IDisposable
 
 <CascadingAuthenticationState>
@@ -40,9 +44,29 @@
     /// </summary>
     private Type Shell => Config.IsMobile ? typeof(MobileLayout) : typeof(MainLayout);
 
-    protected override void OnInitialized() => Loc.OnChanged += Changed;
+    protected override void OnInitialized()
+    {
+        Loc.OnChanged += Changed;
+        SessionExpired.Expired += OnSessionExpired;
+    }
 
     private void Changed() => InvokeAsync(StateHasChanged);
 
-    public void Dispose() => Loc.OnChanged -= Changed;
+    /// <summary>
+    /// The API rejected the stored token, so end the session here rather than letting every screen
+    /// discover it separately. Subscribed on the router because it outlives any single page — the
+    /// 401 usually arrives from a request the user has already navigated away from.
+    /// </summary>
+    private void OnSessionExpired() => _ = InvokeAsync(async () =>
+    {
+        await AuthService.LogoutAsync();
+        Toast.Info(Loc["auth.sessionEnded", "Your session has ended. Please sign in again."]);
+        Nav.NavigateTo("login");
+    });
+
+    public void Dispose()
+    {
+        Loc.OnChanged -= Changed;
+        SessionExpired.Expired -= OnSessionExpired;
+    }
 }

@@ -9,17 +9,20 @@ public class AuthService : IAuthService
     private readonly ITokenStore _tokenStore;
     private readonly JwtAuthenticationStateProvider _authProvider;
     private readonly IEnumerable<IUserSessionState> _userState;
+    private readonly SessionExpiredNotifier _sessionExpired;
 
     public AuthService(
         IApiClient api,
         ITokenStore tokenStore,
         JwtAuthenticationStateProvider authProvider,
-        IEnumerable<IUserSessionState> userState)
+        IEnumerable<IUserSessionState> userState,
+        SessionExpiredNotifier sessionExpired)
     {
         _api = api;
         _tokenStore = tokenStore;
         _authProvider = authProvider;
         _userState = userState;
+        _sessionExpired = sessionExpired;
     }
 
     /// <summary>Drops every per-user cache so one account's data is never shown to the next.</summary>
@@ -39,6 +42,9 @@ public class AuthService : IAuthService
 
         ResetUserState();
         await _tokenStore.SetTokenAsync(data.Token);
+        // Re-arm the expiry latch, or the first 401 of the PREVIOUS session would still be
+        // silencing the next one.
+        _sessionExpired.Reset();
         _authProvider.NotifyAuthenticationChanged();
         return (true, string.Empty);
     }

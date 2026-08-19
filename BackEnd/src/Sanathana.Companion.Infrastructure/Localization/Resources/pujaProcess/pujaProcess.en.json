@@ -3,6 +3,7 @@
   "pujaProcess.allPujas": "All pujas",
   "pujaProcess.completedBody": "You have finished every step. May your prayers be answered.",
   "pujaProcess.completedTitle": "Puja completed",
+  "pujaProcess.couldNotLoad": "Could not load the puja process.",
   "pujaProcess.current": "current",
   "pujaProcess.daysAgo": "{0} days ago",
   "pujaProcess.filterByFestival": "Filter by festival",

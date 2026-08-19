@@ -3,6 +3,7 @@
   "pujaProcess.allPujas": "அனைத்துப் பூஜைகள்",
   "pujaProcess.completedBody": "எல்லாப் படிகளையும் முடித்துவிட்டீர்கள். உங்கள் பிரார்த்தனைகள் நிறைவேறட்டும்.",
   "pujaProcess.completedTitle": "பூஜை முடிந்தது",
+  "pujaProcess.couldNotLoad": "பூஜை செயல்முறையை ஏற்ற முடியவில்லை.",
   "pujaProcess.current": "தற்போதைய",
   "pujaProcess.daysAgo": "{0} நாட்களுக்கு முன்",
   "pujaProcess.filterByFestival": "திருவிழா வாரியாக வடிகட்டு",

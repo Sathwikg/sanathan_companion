@@ -3,6 +3,7 @@
   "pujaProcess.allPujas": "ಎಲ್ಲಾ ಪೂಜೆಗಳು",
   "pujaProcess.completedBody": "ನೀವು ಎಲ್ಲಾ ಹಂತಗಳನ್ನು ಮುಗಿಸಿದ್ದೀರಿ. ನಿಮ್ಮ ಪ್ರಾರ್ಥನೆಗಳು ಫಲಿಸಲಿ.",
   "pujaProcess.completedTitle": "ಪೂಜೆ ಪೂರ್ಣಗೊಂಡಿದೆ",
+  "pujaProcess.couldNotLoad": "ಪೂಜಾ ಪ್ರಕ್ರಿಯೆಯನ್ನು ಲೋಡ್ ಮಾಡಲಾಗಲಿಲ್ಲ.",
   "pujaProcess.current": "ಪ್ರಸ್ತುತ",
   "pujaProcess.daysAgo": "{0} ದಿನಗಳ ಹಿಂದೆ",
   "pujaProcess.filterByFestival": "ಹಬ್ಬದ ಪ್ರಕಾರ ಶೋಧಿಸಿ",

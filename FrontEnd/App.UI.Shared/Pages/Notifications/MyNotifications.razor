@@ -3,6 +3,8 @@
 @inherits LocalizedComponentBase
 @inject IApiClient Api
 @inject ToastService Toast
+@inject IReminderScheduler Reminders
+@inject AppConfig Config
 
 <div class="sc-page-head">
     <div class="sc-page-title">
@@ -21,6 +23,15 @@
         </div>
     }
 </div>
+
+@if (_blockedByOs)
+{
+    @* Without this the screen happily reports "Would notify now" while the OS silently drops every
+       one — the settings here are only half the permission story on a phone. *@
+    <div class="sc-alert sc-alert-error">
+        @Loc["myNotifications.osBlocked", "Notifications are turned off for this app in your device settings, so none of these reminders can reach you. Enable them in Settings to start receiving them."]
+    </div>
+}
 
 @if (_loading)
 {
@@ -163,12 +174,37 @@ else
     private MyNotificationSettings? _settings;
     private bool _loading = true;
     private bool _saving;
+    private bool _blockedByOs;
     private string? _error;
 
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
         await LoadAsync();
+        await SyncRemindersAsync();
+    }
+
+    /// <summary>
+    /// Hands the saved preferences to the OS scheduler and reports whether the OS will honour
+    /// them. On the web the scheduler is a no-op and reports false, so the warning is suppressed
+    /// there — a browser tab has no equivalent of a reminder that outlives it.
+    /// </summary>
+    private async Task SyncRemindersAsync()
+    {
+        if (!Config.IsMobile) return;
+
+        // A null _settings means the fetch failed; scheduling from it would cancel every reminder.
+        if (_settings is null) return;
+
+        try
+        {
+            await Reminders.SyncAsync(_settings);
+            _blockedByOs = !await Reminders.IsAllowedAsync();
+        }
+        catch
+        {
+            _blockedByOs = false; // do not accuse the OS when our own scheduling threw
+        }
     }
 
     private async Task LoadAsync()
@@ -225,6 +261,10 @@ else
         {
             Toast.Success(Loc["myNotifications.saved", "🔔 Notification preferences saved."]);
             await LoadAsync();   // refresh the "would notify now" hints
+
+            // Re-schedule immediately: this screen is the one place a seeker changes when they
+            // want to be reminded, so the phone's alarms should follow before they navigate away.
+            await SyncRemindersAsync();
         }
         else
         {

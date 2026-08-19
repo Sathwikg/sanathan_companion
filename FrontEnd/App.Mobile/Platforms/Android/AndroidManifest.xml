@@ -1,9 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- Cleartext is no longer allowed blanket-wide. network_security_config.xml permits http only
-         to the loopback hosts a Debug build talks to (10.0.2.2 for the emulator, localhost for a
-         port-forwarded device); the Release API is HTTPS and needs no exception. -->
-    <application android:allowBackup="true"
+    <!--
+        allowBackup is off deliberately. The only local state worth preserving is the theme and
+        language preference; everything else is re-fetched on sign-in. What Auto Backup WOULD carry
+        is the EncryptedSharedPreferences file behind SecureStorage, whose decryption key lives in
+        the hardware Keystore and is NOT backed up. Restoring it onto a new device therefore yields
+        an undecryptable keyset that faults on first read, which is a worse outcome than simply
+        signing in again.
+
+        networkSecurityConfig permits cleartext only to the loopback hosts a Debug build talks to;
+        the Release API is HTTPS.
+    -->
+    <application android:allowBackup="false"
                  android:icon="@mipmap/appicon"
                  android:roundIcon="@mipmap/appicon_round"
                  android:supportsRtl="true"
@@ -12,6 +20,15 @@
 
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- Android 13 (API 33) and later refuse to show a notification unless the user has granted
+         this at runtime. Declaring it is only half the job; ReminderScheduler requests it before
+         it schedules anything. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <!-- Alarms are cleared when the device restarts, so the daily reminders have to be rebuilt.
+         RECEIVE_BOOT_COMPLETED is what lets BootReminderReceiver hear about it. -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <!-- The Panchangam screen computes sunrise and the day's timings for wherever the seeker is.
          Coarse is enough for that, and is the weaker prompt; fine is optional and declared so a

@@ -20,6 +20,7 @@
   "auth.registrationSuccess": "பதிவு வெற்றிகரமாக முடிந்தது",
   "auth.seekerName": "பக்தர் பெயர்",
   "auth.seekerNamePlaceholder": "உங்கள் ஆன்மிகப் பெயர்",
+  "auth.sessionEnded": "மீண்டும் உள்நுழைக. அமர்வு முடிவடைந்தது.",
   "auth.signIn": "பக்தியைத் தொடங்கு",
   "auth.signInInstead": "உள்நுழை",
   "auth.tagline": "தினசரி சாதனாவுக்கான உங்கள் புனித வழிகாட்டி",

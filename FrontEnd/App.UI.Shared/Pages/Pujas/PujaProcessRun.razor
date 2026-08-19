@@ -18,6 +18,10 @@
 {
     <OmLoader FullPage="true" Message="@Loc["pujaProcess.loading", "Loading…"]" />
 }
+else if (_error is not null)
+{
+    <div class="sc-alert sc-alert-error">@_error</div>
+}
 else if (_allCount == 0)
 {
     <div class="sc-card sc-empty-state">
@@ -184,6 +188,7 @@ else
     private PujaProcessViewModel? _process;
     private string _festivalId = string.Empty;
     private bool _loading = true;
+    private string? _error;
 
     private int _allCount;
 
@@ -196,11 +201,14 @@ else
 
         // Unfiltered by default. Opening on the current festival would hide every puja that is
         // not tied to one, which is exactly how configured pujas went missing before.
-        _festivals = await Api.GetProcessFestivalsAsync();
-        _pujas = await Api.GetProcessPujasAsync();
-        _allCount = _pujas.Count;
-
-        _loading = false;
+        try
+        {
+            _festivals = await Api.GetProcessFestivalsAsync();
+            _pujas = await Api.GetProcessPujasAsync();
+            _allCount = _pujas.Count;
+        }
+        catch { _error = Loc["pujaProcess.couldNotLoad", "Could not load the puja process."]; }
+        finally { _loading = false; }
     }
 
     private string WhenLabel(ProcessFestivalModel f) => f.DaysAway switch

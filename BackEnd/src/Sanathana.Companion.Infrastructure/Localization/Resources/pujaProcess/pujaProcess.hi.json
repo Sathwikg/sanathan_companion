@@ -3,6 +3,7 @@
   "pujaProcess.allPujas": "सभी पूजाएँ",
   "pujaProcess.completedBody": "आपने सभी चरण पूरे कर लिए। आपकी प्रार्थनाएँ स्वीकार हों।",
   "pujaProcess.completedTitle": "पूजा पूर्ण हुई",
+  "pujaProcess.couldNotLoad": "पूजा प्रक्रिया लोड नहीं हो सकी।",
   "pujaProcess.current": "वर्तमान",
   "pujaProcess.daysAgo": "{0} दिन पहले",
   "pujaProcess.filterByFestival": "त्योहार से छाँटें",

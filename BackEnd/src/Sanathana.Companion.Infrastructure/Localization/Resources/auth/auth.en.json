@@ -20,6 +20,7 @@
   "auth.registrationSuccess": "Registration successful",
   "auth.seekerName": "Seeker Name",
   "auth.seekerNamePlaceholder": "Your spiritual name",
+  "auth.sessionEnded": "Your session has ended. Please sign in again.",
   "auth.signIn": "Begin Devotion",
   "auth.signInInstead": "Sign in",
   "auth.tagline": "Your sacred guide to daily sadhana",

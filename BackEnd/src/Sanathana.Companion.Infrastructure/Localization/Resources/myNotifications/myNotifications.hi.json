@@ -12,6 +12,7 @@
   "myNotifications.noneAvailable": "अभी कोई सूचना उपलब्ध नहीं",
   "myNotifications.noneAvailableBody": "व्यवस्थापक ने अभी कोई सूचना सक्षम नहीं की है। बाद में देखें।",
   "myNotifications.nowIst": "अभी {0} भारतीय समय",
+  "myNotifications.osBlocked": "आपकी डिवाइस सेटिंग्स में इस ऐप के लिए सूचनाएँ बंद हैं, इसलिए ये अनुस्मारक आप तक नहीं पहुँच सकते। इन्हें पाने के लिए सेटिंग्स में उन्हें चालू करें।",
   "myNotifications.quietHours": "शांत घंटे",
   "myNotifications.quietHoursHint": "इन घंटों में कोई आवाज़ नहीं — आवश्यक सूचनाओं के लिए भी।",
   "myNotifications.saved": "🔔 सूचना प्राथमिकताएँ सहेज ली गईं।",
