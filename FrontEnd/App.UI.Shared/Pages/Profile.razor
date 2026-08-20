@@ -387,14 +387,14 @@ else if (_p is not null)
         _busy = true;
         try
         {
-            var (ok, error) = await Api.ChangePasswordAsync(new ChangePasswordRequest
+            var (ok, renewed, error) = await Api.ChangePasswordAsync(new ChangePasswordRequest
             {
                 CurrentPassword = _currentPassword,
                 NewPassword = _newPassword,
                 ConfirmNewPassword = _confirmPassword
             });
 
-            if (!ok)
+            if (!ok || renewed is null)
             {
                 _passwordError = string.IsNullOrWhiteSpace(error)
                     ? Loc["profile.passwordChangeFailed", "Your password could not be changed."]
@@ -402,8 +402,14 @@ else if (_p is not null)
                 return;
             }
 
+            // Changing a password ends every session the account holds, including this one. The
+            // server hands back a fresh pair so the seeker who took the precaution is not signed
+            // out by it — but only this device gets them.
+            await AuthService.AdoptAsync(renewed);
+
             CancelPasswordChange();
-            Toast.Success(Loc["profile.passwordChanged", "Your password has been changed."]);
+            Toast.Success(Loc["profile.passwordChangedElsewhere",
+                "Your password has been changed. Any other device you were signed in on has been signed out."]);
         }
         catch (Exception ex)
         {

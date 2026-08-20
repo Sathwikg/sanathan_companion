@@ -14,6 +14,7 @@ public class AuthService : IAuthService
     private readonly IUnitOfWork _uow;
     private readonly IPasswordHasher _passwordHasher;
     private readonly IJwtTokenService _jwtTokenService;
+    private readonly IRefreshTokenFactory _refreshTokens;
     private readonly IValidator<RegisterRequestDto> _registerValidator;
     private readonly IValidator<LoginRequestDto> _loginValidator;
     private readonly IValidator<ChangePasswordDto> _changePasswordValidator;
@@ -22,6 +23,7 @@ public class AuthService : IAuthService
         IUnitOfWork uow,
         IPasswordHasher passwordHasher,
         IJwtTokenService jwtTokenService,
+        IRefreshTokenFactory refreshTokens,
         IValidator<RegisterRequestDto> registerValidator,
         IValidator<LoginRequestDto> loginValidator,
         IValidator<ChangePasswordDto> changePasswordValidator)
@@ -29,6 +31,7 @@ public class AuthService : IAuthService
         _uow = uow;
         _passwordHasher = passwordHasher;
         _jwtTokenService = jwtTokenService;
+        _refreshTokens = refreshTokens;
         _registerValidator = registerValidator;
         _loginValidator = loginValidator;
         _changePasswordValidator = changePasswordValidator;
@@ -99,36 +102,131 @@ public class AuthService : IAuthService
         if (user is null || !_passwordHasher.Verify(request.Password, user.PasswordHash))
             return null;
 
+        // Checked AFTER the hash, deliberately. Short-circuiting on the flag would answer a closed
+        // account in microseconds and a live one in BCrypt time, which is an enumeration oracle
+        // that no amount of message-wording hides.
+        if (!user.IsActive) return null;
+
+        var response = await IssueAsync(user, familyId: Guid.NewGuid(), cancellationToken);
+        await _uow.SaveChangesAsync(cancellationToken);
+        return response;
+    }
+
+    public async Task<AuthResponseDto?> RefreshAsync(RefreshRequestDto request, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(request.RefreshToken)) return null;
+
+        var now = DateTime.UtcNow;
+        var stored = await _uow.RefreshTokens.GetByHashAsync(_refreshTokens.Hash(request.RefreshToken), cancellationToken);
+        if (stored is null) return null;
+
+        // Already used. Either it was stolen and is being replayed, or the real device replayed it,
+        // and there is no way to tell which from here, so the whole family goes and both parties
+        // sign in again. Without this, rotation buys nothing.
+        if (stored.RevokedAtUtc is not null)
+        {
+            await _uow.RefreshTokens.RevokeFamilyAsync(stored.FamilyId, "reuse-detected", now, cancellationToken);
+            await _uow.SaveChangesAsync(cancellationToken);
+            return null;
+        }
+
+        if (stored.ExpiresAtUtc <= now) return null;
+        if (!stored.User.IsActive) return null;
+
+        // The account may have had every session revoked since this token was minted.
+        if (stored.CreatedDate < stored.User.TokensValidFromUtc) return null;
+
+        stored.RevokedAtUtc = now;
+        stored.RevokedReason = "rotated";
+
+        var response = await IssueAsync(stored.User, stored.FamilyId, cancellationToken);
+        stored.ReplacedByTokenId = _lastIssuedId;
+
+        await _uow.SaveChangesAsync(cancellationToken);
+        return response;
+    }
+
+    public async Task LogoutAsync(RefreshRequestDto request, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(request.RefreshToken)) return;
+
+        var stored = await _uow.RefreshTokens.GetByHashAsync(_refreshTokens.Hash(request.RefreshToken), cancellationToken);
+        if (stored is null) return;
+
+        await _uow.RefreshTokens.RevokeFamilyAsync(stored.FamilyId, "signed-out", DateTime.UtcNow, cancellationToken);
+        await _uow.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task<AuthResponseDto?> ChangePasswordAsync(Guid userId, ChangePasswordDto request, CancellationToken cancellationToken = default)
+    {
+        await _changePasswordValidator.ValidateAndThrowAsync(request, cancellationToken);
+
+        // Tracked AND role-loading, both on purpose: a plain FindAsync leaves Role null, and the
+        // token reissued below reads Role.RoleName, so an administrator changing their password
+        // would receive a token with no role and be locked out of their own screens.
+        var user = await _uow.Users.GetTrackedWithRoleAsync(userId, cancellationToken)
+                   ?? throw new NotFoundException("Your account could not be found.");
+
+        // Re-checking the current password is what stops a stolen or borrowed session from locking
+        // the real owner out of their own account.
+        if (!_passwordHasher.Verify(request.CurrentPassword, user.PasswordHash))
+            return null;
+
+        var now = DateTime.UtcNow;
+        user.PasswordHash = _passwordHasher.Hash(request.NewPassword);
+
+        // Changing a password is what someone does when they think another person has it. So every
+        // access token minted before now dies, and every refresh token with it, and then this one
+        // device gets a fresh pair: the seeker who took the precaution is not signed out by it.
+        user.TokensValidFromUtc = now;
+        await _uow.RefreshTokens.RevokeAllForUserAsync(userId, "password-changed", now, cancellationToken);
+
+        var response = await IssueAsync(user, familyId: Guid.NewGuid(), cancellationToken);
+        await _uow.SaveChangesAsync(cancellationToken);
+
+        return response;
+    }
+
+    /// <summary>Id of the row <see cref="IssueAsync"/> created last, so rotation can link to it.</summary>
+    private Guid _lastIssuedId;
+
+    /// <summary>
+    /// Mints an access token and a refresh token for a user. Does not save; the caller commits.
+    /// </summary>
+    /// <remarks>
+    /// The user must arrive with Role loaded. The access token reads Role.RoleName, and a null
+    /// role yields a token carrying no role at all, which fails in a way that looks like a
+    /// permissions bug rather than an authentication one.
+    /// </remarks>
+    private async Task<AuthResponseDto> IssueAsync(User user, Guid familyId, CancellationToken cancellationToken)
+    {
         var (token, expiresAt) = _jwtTokenService.GenerateToken(user);
+        var (refresh, hash) = _refreshTokens.Create();
+        var refreshExpiresAt = _refreshTokens.ExpiresAt(DateTime.UtcNow);
+
+        var row = new RefreshToken
+        {
+            Id = Guid.NewGuid(),
+            UserId = user.UserId,
+            TokenHash = hash,
+            FamilyId = familyId,
+            ExpiresAtUtc = refreshExpiresAt
+        };
+
+        await _uow.RefreshTokens.AddAsync(row, cancellationToken);
+        _lastIssuedId = row.Id;
 
         return new AuthResponseDto
         {
             Token = token,
             ExpiresAtUtc = expiresAt,
+            RefreshToken = refresh,
+            RefreshExpiresAtUtc = refreshExpiresAt,
             UserId = user.UserId,
             FullName = user.FullName,
             Email = user.Email,
             SeekerName = user.SeekerName,
             Role = user.Role?.RoleName ?? string.Empty
         };
-    }
-
-    public async Task<bool> ChangePasswordAsync(Guid userId, ChangePasswordDto request, CancellationToken cancellationToken = default)
-    {
-        await _changePasswordValidator.ValidateAndThrowAsync(request, cancellationToken);
-
-        var user = await _uow.Users.GetByIdAsync(userId, cancellationToken)
-                   ?? throw new NotFoundException("Your account could not be found.");
-
-        // Re-checking the current password is what stops a stolen or borrowed session from locking
-        // the real owner out of their own account.
-        if (!_passwordHasher.Verify(request.CurrentPassword, user.PasswordHash))
-            return false;
-
-        user.PasswordHash = _passwordHasher.Hash(request.NewPassword);
-        _uow.Users.Update(user);
-        await _uow.SaveChangesAsync(cancellationToken);
-
-        return true;
     }
 }

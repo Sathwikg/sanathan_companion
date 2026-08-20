@@ -21,6 +21,12 @@ public static class CoreServiceCollectionExtensions
         // lives in HttpClientFactory's scope, not the component's.
         services.AddSingleton<SessionExpiredNotifier>();
         services.AddScoped<SessionExpiryHandler>();
+        // SINGLETON. Not because concurrent requests would otherwise get separate instances —
+        // IHttpClientFactory builds one handler chain and they all share it — but because it
+        // rotates that chain, and its scope, on a timer. A scoped coordinator would let a refresh
+        // started on the old chain race one started on the new, presenting the same refresh token
+        // twice, which is the signature the server revokes a whole token family on.
+        services.AddSingleton<TokenRefreshCoordinator>();
         // SINGLETON, not scoped: HttpClientFactory resolves message handlers from its own scope, so
         // a scoped context would give LanguageHeaderHandler a different instance than the one
         // LocalizationState writes to — and every request would ship a stale language.
@@ -57,6 +63,15 @@ public static class CoreServiceCollectionExtensions
         // Also a session state, though it caches no user data: the bundle's entity half is served
         // to authenticated callers only, so signing in has to fetch it again.
         services.AddScoped<IUserSessionState>(sp => sp.GetRequiredService<LocalizationState>());
+
+        // A bare client for the refresh call itself: no handlers, because refreshing through the
+        // typed client would send the request back through SessionExpiryHandler and a 401 on the
+        // refresh would try to refresh, forever.
+        services.AddHttpClient(SessionExpiryHandler.RefreshClientName, client =>
+        {
+            client.BaseAddress = new Uri(config.NormalisedApiBaseUrl);
+            client.Timeout = TimeSpan.FromSeconds(config.HttpTimeoutSeconds);
+        });
 
         services.AddHttpClient<IApiClient, ApiClient>(client =>
             {

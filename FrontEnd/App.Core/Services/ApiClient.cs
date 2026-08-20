@@ -311,10 +311,32 @@ public class ApiClient : IApiClient
         return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
     }
 
-    public async Task<(bool Success, string Error)> ChangePasswordAsync(ChangePasswordRequest request)
+    public async Task<(bool Success, AuthResponse? Data, string Error)> ChangePasswordAsync(ChangePasswordRequest request)
     {
         var response = await _http.PostAsJsonAsync(ApiRoutes.Auth.ChangePassword, request);
+        return response.IsSuccessStatusCode
+            ? (true, await response.Content.ReadFromJsonAsync<AuthResponse>(), string.Empty)
+            : (false, null, await ExtractErrorAsync(response));
+    }
+
+    public async Task<(bool Success, string Error)> SetUserStatusAsync(Guid userId, bool isActive)
+    {
+        var response = await _http.PutAsJsonAsync(ApiRoutes.Users.Status(userId), new SetUserStatusRequest { IsActive = isActive });
         return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
+    }
+
+    public async Task LogoutAsync(string refreshToken)
+    {
+        // Best effort by design: the local session is ending either way, and a seeker who is
+        // offline must still be able to sign out of their own phone.
+        try
+        {
+            await _http.PostAsJsonAsync(ApiRoutes.Auth.Logout, new RefreshRequest { RefreshToken = refreshToken });
+        }
+        catch
+        {
+            // The family expires on its own; nothing here is worth showing anybody.
+        }
     }
 
     public async Task<(bool Success, string Json, string Error)> ExportMyDataAsync()

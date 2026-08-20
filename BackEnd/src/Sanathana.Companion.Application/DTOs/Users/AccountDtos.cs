@@ -70,3 +70,9 @@ public class MyDataExportDto
         public TimeOnly? ToTime { get; set; }
     }
 }
+
+/// <summary>Whether an account may be signed in to.</summary>
+public class SetUserStatusDto
+{
+    public bool IsActive { get; set; }
+}

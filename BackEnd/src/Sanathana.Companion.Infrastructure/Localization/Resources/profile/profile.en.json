@@ -34,6 +34,7 @@
   "profile.notYet": "Not yet",
   "profile.passwordChangeFailed": "Your password could not be changed.",
   "profile.passwordChanged": "Your password has been changed.",
+  "profile.passwordChangedElsewhere": "Your password has been changed. Any other device you were signed in on has been signed out.",
   "profile.passwordMismatch": "The two new passwords do not match.",
   "profile.platform": "Platform",
   "profile.practisedToday": "Practised today",

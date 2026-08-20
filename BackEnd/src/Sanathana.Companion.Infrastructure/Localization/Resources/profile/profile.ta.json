@@ -34,6 +34,7 @@
   "profile.notYet": "இன்னும் இல்லை",
   "profile.passwordChangeFailed": "உங்கள் கடவுச்சொல்லை மாற்ற முடியவில்லை.",
   "profile.passwordChanged": "உங்கள் கடவுச்சொல் மாற்றப்பட்டது.",
+  "profile.passwordChangedElsewhere": "உங்கள் கடவுச்சொல் மாற்றப்பட்டது. நீங்கள் உள்நுழைந்திருந்த மற்ற சாதனங்கள் அனைத்தும் வெளியேற்றப்பட்டன.",
   "profile.passwordMismatch": "இரண்டு புதிய கடவுச்சொற்களும் பொருந்தவில்லை.",
   "profile.platform": "தளம்",
   "profile.practisedToday": "இன்று பயிற்சி முடிந்தது",

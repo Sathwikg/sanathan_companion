@@ -157,6 +157,25 @@ After that, rotate it in the app: `POST /api/auth/change-password` with a bearer
 > time the API starts. If you were relying on `admin`/`admin`, set `Admin__InitialPassword`
 > **before** deploying, or you will have no way in.
 
+### Sessions
+
+The access token is short-lived and the refresh token is not. A refresh token is stored only as a
+SHA-256 hash, is single-use, and is rotated on every exchange; presenting a spent one revokes the
+whole family it belongs to, because a replay and a theft look identical from the server's side.
+
+Two things end a session before its tokens expire, both enforced per request against
+`Users.TokensValidFromUtc`:
+
+- **Changing a password** revokes every token the account holds, then hands the device that asked a
+  fresh pair — so the seeker who took the precaution is not signed out by it, and every other
+  device is.
+- **Closing an account** (`PUT /api/users/{id}/status`) does the same and refuses sign-in. An
+  administrator cannot close their own account or the built-in one.
+
+`JwtSettings__RefreshTokenDays` sets how long a refresh token lives (30 by default). Shortening
+`JwtSettings__ExpiryMinutes` is now safe — the client renews in the background — and is worth doing:
+the shorter it is, the less a stolen access token is worth.
+
 ### Before deploying `NormalizeUserCredentials`
 
 This migration lower-cases every email and reduces every mobile number to its digits, then makes
@@ -180,7 +199,10 @@ original casing or punctuation.
 | Method | Route | Auth | Purpose |
 |---|---|---|---|
 | POST | `/api/auth/register` | anon | Register (FullName, Email, MobileNumber, Password, ConfirmPassword, SeekerName?) |
-| POST | `/api/auth/login` | anon | Login with email-or-mobile + password → JWT |
+| POST | `/api/auth/login` | anon | Login with email-or-mobile + password → access token + refresh token |
+| POST | `/api/auth/refresh` | anon | Exchange a refresh token for a fresh pair |
+| POST | `/api/auth/logout` | anon | Revoke the refresh-token family (always 204) |
+| PUT  | `/api/users/{id}/status` | Admin | Open or close an account |
 | GET  | `/api/dashboard` | Bearer | Protected placeholder dashboard |
 
 ## Tests and CI

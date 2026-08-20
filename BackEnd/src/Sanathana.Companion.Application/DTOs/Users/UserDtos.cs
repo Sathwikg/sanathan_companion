@@ -17,6 +17,9 @@ public class UserListItemDto
     public bool IsAdmin { get; set; }
     public DateTime RegisteredOn { get; set; }
 
+    /// <summary>False once an administrator has closed the account.</summary>
+    public bool IsActive { get; set; }
+
     // a glance at their practice
     public int CurrentStreak { get; set; }
     public int TotalMalas { get; set; }

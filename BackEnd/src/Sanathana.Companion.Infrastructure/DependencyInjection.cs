@@ -19,6 +19,7 @@ public static class DependencyInjection
 
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
         services.AddScoped<IRoleRepository, RoleRepository>();
         services.AddScoped<IMenuModuleRepository, MenuModuleRepository>();
         services.AddScoped<IRegionRepository, RegionRepository>();
@@ -47,6 +48,8 @@ public static class DependencyInjection
 
         services.Configure<JwtSettings>(configuration.GetSection(JwtSettings.SectionName));
         services.AddScoped<IJwtTokenService, JwtTokenService>();
+        services.AddScoped<IRefreshTokenFactory, RefreshTokenFactory>();
+        services.AddScoped<ITokenValidityService, TokenValidityService>();
         services.AddScoped<IPasswordHasher, BCryptPasswordHasher>();
         services.AddScoped<IAccountDataReader, AccountDataReader>();
         // Runs once at start-up to open the locked administrator account from configuration.

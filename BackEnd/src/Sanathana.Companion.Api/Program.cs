@@ -1,3 +1,4 @@
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.RateLimiting;
@@ -114,6 +115,41 @@ try
                 NameClaimType = "sub",
                 RoleClaimType = ClaimTypes.Role
             };
+
+            options.Events = new JwtBearerEvents
+            {
+                // A signed token proves who minted it and when it expires, and nothing more. It
+                // cannot know the account was closed ten minutes ago, or that the seeker changed
+                // their password because they thought somebody had it. That question is asked here,
+                // once per authenticated request and deliberately uncached: a revocation nobody
+                // notices for five minutes is not a revocation.
+                //
+                // A database fault fails the request rather than the principal, so an outage
+                // surfaces as a 500 instead of signing everybody out at once.
+                OnTokenValidated = async context =>
+                {
+                    var principal = context.Principal;
+                    var subject = principal?.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+                    if (!Guid.TryParse(subject, out var userId))
+                    {
+                        context.Fail("Token carries no usable subject.");
+                        return;
+                    }
+
+                    // See TokenIssuedAt for why this reads the claim rather than casting the
+                    // validated token, and why a missing value fails the request.
+                    var issuedAt = TokenIssuedAt.From(principal);
+                    if (issuedAt is null)
+                    {
+                        context.Fail("Token carries no issue time.");
+                        return;
+                    }
+
+                    var validity = context.HttpContext.RequestServices.GetRequiredService<ITokenValidityService>();
+                    if (!await validity.IsStillValidAsync(userId, issuedAt.Value, context.HttpContext.RequestAborted))
+                        context.Fail("This session has been ended.");
+                }
+            };
         });
     builder.Services.AddAuthorization();
 
@@ -148,6 +184,20 @@ try
                 factory: _ => new FixedWindowRateLimiterOptions
                 {
                     PermitLimit = 10,
+                    Window = TimeSpan.FromMinutes(1),
+                    QueueLimit = 0
+                }));
+
+        // Refresh and sign-out, apart from the sign-in bucket. A phone waking from sleep refreshes
+        // far more often than a person types a password, so sharing the "auth" budget would throttle
+        // ordinary use; and a stolen refresh token is bounded by reuse detection rather than by a
+        // request count.
+        options.AddPolicy("refresh", httpContext =>
+            RateLimitPartition.GetFixedWindowLimiter(
+                partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                factory: _ => new FixedWindowRateLimiterOptions
+                {
+                    PermitLimit = builder.Configuration.GetValue("RateLimits:RefreshPerMinute", 60),
                     Window = TimeSpan.FromMinutes(1),
                     QueueLimit = 0
                 }));

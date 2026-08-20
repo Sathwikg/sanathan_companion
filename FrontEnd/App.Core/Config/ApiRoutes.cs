@@ -21,6 +21,10 @@ public static class ApiRoutes
         public const string Register = "auth/register";
         public const string Login = "auth/login";
         public const string ChangePassword = "auth/change-password";
+        /// <summary>Anonymous: possession of the refresh token IS the credential.</summary>
+        public const string Refresh = "auth/refresh";
+        /// <summary>Anonymous too, and always 204 — see AuthController.Logout.</summary>
+        public const string Logout = "auth/logout";
     }
 
     public static class Dashboard
@@ -107,6 +111,8 @@ public static class ApiRoutes
     {
         public const string Root = "users";
         public static string ById(Guid id) => $"users/{id}";
+        /// <summary>Opens or closes an account; closing also ends its live sessions.</summary>
+        public static string Status(Guid id) => $"users/{id}/status";
     }
 
     public static class Profile

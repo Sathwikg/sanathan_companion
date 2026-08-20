@@ -13,6 +13,15 @@ public interface IUserService
     /// <summary>Sets (or clears, when null) the user's preferred region.</summary>
     Task UpdateDefaultRegionAsync(Guid userId, Guid? regionId, CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Opens or closes an account. Closing also ends every live session that account holds.
+    /// </summary>
+    /// <param name="actingUserId">
+    /// The administrator doing it, passed in rather than resolved here so the service keeps its
+    /// three dependencies. Used to refuse closing your own account.
+    /// </param>
+    Task SetActiveAsync(Guid userId, bool isActive, Guid actingUserId, CancellationToken cancellationToken = default);
+
     /// <summary>Everything the app holds about this user, for them to take away.</summary>
     Task<MyDataExportDto?> ExportMyDataAsync(Guid userId, CancellationToken cancellationToken = default);
 

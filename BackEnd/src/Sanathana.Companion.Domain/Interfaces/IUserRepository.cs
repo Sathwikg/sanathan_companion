@@ -22,7 +22,7 @@ public interface IUserRepository : IRepository<User>
 
     /// <summary>
     /// Removes the user and everything belonging to them: sadhana log and streak, favourites,
-    /// notification settings and preferences, and their feedback.
+    /// notification settings and preferences, their feedback, and their refresh tokens.
     /// </summary>
     /// <remarks>
     /// Explicit rather than relying on cascade configuration — the FKs do not agree with each
@@ -37,4 +37,13 @@ public interface IUserRepository : IRepository<User>
 
     /// <summary>A single user with their role.</summary>
     Task<User?> GetWithRoleAsync(Guid userId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// A single user with their role, TRACKED so the caller can change and save them.
+    /// </summary>
+    /// <remarks>
+    /// The role matters wherever a token is minted: JwtTokenService reads Role.RoleName, and a
+    /// plain FindAsync would leave it null and quietly issue a token with no role at all.
+    /// </remarks>
+    Task<User?> GetTrackedWithRoleAsync(Guid userId, CancellationToken cancellationToken = default);
 }

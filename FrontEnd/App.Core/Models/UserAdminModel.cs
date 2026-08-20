@@ -13,6 +13,10 @@ public class UserListItem
     /// never <see cref="RoleName"/>, which is translated.</summary>
     public bool IsAdmin { get; set; }
     public DateTime RegisteredOn { get; set; }
+
+    /// <summary>False once an administrator has closed the account.</summary>
+    public bool IsActive { get; set; }
+
     public int CurrentStreak { get; set; }
     public int TotalMalas { get; set; }
 }
@@ -99,4 +103,10 @@ public class ChangePasswordRequest
     public string CurrentPassword { get; set; } = string.Empty;
     public string NewPassword { get; set; } = string.Empty;
     public string ConfirmNewPassword { get; set; } = string.Empty;
+}
+
+/// <summary>Whether an account may be signed in to.</summary>
+public class SetUserStatusRequest
+{
+    public bool IsActive { get; set; }
 }

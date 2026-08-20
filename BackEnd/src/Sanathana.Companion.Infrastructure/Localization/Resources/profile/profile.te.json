@@ -34,6 +34,7 @@
   "profile.notYet": "ఇంకా లేదు",
   "profile.passwordChangeFailed": "మీ పాస్‌వర్డ్‌ను మార్చలేకపోయాము.",
   "profile.passwordChanged": "మీ పాస్‌వర్డ్ మార్చబడింది.",
+  "profile.passwordChangedElsewhere": "మీ పాస్‌వర్డ్ మార్చబడింది. మీరు సైన్ ఇన్ చేసి ఉన్న ఇతర పరికరాలన్నీ సైన్ అవుట్ చేయబడ్డాయి.",
   "profile.passwordMismatch": "రెండు కొత్త పాస్‌వర్డ్‌లు సరిపోలడం లేదు.",
   "profile.platform": "వేదిక",
   "profile.practisedToday": "ఈ రోజు సాధన పూర్తి",

@@ -1,4 +1,5 @@
 using Sanathana.Companion.Application.Common;
+using Sanathana.Companion.Domain.Common;
 using Sanathana.Companion.Application.DTOs.Users;
 using Sanathana.Companion.Application.Interfaces;
 using Sanathana.Companion.Domain.Exceptions;
@@ -41,6 +42,7 @@ public class UserService : IUserService
                 RoleName = u.Role?.RoleName ?? string.Empty,
                 IsAdmin = string.Equals(u.Role?.RoleName, RoleNames.Admin, StringComparison.OrdinalIgnoreCase),
                 RegisteredOn = u.CreatedDate,
+                IsActive = u.IsActive,
                 CurrentStreak = DisplayStreak(streak),
                 TotalMalas = streak?.TotalMalas ?? 0
             });
@@ -174,6 +176,37 @@ public class UserService : IUserService
         // Deliberately NOT calling Update(): the entity is tracked, so EF writes only the changed
         // column. Update() marks every property modified, which would needlessly rewrite the
         // password hash on a preference change.
+        await _uow.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task SetActiveAsync(Guid userId, bool isActive, Guid actingUserId, CancellationToken cancellationToken = default)
+    {
+        // An administrator locking themselves out is a support call, not a security feature.
+        if (userId == actingUserId)
+            throw new BadRequestException("You cannot close your own account from here.");
+
+        // The seeded administrator is the account the bootstrapper re-opens from
+        // Admin__InitialPassword, and that path only ever touches the password hash. Closing it
+        // would leave no way back in.
+        if (userId == WellKnownIds.AdminUser)
+            throw new BadRequestException("The built-in administrator account cannot be closed.");
+
+        var user = await _uow.Users.GetByIdAsync(userId, cancellationToken)
+            ?? throw new NotFoundException("That account was not found.");
+
+        user.IsActive = isActive;
+
+        if (!isActive)
+        {
+            // Closing an account has to end the sessions it already holds, or it means nothing for
+            // the next two hours. TokensValidFromUtc kills the access tokens; the revoke kills the
+            // refresh tokens that would otherwise mint new ones.
+            var now = DateTime.UtcNow;
+            user.TokensValidFromUtc = now;
+            await _uow.RefreshTokens.RevokeAllForUserAsync(userId, "disabled", now, cancellationToken);
+        }
+
+        // Tracked, so EF writes only the changed columns; see UpdateDefaultRegionAsync.
         await _uow.SaveChangesAsync(cancellationToken);
     }
 

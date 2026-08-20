@@ -9,7 +9,8 @@ public static class SeedConstants
     public const int AdminRoleId = 1;
     public const int SanathanRoleId = 2;
 
-    public static readonly Guid AdminUserId = new("11111111-1111-1111-1111-111111111111");
+    /// <summary>Defined in Domain, because closing this account is a rule the Application layer enforces.</summary>
+    public static readonly Guid AdminUserId = Domain.Common.WellKnownIds.AdminUser;
     public static readonly Guid DashboardModuleId = new("22222222-2222-2222-2222-222222222222");
     public static readonly Guid MastersModuleId = new("33333333-3333-3333-3333-333333333333");
     public static readonly Guid ManageModulesMenuId = new("44444444-4444-4444-4444-444444444444");

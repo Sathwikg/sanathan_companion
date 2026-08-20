@@ -21,6 +21,7 @@ internal sealed class TestHarness : IDisposable
     public AuthService AuthService { get; }
     public IPasswordHasher Hasher { get; }
     public IJwtTokenService Jwt { get; }
+    public IRefreshTokenFactory RefreshTokens { get; }
 
     public TestHarness()
     {
@@ -53,18 +54,24 @@ internal sealed class TestHarness : IDisposable
         var pujas = new PujaRepository(Context);
         var pujaProcess = new PujaProcessRepository(Context);
         var localization = new LocalizationRepository(Context);
-        UnitOfWork = new UnitOfWork(Context, users, roles, menuModules, regions, festivals, days, deities, chants, wallpapers, pujas, pujaProcess, chantConfigs, languages, panchangams, sadhana, moduleRoleMappings, issueTypes, feedbacks, favorites, notificationConfigs, userNotifications, localization);
+        var refreshTokens = new RefreshTokenRepository(Context);
+        UnitOfWork = new UnitOfWork(Context, users, refreshTokens, roles, menuModules, regions, festivals, days, deities, chants, wallpapers, pujas, pujaProcess, chantConfigs, languages, panchangams, sadhana, moduleRoleMappings, issueTypes, feedbacks, favorites, notificationConfigs, userNotifications, localization);
 
         Hasher = new BCryptPasswordHasher();
-        Jwt = new JwtTokenService(Options.Create(new JwtSettings
+
+        var jwtSettings = Options.Create(new JwtSettings
         {
             Secret = "sanathana-companion-test-secret-key-0123456789ABCDEF",
             Issuer = "test-issuer",
             Audience = "test-audience",
-            ExpiryMinutes = 60
-        }));
+            ExpiryMinutes = 60,
+            RefreshTokenDays = 30
+        });
 
-        AuthService = new AuthService(UnitOfWork, Hasher, Jwt, new RegisterRequestValidator(), new LoginRequestValidator(), new ChangePasswordValidator());
+        Jwt = new JwtTokenService(jwtSettings);
+        RefreshTokens = new RefreshTokenFactory(jwtSettings);
+
+        AuthService = new AuthService(UnitOfWork, Hasher, Jwt, RefreshTokens, new RegisterRequestValidator(), new LoginRequestValidator(), new ChangePasswordValidator());
     }
 
     public void Dispose() => Context.Dispose();

@@ -38,6 +38,10 @@ public class BearerTokenHandler : DelegatingHandler
         var path = uri.IsAbsoluteUri ? uri.AbsolutePath : uri.OriginalString;
 
         return path.EndsWith(ApiRoutes.Auth.Login, StringComparison.OrdinalIgnoreCase)
-            || path.EndsWith(ApiRoutes.Auth.Register, StringComparison.OrdinalIgnoreCase);
+            || path.EndsWith(ApiRoutes.Auth.Register, StringComparison.OrdinalIgnoreCase)
+            // Refresh and sign-out carry the refresh token in the body; attaching a dead access
+            // token would make the expiry handler read their 401 as a session ending.
+            || path.EndsWith(ApiRoutes.Auth.Refresh, StringComparison.OrdinalIgnoreCase)
+            || path.EndsWith(ApiRoutes.Auth.Logout, StringComparison.OrdinalIgnoreCase);
     }
 }

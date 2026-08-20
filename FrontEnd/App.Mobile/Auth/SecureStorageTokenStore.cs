@@ -3,7 +3,7 @@ using App.Core.Auth;
 namespace App.Mobile.Auth;
 
 /// <summary>
-/// Keeps the JWT in the platform credential store — the iOS Keychain, and on Android an
+/// Keeps the tokens in the platform credential store — the iOS Keychain, and on Android an
 /// EncryptedSharedPreferences file whose key lives in the hardware-backed Keystore.
 /// </summary>
 /// <remarks>
@@ -16,13 +16,14 @@ namespace App.Mobile.Auth;
 /// </remarks>
 public class SecureStorageTokenStore : ITokenStore
 {
-    private const string Key = "sc-token";
+    private const string AccessKey = "sc-token";
+    private const string RefreshKey = "sc-refresh";
 
     /// <summary>
-    /// Mirrors the stored value for the lifetime of the process.
+    /// Mirrors a stored value for the lifetime of the process.
     /// </summary>
     /// <remarks>
-    /// BearerTokenHandler asks for the token on EVERY request, and each miss is a Keystore
+    /// BearerTokenHandler asks for the access token on EVERY request, and each miss is a Keystore
     /// decryption — measurable work on a mid-range phone, and it happens six times on one dashboard
     /// load.
     /// <para>
@@ -38,72 +39,102 @@ public class SecureStorageTokenStore : ITokenStore
     /// still orders of magnitude cheaper than the Keystore read it replaces.
     /// </para>
     /// </remarks>
-    private readonly object _gate = new();
-    private string? _cached;
-    private bool _loaded;
-
-    public async Task<string?> GetTokenAsync()
+    private sealed class Cached
     {
-        lock (_gate)
+        private readonly object _gate = new();
+        private string? _value;
+        private bool _loaded;
+
+        public bool TryRead(out string? value)
         {
-            if (_loaded) return _cached;
+            lock (_gate)
+            {
+                value = _value;
+                return _loaded;
+            }
         }
 
-        string? token;
-        try { token = await SecureStorage.Default.GetAsync(Key); }
-        catch { token = null; } // no keystore, or an unreadable keyset — treat as signed out
-
-        lock (_gate)
+        /// <summary>Fills the cache from disk, unless a concurrent write already won the race.</summary>
+        public string? Seed(string? fromStore)
         {
-            // A concurrent Set/Clear may have won the race; never overwrite a newer value with the
-            // one we just read from disk.
-            if (!_loaded)
+            lock (_gate)
             {
-                _cached = token;
+                if (!_loaded)
+                {
+                    _value = fromStore;
+                    _loaded = true;
+                }
+
+                return _value;
+            }
+        }
+
+        public void Set(string? value)
+        {
+            lock (_gate)
+            {
+                _value = value;
                 _loaded = true;
             }
-
-            return _cached;
         }
     }
 
-    public async Task SetTokenAsync(string token)
+    private readonly Cached _access = new();
+    private readonly Cached _refresh = new();
+
+    public Task<string?> GetTokenAsync() => ReadAsync(AccessKey, _access);
+
+    public Task<string?> GetRefreshTokenAsync() => ReadAsync(RefreshKey, _refresh);
+
+    public async Task SetTokensAsync(string accessToken, string refreshToken)
     {
         // Cache first so the session works even if persistence fails: the seeker stays signed in
         // for this run and is simply asked to sign in again next launch.
-        lock (_gate)
-        {
-            _cached = token;
-            _loaded = true;
-        }
+        _access.Set(accessToken);
+        _refresh.Set(refreshToken);
 
+        await WriteAsync(AccessKey, accessToken);
+        await WriteAsync(RefreshKey, refreshToken);
+    }
+
+    public Task ClearTokenAsync()
+    {
+        _access.Set(null);
+        _refresh.Set(null);
+
+        TryRemove(AccessKey);
+        TryRemove(RefreshKey);
+        return Task.CompletedTask;
+    }
+
+    private static async Task<string?> ReadAsync(string key, Cached cache)
+    {
+        if (cache.TryRead(out var cached)) return cached;
+
+        string? stored;
+        try { stored = await SecureStorage.Default.GetAsync(key); }
+        catch { stored = null; } // no keystore, or an unreadable keyset — treat as signed out
+
+        return cache.Seed(stored);
+    }
+
+    private static async Task WriteAsync(string key, string value)
+    {
         try
         {
-            await SecureStorage.Default.SetAsync(Key, token);
+            await SecureStorage.Default.SetAsync(key, value);
         }
         catch
         {
             // A device that cannot persist a credential is not a device that should crash here.
             // Clearing the (possibly half-written) entry keeps the next read honest.
-            TryRemove();
+            TryRemove(key);
         }
     }
 
-    public Task ClearTokenAsync()
+    private static void TryRemove(string key)
     {
-        lock (_gate)
-        {
-            _cached = null;
-            _loaded = true;
-        }
-
-        TryRemove();
-        return Task.CompletedTask;
-    }
-
-    private static void TryRemove()
-    {
-        try { SecureStorage.Default.Remove(Key); }
+        try { SecureStorage.Default.Remove(key); }
         catch { /* nothing left to do — the in-memory copy is already gone */ }
     }
 }

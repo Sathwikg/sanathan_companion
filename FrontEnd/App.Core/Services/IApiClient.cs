@@ -85,7 +85,14 @@ public interface IApiClient
     Task<(bool Success, string Error)> SetDefaultRegionAsync(Guid? regionId);
 
     /// <summary>Changes the caller's own password. Returns the server's message on failure.</summary>
-    Task<(bool Success, string Error)> ChangePasswordAsync(ChangePasswordRequest request);
+    /// <summary>Changes the password and returns a fresh token pair; null when the current one is wrong.</summary>
+    Task<(bool Success, AuthResponse? Data, string Error)> ChangePasswordAsync(ChangePasswordRequest request);
+
+    /// <summary>Best-effort revocation of the refresh-token family. Never throws, never reports.</summary>
+    Task LogoutAsync(string refreshToken);
+
+    /// <summary>Opens or closes another account. Administrators only.</summary>
+    Task<(bool Success, string Error)> SetUserStatusAsync(Guid userId, bool isActive);
 
     /// <summary>Everything the app holds about the caller, as pretty-printed JSON.</summary>
     Task<(bool Success, string Json, string Error)> ExportMyDataAsync();

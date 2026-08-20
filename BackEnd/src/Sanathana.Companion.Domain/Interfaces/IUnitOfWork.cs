@@ -4,6 +4,7 @@ namespace Sanathana.Companion.Domain.Interfaces;
 public interface IUnitOfWork
 {
     IUserRepository Users { get; }
+    IRefreshTokenRepository RefreshTokens { get; }
     IRoleRepository Roles { get; }
     IMenuModuleRepository MenuModules { get; }
     IRegionRepository Regions { get; }

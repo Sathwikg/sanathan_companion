@@ -34,6 +34,7 @@
   "profile.notYet": "अभी नहीं",
   "profile.passwordChangeFailed": "आपका पासवर्ड नहीं बदला जा सका।",
   "profile.passwordChanged": "आपका पासवर्ड बदल दिया गया है।",
+  "profile.passwordChangedElsewhere": "आपका पासवर्ड बदल दिया गया है। जिन अन्य डिवाइसों पर आप साइन इन थे, वे सभी साइन आउट कर दी गई हैं।",
   "profile.passwordMismatch": "दोनों नए पासवर्ड मेल नहीं खाते।",
   "profile.platform": "प्लेटफ़ॉर्म",
   "profile.practisedToday": "आज अभ्यास किया",

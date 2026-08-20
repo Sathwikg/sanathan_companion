@@ -2,6 +2,8 @@
 @attribute [Authorize]
 @inherits LocalizedComponentBase
 @inject IApiClient Api
+@inject ConfirmService Confirm
+@inject ToastService Toast
 
 <div class="sc-page-head">
     <div class="sc-page-title">
@@ -56,7 +58,7 @@ else
         <div class="sc-cardgrid">
             @foreach (var u in Paged)
             {
-                <div class="sc-tile" @onclick="() => Open(u)" style="cursor:pointer">
+                <div class="sc-tile @(u.IsActive ? "" : "is-inactive")" @onclick="() => Open(u)" style="cursor:pointer">
                     <div class="sc-tile-top">
                         <div class="sc-avatar"><span>@Initials(u.FullName)</span></div>
                         <span class="sc-typechip @(u.IsAdmin ? "god" : "goddess")">@u.RoleName</span>
@@ -71,7 +73,13 @@ else
                     <div class="sc-tile-meta">🔥 @Loc.TF("users.dayStreak", "{0} day streak", u.CurrentStreak) · 🧮 @Loc.TF("users.malasCount", "{0} malas", u.TotalMalas)</div>
                     <div class="sc-tile-foot">
                         <span class="sc-muted">@Loc.TF("users.joinedOn", "Joined {0}", u.RegisteredOn.ToLocalTime().ToString("dd MMM yyyy"))</span>
-                        <button class="sc-btn-ghost sc-btn-sm" @onclick="() => Open(u)" @onclick:stopPropagation="true">@Loc["users.viewProfile", "View profile"]</button>
+                        <div style="display:flex;gap:0.4rem;align-items:center">
+                            <button class="sc-chip @(u.IsActive ? "chip-warn" : "chip-ok")"
+                                    @onclick="() => ConfirmToggle(u)" @onclick:stopPropagation="true">
+                                @(u.IsActive ? Loc["users.close", "Close"] : Loc["users.reopen", "Reopen"])
+                            </button>
+                            <button class="sc-btn-ghost sc-btn-sm" @onclick="() => Open(u)" @onclick:stopPropagation="true">@Loc["users.viewProfile", "View profile"]</button>
+                        </div>
                     </div>
                 </div>
             }
@@ -83,7 +91,7 @@ else
         <div class="sc-card sc-tablewrap">
             <table class="sc-table">
                 <thead>
-                    <tr><th>@Loc["users.userColumn", "User"]</th><th>@Loc["common.email", "Email"]</th><th>@Loc["common.mobile", "Mobile"]</th><th>@Loc["common.role", "Role"]</th><th>@Loc["users.streakColumn", "Streak"]</th><th>@Loc["users.malasColumn", "Malas"]</th><th>@Loc["users.joinedColumn", "Joined"]</th><th></th></tr>
+                    <tr><th>@Loc["users.userColumn", "User"]</th><th>@Loc["common.email", "Email"]</th><th>@Loc["common.mobile", "Mobile"]</th><th>@Loc["common.role", "Role"]</th><th>@Loc["users.streakColumn", "Streak"]</th><th>@Loc["users.malasColumn", "Malas"]</th><th>@Loc["users.joinedColumn", "Joined"]</th><th>@Loc["common.status", "Status"]</th><th></th></tr>
                 </thead>
                 <tbody>
                     @foreach (var u in Paged)
@@ -96,6 +104,13 @@ else
                             <td>🔥 @u.CurrentStreak</td>
                             <td>@u.TotalMalas</td>
                             <td class="sc-muted">@u.RegisteredOn.ToLocalTime().ToString("dd MMM yyyy")</td>
+                            <td>
+                                <label class="sc-switch">
+                                    <input type="checkbox" checked="@u.IsActive" @onclick="() => ConfirmToggle(u)" @onclick:preventDefault />
+                                    <span class="sc-slider"></span>
+                                </label>
+                                <span class="sc-status @(u.IsActive ? "on" : "off")">@(u.IsActive ? Loc["users.open", "Open"] : Loc["users.closed", "Closed"])</span>
+                            </td>
                             <td><button class="sc-btn-ghost sc-btn-sm" @onclick="() => Open(u)">@Loc["common.view", "View"]</button></td>
                         </tr>
                     }
@@ -183,6 +198,42 @@ else
     private bool _showProfile;
     private bool _loadingProfile;
     private UserProfile? _profile;
+
+    private async Task ConfirmToggle(UserListItem u)
+    {
+        var reopen = !u.IsActive;
+
+        var confirmed = await Confirm.ConfirmAsync(new ConfirmRequest
+        {
+            Title = reopen
+                ? Loc["users.confirmReopenTitle", "Reopen this account?"]
+                : Loc["users.confirmCloseTitle", "Close this account?"],
+            Message = reopen
+                ? Loc.TF("users.confirmReopenBody", "“{0}” will be able to sign in again.", u.FullName)
+                : Loc.TF("users.confirmCloseBody",
+                    "“{0}” will be signed out everywhere immediately and will not be able to sign in. Nothing is deleted.",
+                    u.FullName),
+            ConfirmText = reopen ? Loc["users.yesReopen", "Yes, reopen"] : Loc["users.yesClose", "Yes, close"],
+            CancelText = Loc["common.cancel", "Cancel"],
+            Kind = reopen ? ConfirmKind.Success : ConfirmKind.Warning
+        });
+
+        if (!confirmed) return;
+
+        var (ok, error) = await Api.SetUserStatusAsync(u.UserId, reopen);
+        if (!ok)
+        {
+            Toast.Error(string.IsNullOrWhiteSpace(error)
+                ? Loc["users.statusFailed", "That account could not be changed."]
+                : error);
+            return;
+        }
+
+        u.IsActive = reopen;
+        Toast.Success(reopen
+            ? Loc["users.reopened", "The account has been reopened."]
+            : Loc["users.closedNotice", "The account is closed and has been signed out everywhere."]);
+    }
 
     private List<UserListItem> Filtered
     {

@@ -53,6 +53,8 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             PasswordHash = SeedConstants.AdminPasswordHash,
             SeekerName = null,
             RoleId = SeedConstants.AdminRoleId,
+            IsActive = true,
+            TokensValidFromUtc = SeedConstants.SeedTimestamp,
             CreatedBy = "system",
             CreatedDate = SeedConstants.SeedTimestamp
         });

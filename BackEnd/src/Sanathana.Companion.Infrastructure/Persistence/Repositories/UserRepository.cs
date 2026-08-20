@@ -47,6 +47,10 @@ public class UserRepository : BaseRepository<User>, IUserRepository
         => await Set.AsNoTracking().Include(u => u.Role)
             .FirstOrDefaultAsync(u => u.UserId == userId, cancellationToken);
 
+    public async Task<User?> GetTrackedWithRoleAsync(Guid userId, CancellationToken cancellationToken = default)
+        => await Set.Include(u => u.Role)
+            .FirstOrDefaultAsync(u => u.UserId == userId, cancellationToken);
+
     public async Task PurgeUserDataAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         // Order matters only for feedback, whose FK is Restrict; the rest would cascade, but doing
@@ -69,6 +73,9 @@ public class UserRepository : BaseRepository<User>, IUserRepository
 
         Context.Feedbacks.RemoveRange(
             await Context.Feedbacks.Where(x => x.UserId == userId).ToListAsync(cancellationToken));
+
+        Context.RefreshTokens.RemoveRange(
+            await Context.RefreshTokens.Where(x => x.UserId == userId).ToListAsync(cancellationToken));
 
         var user = await Set.FirstOrDefaultAsync(u => u.UserId == userId, cancellationToken);
         if (user is not null) Set.Remove(user);
