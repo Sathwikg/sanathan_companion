@@ -78,6 +78,12 @@ secrets.json
 apirun.log
 webrun.log
 
+# ---- Build artifacts kept for hand-off ----
+# artifacts/ holds the packaged mobile builds so they are easy to find. Deliberately NOT committed:
+# an APK is ~36 MB and git history is forever, so a few rebuilds would outweigh the whole source
+# tree. Rebuild it with the command in the README instead.
+artifacts/
+
 # ---- OS noise ----
 .DS_Store
 Thumbs.db

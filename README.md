@@ -263,7 +263,17 @@ which is likely to find whichever JDK is newest:
 dotnet build FrontEnd/App.Mobile/App.Mobile.csproj -c Release -f net10.0-android -p:JavaSdkDirectory="$JDK21_HOME" -p:AndroidSdkDirectory="$ANDROID_SDK"
 ```
 
-That produces a signed `.apk` and a Play Store `.aab` under `FrontEnd/App.Mobile/bin/Release/net10.0-android/`.
+That produces a signed `.apk` and a Play Store `.aab` under
+`FrontEnd/App.Mobile/bin/Release/net10.0-android/`. The current build is also kept at
+`artifacts/android/SanathanCompanion-1.0.0-release.apk` so it is easy to find and hand to someone;
+`artifacts/` is gitignored, because a 36 MB binary per rebuild would outweigh the whole source tree
+in history.
+
+> **That APK is signed with the Android debug certificate** (`CN=Android Debug`), which MSBuild
+> generates automatically. It installs and runs on a device, and it is fine for testing — but Google
+> Play will refuse it. Publishing needs an upload key you own, referenced through
+> `AndroidSigningKeyStore` / `AndroidSigningKeyAlias` and their passwords supplied out of band, the
+> same way `JwtSettings__Secret` is.
 
 On Linux CI the framework has to be selected with `-p:TargetFrameworks=net10.0-android` rather than
 `-f`: workload resolution reads the whole `TargetFrameworks` list during evaluation, so `-f` alone
