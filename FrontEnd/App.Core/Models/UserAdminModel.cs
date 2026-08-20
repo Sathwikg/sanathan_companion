@@ -86,3 +86,17 @@ public class SadhanaDay
     public int TotalCount { get; set; }
     public List<UserSadhanaEntry> Entries { get; set; } = new();
 }
+
+/// <summary>Confirms deletion of the caller's own account.</summary>
+public class DeleteAccountRequest
+{
+    public string Password { get; set; } = string.Empty;
+}
+
+/// <summary>Changes the caller's own password.</summary>
+public class ChangePasswordRequest
+{
+    public string CurrentPassword { get; set; } = string.Empty;
+    public string NewPassword { get; set; } = string.Empty;
+    public string ConfirmNewPassword { get; set; } = string.Empty;
+}

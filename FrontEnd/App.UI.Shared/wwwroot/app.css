@@ -608,7 +608,57 @@ body {
 .sc-prefrow-link { text-decoration: none; }
 .sc-prefrow-link:hover { background: var(--color-primary-container); text-decoration: none; }
 .sc-prefrow-chev { color: var(--color-secondary); font-size: 1.15rem; line-height: 1; }
+/* A row that performs an action rather than navigating. It is a <button> so that it is reachable
+   by keyboard and announced as a control, which means the browser's own button chrome has to be
+   stripped back to match the anchor rows beside it. */
+button.sc-prefrow { width: 100%; border: none; font: inherit; text-align: left; cursor: pointer; }
+button.sc-prefrow:disabled { opacity: 0.55; cursor: default; }
+button.sc-prefrow:disabled:hover { background: var(--color-surface-2); }
 .sc-aboutcard .sc-detail-grid { margin-bottom: 0; }
+
+/* ---- Profile: account closure ----
+   Deliberately the last card and deliberately quiet until opened: the destructive control only
+   appears once the seeker asks for it, and then it asks for the password rather than a checkbox. */
+.sc-dangercard { border-color: color-mix(in srgb, var(--color-error) 30%, var(--color-outline)); }
+.sc-danger-rule { border: none; border-top: 1px solid var(--color-outline); margin: 1rem 0 0.9rem; }
+.sc-btn-danger {
+  height: var(--btn-height);
+  padding: 0 1.1rem;
+  border: 1px solid var(--color-error);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-error);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.sc-btn-danger:hover:not(:disabled) { background: var(--color-error); color: #fff; }
+.sc-btn-danger:disabled { opacity: 0.55; cursor: default; }
+.sc-danger-confirm { display: flex; flex-direction: column; gap: 0.8rem; }
+.sc-danger-warning {
+  margin: 0;
+  padding: 0.7rem 0.9rem;
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--color-error) 10%, transparent);
+  color: var(--color-error);
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+/* The shared .sc-modal-actions rule sizes its buttons for a dialog footer, and .sc-btn-danger is
+   not in that rule at all, so all three are pinned to one height here to stop the row stepping.
+   Below 720px the shared rule flips the row to column-reverse; stretch is kept so the stacked
+   buttons come out one full-width column rather than three ragged widths. */
+.sc-danger-confirm .sc-modal-actions { justify-content: flex-end; align-items: stretch; }
+.sc-danger-confirm .sc-modal-actions .sc-btn-ghost,
+.sc-danger-confirm .sc-modal-actions .sc-btn-primary,
+.sc-danger-confirm .sc-modal-actions .sc-btn-danger {
+  /* flex-basis has to be reset, not just overridden by height: once the shared rule flips the row
+     to a column the basis IS the height, and 8rem would make each button 128px tall. */
+  flex: 0 0 auto;
+  min-width: 104px;
+  height: 44px;
+  margin-top: 0;
+}
 
 /* ---- Notifications ---- */
 .sc-notif-summary { display: flex; align-items: center; gap: 0.5rem; margin-left: auto; flex-wrap: wrap; }

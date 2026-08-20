@@ -11,6 +11,18 @@ public interface IUserRepository : IRepository<User>
 
     Task<bool> EmailExistsAsync(string email, CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Removes the user and everything belonging to them: sadhana log and streak, favourites,
+    /// notification settings and preferences, and their feedback.
+    /// </summary>
+    /// <remarks>
+    /// Explicit rather than relying on cascade configuration — the FKs do not agree with each
+    /// other (feedback is Restrict, so a cascade delete would simply fail for anyone who has ever
+    /// sent any), and "what exactly gets erased" is not something to leave to a default.
+    /// Does not save; the unit of work commits.
+    /// </remarks>
+    Task PurgeUserDataAsync(Guid userId, CancellationToken cancellationToken = default);
+
     /// <summary>All users with their role, newest registrations first (for the User master).</summary>
     Task<IReadOnlyList<User>> GetAllWithRolesAsync(CancellationToken cancellationToken = default);
 

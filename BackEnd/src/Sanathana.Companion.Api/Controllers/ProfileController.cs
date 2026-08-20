@@ -47,4 +47,52 @@ public class ProfileController : ControllerBase
         await _users.UpdateDefaultRegionAsync(userId.Value, dto.RegionId, cancellationToken);
         return NoContent();
     }
+
+    /// <summary>Everything the app holds about the caller, as a JSON download.</summary>
+    /// <remarks>
+    /// Together with DELETE below this is what both stores now require of any app that lets people
+    /// create an account, and what a seeker is entitled to ask for regardless.
+    /// </remarks>
+    [HttpGet("export")]
+    [ProducesResponseType(typeof(MyDataExportDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> ExportMyData(CancellationToken cancellationToken)
+    {
+        var userId = _currentUser.UserId;
+        if (userId is null) return Unauthorized();
+
+        var export = await _users.ExportMyDataAsync(userId.Value, cancellationToken);
+        if (export is null) return NotFound();
+
+        // Content-Disposition so a browser or WebView saves it rather than rendering it. The
+        // filename is fixed — deriving it from the user's name would put personal data into a
+        // header, and into whatever logs that header.
+        return File(
+            System.Text.Json.JsonSerializer.SerializeToUtf8Bytes(export, new System.Text.Json.JsonSerializerOptions
+            {
+                WriteIndented = true,
+                PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase
+            }),
+            "application/json",
+            "sanathana-companion-my-data.json");
+    }
+
+    /// <summary>Permanently deletes the caller's own account and everything belonging to them.</summary>
+    [HttpDelete("me")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> DeleteMyAccount([FromBody] DeleteAccountDto dto, CancellationToken cancellationToken)
+    {
+        var userId = _currentUser.UserId;
+        if (userId is null) return Unauthorized();
+
+        var deleted = await _users.DeleteMyAccountAsync(userId.Value, dto.Password, cancellationToken);
+
+        // 400, not 401: the session is valid and the caller stays signed in — it is the password
+        // they typed to confirm that did not match.
+        return deleted
+            ? NoContent()
+            : BadRequest(new { message = "That password is incorrect, so the account was not deleted." });
+    }
 }

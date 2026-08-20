@@ -1,3 +1,4 @@
+using Sanathana.Companion.Infrastructure.Persistence;
 using Sanathana.Companion.Application.Services;
 using Sanathana.Companion.Domain.Entities;
 using Sanathana.Companion.Domain.Exceptions;
@@ -41,7 +42,7 @@ public class UserServiceTests
         });
         await ctx.SaveChangesAsync();
 
-        var service = new UserService(harness.UnitOfWork);
+        var service = new UserService(harness.UnitOfWork, harness.Hasher, new AccountDataReader(harness.Context));
         var profile = await service.GetMyProfileAsync(userId);
 
         Assert.NotNull(profile);
@@ -73,7 +74,7 @@ public class UserServiceTests
         ctx.Regions.AddRange(region, retired);
         await ctx.SaveChangesAsync();
 
-        var service = new UserService(harness.UnitOfWork);
+        var service = new UserService(harness.UnitOfWork, harness.Hasher, new AccountDataReader(harness.Context));
 
         await service.UpdateDefaultRegionAsync(userId, region.Id);
         var profile = await service.GetMyProfileAsync(userId);
@@ -107,7 +108,7 @@ public class UserServiceTests
         ctx.Users.Add(seeker);
         await ctx.SaveChangesAsync();
 
-        var service = new UserService(harness.UnitOfWork);
+        var service = new UserService(harness.UnitOfWork, harness.Hasher, new AccountDataReader(harness.Context));
 
         // "All Regions" (null) is administrator-only.
         await Assert.ThrowsAsync<BadRequestException>(() => service.UpdateDefaultRegionAsync(seeker.UserId, null));

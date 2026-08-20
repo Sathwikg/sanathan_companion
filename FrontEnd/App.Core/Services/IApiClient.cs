@@ -84,6 +84,15 @@ public interface IApiClient
     Task<MyProfile?> GetMyProfileAsync();
     Task<(bool Success, string Error)> SetDefaultRegionAsync(Guid? regionId);
 
+    /// <summary>Changes the caller's own password. Returns the server's message on failure.</summary>
+    Task<(bool Success, string Error)> ChangePasswordAsync(ChangePasswordRequest request);
+
+    /// <summary>Everything the app holds about the caller, as pretty-printed JSON.</summary>
+    Task<(bool Success, string Json, string Error)> ExportMyDataAsync();
+
+    /// <summary>Permanently deletes the caller's account. Requires their password.</summary>
+    Task<(bool Success, string Error)> DeleteMyAccountAsync(DeleteAccountRequest request);
+
     // Sadhana
     Task<SadhanaToday?> GetSadhanaTodayAsync(Guid? regionId = null);
     Task<List<SadhanaChant>> GetSadhanaChantsAsync(string? search = null, Guid? regionId = null);

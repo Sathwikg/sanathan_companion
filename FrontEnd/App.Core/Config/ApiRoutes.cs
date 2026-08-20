@@ -20,6 +20,7 @@ public static class ApiRoutes
     {
         public const string Register = "auth/register";
         public const string Login = "auth/login";
+        public const string ChangePassword = "auth/change-password";
     }
 
     public static class Dashboard
@@ -112,6 +113,10 @@ public static class ApiRoutes
     {
         public const string Me = "profile/me";
         public const string Region = "profile/region";
+        /// <summary>Everything the app holds about the caller, as a JSON download.</summary>
+        public const string Export = "profile/export";
+        /// <summary>DELETE — erases the caller's account and everything belonging to them.</summary>
+        public const string DeleteMe = "profile/me";
     }
 
     public static class Sadhana

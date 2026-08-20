@@ -9,8 +9,15 @@ namespace Sanathana.Companion.Application.Services;
 public class UserService : IUserService
 {
     private readonly IUnitOfWork _uow;
+    private readonly IPasswordHasher _passwordHasher;
+    private readonly IAccountDataReader _accountData;
 
-    public UserService(IUnitOfWork uow) => _uow = uow;
+    public UserService(IUnitOfWork uow, IPasswordHasher passwordHasher, IAccountDataReader accountData)
+    {
+        _uow = uow;
+        _passwordHasher = passwordHasher;
+        _accountData = accountData;
+    }
 
     public async Task<IReadOnlyList<UserListItemDto>> GetAllAsync(CancellationToken cancellationToken = default)
     {
@@ -177,5 +184,23 @@ public class UserService : IUserService
         var today = DateOnly.FromDateTime(DateTime.UtcNow.AddHours(5.5));
         bool alive = s.LastPracticeDate == today || s.LastPracticeDate == today.AddDays(-1);
         return alive ? s.CurrentStreak : 0;
+    }
+
+    public Task<MyDataExportDto?> ExportMyDataAsync(Guid userId, CancellationToken cancellationToken = default)
+        => _accountData.ExportAsync(userId, cancellationToken);
+
+    public async Task<bool> DeleteMyAccountAsync(Guid userId, string password, CancellationToken cancellationToken = default)
+    {
+        var user = await _uow.Users.GetByIdAsync(userId, cancellationToken);
+        if (user is null) return false;
+
+        // Irreversible, so it is not enough to hold the session — the password is re-checked. A
+        // borrowed or stolen phone must not be able to erase somebody's practice history.
+        if (!_passwordHasher.Verify(password, user.PasswordHash)) return false;
+
+        await _uow.Users.PurgeUserDataAsync(userId, cancellationToken);
+        await _uow.SaveChangesAsync(cancellationToken);
+
+        return true;
     }
 }

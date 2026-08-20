@@ -311,6 +311,33 @@ public class ApiClient : IApiClient
         return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
     }
 
+    public async Task<(bool Success, string Error)> ChangePasswordAsync(ChangePasswordRequest request)
+    {
+        var response = await _http.PostAsJsonAsync(ApiRoutes.Auth.ChangePassword, request);
+        return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
+    }
+
+    public async Task<(bool Success, string Json, string Error)> ExportMyDataAsync()
+    {
+        var response = await _http.GetAsync(ApiRoutes.Profile.Export);
+        return response.IsSuccessStatusCode
+            ? (true, await response.Content.ReadAsStringAsync(), string.Empty)
+            : (false, string.Empty, await ExtractErrorAsync(response));
+    }
+
+    public async Task<(bool Success, string Error)> DeleteMyAccountAsync(DeleteAccountRequest request)
+    {
+        // DELETE with a body: the password confirms an irreversible action, and it has no business
+        // in a query string, where it would land in every access log along the way.
+        var message = new HttpRequestMessage(HttpMethod.Delete, ApiRoutes.Profile.DeleteMe)
+        {
+            Content = JsonContent.Create(request)
+        };
+
+        var response = await _http.SendAsync(message);
+        return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
+    }
+
     public async Task<SadhanaToday?> GetSadhanaTodayAsync(Guid? regionId = null)
         => await _http.GetFromJsonAsync<SadhanaToday>(ApiRoutes.Sadhana.Today(regionId));
 

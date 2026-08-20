@@ -5,6 +5,9 @@
 @inject RegionState Region
 @inject ToastService Toast
 @inject AppConfig Config
+@inject IJSRuntime JS
+@inject IAuthService AuthService
+@inject NavigationManager Nav
 
 <div class="sc-page-head">
     <div class="sc-page-title">
@@ -129,6 +132,107 @@ else if (_p is not null)
             </div>
         </div>
 
+        <div class="sc-card sc-prefcard">
+            <div class="sc-section-head" style="margin-bottom:0.6rem">
+                <h2>🔑 @Loc["profile.security", "Security"]</h2>
+                <span class="sc-section-sub">@Loc["profile.securitySub", "Change the password you sign in with"]</span>
+            </div>
+
+            @if (!_changingPassword)
+            {
+                <button type="button" class="sc-btn-ghost sc-btn-sm" @onclick="() => _changingPassword = true" disabled="@_busy">
+                    @Loc["profile.changePassword", "Change password"]
+                </button>
+            }
+            else
+            {
+                <div class="sc-danger-confirm" style="max-width:340px">
+                    <div class="sc-field">
+                        <label>@Loc["profile.currentPassword", "Current password"]</label>
+                        <input class="sc-input" type="password" autocomplete="current-password"
+                               @bind="_currentPassword" @bind:event="oninput" disabled="@_busy" />
+                    </div>
+                    <div class="sc-field">
+                        <label>@Loc["profile.newPassword", "New password"]</label>
+                        <input class="sc-input" type="password" autocomplete="new-password"
+                               @bind="_newPassword" @bind:event="oninput" disabled="@_busy" />
+                    </div>
+                    <div class="sc-field">
+                        <label>@Loc["profile.confirmNewPassword", "Confirm new password"]</label>
+                        <input class="sc-input" type="password" autocomplete="new-password"
+                               @bind="_confirmPassword" @bind:event="oninput" disabled="@_busy" />
+                    </div>
+                    @if (_passwordError is not null)
+                    {
+                        <div class="sc-alert sc-alert-error">@_passwordError</div>
+                    }
+                    <div class="sc-modal-actions">
+                        <button type="button" class="sc-btn-ghost sc-btn-sm" @onclick="CancelPasswordChange" disabled="@_busy">
+                            @Loc["common.cancel", "Cancel"]
+                        </button>
+                        <button type="button" class="sc-btn-primary sc-btn-sm" @onclick="ChangePasswordAsync"
+                                disabled="@(_busy || !CanChangePassword)">
+                            @Loc["common.save", "Save"]
+                        </button>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="sc-card sc-prefcard sc-dangercard">
+            <div class="sc-section-head" style="margin-bottom:0.6rem">
+                <h2>🔐 @Loc["profile.yourData", "Your data"]</h2>
+                <span class="sc-section-sub">@Loc["profile.yourDataSub", "Take a copy, or close your account for good"]</span>
+            </div>
+
+            <div class="sc-preflist">
+                <button type="button" class="sc-prefrow sc-prefrow-link" @onclick="ExportAsync" disabled="@_busy">
+                    <span class="sc-prefrow-label">⬇️ @Loc["profile.downloadMyData", "Download my data"]</span>
+                    <span class="sc-prefrow-chev">›</span>
+                </button>
+            </div>
+
+            <p class="sc-hint" style="margin-top:0.4rem">
+                @Loc["profile.downloadMyDataHint", "A JSON file with your account details, sadhana history, favourites, feedback and notification settings."]
+            </p>
+
+            <hr class="sc-danger-rule" />
+
+            @if (!_confirmingDelete)
+            {
+                <button type="button" class="sc-btn-danger" @onclick="() => _confirmingDelete = true" disabled="@_busy">
+                    @Loc["profile.deleteAccount", "Delete my account"]
+                </button>
+            }
+            else
+            {
+                <div class="sc-danger-confirm">
+                    <p class="sc-danger-warning">
+                        @Loc["profile.deleteAccountWarning", "This erases your account, your entire sadhana history, your favourites and your feedback. It cannot be undone."]
+                    </p>
+                    <div class="sc-field" style="max-width:340px">
+                        <label>@Loc["profile.confirmWithPassword", "Enter your password to confirm"]</label>
+                        <input class="sc-input" type="password" autocomplete="current-password"
+                               @bind="_deletePassword" @bind:event="oninput" disabled="@_busy" />
+                    </div>
+                    @if (_deleteError is not null)
+                    {
+                        <div class="sc-alert sc-alert-error">@_deleteError</div>
+                    }
+                    <div class="sc-modal-actions">
+                        <button type="button" class="sc-btn-ghost sc-btn-sm" @onclick="CancelDelete" disabled="@_busy">
+                            @Loc["common.cancel", "Cancel"]
+                        </button>
+                        <button type="button" class="sc-btn-danger" @onclick="DeleteAccountAsync"
+                                disabled="@(_busy || string.IsNullOrWhiteSpace(_deletePassword))">
+                            @if (_busy) { <OmLoader Inline="true" Size="18" Message="@Loc["common.saving", "Saving…"]" /> }
+                            else { <span>@Loc["profile.deleteAccountConfirm", "Permanently delete"]</span> }
+                        </button>
+                    </div>
+                </div>
+            }
+        </div>
+
         <div class="sc-card sc-prefcard sc-aboutcard">
             <div class="sc-section-head" style="margin-bottom:0.6rem">
                 <h2>ℹ️ @Loc["profile.about", "About"]</h2>
@@ -194,6 +298,16 @@ else if (_p is not null)
     private Guid? _regionId;
     private bool _savingRegion;
 
+    private bool _busy;
+    private bool _changingPassword;
+    private string _currentPassword = string.Empty;
+    private string _newPassword = string.Empty;
+    private string _confirmPassword = string.Empty;
+    private string? _passwordError;
+    private bool _confirmingDelete;
+    private string _deletePassword = string.Empty;
+    private string? _deleteError;
+
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
@@ -237,5 +351,129 @@ else if (_p is not null)
         return parts.Length == 1
             ? parts[0][..1].ToUpper()
             : (parts[0][..1] + parts[^1][..1]).ToUpper();
+    }
+
+    private bool CanChangePassword =>
+        !string.IsNullOrWhiteSpace(_currentPassword)
+        && !string.IsNullOrWhiteSpace(_newPassword)
+        && !string.IsNullOrWhiteSpace(_confirmPassword);
+
+    private void CancelPasswordChange()
+    {
+        _changingPassword = false;
+        _currentPassword = _newPassword = _confirmPassword = string.Empty;
+        _passwordError = null;
+    }
+
+    private async Task ChangePasswordAsync()
+    {
+        _passwordError = null;
+
+        // Checked here as well as on the server so the seeker is not told "wrong password" by a
+        // round trip that was never going to succeed.
+        if (_newPassword != _confirmPassword)
+        {
+            _passwordError = Loc["profile.passwordMismatch", "The two new passwords do not match."];
+            return;
+        }
+
+        _busy = true;
+        try
+        {
+            var (ok, error) = await Api.ChangePasswordAsync(new ChangePasswordRequest
+            {
+                CurrentPassword = _currentPassword,
+                NewPassword = _newPassword,
+                ConfirmNewPassword = _confirmPassword
+            });
+
+            if (!ok)
+            {
+                _passwordError = string.IsNullOrWhiteSpace(error)
+                    ? Loc["profile.passwordChangeFailed", "Your password could not be changed."]
+                    : error;
+                return;
+            }
+
+            CancelPasswordChange();
+            Toast.Success(Loc["profile.passwordChanged", "Your password has been changed."]);
+        }
+        catch (Exception ex)
+        {
+            _passwordError = Loc["profile.passwordChangeFailed", "Your password could not be changed."] + " " + ex.Message;
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    /// <summary>
+    /// Downloads everything the app holds about this seeker. The file is built from the response
+    /// body in the browser rather than linked to directly, because the export endpoint needs the
+    /// bearer token and a plain anchor cannot carry one.
+    /// </summary>
+    private async Task ExportAsync()
+    {
+        _busy = true;
+        try
+        {
+            var (ok, json, error) = await Api.ExportMyDataAsync();
+            if (!ok)
+            {
+                Toast.Error(string.IsNullOrWhiteSpace(error)
+                    ? Loc["profile.exportFailed", "Could not prepare your data."]
+                    : error);
+                return;
+            }
+
+            await JS.InvokeVoidAsync("scDownload.text", "sanathana-companion-my-data.json", "application/json", json);
+            Toast.Success(Loc["profile.exportReady", "Your data has been downloaded."]);
+        }
+        catch (Exception ex)
+        {
+            Toast.Error(Loc["profile.exportFailed", "Could not prepare your data."] + " " + ex.Message);
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private void CancelDelete()
+    {
+        _confirmingDelete = false;
+        _deletePassword = string.Empty;
+        _deleteError = null;
+    }
+
+    private async Task DeleteAccountAsync()
+    {
+        _busy = true;
+        _deleteError = null;
+        try
+        {
+            var (ok, error) = await Api.DeleteMyAccountAsync(new DeleteAccountRequest { Password = _deletePassword });
+            if (!ok)
+            {
+                _deleteError = string.IsNullOrWhiteSpace(error)
+                    ? Loc["profile.deleteFailed", "Your account could not be deleted."]
+                    : error;
+                return;
+            }
+
+            // The account is gone, so the token in hand now refers to nothing. Sign out locally and
+            // return to the login screen rather than leaving a dead session in place.
+            await AuthService.LogoutAsync();
+            Nav.NavigateTo("login");
+        }
+        catch (Exception ex)
+        {
+            _deleteError = Loc["profile.deleteFailed", "Your account could not be deleted."] + " " + ex.Message;
+        }
+        finally
+        {
+            _busy = false;
+        }
     }
 }

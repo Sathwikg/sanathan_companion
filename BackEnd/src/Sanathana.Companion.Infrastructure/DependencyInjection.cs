@@ -48,6 +48,7 @@ public static class DependencyInjection
         services.Configure<JwtSettings>(configuration.GetSection(JwtSettings.SectionName));
         services.AddScoped<IJwtTokenService, JwtTokenService>();
         services.AddScoped<IPasswordHasher, BCryptPasswordHasher>();
+        services.AddScoped<IAccountDataReader, AccountDataReader>();
         // Runs once at start-up to open the locked administrator account from configuration.
         services.AddScoped<AdminAccountBootstrapper>();
 
