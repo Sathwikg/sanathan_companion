@@ -21,4 +21,12 @@ regexes = [
   # seed, in the LockSeededAdminAccount migration and in the tests that pin it, so it is allowed by
   # value rather than by path.
   '''\$2a\$11\$3Qm5rGml0DHTfjcYb4qBSuwNwEcQPXNbe5v8oJEt2hqNz0oV\.KEwG''',
+
+  # The hash this repository shipped with before that: bcrypt of the literal password "admin",
+  # which was also printed in the README of a public repository. It survives in the InitialCreate
+  # migration and in every EF model snapshot taken since, because rewriting those would rewrite
+  # migration history. It is inert — LockSeededAdminAccount overwrites it on every database, and a
+  # hash of a password the whole internet already had was never a secret. Allowed rather than
+  # removed, because a scanner that has to be argued with about known-dead values gets muted.
+  '''\$2a\$11\$IcC0k9qwHgoBzVuv369tC\.z4bukAlUY7IxbpbLD4MU7At7TX4Sxsi''',
 ]
