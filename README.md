@@ -126,8 +126,28 @@ docker compose down            # stop
 
 ## Seeded data
 - Roles: **Admin**, **Sanathan**.
-- Default admin login → **credential `admin`, password `admin`**.
 - New registrations are automatically assigned the **Sanathan** role.
+- An administrator account is seeded with the credential `admin`, but it ships **locked** — its
+  stored hash verifies against nothing, so it cannot be signed in to until you open it.
+
+### Opening the administrator account
+
+Set `Admin__InitialPassword` (minimum 8 characters) in the environment and start the API. It is
+applied **once**, and only while the account is still locked, so leaving the variable set cannot
+reset a password you later change, and removing it cannot lock you out.
+
+```bash
+Admin__InitialPassword='<a strong passphrase>'
+```
+
+After that, rotate it in the app: `POST /api/auth/change-password` with a bearer token
+(`currentPassword`, `newPassword`, `confirmNewPassword`).
+
+> This account previously shipped with the password `admin`, documented here, on a public
+> repository — one unauthenticated request to full administrator. The `LockSeededAdminAccount`
+> migration overwrites that hash on every existing database, **including production**, the next
+> time the API starts. If you were relying on `admin`/`admin`, set `Admin__InitialPassword`
+> **before** deploying, or you will have no way in.
 
 ## API endpoints
 | Method | Route | Auth | Purpose |

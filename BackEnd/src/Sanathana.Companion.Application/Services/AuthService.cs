@@ -15,19 +15,22 @@ public class AuthService : IAuthService
     private readonly IJwtTokenService _jwtTokenService;
     private readonly IValidator<RegisterRequestDto> _registerValidator;
     private readonly IValidator<LoginRequestDto> _loginValidator;
+    private readonly IValidator<ChangePasswordDto> _changePasswordValidator;
 
     public AuthService(
         IUnitOfWork uow,
         IPasswordHasher passwordHasher,
         IJwtTokenService jwtTokenService,
         IValidator<RegisterRequestDto> registerValidator,
-        IValidator<LoginRequestDto> loginValidator)
+        IValidator<LoginRequestDto> loginValidator,
+        IValidator<ChangePasswordDto> changePasswordValidator)
     {
         _uow = uow;
         _passwordHasher = passwordHasher;
         _jwtTokenService = jwtTokenService;
         _registerValidator = registerValidator;
         _loginValidator = loginValidator;
+        _changePasswordValidator = changePasswordValidator;
     }
 
     public async Task<string> RegisterAsync(RegisterRequestDto request, CancellationToken cancellationToken = default)
@@ -87,5 +90,24 @@ public class AuthService : IAuthService
             SeekerName = user.SeekerName,
             Role = user.Role?.RoleName ?? string.Empty
         };
+    }
+
+    public async Task<bool> ChangePasswordAsync(Guid userId, ChangePasswordDto request, CancellationToken cancellationToken = default)
+    {
+        await _changePasswordValidator.ValidateAndThrowAsync(request, cancellationToken);
+
+        var user = await _uow.Users.GetByIdAsync(userId, cancellationToken)
+                   ?? throw new NotFoundException("Your account could not be found.");
+
+        // Re-checking the current password is what stops a stolen or borrowed session from locking
+        // the real owner out of their own account.
+        if (!_passwordHasher.Verify(request.CurrentPassword, user.PasswordHash))
+            return false;
+
+        user.PasswordHash = _passwordHasher.Hash(request.NewPassword);
+        _uow.Users.Update(user);
+        await _uow.SaveChangesAsync(cancellationToken);
+
+        return true;
     }
 }

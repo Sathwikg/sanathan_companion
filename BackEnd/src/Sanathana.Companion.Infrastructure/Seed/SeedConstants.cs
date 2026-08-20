@@ -62,8 +62,27 @@ public static class SeedConstants
     public static readonly Guid SanathanWallpapersAccessId = new("a0000000-0000-0000-0000-000000000007");
     public static readonly Guid SanathanPujaProcessAccessId = new("a0000000-0000-0000-0000-000000000008");
 
-    /// <summary>Pre-computed BCrypt hash of "admin" (workFactor 11). Verify("admin", hash) == true.</summary>
-    public const string AdminPasswordHash = "$2a$11$IcC0k9qwHgoBzVuv369tC.z4bukAlUY7IxbpbLD4MU7At7TX4Sxsi";
+    /// <summary>
+    /// The seeded administrator's password hash: a well-formed BCrypt hash of a random value that
+    /// was never recorded, so no password verifies against it.
+    /// </summary>
+    /// <remarks>
+    /// This used to be the hash of the literal "admin", seeded into every database and published in
+    /// the README of a public repository — one unauthenticated request to full administrator, with
+    /// no way to change it because the API had no password endpoint at all.
+    /// <para>
+    /// The account is now LOCKED at rest. It is opened exactly once, at start-up, from the
+    /// <c>Admin__InitialPassword</c> environment variable, and only while the stored hash is still
+    /// this sentinel — see <c>AdminAccountBootstrapper</c>. After that it is changed through
+    /// <c>POST /api/auth/change-password</c> like any other account.
+    /// </para>
+    /// <para>
+    /// It must stay syntactically valid BCrypt. An empty or malformed value would make
+    /// <c>BCrypt.Verify</c> throw rather than return false, turning every sign-in attempt as the
+    /// administrator into a 500 instead of a clean rejection.
+    /// </para>
+    /// </remarks>
+    public const string AdminPasswordHash = "$2a$11$3Qm5rGml0DHTfjcYb4qBSuwNwEcQPXNbe5v8oJEt2hqNz0oV.KEwG";
 
     /// <summary>Fixed seed timestamp — never use DateTime.UtcNow here (it would regenerate migrations).</summary>
     public static readonly DateTime SeedTimestamp = new(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc);

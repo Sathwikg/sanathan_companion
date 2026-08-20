@@ -33,9 +33,13 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .HasForeignKey(u => u.DefaultRegionId)
             .OnDelete(DeleteBehavior.SetNull);
 
-        // Seeded default administrator. Email is "admin" so the spec's admin/admin login works
-        // (login accepts email-or-mobile). Real registrations must pass email validation, so they
-        // can never collide with the literal "admin".
+        // Seeded default administrator. Email is the literal "admin" so it can be signed in with
+        // (login accepts email-or-mobile); real registrations must pass email validation, so they
+        // can never collide with it.
+        //
+        // The account ships LOCKED — SeedConstants.AdminPasswordHash verifies against nothing. It
+        // is opened once from the Admin__InitialPassword environment variable at start-up; see
+        // AdminAccountBootstrapper.
         builder.HasData(new User
         {
             UserId = SeedConstants.AdminUserId,

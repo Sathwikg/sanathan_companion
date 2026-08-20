@@ -17,9 +17,13 @@ public class PasswordHasherTests
     }
 
     [Fact]
-    public void Seeded_admin_hash_verifies_admin_password()
+    public void Seeded_admin_hash_verifies_nothing()
     {
+        // This test used to assert the opposite — that the seeded hash accepted "admin". That was
+        // the vulnerability: a working administrator credential in every database, published in
+        // the README of a public repository. The account now ships locked and is opened from
+        // Admin__InitialPassword. See SeededAdminTests for the full set.
         var hasher = new BCryptPasswordHasher();
-        Assert.True(hasher.Verify("admin", SeedConstants.AdminPasswordHash));
+        Assert.False(hasher.Verify("admin", SeedConstants.AdminPasswordHash));
     }
 }

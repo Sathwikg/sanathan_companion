@@ -64,7 +64,7 @@ internal sealed class TestHarness : IDisposable
             ExpiryMinutes = 60
         }));
 
-        AuthService = new AuthService(UnitOfWork, Hasher, Jwt, new RegisterRequestValidator(), new LoginRequestValidator());
+        AuthService = new AuthService(UnitOfWork, Hasher, Jwt, new RegisterRequestValidator(), new LoginRequestValidator(), new ChangePasswordValidator());
     }
 
     public void Dispose() => Context.Dispose();

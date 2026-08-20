@@ -2,6 +2,8 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.HttpOverrides;
+using Sanathana.Companion.Api.RateLimiting;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -92,13 +94,34 @@ try
         });
     builder.Services.AddAuthorization();
 
-    // Throttle the anonymous auth endpoints (per client IP) to blunt credential brute force / stuffing.
+    // Behind Render's router — and behind the nginx in docker-compose — every request arrives from
+    // the proxy, so Connection.RemoteIpAddress is the proxy's address for ALL of them. Without
+    // this, the per-IP limiter below degrades into ONE global bucket: ten sign-in attempts a minute
+    // from anybody would lock every seeker out of the app.
+    //
+    // KnownIPNetworks/KnownProxies are cleared because the hop count, not the address, is what can be
+    // trusted here: Render does not publish a stable proxy range, and the container only ever
+    // receives traffic through it. ForwardLimit stays at 1 so a client-supplied X-Forwarded-For
+    // cannot prepend a spoofed address and escape its own bucket.
+    builder.Services.Configure<ForwardedHeadersOptions>(options =>
+    {
+        options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+        options.ForwardLimit = 1;
+        options.KnownIPNetworks.Clear();
+        options.KnownProxies.Clear();
+    });
+
+    // Throttle the anonymous auth endpoints to blunt credential brute force / stuffing.
     builder.Services.AddRateLimiter(options =>
     {
         options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
         options.AddPolicy("auth", httpContext =>
             RateLimitPartition.GetFixedWindowLimiter(
-                partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                // Partition on the credential being tried as well as the caller's address. One
+                // seeker mistyping their password must not consume the budget of everyone else
+                // behind the same carrier NAT or corporate egress, and an attacker spraying one
+                // password across many accounts is still bounded by the address half.
+                partitionKey: AuthRateLimitPartition.For(httpContext),
                 factory: _ => new FixedWindowRateLimiterOptions
                 {
                     PermitLimit = 10,
@@ -133,6 +156,19 @@ try
         var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         db.Database.Migrate();
 
+        // The seeded administrator ships locked — its stored hash verifies against nothing. This
+        // opens it once from Admin__InitialPassword, and only while it is still locked, so it can
+        // never reset a password that has since been rotated.
+        try
+        {
+            await scope.ServiceProvider.GetRequiredService<AdminAccountBootstrapper>().ApplyAsync();
+        }
+        catch (Exception ex)
+        {
+            // An unreachable administrator is not a reason to take the site down for seekers.
+            Log.Warning(ex, "Could not apply the administrator account bootstrap.");
+        }
+
         // Load the shipped translation files. Idempotent, and it never overwrites a label an
         // admin edited in the UI, so it is safe to run on every boot.
         try
@@ -155,6 +191,10 @@ try
             Log.Error(ex, "Localization seed import failed; the app will fall back to English.");
         }
     }
+
+    // FIRST, before anything reads RemoteIpAddress or the scheme — the rate limiter, the request
+    // log and HTTPS redirection all depend on the forwarded values being applied by now.
+    app.UseForwardedHeaders();
 
     app.UseMiddleware<ExceptionHandlingMiddleware>();
 

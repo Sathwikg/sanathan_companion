@@ -12,8 +12,13 @@ namespace Sanathana.Companion.Api.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;
+    private readonly ICurrentUserService _currentUser;
 
-    public AuthController(IAuthService authService) => _authService = authService;
+    public AuthController(IAuthService authService, ICurrentUserService currentUser)
+    {
+        _authService = authService;
+        _currentUser = currentUser;
+    }
 
     /// <summary>Registers a new seeker (auto-assigned the Sanathan role).</summary>
     [HttpPost("register")]
@@ -39,5 +44,29 @@ public class AuthController : ControllerBase
         return result is null
             ? Unauthorized(new { message = "Invalid credentials." })
             : Ok(result);
+    }
+
+    /// <summary>Changes the signed-in user's own password.</summary>
+    /// <remarks>
+    /// Until this existed there was no way to rotate ANY password through the API — including the
+    /// seeded administrator's, which is why that account had to ship locked.
+    /// </remarks>
+    [HttpPost("change-password")]
+    [Authorize]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto request, CancellationToken cancellationToken)
+    {
+        var userId = _currentUser.UserId;
+        if (userId is null) return Unauthorized();
+
+        var changed = await _authService.ChangePasswordAsync(userId.Value, request, cancellationToken);
+
+        // 400, not 401: the session is perfectly valid — it is the supplied current password that
+        // is wrong, and a 401 here would sign the user out of a session that never expired.
+        return changed
+            ? Ok(new { message = "Password changed." })
+            : BadRequest(new { message = "Your current password is incorrect." });
     }
 }

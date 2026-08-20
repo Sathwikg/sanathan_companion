@@ -1,6 +1,7 @@
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Sanathana.Companion.Application.DTOs.Auth;
+using Sanathana.Companion.Infrastructure.Seed;
 using Sanathana.Companion.Domain.Exceptions;
 
 namespace Sanathana.Companion.Tests;
@@ -58,11 +59,37 @@ public class AuthServiceTests
     }
 
     [Fact]
-    public async Task Login_admin_admin_succeeds_with_Admin_role()
+    public async Task Login_as_the_seeded_admin_is_refused_because_the_account_ships_locked()
     {
+        // Previously this asserted that admin/admin signed in and received the Admin role. That is
+        // exactly what made a single unauthenticated request enough to take over any deployment.
         using var harness = new TestHarness();
 
-        var result = await harness.AuthService.LoginAsync(new LoginRequestDto { Credential = "admin", Password = "admin" });
+        // An empty password is rejected earlier, by the validator, so it is not part of this set.
+        foreach (var password in new[] { "admin", "Admin", "password", "admin123" })
+        {
+            var result = await harness.AuthService.LoginAsync(
+                new LoginRequestDto { Credential = "admin", Password = password });
+
+            Assert.Null(result);
+        }
+    }
+
+    [Fact]
+    public async Task An_admin_password_set_out_of_band_signs_in_and_carries_the_Admin_role()
+    {
+        // The supported way in: AdminAccountBootstrapper writes a hash from configuration, after
+        // which the account behaves like any other.
+        using var harness = new TestHarness();
+
+        var admin = await harness.UnitOfWork.Users.GetByIdAsync(SeedConstants.AdminUserId);
+        Assert.NotNull(admin);
+        admin!.PasswordHash = harness.Hasher.Hash("a strong operator passphrase");
+        harness.UnitOfWork.Users.Update(admin);
+        await harness.UnitOfWork.SaveChangesAsync();
+
+        var result = await harness.AuthService.LoginAsync(
+            new LoginRequestDto { Credential = "admin", Password = "a strong operator passphrase" });
 
         Assert.NotNull(result);
         Assert.Equal("Admin", result!.Role);
