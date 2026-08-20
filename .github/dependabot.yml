@@ -1,0 +1,12 @@
+# The cheapest way to keep the advisory job from ever having something to report.
+version: 2
+updates:
+  - package-ecosystem: nuget
+    directories: ["/BackEnd", "/FrontEnd"]
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: monthly

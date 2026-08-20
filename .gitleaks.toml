@@ -1,0 +1,11 @@
+# The test harness's JWT key and .env.example's placeholder connection string are fixtures, not
+# credentials — the default generic rules would flag both and the job would be red from day one.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Fixtures, not credentials"
+paths = [
+  '''\.env\.example$''',
+  '''BackEnd/tests/Sanathana\.Companion\.Tests/TestHarness\.cs$''',
+]

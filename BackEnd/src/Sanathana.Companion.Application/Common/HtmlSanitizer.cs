@@ -151,14 +151,132 @@ public static partial class HtmlSanitizer
         return sb.Append(isSelfClosing ? " />" : ">").ToString();
     }
 
+    /// <summary>
+    /// CSS the stored HTML may carry, and the shape each value must take.
+    /// </summary>
+    /// <remarks>
+    /// This used to be a denylist, and a denylist cannot hold the line here. "url(" can be spelled
+    /// "\75 rl(" — the CSS escape is resolved before the function name is matched, so the literal
+    /// substring never appears. An image loads just as well through image-set("…") with the word
+    /// url nowhere in it. And position:fixed, which no denylist ever thought to name, lets one
+    /// chant paint an opaque layer over the whole app inside the same WebView that holds the
+    /// reader's session. Writes here are Admin-only, so this is an administrator reaching every
+    /// reader rather than any-user XSS — which is still worth closing properly.
+    /// <para>
+    /// The allowlist kills that whole class from the character sets alone. A backslash matches
+    /// neither the property pattern nor any value pattern. A "(" appears in exactly one
+    /// alternative, rgb()/rgba() with plain numbers, so image-set, cross-fade, var, attr,
+    /// expression and every function invented after this commit fail without being enumerated.
+    /// position, inset, z-index, opacity, display, transform, every *-image property and every
+    /// vendor prefix fail simply by not being keys.
+    /// </para>
+    /// </remarks>
+    private static readonly Dictionary<string, StyleValue> AllowedStyleProperties = new(StringComparer.Ordinal)
+    {
+        // The only declaration the editor itself writes; its toolbar has justifyLeft and
+        // justifyCenter, and justifyLeft emits nothing at all.
+        ["text-align"] = StyleValue.Keyword,
+        // The rest are tolerance for content saved before this tightening, or by an engine that
+        // answers the same buttons with styleWithCSS.
+        ["font-weight"] = StyleValue.Keyword,
+        ["font-style"] = StyleValue.Keyword,
+        ["text-decoration"] = StyleValue.KeywordList,
+        ["text-decoration-line"] = StyleValue.KeywordList,
+        ["vertical-align"] = StyleValue.Keyword,
+        ["text-transform"] = StyleValue.Keyword,
+        ["white-space"] = StyleValue.Keyword,
+        ["direction"] = StyleValue.Keyword,
+        ["unicode-bidi"] = StyleValue.Keyword,
+        ["list-style-type"] = StyleValue.Keyword,
+        ["color"] = StyleValue.Color,
+        ["background-color"] = StyleValue.Color,
+        ["font-size"] = StyleValue.Length,
+        ["line-height"] = StyleValue.Length,
+        ["letter-spacing"] = StyleValue.Length,
+        ["word-spacing"] = StyleValue.Length,
+        ["text-indent"] = StyleValue.Length,
+        ["margin-left"] = StyleValue.Length,
+        ["padding-left"] = StyleValue.Length,
+    };
+
+    private enum StyleValue { Keyword, KeywordList, Color, Length }
+
+    /// <summary>
+    /// Keywords accepted for the properties above. One flat set is enough — a keyword that is
+    /// meaningless for its property is just a declaration the browser discards. bidi-override is
+    /// absent on purpose: it renders text in an order other than the one it is written in.
+    /// </summary>
+    private static readonly HashSet<string> AllowedStyleKeywords = new(StringComparer.Ordinal)
+    {
+        "left", "right", "center", "justify", "start", "end",
+        "normal", "bold", "bolder", "lighter", "italic", "oblique",
+        "100", "200", "300", "400", "500", "600", "700", "800", "900",
+        "none", "underline", "line-through", "overline",
+        "baseline", "sub", "super", "top", "middle", "bottom", "text-top", "text-bottom",
+        "uppercase", "lowercase", "capitalize",
+        "nowrap", "pre", "pre-wrap", "pre-line",
+        "ltr", "rtl", "embed", "isolate",
+        "disc", "circle", "square", "decimal",
+        "lower-alpha", "upper-alpha", "lower-roman", "upper-roman",
+        "inherit", "initial", "unset"
+    };
+
+    /// <summary>Letters and hyphens only — which is also what kills "\62 ackground-image".</summary>
+    [GeneratedRegex(@"^[a-z][a-z-]{0,30}$")]
+    private static partial Regex StylePropertyRegex();
+
+    /// <summary>The only value shape in which a "(" is allowed to appear at all.</summary>
+    [GeneratedRegex(@"^(?:#[0-9a-f]{3,8}|[a-z]{3,20}|rgba?\(\s*\d{1,3}\s*[,\s]\s*\d{1,3}\s*[,\s]\s*\d{1,3}\s*(?:[,/]\s*(?:0|1|0?\.\d{1,3}|\d{1,3}%)\s*)?\))$")]
+    private static partial Regex StyleColorRegex();
+
+    /// <summary>One length. Three digits is deliberate: a chant does not need to render at 9999px.</summary>
+    [GeneratedRegex(@"^-?\d{1,3}(?:\.\d{1,2})?(?:px|pt|em|rem|%)?$")]
+    private static partial Regex StyleLengthRegex();
+
+    /// <summary>The real bound on parse work. Duplicate declarations are permitted; the last wins.</summary>
+    private const int MaxStyleLength = 512;
+
+    private const int MaxStyleDeclarations = 16;
+
     private static string? SanitizeStyle(string value)
     {
-        if (string.IsNullOrWhiteSpace(value)) return null;
-        var lower = value.ToLowerInvariant();
-        string[] banned = { "expression(", "javascript:", "url(", "@import", "behavior:", "-moz-binding" };
-        if (banned.Any(b => lower.Contains(b, StringComparison.Ordinal))) return null;
-        return value.Trim();
+        if (string.IsNullOrWhiteSpace(value) || value.Length > MaxStyleLength) return null;
+
+        var kept = new List<string>();
+
+        foreach (var declaration in value.Split(';',
+                     StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            if (kept.Count == MaxStyleDeclarations) break;
+
+            var colon = declaration.IndexOf(':');
+            if (colon <= 0) continue;
+
+            var name = declaration[..colon].Trim().ToLowerInvariant();
+            var raw = declaration[(colon + 1)..].Trim().ToLowerInvariant();
+
+            if (!StylePropertyRegex().IsMatch(name)) continue;
+            if (!AllowedStyleProperties.TryGetValue(name, out var kind)) continue;
+            if (!IsAllowedStyleValue(kind, raw)) continue;
+
+            // Rebuilt from the two halves that passed, so a trailing "!important", a second colon
+            // or any trailing text cannot ride along on an otherwise valid declaration.
+            kept.Add($"{name}: {raw}");
+        }
+
+        return kept.Count == 0 ? null : string.Join("; ", kept);
     }
+
+    private static bool IsAllowedStyleValue(StyleValue kind, string value) => kind switch
+    {
+        StyleValue.Keyword => AllowedStyleKeywords.Contains(value),
+        StyleValue.KeywordList => value.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                                       is { Length: > 0 and <= 4 } parts
+                                  && parts.All(AllowedStyleKeywords.Contains),
+        StyleValue.Color => StyleColorRegex().IsMatch(value),
+        StyleValue.Length => StyleLengthRegex().IsMatch(value),
+        _ => false
+    };
 
     private static string? SanitizeUrl(string value)
     {

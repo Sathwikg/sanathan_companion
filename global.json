@@ -1,0 +1,7 @@
+{
+  "//": "Pins the SDK so CI and this machine agree. Without it, setup-dotnet floats with the runner image and the tree drifts silently — the same failure mode the workflow exists to catch. latestFeature allows patch and feature-band updates within 10.0.",
+  "sdk": {
+    "version": "10.0.302",
+    "rollForward": "latestFeature"
+  }
+}

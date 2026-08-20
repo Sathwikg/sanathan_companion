@@ -1,0 +1,189 @@
+name: CI
+
+# Nothing here deploys. Render owns that and triggers itself from its own commit hook
+# (render.yaml: autoDeployTrigger: commit), so this workflow answers one question: does the tree
+# still build and pass its tests before that hook fires. Until it existed, the first thing that
+# built a pushed branch was production.
+on:
+  push:
+    branches: [main, development]
+  pull_request:
+    branches: [main, development]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  # Cancelling is right for a pull request, where only the latest push matters. On a branch it
+  # would kill the very run a required check is waiting on when a second commit lands.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  DOTNET_NOLOGO: 'true'
+  DOTNET_CLI_TELEMETRY_OPTOUT: 'true'
+
+jobs:
+  backend:
+    name: Backend
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-backend-${{ hashFiles('BackEnd/**/*.csproj', 'BackEnd/Directory.Build.props') }}
+          restore-keys: nuget-backend-
+
+      - run: dotnet restore BackEnd/Sanathana.Companion.slnx
+
+      # Directory.Build.props sets TreatWarningsAsErrors, so a new warning fails the build here on
+      # purpose — that is the strictness the repo already asks for locally. It also means a new
+      # NuGet advisory fails HERE, at restore, as NU1903, before the security job ever reports it.
+      - run: dotnet build BackEnd/Sanathana.Companion.slnx -c Release --no-restore
+
+      # No service container: the suite runs on EF Core InMemory and carries its own JWT settings.
+      - run: >
+          dotnet test BackEnd/Sanathana.Companion.slnx -c Release --no-build
+          --logger "trx;LogFileName=backend.trx" --results-directory TestResults
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: backend-test-results
+          path: TestResults/*.trx
+
+  web:
+    name: Web (Blazor WebAssembly)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-web-${{ hashFiles('FrontEnd/**/*.csproj') }}
+          restore-keys: nuget-web-
+
+      # The two entry projects, not the solution: Sanathana.Companion.Frontend.slnx also holds
+      # App.Mobile, whose iOS and Mac Catalyst heads cannot even be restored on Linux. App.Core and
+      # App.UI.Shared are built transitively by both of these.
+      - run: dotnet restore FrontEnd/App.Web/App.Web.csproj
+      - run: dotnet restore FrontEnd/App.Tests/App.Tests.csproj
+
+      - run: dotnet build FrontEnd/App.Tests/App.Tests.csproj -c Release --no-restore
+      - run: >
+          dotnet test FrontEnd/App.Tests/App.Tests.csproj -c Release --no-build
+          --logger "trx;LogFileName=web.trx" --results-directory TestResults
+
+      # Publish rather than build: this is the step deploy/render/Dockerfile runs, so a break here
+      # is a break in the deploy. It needs no wasm-tools workload — that Dockerfile proves it.
+      - run: dotnet publish FrontEnd/App.Web/App.Web.csproj -c Release --no-restore -o publish/web
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: web-test-results
+          path: TestResults/*.trx
+
+  android:
+    name: Mobile (Android head)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # The .NET Android build drives the Android SDK's Java tooling, and the .NET 10 head refuses
+      # anything but JDK 21 — error XA0030 names the version explicitly. The runner ships several
+      # JDKs, so pin one rather than inherit whichever happens to be default.
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      # maui-android only. maui-ios and maui-maccatalyst have no Linux packs at all, which is the
+      # whole reason those heads are not built here.
+      - run: dotnet workload install maui-android
+
+      # One command with -f and no separate restore: naming the framework makes this a
+      # single-target build, so MSBuild never evaluates the iOS and Mac Catalyst heads and never
+      # asks for workloads this runner cannot have. Debug because the question is "does it still
+      # compile", not "does it ship" — a store build is signed, and signing belongs in a release
+      # workflow. Leave this check non-required until it has proven itself over a few weeks;
+      # Android SDK provisioning on hosted runners is the part of this that churns.
+      - run: >
+          dotnet build FrontEnd/App.Mobile/App.Mobile.csproj -c Debug -f net10.0-android
+          -p:AndroidSdkDirectory=$ANDROID_HOME
+
+  security:
+    name: Security checks
+    runs-on: ubuntu-latest
+    steps:
+      # Full history: the secret scan is about what was ever committed, not about the tip.
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      # `dotnet list package --vulnerable` prints its findings and still exits 0, so the text is
+      # what decides. This mainly covers FrontEnd, which has no Directory.Build.props and so does
+      # not turn NU1903 into a build failure the way the backend does. Transitive packages are
+      # included because that is where advisories land — the EF Core and Npgsql stack pulls in a
+      # lot that no csproj names. The command restores implicitly, so no separate restore step.
+      - name: NuGet advisories
+        run: |
+          set -uo pipefail
+          status=0
+          for project in \
+            BackEnd/Sanathana.Companion.slnx \
+            FrontEnd/App.Web/App.Web.csproj \
+            FrontEnd/App.Tests/App.Tests.csproj
+          do
+            output=$(dotnet list "$project" package --vulnerable --include-transitive)
+            echo "$output"
+            case "$output" in
+              *"has the following vulnerable packages"*) status=1 ;;
+            esac
+          done
+          exit $status
+
+      # Advisory only: a deprecated package is a plan, not a failure.
+      - name: Deprecated packages
+        continue-on-error: true
+        run: dotnet list BackEnd/Sanathana.Companion.slnx package --deprecated --include-transitive
+
+      # .gitignore already keeps appsettings.Development.json, .env, *.pfx and *.key out of the
+      # tree; this checks that nothing slipped past before those rules existed. Run from the image
+      # rather than the marketplace action, which wants a licence key for organisation-owned repos.
+      - name: Secret scan
+        run: |
+          # Pinned, not :latest — `detect --source=` was deprecated in 8.19 in favour of the
+          # positional `gitleaks git <path>`, so a floating tag would one day fail on argument
+          # parsing rather than on a secret. GIT_CONFIG_* marks the bind mount safe: the container
+          # runs as root over files the runner user owns, which otherwise trips git's
+          # dubious-ownership check and reds the job for a reason unrelated to secrets.
+          docker run --rm \
+            -v "$PWD:/repo" \
+            -e GIT_CONFIG_COUNT=1 \
+            -e GIT_CONFIG_KEY_0=safe.directory \
+            -e GIT_CONFIG_VALUE_0=/repo \
+            ghcr.io/gitleaks/gitleaks:v8.30.1 \
+            git /repo --redact --no-banner --exit-code 1

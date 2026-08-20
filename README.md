@@ -183,9 +183,21 @@ original casing or punctuation.
 | POST | `/api/auth/login` | anon | Login with email-or-mobile + password → JWT |
 | GET  | `/api/dashboard` | Bearer | Protected placeholder dashboard |
 
-## Tests
-- Backend: `dotnet test BackEnd/Sanathana.Companion.slnx` (279 tests — seeding, register/login, JWT, BCrypt, validation, menu/platform filtering, localization).
-- Frontend: `dotnet test FrontEnd/App.Tests` (73 tests — request validation, the API route table, the mobile bottom-navigation rule).
+## Tests and CI
+- Backend: `dotnet test BackEnd/Sanathana.Companion.slnx` — seeding, register/login, JWT, BCrypt,
+  the password and credential policy, the HTML sanitizer, menu/platform filtering, localization.
+- Frontend: `dotnet test FrontEnd/App.Tests` — request validation, the API route table, the auth
+  pipeline, geolocation precision, the mobile bottom-navigation rule.
 
 Stop the API before running the backend suite: `dotnet test` cannot overwrite the DLLs a running
 `Sanathana.Companion.Api` holds open.
+
+`.github/workflows/ci.yml` runs both suites, publishes App.Web the way the deploy image does, and
+compiles the Android head, on every push and pull request to `main` and `development`. It exists
+because `render.yaml` deploys straight off a commit, so before it the first thing that built a
+pushed branch was production. Make **Backend**, **Web** and **Security checks** required; leave
+**Mobile (Android head)** advisory until Android SDK provisioning on hosted runners has proven
+itself. `global.json` pins the SDK so the runner and your machine cannot drift apart.
+
+The exact test counts are deliberately not written here — they were wrong within a month last
+time. The workflow is the thing that knows.
