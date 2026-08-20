@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Sanathana.Companion.Application.DTOs.ChantConfigs;
 using Sanathana.Companion.Application.Interfaces;
 
@@ -40,13 +41,15 @@ public class ChantConfigsController : ControllerBase
     }
 
     /// <summary>Streams the chant's audio. Public so it can be used directly in &lt;audio&gt;.</summary>
+    /// <remarks>Published rows only; see DeitiesController.GetImage for why there is no admin variant.</remarks>
     [HttpGet("{id:guid}/audio")]
     [AllowAnonymous]
+    [EnableRateLimiting("media")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetAudio(Guid id, CancellationToken cancellationToken)
     {
-        var (data, contentType, _) = await _service.GetAudioAsync(id, cancellationToken);
+        var (data, contentType, _) = await _service.GetAudioAsync(id, cancellationToken: cancellationToken);
         if (data is null || data.Length == 0) return NotFound();
         Response.Headers.CacheControl = "public, max-age=3600";
         // Range processing lets the player seek without re-downloading.

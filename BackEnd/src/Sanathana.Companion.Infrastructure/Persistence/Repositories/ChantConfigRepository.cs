@@ -46,10 +46,11 @@ public class ChantConfigRepository : BaseRepository<ChantConfig>, IChantConfigRe
 
     public async Task<(byte[]? Data, string? ContentType, string? FileName)> GetAudioAsync(
         Guid id,
+        bool includeInactive = false,
         CancellationToken cancellationToken = default)
     {
         var row = await Set.AsNoTracking()
-            .Where(c => c.Id == id)
+            .Where(c => c.Id == id && (includeInactive || c.IsActive))
             .Select(c => new { Data = c.Audio != null ? c.Audio.Data : null, c.AudioContentType, c.AudioFileName })
             .FirstOrDefaultAsync(cancellationToken);
 

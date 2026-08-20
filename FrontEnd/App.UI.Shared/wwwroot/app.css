@@ -1155,6 +1155,8 @@ button.sc-prefrow:disabled:hover { background: var(--color-surface-2); }
 
 /* 9:16 keeps every tile the same shape whatever the source image is. */
 .sc-wp-thumb { width: 100%; aspect-ratio: 9 / 16; object-fit: cover; display: block; background: var(--color-surface); }
+/* Stands in for a deactivated wallpaper, whose bytes the API no longer serves. */
+.sc-wp-thumb-placeholder { display: flex; align-items: center; justify-content: center; font-size: 2rem; opacity: 0.4; }
 .sc-wp-card figcaption { display: flex; flex-direction: column; gap: 0.1rem; padding: 0.45rem 0.6rem; min-width: 0; }
 .sc-wp-name { font-size: 0.85rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .sc-wp-meta { font-size: 0.75rem; color: var(--color-secondary); }

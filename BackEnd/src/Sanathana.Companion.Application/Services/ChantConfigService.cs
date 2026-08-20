@@ -103,8 +103,8 @@ public class ChantConfigService : IChantConfigService
         };
     }
 
-    public Task<(byte[]? Data, string? ContentType, string? FileName)> GetAudioAsync(Guid id, CancellationToken cancellationToken = default)
-        => _uow.ChantConfigs.GetAudioAsync(id, cancellationToken);
+    public Task<(byte[]? Data, string? ContentType, string? FileName)> GetAudioAsync(Guid id, bool includeInactive = false, CancellationToken cancellationToken = default)
+        => _uow.ChantConfigs.GetAudioAsync(id, includeInactive, cancellationToken);
 
     public async Task<ChantConfigFormOptionsDto> GetFormOptionsAsync(CancellationToken cancellationToken = default)
     {

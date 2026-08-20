@@ -14,7 +14,13 @@ public interface IWallpaperRepository : IRepository<Wallpaper>
     Task<IReadOnlyList<Wallpaper>> GetAllMetadataAsync(CancellationToken cancellationToken = default);
 
     /// <summary>Just the blob and its content type, for the image and download endpoints.</summary>
-    Task<(byte[]? Data, string? ContentType, string? Title)> GetImageAsync(Guid id, CancellationToken cancellationToken = default);
+    /// <summary>The stored bytes, or nulls when the row is missing or not published.</summary>
+    /// <param name="includeInactive">
+    /// Serves a deactivated row's bytes. Only an administrative caller should ask; there is no way
+    /// to tell from the request itself, because these bytes are fetched by an &lt;img&gt; or
+    /// &lt;audio&gt; element that carries no bearer token.
+    /// </param>
+    Task<(byte[]? Data, string? ContentType, string? Title)> GetImageAsync(Guid id, bool includeInactive = false, CancellationToken cancellationToken = default);
 
     /// <summary>How many wallpapers each deity has, so the picker can show counts without N queries.</summary>
     Task<IReadOnlyDictionary<Guid, int>> GetCountsByDeityAsync(bool activeOnly, CancellationToken cancellationToken = default);

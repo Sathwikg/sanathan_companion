@@ -12,12 +12,14 @@ namespace App.Core.Services;
 /// Deliberately independent of <see cref="RegionState"/>: the display language is a personal
 /// preference and must not change when the user switches region.
 /// <para>
-/// Intentionally NOT an <see cref="IUserSessionState"/>. It caches no user data — the bundle is
-/// public display text — and the chosen language is a device preference that should survive
-/// signing out rather than flashing back to English.
+/// It IS an <see cref="IUserSessionState"/>, but only to refetch — the chosen language is a device
+/// preference and survives signing out. The refetch is needed because the bundle's entity half
+/// ("EntityType:EntityKey:Field" → text) is served to authenticated callers only: its keys are row
+/// primary keys, and handing those to anonymous callers gave away the id of every translated
+/// deity, which is exactly what the anonymous image endpoint takes.
 /// </para>
 /// </remarks>
-public class LocalizationState
+public class LocalizationState : IUserSessionState
 {
     public const string BaseCode = "en";
 
@@ -52,6 +54,29 @@ public class LocalizationState
 
     /// <summary>Raised after the language changes so subscribers can re-render.</summary>
     public event Action? OnChanged;
+
+    /// <summary>
+    /// Refetches the current bundle because the signed-in user changed.
+    /// </summary>
+    /// <remarks>
+    /// The language itself is deliberately kept. What changes is what the server will send: an
+    /// anonymous caller gets labels only, a signed-in one also gets the entity translations.
+    /// Fire-and-forget because the interface is synchronous, and harmless because every subscriber
+    /// re-renders from OnChanged when the fresh bundle lands.
+    /// </remarks>
+    public void Reset()
+    {
+        var code = Bundle.Code;
+        if (string.IsNullOrWhiteSpace(code)) return;
+
+        _ = RefreshAsync(code);
+    }
+
+    private async Task RefreshAsync(string code)
+    {
+        try { await ApplyAsync(code, persist: false); }
+        catch { /* the cached bundle carries the UI until the next attempt */ }
+    }
 
     /// <summary>Safe to call from many components; the work happens once.</summary>
     public Task EnsureLoadedAsync() => _loadTask ??= LoadAsync();

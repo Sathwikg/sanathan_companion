@@ -87,7 +87,8 @@ else
                         {
                             <audio class="sc-audioplayer" controls src="@_newAudioDataUrl"></audio>
                         }
-                        else if (IsEdit && _hasExistingAudio && !_model.RemoveAudio)
+                        @* IsActive too; see DeityEdit for why. *@
+                        else if (IsEdit && _hasExistingAudio && !_model.RemoveAudio && _model.IsActive)
                         {
                             <audio class="sc-audioplayer" controls src="@ExistingAudioUrl"></audio>
                         }

@@ -73,7 +73,9 @@ else if (_view == "grid")
             <div class="sc-tile @(d.IsActive ? "" : "is-inactive")">
                 <div class="sc-tile-top">
                     <div class="sc-avatar">
-                        @if (d.HasImage) { <img src="@ImgSrc(d)" alt="@d.Name" /> } else { <span>🛕</span> }
+                        @* IsActive as well as HasImage: the image endpoint serves published rows only, so a
+                           deactivated deity has to fall through to the placeholder. *@
+                        @if (d.HasImage && d.IsActive) { <img src="@ImgSrc(d)" alt="@d.Name" /> } else { <span>🛕</span> }
                     </div>
                     <span class="sc-badge @(d.IsActive ? "on" : "off")">@(d.IsActive ? Loc["common.active", "Active"] : Loc["common.inactive", "Inactive"])</span>
                 </div>
@@ -111,7 +113,7 @@ else
                     <tr>
                         <td>
                             <div class="sc-avatar sc-avatar-sm">
-                                @if (d.HasImage) { <img src="@ImgSrc(d)" alt="@d.Name" /> } else { <span>🛕</span> }
+                                @if (d.HasImage && d.IsActive) { <img src="@ImgSrc(d)" alt="@d.Name" /> } else { <span>🛕</span> }
                             </div>
                         </td>
                         <td><strong>@d.Name</strong></td>

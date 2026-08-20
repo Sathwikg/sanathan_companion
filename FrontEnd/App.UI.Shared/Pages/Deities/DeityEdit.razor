@@ -40,7 +40,9 @@ else
                         {
                             <img src="@_previewUrl" alt="preview" />
                         }
-                        else if (IsEdit && _hasExistingImage && !_model.RemoveImage)
+                        @* IsActive too: the image endpoint serves published rows only, so the
+                           preview of something just deactivated would be a broken image. *@
+                        else if (IsEdit && _hasExistingImage && !_model.RemoveImage && _model.IsActive)
                         {
                             <img src="@ExistingImageUrl" alt="@_model.Name" />
                         }

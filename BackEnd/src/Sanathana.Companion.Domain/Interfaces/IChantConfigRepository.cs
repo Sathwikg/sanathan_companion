@@ -17,8 +17,15 @@ public interface IChantConfigRepository : IRepository<ChantConfig>
     Task<ChantConfig?> GetDetailAsync(Guid id, CancellationToken cancellationToken = default);
 
     /// <summary>The audio bytes plus the content type recorded on the parent.</summary>
+    /// <summary>The stored bytes, or nulls when the row is missing or not published.</summary>
+    /// <param name="includeInactive">
+    /// Serves a deactivated row's bytes. Only an administrative caller should ask; there is no way
+    /// to tell from the request itself, because these bytes are fetched by an &lt;img&gt; or
+    /// &lt;audio&gt; element that carries no bearer token.
+    /// </param>
     Task<(byte[]? Data, string? ContentType, string? FileName)> GetAudioAsync(
         Guid id,
+        bool includeInactive = false,
         CancellationToken cancellationToken = default);
 
     Task<ChantConfigAudio?> GetAudioEntityAsync(Guid id, CancellationToken cancellationToken = default);

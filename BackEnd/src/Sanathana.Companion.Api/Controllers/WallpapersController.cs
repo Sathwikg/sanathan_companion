@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Sanathana.Companion.Application.DTOs.Wallpapers;
 using Sanathana.Companion.Application.Interfaces;
 
@@ -39,13 +40,15 @@ public class WallpapersController : ControllerBase
     }
 
     /// <summary>Serves the image for display. Anonymous so it can be used directly in &lt;img&gt;.</summary>
+    /// <remarks>Published rows only; see DeitiesController.GetImage for why there is no admin variant.</remarks>
     [HttpGet("{id:guid}/image")]
     [AllowAnonymous]
+    [EnableRateLimiting("media")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetImage(Guid id, CancellationToken cancellationToken)
     {
-        var (data, contentType, _) = await _service.GetImageAsync(id, cancellationToken);
+        var (data, contentType, _) = await _service.GetImageAsync(id, cancellationToken: cancellationToken);
         if (data is null || data.Length == 0) return NotFound();
 
         Response.Headers.CacheControl = "public, max-age=86400";
@@ -59,11 +62,12 @@ public class WallpapersController : ControllerBase
     /// </summary>
     [HttpGet("{id:guid}/download")]
     [AllowAnonymous]
+    [EnableRateLimiting("media")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Download(Guid id, CancellationToken cancellationToken)
     {
-        var (data, contentType, title) = await _service.GetImageAsync(id, cancellationToken);
+        var (data, contentType, title) = await _service.GetImageAsync(id, cancellationToken: cancellationToken);
         if (data is null || data.Length == 0) return NotFound();
 
         return File(data, contentType ?? "application/octet-stream", BuildFileName(title, contentType, id));

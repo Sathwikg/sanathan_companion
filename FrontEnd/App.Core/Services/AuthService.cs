@@ -40,8 +40,12 @@ public class AuthService : IAuthService
         if (!success || data is null)
             return (false, string.IsNullOrWhiteSpace(error) ? "Login failed." : error);
 
-        ResetUserState();
+        // Token first, then reset. A reset can start a refetch — LocalizationState does — and it
+        // has to carry the new token, not the old one or none. Still before
+        // NotifyAuthenticationChanged, which is what actually re-renders the app, so no stale
+        // cache is ever on screen.
         await _tokenStore.SetTokenAsync(data.Token);
+        ResetUserState();
         // Re-arm the expiry latch, or the first 401 of the PREVIOUS session would still be
         // silencing the next one.
         _sessionExpired.Reset();
@@ -51,8 +55,10 @@ public class AuthService : IAuthService
 
     public async Task LogoutAsync()
     {
-        ResetUserState();
+        // Same ordering argument as sign-in: clear the token first so a reset-triggered refetch
+        // runs as an anonymous caller and gets the anonymous answer.
         await _tokenStore.ClearTokenAsync();
+        ResetUserState();
         _authProvider.NotifyAuthenticationChanged();
     }
 }

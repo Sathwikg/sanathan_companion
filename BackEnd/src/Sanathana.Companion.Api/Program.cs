@@ -152,6 +152,24 @@ try
                     QueueLimit = 0
                 }));
 
+        // The four media endpoints are anonymous by necessity — an <img> or <audio> cannot carry
+        // a bearer token — so the URL alone pulls megabytes. Partitioned on the address only: the
+        // auth policy's second, credential dimension has no equivalent here, since the request
+        // carries nothing that identifies a caller.
+        //
+        // 240 rather than something tighter because the audio endpoint enables range processing,
+        // so one seeker scrubbing through a chant spends many permits on a single file, and a 429
+        // on an <img> is a silently broken element rather than a visible error.
+        options.AddPolicy("media", httpContext =>
+            RateLimitPartition.GetFixedWindowLimiter(
+                partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                factory: _ => new FixedWindowRateLimiterOptions
+                {
+                    PermitLimit = builder.Configuration.GetValue("RateLimits:MediaPerMinute", 240),
+                    Window = TimeSpan.FromMinutes(1),
+                    QueueLimit = 0
+                }));
+
         // Panchangam compute is a few thousand series evaluations per call. The cache in front of
         // it only helps for coordinates someone has already asked about, so the endpoint still
         // needs a ceiling of its own.

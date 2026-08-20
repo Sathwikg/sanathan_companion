@@ -32,8 +32,8 @@ public class DeityService : IDeityService
         return d is null ? null : ToDto(d);
     }
 
-    public Task<(byte[]? Data, string? ContentType)> GetImageAsync(Guid id, CancellationToken cancellationToken = default)
-        => _uow.Deities.GetImageAsync(id, cancellationToken);
+    public Task<(byte[]? Data, string? ContentType)> GetImageAsync(Guid id, bool includeInactive = false, CancellationToken cancellationToken = default)
+        => _uow.Deities.GetImageAsync(id, includeInactive, cancellationToken);
 
     public async Task<Guid> CreateAsync(CreateDeityDto dto, CancellationToken cancellationToken = default)
     {

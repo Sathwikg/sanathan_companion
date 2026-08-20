@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Sanathana.Companion.Application.DTOs.Deities;
 using Sanathana.Companion.Application.Interfaces;
 
@@ -35,13 +36,21 @@ public class DeitiesController : ControllerBase
     }
 
     /// <summary>Serves the deity's profile picture blob. Public so it can be used directly in &lt;img&gt;.</summary>
+    /// <remarks>
+    /// Only published rows are served: deactivating a deity has to stop its picture being handed
+    /// out, and nothing about the request says otherwise — these bytes are fetched by an
+    /// &lt;img&gt; element, which carries no bearer token, so there is no privileged variant to
+    /// branch on. An administrator previewing something they have just deactivated needs a
+    /// credential the browser can actually attach.
+    /// </remarks>
     [HttpGet("{id:guid}/image")]
     [AllowAnonymous]
+    [EnableRateLimiting("media")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetImage(Guid id, CancellationToken cancellationToken)
     {
-        var (data, contentType) = await _service.GetImageAsync(id, cancellationToken);
+        var (data, contentType) = await _service.GetImageAsync(id, cancellationToken: cancellationToken);
         if (data is null || data.Length == 0) return NotFound();
         Response.Headers.CacheControl = "public, max-age=3600";
         return File(data, contentType ?? "application/octet-stream");

@@ -88,6 +88,24 @@ public class DeityServiceTests
     }
 
     [Fact]
+    public async Task A_deactivated_deity_stops_serving_its_picture()
+    {
+        // Deactivating content has to stop it being handed out. The endpoint is anonymous — an
+        // <img> carries no bearer token — so there is nothing in the request to branch on.
+        using var harness = new TestHarness();
+        var service = CreateService(harness);
+        var id = await service.CreateAsync(new CreateDeityDto { Name = "Shiva", DeityType = "God", ImageBase64 = SampleImage });
+
+        Assert.NotNull((await service.GetImageAsync(id)).Data);
+
+        await service.SetActiveAsync(id, false);
+
+        Assert.Null((await service.GetImageAsync(id)).Data);
+        // Still reachable for a caller that has already proved it may see unpublished rows.
+        Assert.NotNull((await service.GetImageAsync(id, includeInactive: true)).Data);
+    }
+
+    [Fact]
     public async Task Create_duplicate_name_throws_Conflict()
     {
         using var harness = new TestHarness();

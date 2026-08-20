@@ -64,7 +64,16 @@ else
         @foreach (var w in _wallpapers)
         {
             <figure class="sc-wp-card @(w.IsActive ? null : "inactive")">
-                <img class="sc-wp-thumb" src="@ImgSrc(w.Id)" alt="@(w.Title ?? _selectedDeity.Name)" loading="lazy" />
+                @* Deactivated wallpapers are no longer served, so show this page's own empty
+                   glyph rather than letting the browser draw a broken image. *@
+                @if (w.IsActive)
+                {
+                    <img class="sc-wp-thumb" src="@ImgSrc(w.Id)" alt="@(w.Title ?? _selectedDeity.Name)" loading="lazy" />
+                }
+                else
+                {
+                    <div class="sc-wp-thumb sc-wp-thumb-placeholder">🖼️</div>
+                }
                 <figcaption>
                     <span class="sc-wp-name">@(string.IsNullOrWhiteSpace(w.Title) ? Loc["wallpapers.untitled", "Untitled"] : w.Title)</span>
                     <span class="sc-wp-meta">@w.SizeLabel</span>

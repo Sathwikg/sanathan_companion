@@ -41,10 +41,10 @@ public class WallpaperRepository : BaseRepository<Wallpaper>, IWallpaperReposito
             .ToListAsync(cancellationToken);
 
     public async Task<(byte[]? Data, string? ContentType, string? Title)> GetImageAsync(
-        Guid id, CancellationToken cancellationToken = default)
+        Guid id, bool includeInactive = false, CancellationToken cancellationToken = default)
     {
         var row = await Set.AsNoTracking()
-            .Where(w => w.Id == id)
+            .Where(w => w.Id == id && (includeInactive || w.IsActive))
             .Select(w => new { w.ImageData, w.ImageContentType, w.Title })
             .FirstOrDefaultAsync(cancellationToken);
 

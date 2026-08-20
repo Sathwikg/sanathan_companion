@@ -72,8 +72,8 @@ public class WallpaperService : IWallpaperService
     }
 
     public Task<(byte[]? Data, string? ContentType, string? Title)> GetImageAsync(
-        Guid id, CancellationToken cancellationToken = default)
-        => _uow.Wallpapers.GetImageAsync(id, cancellationToken);
+        Guid id, bool includeInactive = false, CancellationToken cancellationToken = default)
+        => _uow.Wallpapers.GetImageAsync(id, includeInactive, cancellationToken);
 
     public async Task<WallpaperUploadResultDto> CreateAsync(
         CreateWallpapersDto dto, CancellationToken cancellationToken = default)

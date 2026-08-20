@@ -26,13 +26,28 @@ public class LocalizationController : ControllerBase
 
     /// <summary>
     /// The merged label + entity bundle for a language. Anonymous for the same reason as
-    /// <see cref="GetLocales"/>; it contains only display text, no user data.
+    /// <see cref="GetLocales"/>: the login screen has to be localized before anyone can sign in.
     /// </summary>
+    /// <remarks>
+    /// The entity half is withheld from anonymous callers. Its keys are "EntityType:EntityKey:Field",
+    /// and EntityKey is the row's primary key — so an unauthenticated fetch of, say, the Telugu
+    /// bundle handed out the GUID of every translated deity, which is exactly what
+    /// <c>deities/{id}/image</c> takes. Nothing on the login screen needs it: every screen that
+    /// renders translated database content sits behind [Authorize], and the client refetches the
+    /// bundle after sign-in.
+    /// </remarks>
     [AllowAnonymous]
     [HttpGet("bundle/{code}")]
     [ProducesResponseType(typeof(LocalizationBundleDto), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetBundle(string code, CancellationToken cancellationToken)
-        => Ok(await _service.GetBundleAsync(code, cancellationToken));
+    {
+        var bundle = await _service.GetBundleAsync(code, cancellationToken);
+
+        if (User.Identity?.IsAuthenticated != true)
+            bundle.Entities = new Dictionary<string, string>();
+
+        return Ok(bundle);
+    }
 
     // ---------------- admin editing surface ----------------
 

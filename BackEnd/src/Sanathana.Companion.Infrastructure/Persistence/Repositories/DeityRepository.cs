@@ -27,10 +27,10 @@ public class DeityRepository : BaseRepository<Deity>, IDeityRepository
             })
             .ToListAsync(cancellationToken);
 
-    public async Task<(byte[]? Data, string? ContentType)> GetImageAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<(byte[]? Data, string? ContentType)> GetImageAsync(Guid id, bool includeInactive = false, CancellationToken cancellationToken = default)
     {
         var row = await Set.AsNoTracking()
-            .Where(d => d.Id == id)
+            .Where(d => d.Id == id && (includeInactive || d.IsActive))
             .Select(d => new { d.ImageData, d.ImageContentType })
             .FirstOrDefaultAsync(cancellationToken);
         return (row?.ImageData, row?.ImageContentType);

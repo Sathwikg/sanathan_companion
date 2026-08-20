@@ -12,7 +12,8 @@ public interface IChantConfigService
 
     Task<ChantConfigDto?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
 
-    Task<(byte[]? Data, string? ContentType, string? FileName)> GetAudioAsync(Guid id, CancellationToken cancellationToken = default);
+    /// <summary>The stored bytes, or nulls when the row is missing or not published.</summary>
+    Task<(byte[]? Data, string? ContentType, string? FileName)> GetAudioAsync(Guid id, bool includeInactive = false, CancellationToken cancellationToken = default);
 
     Task<ChantConfigFormOptionsDto> GetFormOptionsAsync(CancellationToken cancellationToken = default);
 

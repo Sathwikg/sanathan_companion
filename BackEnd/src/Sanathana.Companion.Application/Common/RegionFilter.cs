@@ -7,6 +7,12 @@ namespace Sanathana.Companion.Application.Common;
 /// <see cref="Deity.Regions"/> holds region NAMES while <see cref="Festival.Regions"/> holds region IDs.
 /// In both cases an EMPTY mapping means "applies everywhere".
 /// </summary>
+/// <remarks>
+/// The region is chosen by the caller — it arrives as a query parameter, and any seeker can change
+/// their own with PUT profile/region — so this is a relevance filter, not a security boundary. That
+/// is why the media endpoints do not apply it. If region ever has to restrict rather than merely
+/// narrow, it has to become a server-derived property of the user first.
+/// </remarks>
 public static class RegionFilter
 {
     /// <summary>True when the deity belongs to <paramref name="regionName"/> (or is mapped to no region).</summary>

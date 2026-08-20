@@ -54,6 +54,9 @@ public static class CoreServiceCollectionExtensions
         // Also a session state: signing out must cancel the scheduled reminders, or the previous
         // seeker's 06:00 sadhana nudge keeps firing on the next account's phone.
         services.AddScoped<IUserSessionState>(sp => sp.GetRequiredService<NotificationCenterState>());
+        // Also a session state, though it caches no user data: the bundle's entity half is served
+        // to authenticated callers only, so signing in has to fetch it again.
+        services.AddScoped<IUserSessionState>(sp => sp.GetRequiredService<LocalizationState>());
 
         services.AddHttpClient<IApiClient, ApiClient>(client =>
             {
