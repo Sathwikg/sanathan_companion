@@ -8,15 +8,19 @@ public class PanchangamRepository : BaseRepository<Panchangam>, IPanchangamRepos
 {
     public PanchangamRepository(ApplicationDbContext context) : base(context) { }
 
-    public async Task<IReadOnlyList<Panchangam>> GetFilteredAsync(
+    public async Task<(IReadOnlyList<Panchangam> Rows, int TotalCount)> GetPagedAsync(
         int? year,
         Guid? regionId,
         DateOnly? from,
         DateOnly? to,
         string? search,
+        int page,
+        int pageSize,
         CancellationToken cancellationToken = default)
     {
-        var query = Set.AsNoTracking().Include(p => p.Region).AsQueryable();
+        // No Include on the base query: it is also what the count runs over, and a COUNT has no
+        // business joining Regions.
+        var query = Set.AsNoTracking().AsQueryable();
 
         if (year is not null) query = query.Where(p => p.Year == year);
         if (regionId is not null) query = query.Where(p => p.RegionId == regionId);
@@ -33,7 +37,16 @@ public class PanchangamRepository : BaseRepository<Panchangam>, IPanchangamRepos
                 (p.TeluguSamvatsaram != null && EF.Functions.ILike(p.TeluguSamvatsaram, term, SqlLike.EscapeChar)));
         }
 
-        return await query.OrderBy(p => p.Date).ThenBy(p => p.Region!.Name).ToListAsync(cancellationToken);
+        var total = await query.CountAsync(cancellationToken);
+
+        var rows = await query
+            .Include(p => p.Region)
+            .OrderBy(p => p.Date).ThenBy(p => p.Region!.Name)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+
+        return (rows, total);
     }
 
     public async Task<Panchangam?> GetByDateAsync(DateOnly date, Guid regionId, CancellationToken cancellationToken = default)

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Sanathana.Companion.Application.DTOs.Panchangams;
 using Sanathana.Companion.Application.Interfaces;
 
@@ -14,17 +15,22 @@ public class PanchangamController : ControllerBase
 
     public PanchangamController(IPanchangamService service) => _service = service;
 
-    /// <summary>Stored Panchangam rows, filterable by year / region / date range / text.</summary>
+    /// <summary>
+    /// A page of stored Panchangam rows, filterable by year / region / date range / text.
+    /// </summary>
+    /// <remarks>Returns an envelope, not a bare array — the response used to be unbounded.</remarks>
     [HttpGet]
-    [ProducesResponseType(typeof(IReadOnlyList<PanchangamDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(PanchangamPageDto), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll(
         [FromQuery] int? year,
         [FromQuery] Guid? regionId,
         [FromQuery] DateOnly? from,
         [FromQuery] DateOnly? to,
         [FromQuery] string? search,
-        CancellationToken cancellationToken)
-        => Ok(await _service.GetAllAsync(year, regionId, from, to, search, cancellationToken));
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 200,
+        CancellationToken cancellationToken = default)
+        => Ok(await _service.GetAllAsync(year, regionId, from, to, search, page, pageSize, cancellationToken));
 
     /// <summary>Years for which stored data exists, plus the selectable regions.</summary>
     [HttpGet("options")]
@@ -57,6 +63,7 @@ public class PanchangamController : ControllerBase
     /// fix to two decimal places before it is sent — see GeoPrecision — so nothing sharper than a
     /// neighbourhood arrives here in the first place.
     /// </remarks>
+    [EnableRateLimiting("compute")]
     [HttpPost("compute")]
     [ProducesResponseType(typeof(PanchangamDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -76,6 +83,9 @@ public class PanchangamController : ControllerBase
     }
 
     /// <summary>Generate and store a whole year for one region (or all regions with coordinates).</summary>
+    // Throttled too, and it is the heavier of the two by far: one call computes 365 days per
+    // region inside a single request.
+    [EnableRateLimiting("compute")]
     [Authorize(Roles = "Admin")]
     [HttpPost("generate")]
     [ProducesResponseType(typeof(GenerateResultDto), StatusCodes.Status200OK)]

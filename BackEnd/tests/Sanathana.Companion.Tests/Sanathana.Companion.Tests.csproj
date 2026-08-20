@@ -26,6 +26,11 @@
     <Using Include="Xunit" />
   </ItemGroup>
 
+  <!-- The Panchangam golden file, read at run time so a failure shows a readable diff. -->
+  <ItemGroup>
+    <None Update="TestData\**\*" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
   <!-- The result filter under test lives in the Api project, so the tests need ASP.NET Core types. -->
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />

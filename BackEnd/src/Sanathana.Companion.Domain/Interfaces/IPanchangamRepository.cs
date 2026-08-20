@@ -4,12 +4,21 @@ namespace Sanathana.Companion.Domain.Interfaces;
 
 public interface IPanchangamRepository : IRepository<Panchangam>
 {
-    Task<IReadOnlyList<Panchangam>> GetFilteredAsync(
+    /// <summary>
+    /// One page of matching rows, ordered by date then region name, with the unpaged total.
+    /// </summary>
+    /// <remarks>
+    /// The ordering is a total order — region names are unique — so paging cannot duplicate or
+    /// skip a row.
+    /// </remarks>
+    Task<(IReadOnlyList<Panchangam> Rows, int TotalCount)> GetPagedAsync(
         int? year,
         Guid? regionId,
         DateOnly? from,
         DateOnly? to,
         string? search,
+        int page,
+        int pageSize,
         CancellationToken cancellationToken = default);
 
     Task<Panchangam?> GetByDateAsync(DateOnly date, Guid regionId, CancellationToken cancellationToken = default);

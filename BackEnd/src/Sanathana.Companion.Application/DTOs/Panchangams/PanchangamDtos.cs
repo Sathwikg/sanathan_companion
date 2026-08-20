@@ -60,6 +60,19 @@ public class PanchangamDto
     public bool IsActive { get; set; } = true;
 }
 
+/// <summary>A bounded page of stored rows, shaped like DictionaryPageDto — the house paging envelope.</summary>
+/// <remarks>
+/// The endpoint used to return every row a filter matched, which for a generated year is a few
+/// hundred per region and grows with every year anyone generates.
+/// </remarks>
+public class PanchangamPageDto
+{
+    public List<PanchangamDto> Rows { get; set; } = new();
+    public int TotalCount { get; set; }
+    public int Page { get; set; }
+    public int PageSize { get; set; }
+}
+
 /// <summary>
 /// Where and when to compute a Panchangam for. Carried in the request body rather than the query
 /// string because latitude and longitude are the seeker's position, and a query string is written

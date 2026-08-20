@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Globalization;
 using static Sanathana.Companion.Application.Panchangam.PanchangamTables;
 
@@ -276,13 +277,17 @@ public static class PanchangamCalculator
     {
         // walk back until elongation is descending through the wrap point
         double t = seed;
+        double e = Elongation(t);
         for (int i = 0; i < 800; i++)
         {
-            double e = Elongation(t);
+            // The next iteration's e is this one's ePrev, at a bit-identical argument (t -= 0.05
+            // produces exactly the double that t - 0.05 produced here), and Elongation is pure.
+            // Carrying it forward halves the walk without changing a single output.
             double ePrev = Elongation(t - 0.05);
             if (e < ePrev && ePrev > 300 && e < 60) break;      // wrap sits between t-0.05 and t
             if (e < 60 && ePrev > 300) break;
             t -= 0.05;
+            e = ePrev;
         }
         double lo = t - 0.05, hi = t;
         for (int i = 0; i < 80; i++)
@@ -307,8 +312,17 @@ public static class PanchangamCalculator
         return saka;
     }
 
+    /// <summary>
+    /// Pure in the year, and reached up to twice per Compute through ResolveSakaYear — each call
+    /// runs one or two amavasya searches. Bounded to about 200 entries by the 1900-2100 guard in
+    /// ComputeAtLocationAsync and GenerateAsync, which is why that guard is not optional.
+    /// </summary>
+    static readonly ConcurrentDictionary<int, double> UgadiCache = new();
+
+    static double UgadiJd(int gregorianYear) => UgadiCache.GetOrAdd(gregorianYear, ComputeUgadiJd);
+
     /// <summary>Ugadi = the sunrise-day following the Amavasya that ends Phalgunam.</summary>
-    static double UgadiJd(int gregorianYear)
+    static double ComputeUgadiJd(int gregorianYear)
     {
         // search the amavasya closest to mid-March
         double seed = Astro.JulianDay(gregorianYear, 3, 20.0) - IstOffsetHours / 24.0;

@@ -151,6 +151,19 @@ try
                     Window = TimeSpan.FromMinutes(1),
                     QueueLimit = 0
                 }));
+
+        // Panchangam compute is a few thousand series evaluations per call. The cache in front of
+        // it only helps for coordinates someone has already asked about, so the endpoint still
+        // needs a ceiling of its own.
+        options.AddPolicy("compute", httpContext =>
+            RateLimitPartition.GetFixedWindowLimiter(
+                partitionKey: ComputeRateLimitPartition.For(httpContext),
+                factory: _ => new FixedWindowRateLimiterOptions
+                {
+                    PermitLimit = builder.Configuration.GetValue("RateLimits:ComputePerMinute", 30),
+                    Window = TimeSpan.FromMinutes(1),
+                    QueueLimit = 0
+                }));
     });
 
     // CORS: wide open only in Development; production restricts to configured origins.
@@ -247,8 +260,12 @@ try
     // copy-pasted options lambda can put a seeker's coordinates back into the log line.
     app.UseSerilogRequestLogging(o => o.IncludeQueryInRequestPath = false);
     app.UseCors("Default");
-    app.UseRateLimiter();
     app.UseAuthentication();
+    // After authentication, deliberately: the compute policy partitions on the signed-in user, and
+    // before this the limiter saw an anonymous principal and fell back to the address for
+    // everybody. The "auth" policy is unaffected by the move — it reads only the remote address
+    // and a request header, both available anywhere in the pipeline.
+    app.UseRateLimiter();
     app.UseAuthorization();
     app.MapControllers();
 

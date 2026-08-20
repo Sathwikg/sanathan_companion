@@ -12,15 +12,35 @@ namespace Sanathana.Companion.Application.Services;
 public class PanchangamService : IPanchangamService
 {
     private readonly IUnitOfWork _uow;
+    private readonly IPanchangamComputeCache _compute;
 
-    public PanchangamService(IUnitOfWork uow) => _uow = uow;
-
-    public async Task<IReadOnlyList<PanchangamDto>> GetAllAsync(
-        int? year, Guid? regionId, DateOnly? from, DateOnly? to, string? search,
-        CancellationToken cancellationToken = default)
+    public PanchangamService(IUnitOfWork uow, IPanchangamComputeCache compute)
     {
-        var items = await _uow.Panchangams.GetFilteredAsync(year, regionId, from, to, search, cancellationToken);
-        return items.Select(ToDto).ToList();
+        _uow = uow;
+        _compute = compute;
+    }
+
+    public async Task<PanchangamPageDto> GetAllAsync(
+        int? year, Guid? regionId, DateOnly? from, DateOnly? to, string? search,
+        int page = 1, int pageSize = 200, CancellationToken cancellationToken = default)
+    {
+        pageSize = Math.Clamp(pageSize, 1, 500);
+
+        // Unlike DictionaryService, an over-range page is NOT pulled back to the last page: the
+        // total only comes back with the rows, and a second round trip to clamp it is not worth
+        // the honesty of an empty page with a truthful count.
+        page = Math.Max(page, 1);
+
+        var (rows, total) = await _uow.Panchangams.GetPagedAsync(
+            year, regionId, from, to, search, page, pageSize, cancellationToken);
+
+        return new PanchangamPageDto
+        {
+            Rows = rows.Select(ToDto).ToList(),
+            TotalCount = total,
+            Page = page,
+            PageSize = pageSize
+        };
     }
 
     public async Task<PanchangamDto?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
@@ -39,9 +59,13 @@ public class PanchangamService : IPanchangamService
     {
         if (latitude is < -90 or > 90) throw new BadRequestException("Latitude must be between -90 and 90.");
         if (longitude is < -180 or > 180) throw new BadRequestException("Longitude must be between -180 and 180.");
+        // The same window GenerateAsync enforces. Astro's delta-T approximation is fitted to this
+        // era, and an unbounded date is also an unbounded cache-key domain.
+        if (date.Year < 1900 || date.Year > 2100) throw new BadRequestException("Date must be between 1900 and 2100.");
 
-        var day = PanchangamCalculator.Compute(date, latitude, longitude);
+        var day = _compute.GetOrCompute(date, latitude, longitude);
         var dto = ToDto(day);
+        // The caller's own coordinates come back; only the astronomy is cell-rounded.
         dto.Latitude = latitude;
         dto.Longitude = longitude;
         // Two decimals, matching what the clients now send; four implied a precision that no

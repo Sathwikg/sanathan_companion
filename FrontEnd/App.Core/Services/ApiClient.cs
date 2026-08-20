@@ -359,8 +359,11 @@ public class ApiClient : IApiClient
     public async Task<PanchangamOptions> GetPanchangamOptionsAsync()
         => await _http.GetFromJsonAsync<PanchangamOptions>(ApiRoutes.Panchangam.Options) ?? new();
 
+    // The API answers with a page envelope now. The signature stays a plain list because the only
+    // caller asks for one day, and ApiRoutes.Panchangam.List deliberately carries no page
+    // parameters — the server's defaults are the right ones here.
     public async Task<List<PanchangamModel>> GetPanchangamsAsync(int? year = null, Guid? regionId = null, DateOnly? from = null, DateOnly? to = null, string? search = null)
-        => await _http.GetFromJsonAsync<List<PanchangamModel>>(ApiRoutes.Panchangam.List(year, regionId, from, to, search)) ?? new();
+        => (await _http.GetFromJsonAsync<PanchangamPage>(ApiRoutes.Panchangam.List(year, regionId, from, to, search)))?.Rows ?? new();
 
     public async Task<PanchangamModel?> GetPanchangamByDateAsync(DateOnly date, Guid regionId)
     {

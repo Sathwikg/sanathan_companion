@@ -4,9 +4,9 @@ namespace Sanathana.Companion.Application.Interfaces;
 
 public interface IPanchangamService
 {
-    Task<IReadOnlyList<PanchangamDto>> GetAllAsync(
+    Task<PanchangamPageDto> GetAllAsync(
         int? year, Guid? regionId, DateOnly? from, DateOnly? to, string? search,
-        CancellationToken cancellationToken = default);
+        int page = 1, int pageSize = 200, CancellationToken cancellationToken = default);
 
     Task<PanchangamDto?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
 

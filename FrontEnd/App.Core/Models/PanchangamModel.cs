@@ -51,6 +51,15 @@ public class PanchangamOptions
     public List<PanchangamRegionOption> Regions { get; set; } = new();
 }
 
+/// <summary>The API's paging envelope for stored rows.</summary>
+public class PanchangamPage
+{
+    public List<PanchangamModel> Rows { get; set; } = new();
+    public int TotalCount { get; set; }
+    public int Page { get; set; }
+    public int PageSize { get; set; }
+}
+
 /// <summary>Body of the compute call; see ApiRoutes.Panchangam.Compute for why it is a body.</summary>
 public class ComputePanchangamRequest
 {
