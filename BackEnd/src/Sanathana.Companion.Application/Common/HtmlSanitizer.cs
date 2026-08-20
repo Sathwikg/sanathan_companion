@@ -34,16 +34,24 @@ public static partial class HtmlSanitizer
     [GeneratedRegex(@"([a-zA-Z_:][-a-zA-Z0-9_:.]*)\s*=\s*(?:""([^""]*)""|'([^']*)'|([^\s""'>]+))")]
     private static partial Regex AttributeRegex();
 
-    /// <summary>A "&lt;" that has no closing "&gt;" before the next "&lt;" or end of input — i.e. a
-    /// dangling/unterminated tag such as "&lt;svg onload=…" that the whitelist pass cannot see.</summary>
-    [GeneratedRegex(@"<(?![^<>]*>)")]
-    private static partial Regex DanglingLtRegex();
+    /// <summary>Control characters used to fence off tags this sanitizer itself emitted.</summary>
+    /// <remarks>
+    /// Stripped from the input first, so nothing arriving from outside can forge a fence.
+    /// </remarks>
+    private const char TagOpen = '\u0001';
+    private const char TagClose = '\u0002';
+
+    [GeneratedRegex(@"[\u0000-\u0008\u000B\u000C\u000E-\u001F]")]
+    private static partial Regex ControlCharRegex();
 
     public static string Sanitize(string? html)
     {
         if (string.IsNullOrWhiteSpace(html)) return string.Empty;
 
-        var working = CommentRegex().Replace(html, string.Empty);
+        // Control characters go first: the rewrite below fences the tags it emits with two of
+        // them, and an input that could carry its own fence would escape the encoding pass.
+        var working = ControlCharRegex().Replace(html, string.Empty);
+        working = CommentRegex().Replace(working, string.Empty);
 
         // Run to a fixed point so nested/split constructs can't survive one pass.
         string previous;
@@ -54,13 +62,29 @@ public static partial class HtmlSanitizer
         }
         while (!ReferenceEquals(previous, working) && previous != working);
 
-        working = TagRegex().Replace(working, RewriteTag);
+        // Fence every tag this sanitizer emits, so the encoding pass below can tell them apart
+        // from anything the whitelist pass failed to match.
+        working = TagRegex().Replace(working, match =>
+        {
+            var rewritten = RewriteTag(match);
+            // The fence chars stand IN PLACE OF the tag's own angle brackets, so the encoding
+            // pass below cannot touch them. RewriteTag always emits "<...>" and escapes any
+            // angle bracket inside an attribute value, so the first and last chars are safe to drop.
+            return rewritten.Length == 0
+                ? string.Empty
+                : TagOpen + rewritten[1..^1] + TagClose;
+        });
 
-        // The whitelist above only matches tags that have a closing ">". A dangling tag with no
-        // ">" (e.g. "<svg onload=alert(1)" at end of input) would otherwise survive verbatim and,
-        // when the body is rendered as raw HTML, let the browser consume following markup as
-        // attributes and fire an event handler. Encode any such unterminated "<".
-        working = DanglingLtRegex().Replace(working, "&lt;");
+        // Anything still carrying a "<" was NOT rewritten, which means TagRegex could not match it.
+        // That is not only the obvious dangling "<svg onload=…" with no ">": TagRegex reads
+        // attributes as unquoted runs or COMPLETE quoted strings, so a tag containing an unmatched
+        // quote — <img src=x onerror=alert(1) title=" — matches nothing at all and used to be
+        // emitted verbatim, straight into a body that is rendered as raw HTML. Encoding every
+        // surviving "<" closes the whole class rather than the one shape of it.
+        working = working.Replace("<", "&lt;");
+
+        // Restore the sanitizer's own tags.
+        working = working.Replace(TagOpen, '<').Replace(TagClose, '>');
 
         return working.Trim();
     }
@@ -143,6 +167,11 @@ public static partial class HtmlSanitizer
 
         // Defeat "java\tscript:" style obfuscation before inspecting the scheme.
         var probe = new string(url.Where(c => !char.IsWhiteSpace(c) && c != '\0').ToArray()).ToLowerInvariant();
+
+        // "//evil.com" is protocol-relative: the browser resolves it against the page's own scheme
+        // and lands on someone else's host. It passed the StartsWith('/') test that was meant to
+        // allow same-site paths, so it has to be rejected before that test is reached.
+        if (probe.StartsWith("//", StringComparison.Ordinal)) return null;
 
         if (probe.StartsWith("http://", StringComparison.Ordinal) ||
             probe.StartsWith("https://", StringComparison.Ordinal) ||
