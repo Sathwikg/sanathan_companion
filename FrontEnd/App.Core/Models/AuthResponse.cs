@@ -21,3 +21,10 @@ public class RefreshRequest
 {
     public string RefreshToken { get; set; } = string.Empty;
 }
+
+/// <summary>A media ticket and the moment it stops being accepted.</summary>
+public class MediaTicket
+{
+    public string Ticket { get; set; } = string.Empty;
+    public DateTime ExpiresAtUtc { get; set; }
+}

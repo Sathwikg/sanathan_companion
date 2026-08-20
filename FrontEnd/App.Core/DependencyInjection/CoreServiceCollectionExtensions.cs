@@ -67,6 +67,9 @@ public static class CoreServiceCollectionExtensions
         // Also a session state, though it caches no user data: the bundle's entity half is served
         // to authenticated callers only, so signing in has to fetch it again.
         services.AddScoped<IUserSessionState>(sp => sp.GetRequiredService<LocalizationState>());
+        // The media ticket outlives a page but not a session.
+        services.AddScoped<MediaUrlBuilder>();
+        services.AddScoped<IUserSessionState>(sp => sp.GetRequiredService<MediaUrlBuilder>());
 
         // A bare client for the refresh call itself: no handlers, because refreshing through the
         // typed client would send the request back through SessionExpiryHandler and a 401 on the

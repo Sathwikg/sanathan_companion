@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Sanathana.Companion.Api.Filters;
 using Microsoft.AspNetCore.RateLimiting;
 using Sanathana.Companion.Application.Common;
 using Sanathana.Companion.Application.Common.Authorization;
@@ -49,6 +50,7 @@ public class WallpapersController : ControllerBase
     /// <remarks>Published rows only; see DeitiesController.GetImage for why there is no admin variant.</remarks>
     [HttpGet("{id:guid}/image")]
     [AllowAnonymous]
+    [MediaTicket]
     [EnableRateLimiting("media")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -57,7 +59,7 @@ public class WallpapersController : ControllerBase
         var (data, contentType, _) = await _service.GetImageAsync(id, cancellationToken: cancellationToken);
         if (data is null || data.Length == 0) return NotFound();
 
-        Response.Headers.CacheControl = "public, max-age=86400";
+        Response.Headers.CacheControl = "private, max-age=21600";   // one ticket window
         return File(data, contentType ?? "application/octet-stream");
     }
 
@@ -68,6 +70,7 @@ public class WallpapersController : ControllerBase
     /// </summary>
     [HttpGet("{id:guid}/download")]
     [AllowAnonymous]
+    [MediaTicket]
     [EnableRateLimiting("media")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

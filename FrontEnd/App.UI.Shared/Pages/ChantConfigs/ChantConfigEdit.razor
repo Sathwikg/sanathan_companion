@@ -6,6 +6,7 @@
 @inject ToastService Toast
 @inject NavigationManager Nav
 @inject AppConfig Config
+@inject MediaUrlBuilder Media
 
 <div class="sc-page-head">
     <h1>@(IsEdit ? "Edit Chant" : "Add New Chant")</h1>
@@ -205,7 +206,7 @@ else
     private bool HasLangText(Guid id) => _langTexts.TryGetValue(id, out var t) && !IsRichTextEmpty(t);
 
     // Only reachable behind HasAnyAudio, which requires IsEdit and therefore a non-null Id.
-    private string ExistingAudioUrl => Config.Absolute(ApiRoutes.Media.ChantAudio(Id.GetValueOrDefault()));
+    private string ExistingAudioUrl => Media.Absolute(ApiRoutes.Media.ChantAudio(Id.GetValueOrDefault()));
     private bool HasAnyAudio => _newAudioDataUrl is not null || (IsEdit && _hasExistingAudio && !_model.RemoveAudio);
 
     private string AudioLabel => _newAudioDataUrl is not null
@@ -216,6 +217,8 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        // The ticket every media URL on this page carries; see MediaUrlBuilder.
+        await Media.EnsureAsync();
         try
         {
             _options = await Api.GetChantConfigFormOptionsAsync();

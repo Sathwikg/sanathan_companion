@@ -91,6 +91,9 @@ public interface IApiClient
     /// <summary>Best-effort revocation of the refresh-token family. Never throws, never reports.</summary>
     Task LogoutAsync(string refreshToken);
 
+    /// <summary>The ticket an &lt;img&gt; or &lt;audio&gt; URL has to carry. See MediaUrlBuilder.</summary>
+    Task<MediaTicket?> GetMediaTicketAsync();
+
     /// <summary>Opens or closes another account. Administrators only.</summary>
     Task<(bool Success, string Error)> SetUserStatusAsync(Guid userId, bool isActive);
 

@@ -50,6 +50,7 @@ public static class DependencyInjection
         services.AddScoped<IJwtTokenService, JwtTokenService>();
         services.AddScoped<IRefreshTokenFactory, RefreshTokenFactory>();
         services.AddScoped<ITokenValidityService, TokenValidityService>();
+        services.AddSingleton<IMediaTicketService, MediaTicketService>();
         services.AddScoped<IPasswordHasher, BCryptPasswordHasher>();
         services.AddScoped<IAccountDataReader, AccountDataReader>();
         // Runs once at start-up to open the locked administrator account from configuration.

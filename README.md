@@ -157,6 +157,27 @@ After that, rotate it in the app: `POST /api/auth/change-password` with a bearer
 > time the API starts. If you were relying on `admin`/`admin`, set `Admin__InitialPassword`
 > **before** deploying, or you will have no way in.
 
+### Media links expire
+
+The four endpoints that stream bytes — deity images, chant audio, wallpapers and their download —
+are `[AllowAnonymous]` because an `<img>`, an `<audio>` and a download link cannot carry a bearer
+token. That made the URL alone a capability that never expired and could not be withdrawn.
+
+They now require a ticket in the `t` query parameter, issued by `GET /api/media/ticket` to any
+signed-in caller. The ticket is HMAC'd with a key derived from the JWT secret, so rotating that
+secret invalidates every outstanding media URL, and it is valid for the current six-hour window and
+the previous one.
+
+**The window length is a trade, not a number to minimise.** The ticket is part of the URL and
+therefore part of the HTTP cache key, so each rotation costs a full re-download of every visible
+image — on phones. Six hours buys "bounded rather than forever" at four rotations a day. Set
+`Media__RequireTicket=false` to turn the requirement off without a redeploy if a rollout goes wrong;
+the client sends the ticket either way, so the URL shape does not change when you flip it.
+
+One consequence worth knowing: an administrator previewing something they have just deactivated
+sees a placeholder, because the endpoints serve published rows only and the ticket carries no
+privilege bit. Giving it one would split the cache per role, which is a poor trade for a preview.
+
 ### Access Rights are enforced at the endpoint
 
 The role-by-module matrix used to decide only which links appeared in the menu; every API endpoint

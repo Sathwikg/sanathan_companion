@@ -325,6 +325,9 @@ public class ApiClient : IApiClient
         return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
     }
 
+    public async Task<MediaTicket?> GetMediaTicketAsync()
+        => await _http.GetFromJsonAsync<MediaTicket>(ApiRoutes.Media.Ticket);
+
     public async Task LogoutAsync(string refreshToken)
     {
         // Best effort by design: the local session is ending either way, and a seeker who is

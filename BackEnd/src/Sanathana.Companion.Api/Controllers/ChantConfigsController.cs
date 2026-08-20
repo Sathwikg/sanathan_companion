@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Sanathana.Companion.Api.Filters;
 using Microsoft.AspNetCore.RateLimiting;
 using Sanathana.Companion.Application.Common;
 using Sanathana.Companion.Application.Common.Authorization;
@@ -47,6 +48,7 @@ public class ChantConfigsController : ControllerBase
     /// <remarks>Published rows only; see DeitiesController.GetImage for why there is no admin variant.</remarks>
     [HttpGet("{id:guid}/audio")]
     [AllowAnonymous]
+    [MediaTicket]
     [EnableRateLimiting("media")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -54,7 +56,7 @@ public class ChantConfigsController : ControllerBase
     {
         var (data, contentType, _) = await _service.GetAudioAsync(id, cancellationToken: cancellationToken);
         if (data is null || data.Length == 0) return NotFound();
-        Response.Headers.CacheControl = "public, max-age=3600";
+        Response.Headers.CacheControl = "private, max-age=21600";   // one ticket window
         // Range processing lets the player seek without re-downloading.
         return File(data, contentType ?? "application/octet-stream", enableRangeProcessing: true);
     }

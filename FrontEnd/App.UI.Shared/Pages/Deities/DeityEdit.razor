@@ -7,6 +7,7 @@
 @inject NavigationManager Nav
 @inject IJSRuntime JS
 @inject AppConfig Config
+@inject MediaUrlBuilder Media
 
 <div class="sc-page-head">
     <h1>@(IsEdit ? Loc["deities.editDeity", "Edit Deity"] : Loc["deities.createDeity", "Create Deity"])</h1>
@@ -154,11 +155,13 @@ else
     private string? _imageError;
 
     // Only reachable behind HasAnyImage, which requires IsEdit and therefore a non-null Id.
-    private string ExistingImageUrl => Config.Absolute(ApiRoutes.Media.DeityImage(Id.GetValueOrDefault()));
+    private string ExistingImageUrl => Media.Absolute(ApiRoutes.Media.DeityImage(Id.GetValueOrDefault()));
     private bool HasAnyImage => _previewUrl is not null || (IsEdit && _hasExistingImage && !_model.RemoveImage);
 
     protected override async Task OnInitializedAsync()
     {
+        // The ticket every media URL on this page carries; see MediaUrlBuilder.
+        await Media.EnsureAsync();
         await base.OnInitializedAsync();
         try
         {

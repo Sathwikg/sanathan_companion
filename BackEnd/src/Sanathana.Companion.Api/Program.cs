@@ -162,6 +162,8 @@ try
     // caller. [AllowAnonymous] on the public endpoints still wins over this. Note that
     // app.MapControllers() is the only endpoint source today — a future minimal-API endpoint, a
     // health check being the obvious one, has to say .AllowAnonymous() for itself.
+    builder.Services.Configure<MediaOptions>(builder.Configuration.GetSection(MediaOptions.SectionName));
+
     builder.Services.AddAuthorization(options =>
         options.FallbackPolicy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build());
 
@@ -259,6 +261,12 @@ try
                 var origins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? Array.Empty<string>();
                 policy.WithOrigins(origins).AllowAnyHeader().AllowAnyMethod();
             }
+
+            // A browser hides every response header that is not named here, and AllowAnyHeader
+            // does NOT cover it — that governs the REQUEST. Without this the client cannot tell a
+            // module denial from a role denial, and the MAUI WebView is always cross-origin, so
+            // the whole distinction would be invisible on the phone.
+            policy.WithExposedHeaders(ModuleAccessFilter.DeniedHeader);
         }));
 
     if (!builder.Environment.IsDevelopment())

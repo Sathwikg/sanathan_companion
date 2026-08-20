@@ -6,6 +6,7 @@
 @inject ToastService Toast
 @inject ConfirmService Confirm
 @inject AppConfig Config
+@inject MediaUrlBuilder Media
 
 <div class="sc-page-head">
     <span class="sc-page-emoji">🖼️</span>
@@ -106,11 +107,13 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        // The ticket every media URL on this page carries; see MediaUrlBuilder.
+        await Media.EnsureAsync();
         await base.OnInitializedAsync();
         _deities = await Api.GetWallpaperDeitiesAsync();
     }
 
-    private string ImgSrc(Guid id) => Config.Absolute(ApiRoutes.Media.WallpaperImage(id));
+    private string ImgSrc(Guid id) => Media.Absolute(ApiRoutes.Media.WallpaperImage(id));
 
     private async Task OnDeityChanged(ChangeEventArgs e)
     {

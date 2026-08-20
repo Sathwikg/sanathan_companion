@@ -6,6 +6,7 @@
 @inject ToastService Toast
 @inject NavigationManager Nav
 @inject AppConfig Config
+@inject MediaUrlBuilder Media
 
 <div class="sc-page-head">
     <div class="sc-page-title">
@@ -132,10 +133,12 @@ else
     private bool _loading = true;
     private string? _error;
 
-    private string AudioUrl => Config.Absolute(ApiRoutes.Media.ChantAudio(Id));
+    private string AudioUrl => Media.Absolute(ApiRoutes.Media.ChantAudio(Id));
 
     protected override async Task OnParametersSetAsync()
     {
+        // The ticket every media URL on this page carries; see MediaUrlBuilder.
+        await Media.EnsureAsync();
         _loading = true;
         _error = null;
         try

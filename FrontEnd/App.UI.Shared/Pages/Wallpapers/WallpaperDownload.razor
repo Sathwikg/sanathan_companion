@@ -3,6 +3,7 @@
 @inherits LocalizedComponentBase
 @inject IApiClient Api
 @inject AppConfig Config
+@inject MediaUrlBuilder Media
 
 <div class="sc-page-head">
     <span class="sc-page-emoji">📱</span>
@@ -95,12 +96,14 @@ else
     private bool _loading = true;
     private string? _error;
 
-    private string ImgSrc(Guid id) => Config.Absolute(ApiRoutes.Media.WallpaperImage(id));
-    private string DownloadUrl(Guid id) => Config.Absolute(ApiRoutes.Media.WallpaperDownload(id));
-    private string DeityImg(Guid id) => Config.Absolute(ApiRoutes.Media.DeityImage(id));
+    private string ImgSrc(Guid id) => Media.Absolute(ApiRoutes.Media.WallpaperImage(id));
+    private string DownloadUrl(Guid id) => Media.Absolute(ApiRoutes.Media.WallpaperDownload(id));
+    private string DeityImg(Guid id) => Media.Absolute(ApiRoutes.Media.DeityImage(id));
 
     protected override async Task OnInitializedAsync()
     {
+        // The ticket every media URL on this page carries; see MediaUrlBuilder.
+        await Media.EnsureAsync();
         await base.OnInitializedAsync();
 
         // Only deities that actually have something to download.

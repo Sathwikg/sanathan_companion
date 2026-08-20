@@ -6,6 +6,7 @@
 @inject ToastService Toast
 @inject NavigationManager Nav
 @inject AppConfig Config
+@inject MediaUrlBuilder Media
 
 <div class="sc-page-head">
     <div class="sc-page-title">
@@ -151,10 +152,12 @@ else
     private int PageCount => Math.Max(1, (int)Math.Ceiling(_filtered.Count / (double)PageSize));
     private IEnumerable<DeityModel> Paged => _filtered.Skip((_page - 1) * PageSize).Take(PageSize);
 
-    private string ImgSrc(DeityModel d) => Config.Absolute(ApiRoutes.Media.DeityImage(d.Id));
+    private string ImgSrc(DeityModel d) => Media.Absolute(ApiRoutes.Media.DeityImage(d.Id));
 
     protected override async Task OnInitializedAsync()
     {
+        // The ticket every media URL on this page carries; see MediaUrlBuilder.
+        await Media.EnsureAsync();
         await base.OnInitializedAsync();
         try { _options = await Api.GetDeityFormOptionsAsync(); }
         catch { /* filters are best-effort */ }

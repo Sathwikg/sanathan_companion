@@ -243,10 +243,14 @@ public static class ApiRoutes
     /// page's own origin is the app, not the API. Combine with
     /// <see cref="AppConfig.Absolute"/>: <c>Config.Absolute(ApiRoutes.Media.DeityImage(id))</c>.
     /// All four are <c>[AllowAnonymous]</c> server-side precisely so an &lt;img&gt; can reach them
-    /// without a bearer token.
+    /// without a bearer token — which is why they instead require a ticket in the query string.
+    /// Build them through <c>MediaUrlBuilder.Absolute</c>, which attaches it.
     /// </remarks>
     public static class Media
     {
+        /// <summary>The short-lived ticket the four byte endpoints below require.</summary>
+        public const string Ticket = "media/ticket";
+
         public static string DeityImage(Guid deityId) => $"deities/{deityId}/image";
         public static string ChantAudio(Guid chantConfigId) => $"chantconfigs/{chantConfigId}/audio";
         public static string WallpaperImage(Guid wallpaperId) => $"wallpapers/{wallpaperId}/image";

@@ -99,6 +99,7 @@ public class EndpointModuleMapTests
             "AuthController.ChangePassword",
             "FavoritesController.GetIds",
             "FavoritesController.Toggle",
+            "MediaController.GetTicket",
             "MenuModulesController.GetMenu",
             "NotificationsController.GetMine",
             "ProfileController.DeleteMyAccount",

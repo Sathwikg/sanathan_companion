@@ -5,6 +5,7 @@
 @inject NavigationManager Nav
 @inject AppConfig Config
 @inject FavoritesState Favs
+@inject MediaUrlBuilder Media
 
 <div class="sc-page-head">
     <div class="sc-page-title">
@@ -117,6 +118,8 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        // The ticket every media URL on this page carries; see MediaUrlBuilder.
+        await Media.EnsureAsync();
         await base.OnInitializedAsync();
         await LoadAsync();
     }
@@ -142,5 +145,5 @@ else
         await LoadAsync();
     }
 
-    private string ImgSrc(Guid id) => Config.Absolute(ApiRoutes.Media.DeityImage(id));
+    private string ImgSrc(Guid id) => Media.Absolute(ApiRoutes.Media.DeityImage(id));
 }
