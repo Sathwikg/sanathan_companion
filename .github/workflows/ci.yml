@@ -60,6 +60,25 @@ jobs:
           name: backend-test-results
           path: TestResults/*.trx
 
+      # A failed `dotnet test` says only "exit code 1" in the job summary, and the trx artifact
+      # needs a sign-in to read. Emitting ::error:: turns each failed test into an annotation,
+      # which is visible from the run's API and from a phone.
+      - name: Report failing tests
+        if: failure()
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import glob, xml.etree.ElementTree as ET
+          ns = {'t': 'http://microsoft.com/schemas/VisualStudio/TeamTest/2010'}
+          for path in glob.glob('TestResults/*.trx'):
+              for result in ET.parse(path).getroot().iter(f"{{{ns['t']}}}UnitTestResult"):
+                  if result.get('outcome') != 'Failed':
+                      continue
+                  name = result.get('testName')
+                  message = ' '.join(''.join(result.itertext()).split())[:700]
+                  print(f"::error title={name}::{message}")
+          PY
+
   web:
     name: Web (Blazor WebAssembly)
     runs-on: ubuntu-latest
@@ -97,6 +116,25 @@ jobs:
         with:
           name: web-test-results
           path: TestResults/*.trx
+
+      # A failed `dotnet test` says only "exit code 1" in the job summary, and the trx artifact
+      # needs a sign-in to read. Emitting ::error:: turns each failed test into an annotation,
+      # which is visible from the run's API and from a phone.
+      - name: Report failing tests
+        if: failure()
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import glob, xml.etree.ElementTree as ET
+          ns = {'t': 'http://microsoft.com/schemas/VisualStudio/TeamTest/2010'}
+          for path in glob.glob('TestResults/*.trx'):
+              for result in ET.parse(path).getroot().iter(f"{{{ns['t']}}}UnitTestResult"):
+                  if result.get('outcome') != 'Failed':
+                      continue
+                  name = result.get('testName')
+                  message = ' '.join(''.join(result.itertext()).split())[:700]
+                  print(f"::error title={name}::{message}")
+          PY
 
   android:
     name: Mobile (Android head)

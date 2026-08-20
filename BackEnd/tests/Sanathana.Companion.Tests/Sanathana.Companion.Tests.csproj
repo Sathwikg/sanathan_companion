@@ -28,7 +28,9 @@
 
   <!-- The Panchangam golden file, read at run time so a failure shows a readable diff. -->
   <ItemGroup>
-    <None Update="TestData\**\*" CopyToOutputDirectory="PreserveNewest" />
+    <!-- Forward slashes: a backslash is not a path separator on Linux, so the CI runner copied
+         nothing and the golden-file test failed on a missing file. -->
+    <None Update="TestData/**/*" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <!-- The result filter under test lives in the Api project, so the tests need ASP.NET Core types. -->
