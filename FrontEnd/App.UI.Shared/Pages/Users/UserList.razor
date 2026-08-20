@@ -190,10 +190,13 @@ else
         {
             if (string.IsNullOrWhiteSpace(_search)) return _users;
             var t = _search.Trim();
+            // Numbers are stored as digits only, so a search typed with a country code or spaces
+            // has to be reduced the same way or it matches nothing.
+            var digits = new string(t.Where(char.IsDigit).ToArray());
             return _users.Where(u =>
                 u.FullName.Contains(t, StringComparison.OrdinalIgnoreCase) ||
                 u.Email.Contains(t, StringComparison.OrdinalIgnoreCase) ||
-                u.MobileNumber.Contains(t, StringComparison.OrdinalIgnoreCase) ||
+                (digits.Length > 0 && u.MobileNumber.Contains(digits, StringComparison.Ordinal)) ||
                 (u.SeekerName?.Contains(t, StringComparison.OrdinalIgnoreCase) ?? false) ||
                 u.RoleName.Contains(t, StringComparison.OrdinalIgnoreCase)).ToList();
         }

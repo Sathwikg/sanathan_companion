@@ -15,6 +15,8 @@
   "auth.mobileNumber": "Mobile Number",
   "auth.newHere": "New here?",
   "auth.password": "Password",
+  "auth.passwordPolicyHint": "At least {0} characters. A short phrase you will remember beats a short password.",
+  "auth.passwordTooShort": "Password must be at least {0} characters.",
   "auth.regionHint": "Gods and chants will be shown for this region. You can change it any time.",
   "auth.register": "Create your account",
   "auth.registrationSuccess": "Registration successful",

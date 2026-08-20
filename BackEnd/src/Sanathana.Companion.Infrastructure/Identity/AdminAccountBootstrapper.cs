@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Sanathana.Companion.Application.Common;
 using Sanathana.Companion.Application.Interfaces;
 using Sanathana.Companion.Domain.Interfaces;
 using Sanathana.Companion.Infrastructure.Seed;
@@ -62,11 +63,12 @@ public class AdminAccountBootstrapper
             return;
         }
 
-        if (password.Length < 8)
+        if (!PasswordPolicy.IsAcceptable(password))
         {
             _logger.LogWarning(
-                "{Key} was ignored because it is shorter than 8 characters. The administrator account remains locked.",
-                ConfigurationKey);
+                "{Key} was ignored because it does not meet the password policy (at least {Minimum} characters, " +
+                "and not an obvious one). The administrator account remains locked.",
+                ConfigurationKey, PasswordPolicy.MinimumLength);
             return;
         }
 

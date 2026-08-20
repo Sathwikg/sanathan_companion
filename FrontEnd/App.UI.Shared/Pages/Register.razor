@@ -64,6 +64,7 @@ else
         <div class="sc-field">
             <label>@Loc["auth.password", "Password"]</label>
             <InputText type="password" @bind-Value="_model.Password" class="sc-input" autocomplete="new-password" />
+            <span class="sc-hint">@Loc.TF("auth.passwordPolicyHint", "At least {0} characters. A short phrase you will remember beats a short password.", PasswordPolicy.MinimumLength)</span>
             <ValidationMessage For="() => _model.Password" />
         </div>
 

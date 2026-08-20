@@ -15,6 +15,8 @@
   "auth.mobileNumber": "मोबाइल नंबर",
   "auth.newHere": "यहाँ नए हैं?",
   "auth.password": "पासवर्ड",
+  "auth.passwordPolicyHint": "कम से कम {0} अक्षर। याद रहने वाला छोटा वाक्य छोटे पासवर्ड से बेहतर है।",
+  "auth.passwordTooShort": "पासवर्ड कम से कम {0} अक्षरों का होना चाहिए।",
   "auth.regionHint": "इस क्षेत्र के देवी-देवता और मंत्र दिखाए जाएँगे। आप इसे कभी भी बदल सकते हैं।",
   "auth.register": "अपना खाता बनाएँ",
   "auth.registrationSuccess": "पंजीकरण सफल",

@@ -156,6 +156,7 @@ else if (_p is not null)
                         <label>@Loc["profile.newPassword", "New password"]</label>
                         <input class="sc-input" type="password" autocomplete="new-password"
                                @bind="_newPassword" @bind:event="oninput" disabled="@_busy" />
+                        <span class="sc-hint">@Loc.TF("auth.passwordPolicyHint", "At least {0} characters. A short phrase you will remember beats a short password.", PasswordPolicy.MinimumLength)</span>
                     </div>
                     <div class="sc-field">
                         <label>@Loc["profile.confirmNewPassword", "Confirm new password"]</label>
@@ -371,6 +372,12 @@ else if (_p is not null)
 
         // Checked here as well as on the server so the seeker is not told "wrong password" by a
         // round trip that was never going to succeed.
+        if (_newPassword.Length < PasswordPolicy.MinimumLength)
+        {
+            _passwordError = Loc.TF("auth.passwordTooShort", "Password must be at least {0} characters.", PasswordPolicy.MinimumLength);
+            return;
+        }
+
         if (_newPassword != _confirmPassword)
         {
             _passwordError = Loc["profile.passwordMismatch", "The two new passwords do not match."];

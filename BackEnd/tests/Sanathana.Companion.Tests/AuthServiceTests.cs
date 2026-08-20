@@ -13,8 +13,8 @@ public class AuthServiceTests
         FullName = "Ravi Kumar",
         Email = email,
         MobileNumber = mobile,
-        Password = "secret1",
-        ConfirmPassword = "secret1",
+        Password = "a quiet lamp",
+        ConfirmPassword = "a quiet lamp",
         SeekerName = "Ravi Seeker"
     };
 
@@ -31,8 +31,8 @@ public class AuthServiceTests
             .FirstAsync(u => u.Email == "ravi@example.com");
         Assert.Equal("Sanathan", user.Role.RoleName);
         Assert.Equal(2, user.RoleId);
-        Assert.NotEqual("secret1", user.PasswordHash);
-        Assert.True(harness.Hasher.Verify("secret1", user.PasswordHash));
+        Assert.NotEqual("a quiet lamp", user.PasswordHash);
+        Assert.True(harness.Hasher.Verify("a quiet lamp", user.PasswordHash));
         Assert.Equal("Ravi Seeker", user.SeekerName);
     }
 
@@ -107,13 +107,15 @@ public class AuthServiceTests
         Assert.Null(result);
     }
 
+    // Also pins the identity rule's length floor: the local part here is "m", and without the
+    // floor every password containing that letter — "a quiet lamp" among them — would be refused.
     [Fact]
     public async Task Login_by_mobile_number_succeeds()
     {
         using var harness = new TestHarness();
         await harness.AuthService.RegisterAsync(NewRegistration("m@example.com", "9123456780"));
 
-        var result = await harness.AuthService.LoginAsync(new LoginRequestDto { Credential = "9123456780", Password = "secret1" });
+        var result = await harness.AuthService.LoginAsync(new LoginRequestDto { Credential = "9123456780", Password = "a quiet lamp" });
 
         Assert.NotNull(result);
         Assert.Equal("m@example.com", result!.Email);

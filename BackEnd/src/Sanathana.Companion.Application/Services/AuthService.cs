@@ -2,6 +2,7 @@ using FluentValidation;
 using Sanathana.Companion.Application.Common;
 using Sanathana.Companion.Application.DTOs.Auth;
 using Sanathana.Companion.Application.Interfaces;
+using Sanathana.Companion.Domain.Common;
 using Sanathana.Companion.Domain.Entities;
 using Sanathana.Companion.Domain.Exceptions;
 using Sanathana.Companion.Domain.Interfaces;
@@ -37,9 +38,23 @@ public class AuthService : IAuthService
     {
         await _registerValidator.ValidateAndThrowAsync(request, cancellationToken);
 
-        var email = request.Email.Trim();
-        if (await _uow.Users.EmailExistsAsync(email, cancellationToken))
-            throw new ConflictException($"A user with email '{email}' already exists.");
+        // Normalised before the existence checks, not after: the unique indexes are on the
+        // normalised spelling, so a check against the raw string would miss the collision and
+        // leave the database to raise it as a 500.
+        var email = CredentialNormalizer.Email(request.Email);
+        var mobile = CredentialNormalizer.Mobile(request.MobileNumber)!;   // validator guarantees ten digits
+
+        // Deliberate: this does confirm that an account exists. Closing that oracle means
+        // answering 200 and quietly not creating the account, and with no mail sender, no
+        // verification and no reset endpoint, that hands anyone who forgot they had signed up a
+        // dead end they cannot get out of. Revisit when forgot-password exists. The message names
+        // neither the address nor which of the two credentials matched.
+        if (await _uow.Users.EmailExistsAsync(email, cancellationToken)
+            || await _uow.Users.MobileExistsAsync(mobile, cancellationToken))
+        {
+            throw new ConflictException(
+                "An account already exists with these details. Please sign in, or use a different email or mobile number.");
+        }
 
         var role = await _uow.Roles.GetByNameAsync(RoleNames.Sanathan, cancellationToken)
                    ?? throw new NotFoundException($"Default role '{RoleNames.Sanathan}' is not configured.");
@@ -57,7 +72,7 @@ public class AuthService : IAuthService
             UserId = Guid.NewGuid(),
             FullName = request.FullName.Trim(),
             Email = email,
-            MobileNumber = request.MobileNumber.Trim(),
+            MobileNumber = mobile,
             PasswordHash = _passwordHasher.Hash(request.Password),
             SeekerName = string.IsNullOrWhiteSpace(request.SeekerName) ? null : request.SeekerName.Trim(),
             DefaultRegionId = request.RegionId,
@@ -74,7 +89,13 @@ public class AuthService : IAuthService
     {
         await _loginValidator.ValidateAndThrowAsync(request, cancellationToken);
 
+        // The repository normalises; it is the one that knows which spelling the columns hold.
         var user = await _uow.Users.GetByEmailOrMobileAsync(request.Credential.Trim(), cancellationToken);
+
+        // Known residual: an unknown credential short-circuits past the hash comparison, so a
+        // reply arrives measurably sooner than for a real account. Equalising it means verifying
+        // against a throwaway hash on the miss path, which is worth doing the day this endpoint
+        // matters more than the rate limiter in front of it.
         if (user is null || !_passwordHasher.Verify(request.Password, user.PasswordHash))
             return null;
 

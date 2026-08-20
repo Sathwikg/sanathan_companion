@@ -4,12 +4,21 @@ namespace Sanathana.Companion.Domain.Interfaces;
 
 public interface IUserRepository : IRepository<User>
 {
-    Task<User?> GetByEmailAsync(string email, CancellationToken cancellationToken = default);
-
-    /// <summary>Finds a user whose email OR mobile number matches the credential, including the Role navigation.</summary>
+    /// <summary>
+    /// Finds a user whose email OR mobile number matches the credential, including the Role navigation.
+    /// </summary>
+    /// <remarks>
+    /// The argument is what the seeker typed. Implementations normalise it with
+    /// <see cref="Domain.Common.CredentialNormalizer"/> before comparing, because that is the
+    /// spelling the columns hold.
+    /// </remarks>
     Task<User?> GetByEmailOrMobileAsync(string credential, CancellationToken cancellationToken = default);
 
+    /// <summary>True when an account already holds this email. Normalised by the implementation.</summary>
     Task<bool> EmailExistsAsync(string email, CancellationToken cancellationToken = default);
+
+    /// <summary>True when an account already holds this mobile number. Normalised by the implementation.</summary>
+    Task<bool> MobileExistsAsync(string mobile, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Removes the user and everything belonging to them: sadhana log and streak, favourites,

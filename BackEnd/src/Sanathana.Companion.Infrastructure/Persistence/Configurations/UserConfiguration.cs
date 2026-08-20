@@ -22,6 +22,10 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
 
         builder.HasIndex(u => u.Email).IsUnique().HasDatabaseName("UX_Users_Email");
 
+        // The mobile number is a login credential too, so two accounts sharing one makes the
+        // credential ambiguous. Both columns hold the normalised spelling; see CredentialNormalizer.
+        builder.HasIndex(u => u.MobileNumber).IsUnique().HasDatabaseName("UX_Users_Mobile");
+
         builder.HasOne(u => u.Role)
             .WithMany(r => r.Users)
             .HasForeignKey(u => u.RoleId)

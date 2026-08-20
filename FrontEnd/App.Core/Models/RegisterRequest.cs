@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using App.Core.Common;
 
 namespace App.Core.Models;
 
@@ -18,7 +19,9 @@ public class RegisterRequest
     public string MobileNumber { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "Password is required.")]
-    [StringLength(72, MinimumLength = 6, ErrorMessage = "Password must be 6–72 characters.")]
+    // The message cannot interpolate the constants, so it has to be edited alongside them.
+    [StringLength(PasswordPolicy.MaximumLength, MinimumLength = PasswordPolicy.MinimumLength,
+        ErrorMessage = "Password must be 10–72 characters.")]
     public string Password { get; set; } = string.Empty;
 
     [Required(ErrorMessage = "Please confirm your password.")]

@@ -132,7 +132,8 @@ docker compose down            # stop
 
 ### Opening the administrator account
 
-Set `Admin__InitialPassword` (minimum 8 characters) in the environment and start the API. It is
+Set `Admin__InitialPassword` in the environment and start the API. It must satisfy the same
+password policy as everyone else (at least 10 characters, and not an obvious one). It is
 applied **once**, and only while the account is still locked, so leaving the variable set cannot
 reset a password you later change, and removing it cannot lock you out.
 
@@ -148,6 +149,25 @@ After that, rotate it in the app: `POST /api/auth/change-password` with a bearer
 > migration overwrites that hash on every existing database, **including production**, the next
 > time the API starts. If you were relying on `admin`/`admin`, set `Admin__InitialPassword`
 > **before** deploying, or you will have no way in.
+
+### Before deploying `NormalizeUserCredentials`
+
+This migration lower-cases every email and reduces every mobile number to its digits, then makes
+the mobile number unique. Where two accounts would collide it changes nothing and **aborts**, and
+because `Migrate()` runs outside the start-up try/catch an abort is a failed boot, not a skipped
+step. Check first:
+
+```sql
+SELECT lower(btrim("Email")) AS credential, count(*) FROM "Users"
+ GROUP BY 1 HAVING count(*) > 1
+UNION ALL
+SELECT regexp_replace("MobileNumber", '[^0-9]', '', 'g'), count(*) FROM "Users"
+ GROUP BY 1 HAVING count(*) > 1;
+```
+
+Anything this returns has to be merged or removed by hand — the migration will not pick a winner
+between two real accounts. The reverse migration drops the constraint but cannot restore the
+original casing or punctuation.
 
 ## API endpoints
 | Method | Route | Auth | Purpose |

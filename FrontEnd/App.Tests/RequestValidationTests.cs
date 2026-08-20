@@ -17,8 +17,8 @@ public class RequestValidationTests
         FullName = "Ravi Kumar",
         Email = "ravi@example.com",
         MobileNumber = "9876543210",
-        Password = "secret1",
-        ConfirmPassword = "secret1",
+        Password = "a quiet lamp",
+        ConfirmPassword = "a quiet lamp",
         SeekerName = "Ravi Seeker"
     };
 
