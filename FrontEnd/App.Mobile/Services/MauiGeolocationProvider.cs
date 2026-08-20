@@ -37,8 +37,9 @@ public class MauiGeolocationProvider : IGeolocationProvider
 
             return new GeoPosition
             {
-                Latitude = location.Latitude,
-                Longitude = location.Longitude,
+                // Coarsened for the same reason as the web provider; see GeoPrecision.
+                Latitude = GeoPrecision.Round(location.Latitude),
+                Longitude = GeoPrecision.Round(location.Longitude),
                 Accuracy = location.Accuracy ?? 0
             };
         }

@@ -44,7 +44,9 @@ public class PanchangamService : IPanchangamService
         var dto = ToDto(day);
         dto.Latitude = latitude;
         dto.Longitude = longitude;
-        dto.PlaceLabel = string.IsNullOrWhiteSpace(placeLabel) ? $"{latitude:F4}, {longitude:F4}" : placeLabel.Trim();
+        // Two decimals, matching what the clients now send; four implied a precision that no
+        // longer arrives.
+        dto.PlaceLabel = string.IsNullOrWhiteSpace(placeLabel) ? $"{latitude:F2}, {longitude:F2}" : placeLabel.Trim();
         dto.IsComputed = true;
         return Task.FromResult(dto);
     }

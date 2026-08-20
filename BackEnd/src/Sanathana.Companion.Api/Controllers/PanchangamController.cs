@@ -47,22 +47,23 @@ public class PanchangamController : ControllerBase
     }
 
     /// <summary>
-    /// Compute a day's Panchangam for arbitrary coordinates — the endpoint the browser calls
-    /// with the user's current geolocation. Nothing is stored; the same generic engine that
-    /// seeds the database is used, so the result matches a stored row exactly.
+    /// Compute a day's Panchangam for arbitrary coordinates — the endpoint the app calls with the
+    /// seeker's current geolocation. Nothing is stored; the same generic engine that seeds the
+    /// database is used, so the result matches a stored row exactly.
     /// </summary>
-    [HttpGet("compute")]
+    /// <remarks>
+    /// A POST for a read, deliberately: the arguments are somebody's location, and a query string
+    /// is copied into the access log of every proxy on the way. The clients already coarsen the
+    /// fix to two decimal places before it is sent — see GeoPrecision — so nothing sharper than a
+    /// neighbourhood arrives here in the first place.
+    /// </remarks>
+    [HttpPost("compute")]
     [ProducesResponseType(typeof(PanchangamDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> Compute(
-        [FromQuery] double lat,
-        [FromQuery] double lon,
-        [FromQuery] DateOnly? date,
-        [FromQuery] string? place,
-        CancellationToken cancellationToken)
+    public async Task<IActionResult> Compute([FromBody] ComputePanchangamDto dto, CancellationToken cancellationToken)
     {
-        var d = date ?? DateOnly.FromDateTime(DateTime.UtcNow.AddHours(5.5));   // "today" in IST
-        return Ok(await _service.ComputeAtLocationAsync(d, lat, lon, place, cancellationToken));
+        var d = dto.Date ?? DateOnly.FromDateTime(DateTime.UtcNow.AddHours(5.5));   // "today" in IST
+        return Ok(await _service.ComputeAtLocationAsync(d, dto.Latitude, dto.Longitude, dto.Place, cancellationToken));
     }
 
     [HttpGet("{id:guid}")]

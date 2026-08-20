@@ -371,7 +371,14 @@ public class ApiClient : IApiClient
     }
 
     public async Task<PanchangamModel?> ComputePanchangamAsync(double lat, double lon, DateOnly? date = null, string? place = null)
-        => await _http.GetFromJsonAsync<PanchangamModel>(ApiRoutes.Panchangam.Compute(lat, lon, date, place));
+    {
+        var response = await _http.PostAsJsonAsync(ApiRoutes.Panchangam.Compute,
+            new ComputePanchangamRequest { Latitude = lat, Longitude = lon, Date = date, Place = place });
+
+        return response.IsSuccessStatusCode
+            ? await response.Content.ReadFromJsonAsync<PanchangamModel>()
+            : null;
+    }
 
     public async Task<(bool Success, GenerateResult? Result, string Error)> GeneratePanchangamAsync(GeneratePanchangamRequest request)
     {

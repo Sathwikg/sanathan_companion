@@ -51,6 +51,15 @@ public class PanchangamOptions
     public List<PanchangamRegionOption> Regions { get; set; } = new();
 }
 
+/// <summary>Body of the compute call; see ApiRoutes.Panchangam.Compute for why it is a body.</summary>
+public class ComputePanchangamRequest
+{
+    public double Latitude { get; set; }
+    public double Longitude { get; set; }
+    public DateOnly? Date { get; set; }
+    public string? Place { get; set; }
+}
+
 public class GeneratePanchangamRequest
 {
     public int Year { get; set; }

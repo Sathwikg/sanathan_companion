@@ -5,10 +5,14 @@
   "JwtSettings": {
     "Secret": "REPLACE_WITH_A_LONG_RANDOM_BASE64_SECRET_AT_LEAST_32_BYTES"
   },
-  "Logging": {
-    "LogLevel": {
+  "//Serilog": "EF Core stays at Information here on purpose: seeing the SQL is the point of a development machine.",
+  "Serilog": {
+    "MinimumLevel": {
       "Default": "Information",
-      "Microsoft.AspNetCore": "Warning"
+      "Override": {
+        "Microsoft.AspNetCore": "Warning",
+        "Microsoft.EntityFrameworkCore": "Information"
+      }
     }
   }
 }

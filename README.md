@@ -110,9 +110,16 @@ already part of the ASP.NET Core host, and the connection string is supplied as 
   (or `[Convert]::ToBase64String((1..48 | % { Get-Random -Max 256 }))` in PowerShell).
 - Migrations and seeding run on API startup against the Supabase database, so the first
   boot takes longer than later ones.
-- `Trust Server Certificate=true` encrypts the connection but skips CA validation. To
-  validate properly, download Supabase's CA certificate and use
-  `SSL Mode=VerifyFull;Root Certificate=/path/to/prod-ca.crt`.
+- **`SSL Mode=Require` is not the safe option.** In Npgsql it means "refuse to connect
+  without TLS" and nothing more: no certificate chain check and no hostname check, so it
+  stops eavesdropping on the hop to Supabase but not impersonation. Only `VerifyCA` and
+  `VerifyFull` validate. (`Trust Server Certificate` is inert in Npgsql 10 — the property
+  is obsolete and documented as doing nothing, so removing it changes no behaviour.)
+  Download the CA from your Supabase project settings, put it where `SUPABASE_CA_PATH`
+  points, and use `SSL Mode=VerifyFull;Root Certificate=/etc/ssl/supabase/prod-ca.crt`.
+  Compose mounts it read-only; on Render add it as a Secret File. For a first-boot smoke
+  test, plain `SSL Mode=Require` with no `Root Certificate` will connect to anything —
+  the API logs a warning outside Development when the string does not validate.
 - Change the published port with `WEB_PORT` in `.env`.
 - Swagger is proxied at `/swagger` but only responds if you set the API's
   `ASPNETCORE_ENVIRONMENT` to `Development` in `docker-compose.yml`.

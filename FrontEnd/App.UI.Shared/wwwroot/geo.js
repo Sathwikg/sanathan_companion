@@ -22,7 +22,10 @@ window.scGeo = {
                     else if (err && err.code === 3) msg = 'Getting your location timed out.';
                     resolve({ latitude: 0, longitude: 0, accuracy: 0, error: msg });
                 },
-                { enableHighAccuracy: true, timeout: 10000, maximumAge: 300000 }
+                // High accuracy would wake the GPS for a metre-level fix that gets rounded to two
+                // decimals a moment later. The coarse network fix is enough, and cheaper on battery.
+                // MauiGeolocationProvider asks for GeolocationAccuracy.Medium for the same reason.
+                { enableHighAccuracy: false, timeout: 10000, maximumAge: 300000 }
             );
         });
     }

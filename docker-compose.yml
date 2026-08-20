@@ -29,6 +29,10 @@ services:
       # The API refuses to start if this is missing, under 32 bytes, or still
       # contains "change-me".
       JwtSettings__Secret: ${JWT_SECRET:?set JWT_SECRET in .env (32+ bytes, random)}
+    volumes:
+      # The database CA, read-only. The connection string points Root Certificate at
+      # this path; see .env.example for why VerifyFull rather than Require.
+      - ${SUPABASE_CA_PATH:-./deploy/certs/prod-ca.crt}:/etc/ssl/supabase/prod-ca.crt:ro
     expose:
       - "8080"
     # Uncomment to hit Kestrel directly while debugging.

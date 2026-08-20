@@ -82,8 +82,14 @@ services:
       # statements EF Core migrations rely on.
       #
       #   Host=aws-0-<region>.pooler.supabase.com;Port=5432;Database=postgres;
-      #   Username=postgres.<project-ref>;Password=...;SSL Mode=Require;
-      #   Trust Server Certificate=true
+      #   Username=postgres.<project-ref>;Password=...;SSL Mode=VerifyFull;
+      #   Root Certificate=/etc/secrets/prod-ca.crt
+      #
+      # SSL Mode=Require encrypts but validates nothing — no chain, no hostname —
+      # which on a hop across the public internet stops eavesdropping but not
+      # impersonation. Add the Supabase CA as a Render Secret File and point
+      # Root Certificate at the path Render mounts it to. The API logs a warning
+      # at start-up if this string turns out not to validate.
       - key: ConnectionStrings__DefaultConnection
         sync: false
 

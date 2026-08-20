@@ -145,8 +145,8 @@ public static class ApiRoutes
         public static string ByDate(DateOnly date, Guid regionId)
             => Query("panchangam/by-date", ("date", date), ("regionId", regionId));
 
-        public static string Compute(double lat, double lon, DateOnly? date, string? place)
-            => Query("panchangam/compute", ("lat", lat), ("lon", lon), ("date", date), ("place", place));
+        /// <summary>POST, not GET: the body keeps the seeker's coordinates out of every access log.</summary>
+        public const string Compute = "panchangam/compute";
     }
 
     public static class Languages
@@ -275,6 +275,8 @@ public static class ApiRoutes
         null => null,
         string s => string.IsNullOrWhiteSpace(s) ? null : s.Trim(),
         DateOnly d => d.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture),
+        // Kept although no route passes a double today: the next one that does must not be
+        // formatted under a comma-decimal culture, where 17,385 would bind as two values.
         double d => d.ToString(System.Globalization.CultureInfo.InvariantCulture),
         bool b => b ? "true" : "false",
         IFormattable f => f.ToString(null, System.Globalization.CultureInfo.InvariantCulture),

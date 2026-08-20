@@ -12,20 +12,32 @@ using Sanathana.Companion.Api.Filters;
 using Sanathana.Companion.Api.Middleware;
 using Sanathana.Companion.Api.Services;
 using Sanathana.Companion.Application;
+using Sanathana.Companion.Api.Configuration;
 using Sanathana.Companion.Application.Interfaces;
 using Sanathana.Companion.Infrastructure;
 using Sanathana.Companion.Infrastructure.Identity;
 using Sanathana.Companion.Infrastructure.Persistence;
 using Serilog;
+using Serilog.Events;
 
+// The window before configuration exists. Framework diagnostics are held at Warning even here,
+// because "Request starting"/"Request finished" carry the full URL including its query string, and
+// this app puts a seeker's coordinates through one of them.
 Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
     .WriteTo.Console()
-    .CreateLogger();
+    .CreateBootstrapLogger();
 
 try
 {
     var builder = WebApplication.CreateBuilder(args);
-    builder.Host.UseSerilog();
+    // Reads Serilog:MinimumLevel from configuration. UseSerilog() replaces the Microsoft.Extensions
+    // logging factory outright, which is why the old Logging:LogLevel block was dead — nothing read
+    // it, and nothing will, since writeToProviders stays at its default of false.
+    builder.Host.UseSerilog((context, services, cfg) => cfg
+        .ReadFrom.Configuration(context.Configuration)
+        .ReadFrom.Services(services)
+        .WriteTo.Console());
 
     // Bound the request body so a huge upload can't buffer unchecked (10 MB audio base64-inflates to ~14 MB).
     builder.WebHost.ConfigureKestrel(o => o.Limits.MaxRequestBodySize = 16 * 1024 * 1024);
@@ -60,6 +72,17 @@ try
     builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
     builder.Services.AddApplication();
     builder.Services.AddInfrastructure(builder.Configuration);
+
+    // Warn, never throw: a database link that encrypts without validating is worth shouting about,
+    // but taking the whole site down over a connection-string keyword is worse than the keyword.
+    if (!builder.Environment.IsDevelopment()
+        && ConnectionStringGuard.SkipsCertificateValidation(builder.Configuration.GetConnectionString("DefaultConnection")))
+    {
+        Log.Warning(
+            "ConnectionStrings:DefaultConnection does not validate the database server's certificate. " +
+            "Use SSL Mode=VerifyFull with Root Certificate pointing at the provider's CA. " +
+            "SSL Mode=Require encrypts but verifies nothing.");
+    }
 
     // JWT authentication. The signing secret MUST be supplied out of band (env var
     // JwtSettings__Secret / user-secrets / secret store) — never a committed placeholder,
@@ -220,7 +243,9 @@ try
         app.UseHttpsRedirection();
     }
 
-    app.UseSerilogRequestLogging();
+    // Already the default in Serilog.AspNetCore 10, pinned so neither an upgrade nor a
+    // copy-pasted options lambda can put a seeker's coordinates back into the log line.
+    app.UseSerilogRequestLogging(o => o.IncludeQueryInRequestPath = false);
     app.UseCors("Default");
     app.UseRateLimiter();
     app.UseAuthentication();

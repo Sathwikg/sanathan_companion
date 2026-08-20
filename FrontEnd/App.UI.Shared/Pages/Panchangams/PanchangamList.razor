@@ -306,7 +306,9 @@ else
                 _current = await Api.ComputePanchangamAsync(geo.Latitude, geo.Longitude, _date, Loc["panchangam.myCurrentLocation", "My Current Location"]);
                 if (_current is not null)
                     Toast.Success(Loc.TF("panchangam.computedForLocation", "Panchangam computed for your location ({0}, {1}).",
-                        geo.Latitude.ToString("F3"), geo.Longitude.ToString("F3")));
+                        // Two decimals, matching what GeoPrecision actually sent. Three would
+                        // suggest a fix the app no longer holds.
+                        geo.Latitude.ToString("F2"), geo.Longitude.ToString("F2")));
             }
         }
         catch (Exception ex) { _geoError = Loc["panchangam.couldNotCompute", "Could not compute for your location."] + " " + ex.Message; _current = null; }

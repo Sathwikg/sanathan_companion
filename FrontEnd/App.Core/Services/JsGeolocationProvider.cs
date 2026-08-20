@@ -18,8 +18,14 @@ public class JsGeolocationProvider : IGeolocationProvider
         try
         {
             // geo.js resolves rather than rejects, so a refusal arrives as a populated Error.
-            return await _js.InvokeAsync<GeoPosition>("scGeo.current", cancellationToken)
-                   ?? new GeoPosition { Error = "Could not get your location." };
+            var fix = await _js.InvokeAsync<GeoPosition>("scGeo.current", cancellationToken);
+            if (fix is null) return new GeoPosition { Error = "Could not get your location." };
+            if (fix.Error is not null) return fix;
+
+            // Coarsened here, at the edge, so the precise fix never reaches the rest of the app.
+            fix.Latitude = GeoPrecision.Round(fix.Latitude);
+            fix.Longitude = GeoPrecision.Round(fix.Longitude);
+            return fix;
         }
         catch (JSException ex)
         {

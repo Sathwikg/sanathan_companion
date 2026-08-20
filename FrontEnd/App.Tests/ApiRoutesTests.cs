@@ -118,19 +118,12 @@ public class ApiRoutesTests
     }
 
     [Fact]
-    public void Coordinates_are_invariant_so_a_comma_locale_cannot_split_them()
+    public void Compute_carries_no_coordinates_in_its_path()
     {
-        // Under, say, de-DE, "17,385" would arrive as two query values and bind to nothing.
-        var previous = System.Globalization.CultureInfo.CurrentCulture;
-        try
-        {
-            System.Globalization.CultureInfo.CurrentCulture = new System.Globalization.CultureInfo("de-DE");
-            Assert.Equal("panchangam/compute?lat=17.385&lon=-78.4867", ApiRoutes.Panchangam.Compute(17.385, -78.4867, null, null));
-        }
-        finally
-        {
-            System.Globalization.CultureInfo.CurrentCulture = previous;
-        }
+        // They travel in the body now, so that a seeker's position does not land in the access log
+        // of every proxy between the phone and the API.
+        Assert.Equal("panchangam/compute", ApiRoutes.Panchangam.Compute);
+        Assert.DoesNotContain("lat", ApiRoutes.Panchangam.Compute);
     }
 
     [Fact]

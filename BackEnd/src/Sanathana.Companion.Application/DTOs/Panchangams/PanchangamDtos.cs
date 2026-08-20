@@ -60,6 +60,23 @@ public class PanchangamDto
     public bool IsActive { get; set; } = true;
 }
 
+/// <summary>
+/// Where and when to compute a Panchangam for. Carried in the request body rather than the query
+/// string because latitude and longitude are the seeker's position, and a query string is written
+/// into every access log between the phone and the API.
+/// </summary>
+public class ComputePanchangamDto
+{
+    public double Latitude { get; set; }
+    public double Longitude { get; set; }
+
+    /// <summary>Null means today, reckoned in IST.</summary>
+    public DateOnly? Date { get; set; }
+
+    /// <summary>What to call the place on screen. Falls back to the rounded coordinates.</summary>
+    public string? Place { get; set; }
+}
+
 /// <summary>Request to (re)generate stored Panchangam data for a region across a year.</summary>
 public class GeneratePanchangamDto
 {
