@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Sanathana.Companion.Application.Common;
+using Sanathana.Companion.Application.Common.Authorization;
 using Sanathana.Companion.Application.DTOs.Notifications;
 using Sanathana.Companion.Application.Interfaces;
 
@@ -9,6 +11,7 @@ namespace Sanathana.Companion.Api.Controllers;
 [ApiController]
 [Route("api/notificationconfig")]
 [Authorize(Roles = "Admin")]
+[RequiresModule(ModuleCodes.NotificationConfig)]
 public class NotificationConfigController : ControllerBase
 {
     private readonly INotificationService _service;
@@ -50,6 +53,12 @@ public class NotificationsController : ControllerBase
     }
 
     /// <summary>What I get notified about, and whether each would fire right now.</summary>
+    /// <remarks>
+    /// Exempt: this fills the bell in the mobile top bar for every signed-in seeker, and the client
+    /// treats it as best-effort. Gating it on the My Notifications form would empty the badge for
+    /// anyone not granted that screen.
+    /// </remarks>
+    [ModuleExempt]
     [HttpGet("me")]
     [ProducesResponseType(typeof(MyNotificationSettingsDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -60,6 +69,8 @@ public class NotificationsController : ControllerBase
         return Ok(await _service.GetMySettingsAsync(userId.Value, cancellationToken));
     }
 
+    /// <summary>Only the My Notifications page writes these.</summary>
+    [RequiresModule(ModuleCodes.MyNotifications)]
     [HttpPut("me")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]

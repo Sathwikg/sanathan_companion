@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Sanathana.Companion.Application.Common;
+using Sanathana.Companion.Application.Common.Authorization;
 using Sanathana.Companion.Application.DTOs.IssueTypes;
 using Sanathana.Companion.Application.Interfaces;
 
@@ -8,6 +10,7 @@ namespace Sanathana.Companion.Api.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
+[RequiresModule(ModuleCodes.IssueTypes)]
 public class IssueTypesController : ControllerBase
 {
     private readonly IIssueTypeService _service;
@@ -22,6 +25,7 @@ public class IssueTypesController : ControllerBase
         => Ok(await _service.GetAllAsync(cancellationToken));
 
     /// <summary>Active issue types for the feedback form dropdown (any signed-in user).</summary>
+    [RequiresModule(ModuleCodes.Feedback)]
     [HttpGet("active")]
     [ProducesResponseType(typeof(IReadOnlyList<IssueTypeDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetActive(CancellationToken cancellationToken)

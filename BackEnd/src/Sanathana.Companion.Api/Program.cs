@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.HttpOverrides;
 using Sanathana.Companion.Api.RateLimiting;
 using Microsoft.AspNetCore.RateLimiting;
@@ -46,7 +47,13 @@ try
     // MVC controllers
     // Global: translates DB text on the way out. Annotating a DTO property is the only
     // work needed to localise a new form — see TranslationResultFilter.
-    builder.Services.AddControllers(o => o.Filters.Add<TranslationResultFilter>());
+    builder.Services.AddControllers(o =>
+    {
+        o.Filters.Add<TranslationResultFilter>();
+        // Access Rights used to shape the menu and nothing else; this is what makes them mean
+        // something at the endpoint. Default-deny for authenticated non-Admins.
+        o.Filters.Add<ModuleAccessFilter>();
+    });
 
     // Swagger + Bearer auth button
     builder.Services.AddEndpointsApiExplorer();
@@ -151,7 +158,12 @@ try
                 }
             };
         });
-    builder.Services.AddAuthorization();
+    // Fail closed: an endpoint that declares no authorization at all still needs a signed-in
+    // caller. [AllowAnonymous] on the public endpoints still wins over this. Note that
+    // app.MapControllers() is the only endpoint source today — a future minimal-API endpoint, a
+    // health check being the obvious one, has to say .AllowAnonymous() for itself.
+    builder.Services.AddAuthorization(options =>
+        options.FallbackPolicy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build());
 
     // Behind Render's router — and behind the nginx in docker-compose — every request arrives from
     // the proxy, so Connection.RemoteIpAddress is the proxy's address for ALL of them. Without

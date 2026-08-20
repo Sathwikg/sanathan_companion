@@ -1,4 +1,6 @@
 {
+  "common.accessDeniedBody": "आपकी भूमिका को यह स्क्रीन नहीं दी गई है। व्यवस्थापक इसे एक्सेस राइट्स पृष्ठ पर बदल सकते हैं।",
+  "common.accessDeniedTitle": "इस फ़ॉर्म तक आपकी पहुँच नहीं है",
   "common.actions": "क्रियाएँ",
   "common.activate": "सक्रिय करें",
   "common.active": "सक्रिय",

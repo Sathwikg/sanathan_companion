@@ -13,6 +13,13 @@ public class MenuModule : BaseEntity
     public string? Icon { get; set; }
     public string? Description { get; set; }
     public string? RoutePath { get; set; }
+
+    /// <summary>
+    /// The stable name endpoints use to say which form they belong to. System-owned: absent from
+    /// the create and update DTOs, so the Modules screen cannot set or change it. Null on the
+    /// container rows, which have no route and no endpoints.
+    /// </summary>
+    public string? Code { get; set; }
     public int DisplayOrder { get; set; }
 
     /// <summary>Whether the item is shown in the navigation menu.</summary>

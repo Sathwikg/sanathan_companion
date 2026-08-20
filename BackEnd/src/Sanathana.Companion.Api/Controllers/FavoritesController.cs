@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Sanathana.Companion.Application.Common;
+using Sanathana.Companion.Application.Common.Authorization;
 using Sanathana.Companion.Application.DTOs.Favorites;
 using Sanathana.Companion.Application.Interfaces;
 
@@ -9,6 +11,7 @@ namespace Sanathana.Companion.Api.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
+[RequiresModule(ModuleCodes.Favorites)]
 public class FavoritesController : ControllerBase
 {
     private readonly IFavoritesService _service;
@@ -31,6 +34,7 @@ public class FavoritesController : ControllerBase
     }
 
     /// <summary>The ids the user has favorited, so mark buttons can render filled.</summary>
+    [ModuleExempt]
     [HttpGet("ids")]
     [ProducesResponseType(typeof(FavoriteIdsDto), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetIds(CancellationToken cancellationToken)
@@ -41,6 +45,7 @@ public class FavoritesController : ControllerBase
     }
 
     /// <summary>Toggle a chant or god as favorite. Returns the new state.</summary>
+    [ModuleExempt]
     [HttpPost("toggle")]
     [ProducesResponseType(typeof(ToggleFavoriteResultDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]

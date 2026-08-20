@@ -1,0 +1,23 @@
+@page "/access-denied"
+@attribute [Authorize]
+@inherits LocalizedComponentBase
+@inject NavigationManager Nav
+
+@* Deliberately makes no API call of any kind. This is where a seeker lands when the API refused
+   the form they asked for, and the landing page itself is a module-gated form — so a page that
+   fetched anything could be refused in turn and bounce them straight back here. *@
+
+<div class="sc-center sc-accessdenied">
+    <div class="sc-card">
+        <div class="sc-empty-om">🔒</div>
+        <h1>@Loc["common.accessDeniedTitle", "You do not have access to this form"]</h1>
+        <p class="sc-muted">
+            @Loc["common.accessDeniedBody", "Your role has not been granted this screen. An administrator can change that on the Access Rights page."]
+        </p>
+        <button class="sc-btn-primary" @onclick="GoBack">@Loc["common.back", "Back"]</button>
+    </div>
+</div>
+
+@code {
+    private void GoBack() => Nav.NavigateTo("");
+}

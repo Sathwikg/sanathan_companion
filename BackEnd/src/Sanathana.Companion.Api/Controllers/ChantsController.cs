@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Sanathana.Companion.Application.Common;
+using Sanathana.Companion.Application.Common.Authorization;
 using Sanathana.Companion.Application.DTOs.Chants;
 using Sanathana.Companion.Application.Interfaces;
 
@@ -8,6 +10,7 @@ namespace Sanathana.Companion.Api.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
+[RequiresModule(ModuleCodes.Chants)]
 public class ChantsController : ControllerBase
 {
     private readonly IChantService _service;

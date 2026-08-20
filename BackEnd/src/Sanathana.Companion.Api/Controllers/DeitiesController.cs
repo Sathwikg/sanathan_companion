@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using Sanathana.Companion.Application.Common;
+using Sanathana.Companion.Application.Common.Authorization;
 using Sanathana.Companion.Application.DTOs.Deities;
 using Sanathana.Companion.Application.Interfaces;
 
@@ -9,6 +11,7 @@ namespace Sanathana.Companion.Api.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
+[RequiresModule(ModuleCodes.Deities)]
 public class DeitiesController : ControllerBase
 {
     private readonly IDeityService _service;

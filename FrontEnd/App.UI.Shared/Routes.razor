@@ -3,6 +3,7 @@
 @inject LocalizationState Loc
 @inject AppConfig Config
 @inject SessionExpiredNotifier SessionExpired
+@inject AccessDeniedNotifier AccessDenied
 @inject IAuthService AuthService
 @inject NavigationManager Nav
 @inject ToastService Toast
@@ -48,6 +49,7 @@
     {
         Loc.OnChanged += Changed;
         SessionExpired.Expired += OnSessionExpired;
+        AccessDenied.Denied += OnAccessDenied;
     }
 
     private void Changed() => InvokeAsync(StateHasChanged);
@@ -64,9 +66,21 @@
         Nav.NavigateTo("login");
     });
 
+    /// <summary>
+    /// The API refused a form this role is not granted. Land on a page that fetches nothing:
+    /// sending the seeker to the app root would be a loop, because the root IS a gated form and a
+    /// role without the Dashboard grant would be refused there too.
+    /// </summary>
+    private void OnAccessDenied() => _ = InvokeAsync(() =>
+    {
+        if (Nav.Uri.Contains("/access-denied", StringComparison.OrdinalIgnoreCase)) return;
+        Nav.NavigateTo("access-denied");
+    });
+
     public void Dispose()
     {
         Loc.OnChanged -= Changed;
         SessionExpired.Expired -= OnSessionExpired;
+        AccessDenied.Denied -= OnAccessDenied;
     }
 }

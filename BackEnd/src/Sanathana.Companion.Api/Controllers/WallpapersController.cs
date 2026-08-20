@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using Sanathana.Companion.Application.Common;
+using Sanathana.Companion.Application.Common.Authorization;
 using Sanathana.Companion.Application.DTOs.Wallpapers;
 using Sanathana.Companion.Application.Interfaces;
 
@@ -9,6 +11,7 @@ namespace Sanathana.Companion.Api.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
+[RequiresModule(ModuleCodes.Wallpapers)]
 public class WallpapersController : ControllerBase
 {
     private readonly IWallpaperService _service;
@@ -19,17 +22,20 @@ public class WallpapersController : ControllerBase
     /// Deities for the picker. <paramref name="onlyWithWallpapers"/> is what the download screen
     /// uses, so a seeker is never offered a deity with an empty gallery.
     /// </summary>
+    [RequiresModule(ModuleCodes.Wallpapers, ModuleCodes.WallpapersDownload)]
     [HttpGet("deities")]
     [ProducesResponseType(typeof(IReadOnlyList<WallpaperDeityDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetDeities([FromQuery] bool onlyWithWallpapers = false, CancellationToken cancellationToken = default)
         => Ok(await _service.GetDeitiesAsync(onlyWithWallpapers, cancellationToken));
 
+    [RequiresModule(ModuleCodes.Wallpapers, ModuleCodes.WallpapersDownload)]
     [HttpGet("deity/{deityId:guid}")]
     [ProducesResponseType(typeof(IReadOnlyList<WallpaperDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetByDeity(Guid deityId, [FromQuery] bool activeOnly = true, CancellationToken cancellationToken = default)
         => Ok(await _service.GetByDeityAsync(deityId, activeOnly, cancellationToken));
 
+    [RequiresModule(ModuleCodes.Wallpapers, ModuleCodes.WallpapersDownload)]
     [HttpGet("{id:guid}")]
     [ProducesResponseType(typeof(WallpaperDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

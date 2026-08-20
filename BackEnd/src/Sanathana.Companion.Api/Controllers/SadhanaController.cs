@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Sanathana.Companion.Application.Common;
+using Sanathana.Companion.Application.Common.Authorization;
 using Sanathana.Companion.Application.DTOs.Sadhana;
 using Sanathana.Companion.Application.Interfaces;
 
@@ -8,6 +10,7 @@ namespace Sanathana.Companion.Api.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
+[RequiresModule(ModuleCodes.Sadhana)]
 public class SadhanaController : ControllerBase
 {
     private readonly ISadhanaService _service;
@@ -22,6 +25,7 @@ public class SadhanaController : ControllerBase
 
     /// <summary>All active chants for the search tab, with the user's progress today.
     /// Optionally limited to one region.</summary>
+    [RequiresModule(ModuleCodes.Sadhana, ModuleCodes.Dashboard)]
     [HttpGet("chants")]
     [ProducesResponseType(typeof(IReadOnlyList<SadhanaChantDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> Chants([FromQuery] string? search, [FromQuery] Guid? regionId, CancellationToken cancellationToken)
@@ -45,6 +49,7 @@ public class SadhanaController : ControllerBase
     public async Task<IActionResult> Log([FromBody] LogCountDto dto, CancellationToken cancellationToken)
         => Ok(await _service.LogCountAsync(dto, cancellationToken));
 
+    [RequiresModule(ModuleCodes.Sadhana, ModuleCodes.Dashboard)]
     [HttpGet("streak")]
     [ProducesResponseType(typeof(SadhanaStreakDto), StatusCodes.Status200OK)]
     public async Task<IActionResult> Streak(CancellationToken cancellationToken)

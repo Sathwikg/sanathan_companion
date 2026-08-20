@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Sanathana.Companion.Application.Common;
+using Sanathana.Companion.Application.Common.Authorization;
 using Sanathana.Companion.Application.DTOs.AccessRights;
 using Sanathana.Companion.Application.Interfaces;
 
@@ -9,6 +11,7 @@ namespace Sanathana.Companion.Api.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize(Roles = "Admin")]
+[RequiresModule(ModuleCodes.AccessRights)]
 public class AccessRightsController : ControllerBase
 {
     private readonly IAccessRightsService _service;

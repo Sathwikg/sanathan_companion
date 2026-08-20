@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using Sanathana.Companion.Application.Common;
+using Sanathana.Companion.Application.Common.Authorization;
 using Sanathana.Companion.Application.DTOs.Auth;
 using Sanathana.Companion.Application.Interfaces;
 
@@ -9,6 +11,7 @@ namespace Sanathana.Companion.Api.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [EnableRateLimiting("auth")]
+[Authorize]
 public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;
@@ -92,6 +95,7 @@ public class AuthController : ControllerBase
     /// which is the point.
     /// </para>
     /// </remarks>
+    [ModuleExempt]
     [HttpPost("change-password")]
     [Authorize]
     [ProducesResponseType(typeof(AuthResponseDto), StatusCodes.Status200OK)]

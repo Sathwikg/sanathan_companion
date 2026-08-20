@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Sanathana.Companion.Application.Common;
+using Sanathana.Companion.Application.Common.Authorization;
 using Sanathana.Companion.Application.DTOs.Pujas;
 using Sanathana.Companion.Application.Interfaces;
 
@@ -8,12 +10,14 @@ namespace Sanathana.Companion.Api.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
+[RequiresModule(ModuleCodes.Pujas)]
 public class PujasController : ControllerBase
 {
     private readonly IPujaService _service;
 
     public PujasController(IPujaService service) => _service = service;
 
+    [RequiresModule(ModuleCodes.Pujas, ModuleCodes.PujaProcessConfig)]
     [HttpGet]
     [ProducesResponseType(typeof(IReadOnlyList<PujaDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll(CancellationToken cancellationToken)

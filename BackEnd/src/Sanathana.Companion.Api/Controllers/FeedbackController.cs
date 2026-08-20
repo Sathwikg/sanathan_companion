@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Sanathana.Companion.Application.Common;
+using Sanathana.Companion.Application.Common.Authorization;
 using Sanathana.Companion.Application.DTOs.Feedback;
 using Sanathana.Companion.Application.Interfaces;
 
@@ -8,6 +10,7 @@ namespace Sanathana.Companion.Api.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
+[RequiresModule(ModuleCodes.FeedbackDashboard)]
 public class FeedbackController : ControllerBase
 {
     private readonly IFeedbackService _service;
@@ -20,6 +23,7 @@ public class FeedbackController : ControllerBase
     }
 
     /// <summary>Submit feedback (any signed-in user).</summary>
+    [RequiresModule(ModuleCodes.Feedback)]
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]

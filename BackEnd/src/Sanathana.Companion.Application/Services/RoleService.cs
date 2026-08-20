@@ -11,14 +11,17 @@ namespace Sanathana.Companion.Application.Services;
 public class RoleService : IRoleService
 {
     private readonly IUnitOfWork _uow;
+    private readonly IAccessRightsCatalog? _access;
     private readonly IValidator<CreateRoleDto> _createValidator;
     private readonly IValidator<UpdateRoleDto> _updateValidator;
 
     public RoleService(
         IUnitOfWork uow,
         IValidator<CreateRoleDto> createValidator,
-        IValidator<UpdateRoleDto> updateValidator)
+        IValidator<UpdateRoleDto> updateValidator,
+        IAccessRightsCatalog? access = null)
     {
+        _access = access;
         _uow = uow;
         _createValidator = createValidator;
         _updateValidator = updateValidator;
@@ -58,6 +61,7 @@ public class RoleService : IRoleService
 
         await _uow.Roles.AddAsync(entity, cancellationToken);
         await _uow.SaveChangesAsync(cancellationToken);
+        _access?.Invalidate();
         return entity.RoleId;
     }
 
@@ -82,6 +86,7 @@ public class RoleService : IRoleService
 
         _uow.Roles.Update(entity);
         await _uow.SaveChangesAsync(cancellationToken);
+        _access?.Invalidate();
     }
 
     public async Task DeleteAsync(int roleId, CancellationToken cancellationToken = default)
@@ -103,6 +108,7 @@ public class RoleService : IRoleService
 
         _uow.Roles.Remove(entity);
         await _uow.SaveChangesAsync(cancellationToken);
+        _access?.Invalidate();
     }
 
     private static RoleDto ToDto(Role r, Dictionary<int, int> userCounts, Dictionary<int, int> formCounts)

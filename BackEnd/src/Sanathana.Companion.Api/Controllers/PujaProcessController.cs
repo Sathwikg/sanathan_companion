@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Sanathana.Companion.Api.Filters;
+using Sanathana.Companion.Application.Common;
+using Sanathana.Companion.Application.Common.Authorization;
 using Sanathana.Companion.Application.DTOs.Pujas;
 using Sanathana.Companion.Application.Interfaces;
 
@@ -9,6 +11,7 @@ namespace Sanathana.Companion.Api.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
+[RequiresModule(ModuleCodes.PujaProcess)]
 public class PujaProcessController : ControllerBase
 {
     private readonly IPujaProcessService _service;
@@ -24,6 +27,7 @@ public class PujaProcessController : ControllerBase
 
     // ---- admin configuration ----
 
+    [RequiresModule(ModuleCodes.PujaProcessConfig)]
     [Authorize(Roles = "Admin")]
     [HttpGet("config/{pujaId:guid}")]
     [ProducesResponseType(typeof(PujaProcessConfigDto), StatusCodes.Status200OK)]
@@ -31,6 +35,7 @@ public class PujaProcessController : ControllerBase
     public async Task<IActionResult> GetConfig(Guid pujaId, CancellationToken cancellationToken)
         => Ok(await _service.GetConfigAsync(pujaId, cancellationToken));
 
+    [RequiresModule(ModuleCodes.PujaProcessConfig)]
     [Authorize(Roles = "Admin")]
     [HttpPut("config/{pujaId:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]

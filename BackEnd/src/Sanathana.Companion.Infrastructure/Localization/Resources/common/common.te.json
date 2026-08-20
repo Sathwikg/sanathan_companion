@@ -1,4 +1,6 @@
 {
+  "common.accessDeniedBody": "మీ పాత్రకు ఈ తెర ఇవ్వబడలేదు. యాక్సెస్ రైట్స్ పేజీలో నిర్వాహకుడు దీన్ని మార్చవచ్చు.",
+  "common.accessDeniedTitle": "ఈ ఫారమ్‌కు మీకు అనుమతి లేదు",
   "common.actions": "చర్యలు",
   "common.activate": "సక్రియం చేయి",
   "common.active": "సక్రియం",

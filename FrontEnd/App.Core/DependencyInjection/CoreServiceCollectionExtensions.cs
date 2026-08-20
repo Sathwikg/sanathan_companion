@@ -27,6 +27,10 @@ public static class CoreServiceCollectionExtensions
         // started on the old chain race one started on the new, presenting the same refresh token
         // twice, which is the signature the server revokes a whole token family on.
         services.AddSingleton<TokenRefreshCoordinator>();
+        // SINGLETON for the same reason as SessionExpiredNotifier: the handler that raises it lives
+        // in HttpClientFactory's scope, not the component's.
+        services.AddSingleton<AccessDeniedNotifier>();
+        services.AddScoped<ForbiddenHandler>();
         // SINGLETON, not scoped: HttpClientFactory resolves message handlers from its own scope, so
         // a scoped context would give LanguageHeaderHandler a different instance than the one
         // LocalizationState writes to — and every request would ship a stale language.
@@ -84,6 +88,9 @@ public static class CoreServiceCollectionExtensions
             // Authorization header the inner handler added, which is how it tells an expired
             // session apart from a failed sign-in.
             .AddHttpMessageHandler<SessionExpiryHandler>()
+            // Inside the expiry handler, so it sees the response of a replayed request rather than
+            // the 401 that preceded it.
+            .AddHttpMessageHandler<ForbiddenHandler>()
             .AddHttpMessageHandler<BearerTokenHandler>()
             // Stamps X-App-Language so the server translates database text for this user.
             .AddHttpMessageHandler<LanguageHeaderHandler>();

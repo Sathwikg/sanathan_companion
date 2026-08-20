@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Sanathana.Companion.Application.Common;
+using Sanathana.Companion.Application.Common.Authorization;
 using Sanathana.Companion.Application.DTOs.Dashboard;
 using Sanathana.Companion.Application.Interfaces;
 
@@ -8,6 +10,7 @@ namespace Sanathana.Companion.Api.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
+[RequiresModule(ModuleCodes.Dashboard)]
 public class DashboardController : ControllerBase
 {
     private readonly IDashboardService _dashboard;
@@ -40,6 +43,7 @@ public class DashboardController : ControllerBase
     }
 
     /// <summary>Administrator overview: community size and sadhana engagement. Admin only.</summary>
+    [RequiresModule(ModuleCodes.AdminDashboard)]
     [Authorize(Roles = "Admin")]
     [HttpGet("admin")]
     [ProducesResponseType(typeof(AdminDashboardDto), StatusCodes.Status200OK)]

@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Sanathana.Companion.Application.Common;
+using Sanathana.Companion.Application.Common.Authorization;
 using Sanathana.Companion.Application.DTOs.Regions;
 using Sanathana.Companion.Application.Interfaces;
 
@@ -8,6 +10,7 @@ namespace Sanathana.Companion.Api.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
+[RequiresModule(ModuleCodes.Regions)]
 public class RegionsController : ControllerBase
 {
     private readonly IRegionService _service;
@@ -15,6 +18,7 @@ public class RegionsController : ControllerBase
     public RegionsController(IRegionService service) => _service = service;
 
     /// <summary>List all regions.</summary>
+    [RequiresModule(ModuleCodes.Regions, ModuleCodes.Festivals, ModuleCodes.Languages)]
     [HttpGet]
     [ProducesResponseType(typeof(IReadOnlyList<RegionDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll(CancellationToken cancellationToken)

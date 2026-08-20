@@ -1,6 +1,8 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Sanathana.Companion.Application.Common;
+using Sanathana.Companion.Application.Common.Authorization;
 using Sanathana.Companion.Application.DTOs.Menu;
 using Sanathana.Companion.Application.Interfaces;
 
@@ -9,6 +11,7 @@ namespace Sanathana.Companion.Api.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
+[RequiresModule(ModuleCodes.Modules)]
 public class MenuModulesController : ControllerBase
 {
     private readonly IMenuModuleService _service;
@@ -30,6 +33,7 @@ public class MenuModulesController : ControllerBase
         => Ok(await _service.GetTreeAsync(cancellationToken));
 
     /// <summary>Active + visible tree for the navigation sidebar, filtered by the caller's role and platform.</summary>
+    [ModuleExempt]
     [HttpGet("menu")]
     [ProducesResponseType(typeof(List<MenuTreeNodeDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetMenu([FromQuery] string? platform, CancellationToken cancellationToken)

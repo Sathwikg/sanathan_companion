@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Sanathana.Companion.Application.Common;
+using Sanathana.Companion.Application.Common.Authorization;
 using Sanathana.Companion.Application.DTOs.Localization;
 using Sanathana.Companion.Application.Interfaces;
 
@@ -11,6 +13,8 @@ namespace Sanathana.Companion.Api.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
+[RequiresModule(ModuleCodes.LanguageConfigs)]
 public class LocalizationController : ControllerBase
 {
     private readonly ILocalizationService _service;

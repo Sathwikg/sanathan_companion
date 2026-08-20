@@ -157,6 +157,24 @@ After that, rotate it in the app: `POST /api/auth/change-password` with a bearer
 > time the API starts. If you were relying on `admin`/`admin`, set `Admin__InitialPassword`
 > **before** deploying, or you will have no way in.
 
+### Access Rights are enforced at the endpoint
+
+The role-by-module matrix used to decide only which links appeared in the menu; every API endpoint
+was gated by nothing finer than `[Authorize]`, so a role denied the Deities form could still read
+`GET /api/deities` by asking for it. Writes were already closed by `[Authorize(Roles = "Admin")]` —
+it is the reads this shuts.
+
+Each endpoint now declares its form with `[RequiresModule(ModuleCodes.X)]`, or `[ModuleExempt]` for
+the handful that belong to no form: the menu itself, the notification bell, and the caller's own
+data (profile, favourites, changing your own password). A test fails the build if an endpoint
+declares neither. **Default-deny**: an authenticated non-administrator reaching an endpoint that
+names no module is refused, so a controller added tomorrow is closed until somebody maps it.
+Administrators bypass the check entirely, so a forgotten attribute cannot brick administration.
+
+A module denial answers 403 with `X-Access-Denied: module`, which is how the client tells it from
+the role-based 403s that two screens already handle themselves; the app lands on `/access-denied`
+rather than the app root, because the root is itself a gated form.
+
 ### Sessions
 
 The access token is short-lived and the refresh token is not. A refresh token is stored only as a

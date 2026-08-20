@@ -16,6 +16,7 @@ public class MenuModuleConfiguration : IEntityTypeConfiguration<MenuModule>
         builder.Property(m => m.Icon).HasMaxLength(100);
         builder.Property(m => m.Description).HasMaxLength(500);
         builder.Property(m => m.RoutePath).HasMaxLength(300);
+        builder.Property(m => m.Code).HasMaxLength(60);
         builder.Property(m => m.CreatedBy).HasMaxLength(100);
         builder.Property(m => m.ModifiedBy).HasMaxLength(100);
 
@@ -25,6 +26,10 @@ public class MenuModuleConfiguration : IEntityTypeConfiguration<MenuModule>
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasIndex(m => m.ParentId).HasDatabaseName("IX_MenuModules_ParentId");
+
+        // Unique, and Postgres allows many NULLs in a unique index — which is what the container
+        // rows are.
+        builder.HasIndex(m => m.Code).IsUnique().HasDatabaseName("UX_MenuModules_Code");
 
         // Seed data: the "Dashboard" main menu, plus a "Masters" main menu that
         // contains the "Modules" management form as a sub-module.
@@ -36,6 +41,7 @@ public class MenuModuleConfiguration : IEntityTypeConfiguration<MenuModule>
                 Icon = "📊",
                 Description = "Community & sadhana analytics for administrators",
                 RoutePath = "/admin-dashboard",
+                Code = "adminDashboard",
                 DisplayOrder = 1,
                 IsVisibleInMenu = true,
                 ShowInMobile = false,
@@ -51,6 +57,7 @@ public class MenuModuleConfiguration : IEntityTypeConfiguration<MenuModule>
                 Icon = "🕉️",
                 Description = "Your personal sadhana home",
                 RoutePath = "/",
+                Code = "dashboard",
                 DisplayOrder = 2,
                 IsVisibleInMenu = true,
                 ShowInMobile = true,
@@ -81,6 +88,7 @@ public class MenuModuleConfiguration : IEntityTypeConfiguration<MenuModule>
                 Icon = "🧩",
                 Description = "Manage modules & sub-modules",
                 RoutePath = "/modules",
+                Code = "modules",
                 DisplayOrder = 1,
                 IsVisibleInMenu = true,
                 ShowInMobile = false,
@@ -96,6 +104,7 @@ public class MenuModuleConfiguration : IEntityTypeConfiguration<MenuModule>
                 Icon = "🗺️",
                 Description = "Manage regions",
                 RoutePath = "/regions",
+                Code = "regions",
                 DisplayOrder = 2,
                 IsVisibleInMenu = true,
                 ShowInMobile = false,
@@ -111,6 +120,7 @@ public class MenuModuleConfiguration : IEntityTypeConfiguration<MenuModule>
                 Icon = "🎉",
                 Description = "Manage festivals by year",
                 RoutePath = "/festivals",
+                Code = "festivals",
                 DisplayOrder = 3,
                 IsVisibleInMenu = true,
                 ShowInMobile = true,
@@ -126,6 +136,7 @@ public class MenuModuleConfiguration : IEntityTypeConfiguration<MenuModule>
                 Icon = "🛕",
                 Description = "Manage deities / gods",
                 RoutePath = "/deities",
+                Code = "deities",
                 DisplayOrder = 4,
                 IsVisibleInMenu = true,
                 ShowInMobile = true,
@@ -141,6 +152,7 @@ public class MenuModuleConfiguration : IEntityTypeConfiguration<MenuModule>
                 Icon = "📿",
                 Description = "Manage chants",
                 RoutePath = "/chants",
+                Code = "chants",
                 DisplayOrder = 5,
                 IsVisibleInMenu = true,
                 ShowInMobile = true,
@@ -156,6 +168,7 @@ public class MenuModuleConfiguration : IEntityTypeConfiguration<MenuModule>
                 Icon = "👥",
                 Description = "Registered users and their profiles",
                 RoutePath = "/users",
+                Code = "users",
                 DisplayOrder = 7,
                 IsVisibleInMenu = true,
                 ShowInMobile = false,
@@ -171,6 +184,7 @@ public class MenuModuleConfiguration : IEntityTypeConfiguration<MenuModule>
                 Icon = "🗣️",
                 Description = "Manage languages and their regions",
                 RoutePath = "/languages",
+                Code = "languages",
                 DisplayOrder = 6,
                 IsVisibleInMenu = true,
                 ShowInMobile = true,
@@ -186,6 +200,7 @@ public class MenuModuleConfiguration : IEntityTypeConfiguration<MenuModule>
                 Icon = "🎭",
                 Description = "Manage application roles",
                 RoutePath = "/roles",
+                Code = "roles",
                 DisplayOrder = 8,
                 IsVisibleInMenu = true,
                 ShowInMobile = false,
@@ -216,6 +231,7 @@ public class MenuModuleConfiguration : IEntityTypeConfiguration<MenuModule>
                 Icon = "📜",
                 Description = "Configure chants under each chant category",
                 RoutePath = "/chants-config",
+                Code = "chantsConfig",
                 DisplayOrder = 1,
                 IsVisibleInMenu = true,
                 ShowInMobile = true,
@@ -231,6 +247,7 @@ public class MenuModuleConfiguration : IEntityTypeConfiguration<MenuModule>
                 Icon = "🗓️",
                 Description = "Daily Panchangam by region and location",
                 RoutePath = "/panchangam",
+                Code = "panchangam",
                 DisplayOrder = 2,
                 IsVisibleInMenu = true,
                 ShowInMobile = true,
@@ -261,6 +278,7 @@ public class MenuModuleConfiguration : IEntityTypeConfiguration<MenuModule>
                 Icon = "📜",
                 Description = "Required materials and step-by-step process for each puja",
                 RoutePath = "/puja-process-config",
+                Code = "pujaProcessConfig",
                 DisplayOrder = 6,
                 IsVisibleInMenu = true,
                 ShowInMobile = false,
@@ -276,6 +294,7 @@ public class MenuModuleConfiguration : IEntityTypeConfiguration<MenuModule>
                 Icon = "📿",
                 Description = "Follow a puja step by step",
                 RoutePath = "/puja-process",
+                Code = "pujaProcess",
                 DisplayOrder = 3,
                 IsVisibleInMenu = true,
                 ShowInMobile = true,
@@ -291,6 +310,7 @@ public class MenuModuleConfiguration : IEntityTypeConfiguration<MenuModule>
                 Icon = "🛐",
                 Description = "Pujas mapped to festivals",
                 RoutePath = "/pujas",
+                Code = "pujas",
                 DisplayOrder = 10,
                 IsVisibleInMenu = true,
                 ShowInMobile = false,
@@ -306,6 +326,7 @@ public class MenuModuleConfiguration : IEntityTypeConfiguration<MenuModule>
                 Icon = "🖼️",
                 Description = "Upload and manage downloadable wallpapers for each deity",
                 RoutePath = "/wallpapers",
+                Code = "wallpapers",
                 DisplayOrder = 9,
                 IsVisibleInMenu = true,
                 ShowInMobile = false,
@@ -321,6 +342,7 @@ public class MenuModuleConfiguration : IEntityTypeConfiguration<MenuModule>
                 Icon = "📱",
                 Description = "Browse and download deity wallpapers",
                 RoutePath = "/wallpapers-download",
+                Code = "wallpapersDownload",
                 DisplayOrder = 2,
                 IsVisibleInMenu = true,
                 ShowInMobile = true,
@@ -336,6 +358,7 @@ public class MenuModuleConfiguration : IEntityTypeConfiguration<MenuModule>
                 Icon = "🪷",
                 Description = "Recommended chants for today and your japa practice",
                 RoutePath = "/sadhana",
+                Code = "sadhana",
                 DisplayOrder = 1,
                 IsVisibleInMenu = true,
                 ShowInMobile = true,
@@ -351,6 +374,7 @@ public class MenuModuleConfiguration : IEntityTypeConfiguration<MenuModule>
                 Icon = "🔐",
                 Description = "Manage which forms each role can access on web and mobile",
                 RoutePath = "/access-rights",
+                Code = "accessRights",
                 DisplayOrder = 3,
                 IsVisibleInMenu = true,
                 ShowInMobile = false,
@@ -381,6 +405,7 @@ public class MenuModuleConfiguration : IEntityTypeConfiguration<MenuModule>
                 Icon = "📝",
                 Description = "Send feedback, suggestions or report an issue",
                 RoutePath = "/feedback",
+                Code = "feedback",
                 DisplayOrder = 1,
                 IsVisibleInMenu = true,
                 ShowInMobile = true,
@@ -396,6 +421,7 @@ public class MenuModuleConfiguration : IEntityTypeConfiguration<MenuModule>
                 Icon = "📊",
                 Description = "Review and triage the feedback seekers have sent",
                 RoutePath = "/feedback-dashboard",
+                Code = "feedbackDashboard",
                 DisplayOrder = 2,
                 IsVisibleInMenu = true,
                 ShowInMobile = false,
@@ -411,6 +437,7 @@ public class MenuModuleConfiguration : IEntityTypeConfiguration<MenuModule>
                 Icon = "🏷️",
                 Description = "Manage the feedback issue types",
                 RoutePath = "/issue-types",
+                Code = "issueTypes",
                 DisplayOrder = 3,
                 IsVisibleInMenu = true,
                 ShowInMobile = false,
@@ -426,6 +453,7 @@ public class MenuModuleConfiguration : IEntityTypeConfiguration<MenuModule>
                 Icon = "⭐",
                 Description = "Your favorite chants and gods",
                 RoutePath = "/favorites",
+                Code = "favorites",
                 DisplayOrder = 7,
                 IsVisibleInMenu = true,
                 ShowInMobile = true,
@@ -456,6 +484,7 @@ public class MenuModuleConfiguration : IEntityTypeConfiguration<MenuModule>
                 Icon = "🛠️",
                 Description = "Choose which modules can send notifications",
                 RoutePath = "/notification-config",
+                Code = "notificationConfig",
                 DisplayOrder = 1,
                 IsVisibleInMenu = true,
                 ShowInMobile = false,
@@ -471,6 +500,7 @@ public class MenuModuleConfiguration : IEntityTypeConfiguration<MenuModule>
                 Icon = "🔕",
                 Description = "Choose what you get notified about, and when",
                 RoutePath = "/my-notifications",
+                Code = "myNotifications",
                 DisplayOrder = 2,
                 IsVisibleInMenu = true,
                 ShowInMobile = true,
@@ -486,6 +516,7 @@ public class MenuModuleConfiguration : IEntityTypeConfiguration<MenuModule>
                 Icon = "🌐",
                 Description = "Translate the app and choose which forms use each language",
                 RoutePath = "/language-configs",
+                Code = "languageConfigs",
                 DisplayOrder = 4,
                 IsVisibleInMenu = true,
                 ShowInMobile = false,

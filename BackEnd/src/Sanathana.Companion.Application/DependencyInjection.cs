@@ -35,6 +35,9 @@ public static class DependencyInjection
         // Singleton on purpose: it caches the compiled matchers so the response filter never
         // touches the database. Invalidated explicitly whenever a translation is saved.
         services.AddSingleton<ITranslationCatalog, TranslationCatalog>();
+        // Singleton for the same reason: the module gate runs on every authenticated request, and
+        // it is only affordable because the matrix is held in memory between writes.
+        services.AddSingleton<IAccessRightsCatalog, AccessRightsCatalog>();
         services.AddScoped<ITermSeedService, TermSeedService>();
         services.AddScoped<IDictionaryService, DictionaryService>();
         services.AddScoped<ITranslationHarvestService, TranslationHarvestService>();

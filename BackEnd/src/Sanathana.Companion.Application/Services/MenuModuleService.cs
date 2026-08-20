@@ -11,14 +11,17 @@ namespace Sanathana.Companion.Application.Services;
 public class MenuModuleService : IMenuModuleService
 {
     private readonly IUnitOfWork _uow;
+    private readonly IAccessRightsCatalog? _access;
     private readonly IValidator<CreateMenuModuleDto> _createValidator;
     private readonly IValidator<UpdateMenuModuleDto> _updateValidator;
 
     public MenuModuleService(
         IUnitOfWork uow,
         IValidator<CreateMenuModuleDto> createValidator,
-        IValidator<UpdateMenuModuleDto> updateValidator)
+        IValidator<UpdateMenuModuleDto> updateValidator,
+        IAccessRightsCatalog? access = null)
     {
+        _access = access;
         _uow = uow;
         _createValidator = createValidator;
         _updateValidator = updateValidator;
@@ -121,6 +124,7 @@ public class MenuModuleService : IMenuModuleService
 
         await _uow.MenuModules.AddAsync(entity, cancellationToken);
         await _uow.SaveChangesAsync(cancellationToken);
+        _access?.Invalidate();
         return entity.Id;
     }
 
@@ -145,6 +149,7 @@ public class MenuModuleService : IMenuModuleService
 
         _uow.MenuModules.Update(entity);
         await _uow.SaveChangesAsync(cancellationToken);
+        _access?.Invalidate();
     }
 
     public async Task SetActiveAsync(Guid id, bool isActive, CancellationToken cancellationToken = default)
@@ -155,6 +160,7 @@ public class MenuModuleService : IMenuModuleService
         entity.IsActive = isActive;
         _uow.MenuModules.Update(entity);
         await _uow.SaveChangesAsync(cancellationToken);
+        _access?.Invalidate();
     }
 
     private async Task ValidateParentAsync(Guid? parentId, Guid? currentId, CancellationToken cancellationToken)

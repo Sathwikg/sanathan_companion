@@ -1,4 +1,6 @@
 {
+  "common.accessDeniedBody": "Your role has not been granted this screen. An administrator can change that on the Access Rights page.",
+  "common.accessDeniedTitle": "You do not have access to this form",
   "common.actions": "Actions",
   "common.activate": "Activate",
   "common.active": "Active",

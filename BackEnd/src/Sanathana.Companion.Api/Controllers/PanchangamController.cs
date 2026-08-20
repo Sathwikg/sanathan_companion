@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using Sanathana.Companion.Application.Common;
+using Sanathana.Companion.Application.Common.Authorization;
 using Sanathana.Companion.Application.DTOs.Panchangams;
 using Sanathana.Companion.Application.Interfaces;
 
@@ -9,6 +11,7 @@ namespace Sanathana.Companion.Api.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
+[RequiresModule(ModuleCodes.Panchangam)]
 public class PanchangamController : ControllerBase
 {
     private readonly IPanchangamService _service;
@@ -19,6 +22,7 @@ public class PanchangamController : ControllerBase
     /// A page of stored Panchangam rows, filterable by year / region / date range / text.
     /// </summary>
     /// <remarks>Returns an envelope, not a bare array — the response used to be unbounded.</remarks>
+    [RequiresModule(ModuleCodes.Panchangam, ModuleCodes.Dashboard)]
     [HttpGet]
     [ProducesResponseType(typeof(PanchangamPageDto), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll(

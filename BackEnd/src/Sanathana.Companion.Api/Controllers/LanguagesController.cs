@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Sanathana.Companion.Application.Common;
+using Sanathana.Companion.Application.Common.Authorization;
 using Sanathana.Companion.Application.DTOs.Languages;
 using Sanathana.Companion.Application.Interfaces;
 
@@ -8,6 +10,7 @@ namespace Sanathana.Companion.Api.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
+[RequiresModule(ModuleCodes.Languages)]
 public class LanguagesController : ControllerBase
 {
     private readonly ILanguageService _service;
@@ -15,6 +18,7 @@ public class LanguagesController : ControllerBase
     public LanguagesController(ILanguageService service) => _service = service;
 
     /// <summary>Languages, optionally narrowed to one region or matched by free text.</summary>
+    [RequiresModule(ModuleCodes.Languages, ModuleCodes.Regions, ModuleCodes.ChantsConfig)]
     [HttpGet]
     [ProducesResponseType(typeof(IReadOnlyList<LanguageDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll([FromQuery] Guid? regionId, [FromQuery] string? search, CancellationToken cancellationToken)

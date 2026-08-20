@@ -1,4 +1,6 @@
 {
+  "common.accessDeniedBody": "ನಿಮ್ಮ ಪಾತ್ರಕ್ಕೆ ಈ ಪರದೆ ನೀಡಲಾಗಿಲ್ಲ. ಪ್ರವೇಶ ಹಕ್ಕುಗಳ ಪುಟದಲ್ಲಿ ನಿರ್ವಾಹಕರು ಇದನ್ನು ಬದಲಾಯಿಸಬಹುದು.",
+  "common.accessDeniedTitle": "ಈ ನಮೂನೆಗೆ ನಿಮಗೆ ಪ್ರವೇಶವಿಲ್ಲ",
   "common.actions": "ಕ್ರಿಯೆಗಳು",
   "common.activate": "ಸಕ್ರಿಯಗೊಳಿಸಿ",
   "common.active": "ಸಕ್ರಿಯ",

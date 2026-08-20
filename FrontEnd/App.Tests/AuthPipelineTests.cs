@@ -72,34 +72,44 @@ public class AuthPipelineTests
     private sealed class CapturingHandler : HttpMessageHandler
     {
         private readonly HttpStatusCode _status;
+        private readonly string? _deniedHeader;
+
         public HttpRequestMessage? Seen { get; private set; }
 
-        public CapturingHandler(HttpStatusCode status) => _status = status;
+        public CapturingHandler(HttpStatusCode status, string? deniedHeader = null)
+        {
+            _status = status;
+            _deniedHeader = deniedHeader;
+        }
 
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             Seen = request;
-            return Task.FromResult(new HttpResponseMessage(_status));
+            var response = new HttpResponseMessage(_status);
+            if (_deniedHeader is not null) response.Headers.Add(ForbiddenHandler.DeniedHeader, _deniedHeader);
+            return Task.FromResult(response);
         }
     }
 
     private static (HttpClient Client, CapturingHandler Inner, SessionExpiredNotifier Notifier) Pipeline(
-        HttpStatusCode status, StubTokenStore? store = null, HttpMessageHandler? refreshWith = null)
+        HttpStatusCode status, StubTokenStore? store = null, HttpMessageHandler? refreshWith = null,
+        string? deniedHeader = null, AccessDeniedNotifier? denied = null)
     {
         store ??= new StubTokenStore();
         var notifier = new SessionExpiredNotifier();
-        var inner = new CapturingHandler(status);
+        var inner = new CapturingHandler(status, deniedHeader);
 
-        // Mirrors AddAppCore: the expiry handler is OUTERMOST, wrapping the bearer handler, so it
-        // observes the Authorization header the inner handler added.
+        // Mirrors AddAppCore: the expiry handler is OUTERMOST, wrapping the forbidden handler and
+        // then the bearer handler, so it observes the Authorization header the inner one added.
         var bearer = new BearerTokenHandler(store) { InnerHandler = inner };
+        var forbidden = new ForbiddenHandler(denied ?? new AccessDeniedNotifier()) { InnerHandler = bearer };
         var expiry = new SessionExpiryHandler(
             store,
             notifier,
             new TokenRefreshCoordinator(),
             new StubClientFactory(refreshWith ?? new RefreshHandler(HttpStatusCode.Unauthorized)))
         {
-            InnerHandler = bearer
+            InnerHandler = forbidden
         };
 
         return (new HttpClient(expiry) { BaseAddress = new Uri("https://example.test/api/") }, inner, notifier);
@@ -368,5 +378,36 @@ public class AuthPipelineTests
         await client.PostAsync(ApiRoutes.Auth.Refresh, new StringContent("{}"));
 
         Assert.Null(inner.Presented[0]);
+    }
+
+    // ---------------------------------------------------------------- module denials
+
+    [Fact]
+    public async Task A_module_denial_is_reported_so_the_app_can_show_a_page_about_it()
+    {
+        var denied = new AccessDeniedNotifier();
+        var raised = false;
+        denied.Denied += () => raised = true;
+
+        var (client, _, _) = Pipeline(HttpStatusCode.Forbidden, deniedHeader: "module", denied: denied);
+        await client.GetAsync(ApiRoutes.Deities.Root);
+
+        Assert.True(raised);
+    }
+
+    [Fact]
+    public async Task A_role_based_403_is_left_alone()
+    {
+        // The admin dashboard and the issue-types master already read a plain 403 themselves and
+        // render their own "administrator access required" panel. Reacting to those would navigate
+        // away while the page was drawing its correct state, which is why the header exists.
+        var denied = new AccessDeniedNotifier();
+        var raised = false;
+        denied.Denied += () => raised = true;
+
+        var (client, _, _) = Pipeline(HttpStatusCode.Forbidden, denied: denied);
+        await client.GetAsync(ApiRoutes.Dashboard.Admin);
+
+        Assert.False(raised);
     }
 }

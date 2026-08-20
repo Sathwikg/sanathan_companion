@@ -10,8 +10,16 @@ namespace Sanathana.Companion.Application.Services;
 public class AccessRightsService : IAccessRightsService
 {
     private readonly IUnitOfWork _uow;
+    private readonly IAccessRightsCatalog? _access;
 
-    public AccessRightsService(IUnitOfWork uow) => _uow = uow;
+    /// <param name="access">
+    /// Optional so the tests can build the service without one; null just means nothing is cached.
+    /// </param>
+    public AccessRightsService(IUnitOfWork uow, IAccessRightsCatalog? access = null)
+    {
+        _uow = uow;
+        _access = access;
+    }
 
     public async Task<IReadOnlyList<AccessRoleDto>> GetAssignableRolesAsync(CancellationToken cancellationToken = default)
     {
@@ -95,6 +103,9 @@ public class AccessRightsService : IAccessRightsService
         }
 
         await _uow.SaveChangesAsync(cancellationToken);
+
+        // The module gate reads a cached snapshot of exactly this matrix.
+        _access?.Invalidate();
     }
 
     private async Task<Role> RequireAssignableRoleAsync(int roleId, CancellationToken cancellationToken)
