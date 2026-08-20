@@ -1,11 +1,24 @@
-# The test harness's JWT key and .env.example's placeholder connection string are fixtures, not
-# credentials — the default generic rules would flag both and the job would be red from day one.
+# What gitleaks is allowed to find without failing the build.
 [extend]
 useDefault = true
 
 [allowlist]
-description = "Fixtures, not credentials"
+description = "Fixtures and deliberately-public constants, not credentials"
+
 paths = [
+  # Placeholders an operator is meant to replace; being read is the whole point of the file.
   '''\.env\.example$''',
-  '''BackEnd/tests/Sanathana\.Companion\.Tests/TestHarness\.cs$''',
+  '''appsettings\.Development\.json\.example$''',
+  # Test fixtures: a JWT signing key that only ever signs tokens the same test verifies, and a
+  # one-pixel PNG that looks like base64 because it is.
+  '''BackEnd/tests/Sanathana\.Companion\.Tests/.*\.cs$''',
+]
+
+regexes = [
+  # The locked administrator hash. It is a bcrypt digest that verifies against no password at all
+  # — see SeedConstants.AdminPasswordHash and AdminAccountBootstrapper, which opens the account
+  # from Admin__InitialPassword and only while the stored hash still equals this. It appears in the
+  # seed, in the LockSeededAdminAccount migration and in the tests that pin it, so it is allowed by
+  # value rather than by path.
+  '''\$2a\$11\$3Qm5rGml0DHTfjcYb4qBSuwNwEcQPXNbe5v8oJEt2hqNz0oV\.KEwG''',
 ]

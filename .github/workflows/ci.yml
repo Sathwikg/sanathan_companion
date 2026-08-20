@@ -120,14 +120,19 @@ jobs:
       # whole reason those heads are not built here.
       - run: dotnet workload install maui-android
 
-      # One command with -f and no separate restore: naming the framework makes this a
-      # single-target build, so MSBuild never evaluates the iOS and Mac Catalyst heads and never
-      # asks for workloads this runner cannot have. Debug because the question is "does it still
-      # compile", not "does it ship" — a store build is signed, and signing belongs in a release
-      # workflow. Leave this check non-required until it has proven itself over a few weeks;
-      # Android SDK provisioning on hosted runners is the part of this that churns.
+      # TargetFrameworks is overridden rather than passing -f. The first version of this job used
+      # -f net10.0-android and still failed with "the project depends on workload packs that do not
+      # exist in any of the workloads available: Microsoft.iOS.Sdk" — workload resolution reads
+      # the whole TargetFrameworks list during evaluation, before -f narrows anything. Rewriting
+      # the property makes the project genuinely single-TFM, so the iOS and Mac Catalyst heads are
+      # never considered.
+      #
+      # Debug because the question is "does it still compile", not "does it ship" — a store build
+      # is signed, and signing belongs in a release workflow. Leave this check non-required until
+      # it has proven itself; Android provisioning on hosted runners is the part that churns.
       - run: >
-          dotnet build FrontEnd/App.Mobile/App.Mobile.csproj -c Debug -f net10.0-android
+          dotnet build FrontEnd/App.Mobile/App.Mobile.csproj -c Debug
+          -p:TargetFrameworks=net10.0-android
           -p:AndroidSdkDirectory=$ANDROID_HOME
 
   security:
@@ -180,10 +185,23 @@ jobs:
           # parsing rather than on a secret. GIT_CONFIG_* marks the bind mount safe: the container
           # runs as root over files the runner user owns, which otherwise trips git's
           # dubious-ownership check and reds the job for a reason unrelated to secrets.
+          # --config is explicit rather than relying on gitleaks finding the file itself, so the
+          # allowlist cannot be silently skipped.
           docker run --rm \
             -v "$PWD:/repo" \
             -e GIT_CONFIG_COUNT=1 \
             -e GIT_CONFIG_KEY_0=safe.directory \
             -e GIT_CONFIG_VALUE_0=/repo \
             ghcr.io/gitleaks/gitleaks:v8.30.1 \
-            git /repo --redact --no-banner --exit-code 1
+            git /repo --config /repo/.gitleaks.toml --redact --no-banner --exit-code 1 \
+            --report-format json --report-path /repo/gitleaks-report.json
+
+      # Findings are redacted in the log, so the report is what says WHERE. Uploaded on
+      # failure only — a green run has nothing to say.
+      - name: Secret scan report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gitleaks-report
+          path: gitleaks-report.json
+          if-no-files-found: ignore
