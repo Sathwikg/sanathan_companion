@@ -244,6 +244,31 @@ original casing or punctuation.
 | PUT  | `/api/users/{id}/status` | Admin | Open or close an account |
 | GET  | `/api/dashboard` | Bearer | Protected placeholder dashboard |
 
+## Building the mobile heads locally
+
+`net10.0-ios` and `net10.0-windows10.0.19041.0` build with nothing extra on Windows.
+
+**Android needs JDK 21 specifically** — not the newest one. The .NET 10 Android head refuses
+anything else outright:
+
+```
+error XA0030: Building with JDK version `23.0.1` is not supported. Please install JDK version `21.0`.
+```
+
+Having a newer JDK on the machine does not help and is in fact the usual cause. Install Temurin 21
+(the same distribution CI uses) and point the build at it explicitly rather than relying on `$PATH`,
+which is likely to find whichever JDK is newest:
+
+```bash
+dotnet build FrontEnd/App.Mobile/App.Mobile.csproj -c Release -f net10.0-android -p:JavaSdkDirectory="$JDK21_HOME" -p:AndroidSdkDirectory="$ANDROID_SDK"
+```
+
+That produces a signed `.apk` and a Play Store `.aab` under `FrontEnd/App.Mobile/bin/Release/net10.0-android/`.
+
+On Linux CI the framework has to be selected with `-p:TargetFrameworks=net10.0-android` rather than
+`-f`: workload resolution reads the whole `TargetFrameworks` list during evaluation, so `-f` alone
+still demands the iOS pack, which has no Linux build.
+
 ## Tests and CI
 - Backend: `dotnet test BackEnd/Sanathana.Companion.slnx` — seeding, register/login, JWT, BCrypt,
   the password and credential policy, the HTML sanitizer, menu/platform filtering, localization.

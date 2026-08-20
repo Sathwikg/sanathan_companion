@@ -24,6 +24,19 @@ namespace App.Mobile.Services;
 /// </remarks>
 public class MauiReminderScheduler : IReminderScheduler
 {
+#if ANDROID
+    /// <summary>
+    /// The application context, which the Android bindings declare as nullable.
+    /// </summary>
+    /// <remarks>
+    /// It is only null before the Application object exists, which should never be true while a
+    /// seeker is looking at a settings screen. Treated as "cannot schedule" rather than dereferenced
+    /// anyway, because an unhandled exception out of a permission check does not surface as an error
+    /// in a Blazor Hybrid host — it tears down the WebView.
+    /// </remarks>
+    private static global::Android.Content.Context? AndroidContext => global::Android.App.Application.Context;
+#endif
+
     public async Task<bool> IsAllowedAsync()
     {
 #if ANDROID
@@ -35,13 +48,19 @@ public class MauiReminderScheduler : IReminderScheduler
 
         if (status != PermissionStatus.Granted) return false;
 
+        var context = AndroidContext;
+        if (context is null) return false;
+
         // The runtime permission is only half the answer. A seeker can switch the app's
         // notifications off in system Settings on ANY Android version — on 12 and below that is
         // the only control there is, and the permission check would still report Granted. Without
         // this the app would insist a reminder "Would notify now" while the OS dropped every one.
-        return AndroidX.Core.App.NotificationManagerCompat
-            .From(global::Android.App.Application.Context)
-            .AreNotificationsEnabled();
+        //
+        // From() is declared nullable by the bindings, so the result is checked rather than
+        // dereferenced: no manager means nothing can be promised about notifications, which is
+        // "not allowed", not a crash out of a settings screen.
+        var manager = AndroidX.Core.App.NotificationManagerCompat.From(context);
+        return manager is not null && manager.AreNotificationsEnabled();
 #elif IOS || MACCATALYST
         var (granted, _) = await UNUserNotificationCenter.Current.RequestAuthorizationAsync(
             UNAuthorizationOptions.Alert | UNAuthorizationOptions.Sound | UNAuthorizationOptions.Badge);
@@ -67,7 +86,9 @@ public class MauiReminderScheduler : IReminderScheduler
         if (!await IsAllowedAsync()) return;
 
 #if ANDROID
-        var context = global::Android.App.Application.Context;
+        var context = AndroidContext;
+        if (context is null) return;
+
         ReminderNotifier.EnsureChannel(context);
         AndroidReminderAlarms.Sync(
             context,
@@ -101,7 +122,7 @@ public class MauiReminderScheduler : IReminderScheduler
     public Task ClearAsync()
     {
 #if ANDROID
-        AndroidReminderAlarms.CancelAll(global::Android.App.Application.Context);
+        if (AndroidContext is { } context) AndroidReminderAlarms.CancelAll(context);
 #elif IOS || MACCATALYST
         UNUserNotificationCenter.Current.RemoveAllPendingNotificationRequests();
 #endif
