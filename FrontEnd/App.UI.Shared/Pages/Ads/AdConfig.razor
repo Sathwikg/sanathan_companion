@@ -1,0 +1,242 @@
+@page "/ad-config"
+@attribute [Authorize]
+@inherits LocalizedComponentBase
+@inject IApiClient Api
+@inject ToastService Toast
+
+<div class="sc-page-head">
+    <div class="sc-page-title">
+        <span class="sc-page-emoji">📢</span>
+        <div>
+            <h1>@Loc["adConfig.title", "Ad Config"]</h1>
+            <p class="sc-page-sub">@Loc["adConfig.sub", "Choose which forms show ads, and which single format each one shows"]</p>
+        </div>
+    </div>
+    @if (_model is not null && !_forbidden)
+    {
+        <div class="sc-page-actions">
+            <button class="sc-btn-primary" @onclick="SaveAsync" disabled="@_saving">
+                @if (_saving) { <OmLoader Inline="true" Size="18" Message="@Loc["common.saving", "Saving…"]" /> }
+                else { <span>@Loc["common.save", "Save"]</span> }
+            </button>
+        </div>
+    }
+</div>
+
+@if (_loading)
+{
+    <OmLoader FullPage="true" Message="@Loc["common.loading", "Loading…"]" />
+}
+else if (_forbidden)
+{
+    <div class="sc-card sc-empty-state">
+        <div class="sc-empty-om">🔒</div>
+        <p>@Loc["common.adminOnly", "Administrator access required."]</p>
+    </div>
+}
+else if (_model is not null)
+{
+    <div class="sc-card sc-prefcard">
+        <div class="sc-section-head" style="margin-bottom:0.6rem">
+            <h2>⚙️ @Loc["adConfig.account", "AdMob account"]</h2>
+            <span class="sc-section-sub">@Loc["adConfig.accountSub", "Applies to the iOS and Android apps. The web app never shows ads."]</span>
+        </div>
+
+        <div class="sc-preflist">
+            <div class="sc-prefrow">
+                <span class="sc-prefrow-label">@Loc["adConfig.adsEnabled", "Show ads at all"]</span>
+                <label class="sc-switch">
+                    <input type="checkbox" checked="@_model.AdsEnabled" @onchange="e => _model.AdsEnabled = (bool)e.Value!" />
+                    <span class="sc-slider"></span>
+                </label>
+            </div>
+            <div class="sc-prefrow">
+                <span class="sc-prefrow-label">@Loc["adConfig.useTestAds", "Use test ads"]</span>
+                <label class="sc-switch">
+                    <input type="checkbox" checked="@_model.UseTestAds" @onchange="e => _model.UseTestAds = (bool)e.Value!" />
+                    <span class="sc-slider"></span>
+                </label>
+            </div>
+        </div>
+
+        @if (!_model.UseTestAds)
+        {
+            @* Not decoration: clicking your own live ads is the usual way an AdMob account gets
+               suspended, and the moment somebody turns this off is the moment to say so. *@
+            <div class="sc-alert sc-alert-warn" style="margin-top:0.8rem">
+                @Loc["adConfig.liveAdsWarning", "Live ads are being served. Do not tap them yourself — Google treats clicks from the publisher as invalid activity and suspends accounts for it."]
+            </div>
+        }
+
+        <div class="sc-detail-grid" style="margin-top:1rem">
+            <div class="sc-field">
+                <label>@Loc["adConfig.androidAppId", "Android app ID"]</label>
+                <input class="sc-input" @bind="_model.AndroidAppId" placeholder="ca-app-pub-0000000000000000~0000000000" />
+            </div>
+            <div class="sc-field">
+                <label>@Loc["adConfig.iosAppId", "iOS app ID"]</label>
+                <input class="sc-input" @bind="_model.IosAppId" placeholder="ca-app-pub-0000000000000000~0000000000" />
+            </div>
+        </div>
+        <span class="sc-hint">@Loc["adConfig.appIdHint", "From your AdMob account, one per platform. These are not secret — they ship inside the app."]</span>
+    </div>
+
+    <div class="sc-card sc-prefcard">
+        <div class="sc-section-head" style="margin-bottom:0.6rem">
+            <h2>📐 @Loc["adConfig.formats", "Ad formats"]</h2>
+            <span class="sc-section-sub">@Loc["adConfig.formatsSub", "What Google can serve, and where each one is allowed"]</span>
+        </div>
+
+        <div class="sc-cardgrid">
+            @foreach (var f in _model.Formats.Where(f => f.IsActive))
+            {
+                <div class="sc-tile">
+                    <div class="sc-tile-top">
+                        <h3 class="sc-tile-title">@f.Name</h3>
+                        @if (f.IsFullScreen)
+                        {
+                            <span class="sc-typechip god">@Loc["adConfig.fullScreen", "Full screen"]</span>
+                        }
+                    </div>
+                    <p class="sc-tile-desc">@f.Description</p>
+                    @if (!string.IsNullOrWhiteSpace(f.PlacementGuidance))
+                    {
+                        <p class="sc-tile-meta">⚠️ @f.PlacementGuidance</p>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="sc-card sc-tablewrap">
+        <div class="sc-section-head" style="margin-bottom:0.6rem">
+            <h2>🗂️ @Loc["adConfig.perForm", "Ads by form"]</h2>
+            <span class="sc-section-sub">@Loc["adConfig.perFormSub", "One format per form. Switching a form off clears its choice."]</span>
+        </div>
+
+        <table class="sc-table">
+            <thead>
+                <tr>
+                    <th>@Loc["adConfig.formColumn", "Form"]</th>
+                    <th>@Loc["adConfig.showAds", "Show ads"]</th>
+                    <th>@Loc["adConfig.format", "Format"]</th>
+                    <th>@Loc["adConfig.androidUnit", "Android ad unit"]</th>
+                    <th>@Loc["adConfig.iosUnit", "iOS ad unit"]</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var m in _model.Modules)
+                {
+                    <tr class="@(m.IsEnabled ? "" : "sc-row-muted")">
+                        <td>
+                            <strong>@m.Icon @m.ModuleName</strong>
+                            @if (!string.IsNullOrWhiteSpace(m.ParentName))
+                            {
+                                <div class="sc-muted">@m.ParentName</div>
+                            }
+                        </td>
+                        <td>
+                            <label class="sc-switch">
+                                <input type="checkbox" checked="@m.IsEnabled" @onchange="e => Toggle(m, (bool)e.Value!)" />
+                                <span class="sc-slider"></span>
+                            </label>
+                        </td>
+                        <td>
+                            @* A single select, not checkboxes: only one format can be active per form,
+                               so the control should make the other option unreachable rather than
+                               rely on somebody reading a rule. *@
+                            <select class="sc-input" value="@(m.AdFormatId?.ToString() ?? "")"
+                                    @onchange="e => ChooseFormat(m, e.Value?.ToString())" disabled="@(!m.IsEnabled)">
+                                <option value="">@Loc["adConfig.chooseFormat", "— Choose —"]</option>
+                                @foreach (var f in _model.Formats.Where(f => f.IsActive))
+                                {
+                                    <option value="@f.Id">@f.Name</option>
+                                }
+                            </select>
+                        </td>
+                        <td>
+                            <input class="sc-input" @bind="m.AndroidAdUnitId" disabled="@(!m.IsEnabled)"
+                                   placeholder="ca-app-pub-…/…" />
+                        </td>
+                        <td>
+                            <input class="sc-input" @bind="m.IosAdUnitId" disabled="@(!m.IsEnabled)"
+                                   placeholder="ca-app-pub-…/…" />
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@code {
+    private AdConfigModel? _model;
+    private bool _loading = true;
+    private bool _forbidden;
+    private bool _saving;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _model = await Api.GetAdConfigAsync();
+        }
+        catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Forbidden)
+        {
+            _forbidden = true;
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    /// <summary>Switching a form off clears its format, so re-enabling never resurrects an old choice.</summary>
+    private static void Toggle(AdModuleModel m, bool enabled)
+    {
+        m.IsEnabled = enabled;
+        if (!enabled) m.AdFormatId = null;
+    }
+
+    private static void ChooseFormat(AdModuleModel m, string? value)
+        => m.AdFormatId = Guid.TryParse(value, out var id) ? id : null;
+
+    private async Task SaveAsync()
+    {
+        if (_model is null) return;
+
+        _saving = true;
+        try
+        {
+            var (ok, error) = await Api.SaveAdConfigAsync(new SaveAdConfigRequest
+            {
+                AdsEnabled = _model.AdsEnabled,
+                AndroidAppId = _model.AndroidAppId,
+                IosAppId = _model.IosAppId,
+                UseTestAds = _model.UseTestAds,
+                Modules = _model.Modules.Select(m => new SaveAdModuleRequest
+                {
+                    MenuModuleId = m.MenuModuleId,
+                    IsEnabled = m.IsEnabled,
+                    AdFormatId = m.AdFormatId,
+                    AndroidAdUnitId = m.AndroidAdUnitId,
+                    IosAdUnitId = m.IosAdUnitId
+                }).ToList()
+            });
+
+            if (!ok)
+            {
+                Toast.Error(string.IsNullOrWhiteSpace(error)
+                    ? Loc["adConfig.saveFailed", "The ad configuration could not be saved."]
+                    : error);
+                return;
+            }
+
+            Toast.Success(Loc["adConfig.saved", "Ad configuration saved."]);
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+}

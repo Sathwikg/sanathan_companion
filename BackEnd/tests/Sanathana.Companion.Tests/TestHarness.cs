@@ -55,7 +55,8 @@ internal sealed class TestHarness : IDisposable
         var pujaProcess = new PujaProcessRepository(Context);
         var localization = new LocalizationRepository(Context);
         var refreshTokens = new RefreshTokenRepository(Context);
-        UnitOfWork = new UnitOfWork(Context, users, refreshTokens, roles, menuModules, regions, festivals, days, deities, chants, wallpapers, pujas, pujaProcess, chantConfigs, languages, panchangams, sadhana, moduleRoleMappings, issueTypes, feedbacks, favorites, notificationConfigs, userNotifications, localization);
+        var ads = new AdRepository(Context);
+        UnitOfWork = new UnitOfWork(Context, users, refreshTokens, ads, roles, menuModules, regions, festivals, days, deities, chants, wallpapers, pujas, pujaProcess, chantConfigs, languages, panchangams, sadhana, moduleRoleMappings, issueTypes, feedbacks, favorites, notificationConfigs, userNotifications, localization);
 
         Hasher = new BCryptPasswordHasher();
 

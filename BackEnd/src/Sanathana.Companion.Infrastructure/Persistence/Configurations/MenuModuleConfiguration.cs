@@ -479,6 +479,22 @@ public class MenuModuleConfiguration : IEntityTypeConfiguration<MenuModule>
             },
             new MenuModule
             {
+                Id = SeedConstants.AdConfigMenuId,
+                Name = "Ad Config",
+                Icon = "📢",
+                Description = "Choose which forms show ads, and which single format each one shows",
+                RoutePath = "/ad-config",
+                Code = "adConfig",
+                DisplayOrder = 7,
+                IsVisibleInMenu = true,
+                ShowInMobile = false,
+                IsActive = true,
+                ParentId = SeedConstants.ConfigurationModuleId,
+                CreatedBy = "system",
+                CreatedDate = SeedConstants.SeedTimestamp
+            },
+            new MenuModule
+            {
                 Id = SeedConstants.NotificationConfigMenuId,
                 Name = "Notification Config",
                 Icon = "🛠️",

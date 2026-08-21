@@ -20,6 +20,7 @@ public static class DependencyInjection
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+        services.AddScoped<IAdRepository, AdRepository>();
         services.AddScoped<IRoleRepository, RoleRepository>();
         services.AddScoped<IMenuModuleRepository, MenuModuleRepository>();
         services.AddScoped<IRegionRepository, RegionRepository>();

@@ -18,6 +18,9 @@ public class ApplicationDbContext : DbContext
     public DbSet<Role> Roles => Set<Role>();
     public DbSet<User> Users => Set<User>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+    public DbSet<AdFormat> AdFormats => Set<AdFormat>();
+    public DbSet<AdPlacement> AdPlacements => Set<AdPlacement>();
+    public DbSet<AdSettings> AdSettings => Set<AdSettings>();
     public DbSet<MenuModule> MenuModules => Set<MenuModule>();
     public DbSet<Region> Regions => Set<Region>();
     public DbSet<Festival> Festivals => Set<Festival>();

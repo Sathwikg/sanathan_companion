@@ -244,6 +244,41 @@ original casing or punctuation.
 | PUT  | `/api/users/{id}/status` | Admin | Open or close an account |
 | GET  | `/api/dashboard` | Bearer | Protected placeholder dashboard |
 
+## Ads
+
+The mobile apps can show Google AdMob ads; the web app never does. Which forms show one, and which
+single format each shows, is configured at **Configuration → Ad Config** rather than in code.
+
+The six formats the Google Mobile Ads SDK serves are seeded as master data in `AdFormats`, each
+carrying Google's own placement rule:
+
+| Format | Full screen | Rule that governs it |
+|---|---|---|
+| Banner | no | Keep clear of anything tappable — adjacent controls cause the accidental clicks that get ad serving disabled |
+| Interstitial | yes | Natural breaks only. Never on launch or exit, never back-to-back, at most one per two actions |
+| Native | no | Must be labelled as an ad and must not look like app content the seeker can act on |
+| Rewarded | yes | The seeker opts in first and is told what they get |
+| Rewarded Interstitial | yes | Needs an intro screen offering a way out |
+| App Open | yes | The **only** format allowed at launch; an interstitial there is a policy breach |
+
+They are seeded rather than an enum so the guidance is queryable and translatable, and they are not
+creatable from the form — a seventh format would be one the SDK cannot render. Deactivating one
+withdraws it from the picker.
+
+`AdPlacement` holds one row per form with a **single** `AdFormatId`, so "only one type at a time" is
+a property of the schema rather than a rule someone has to remember. Switching a form off clears its
+format, so re-enabling never resurrects a forgotten choice.
+
+Ads ship **off**, with `UseTestAds` **on**. Test mode substitutes Google's public test ad units for
+whatever is configured — clicking your own live ads is the usual way an AdMob account gets
+suspended, and the likeliest cause is somebody testing against production units. The app IDs and ad
+unit IDs are not secrets: they ship inside the app binary. They live in the database so a placement
+can be repointed without a store release.
+
+`GET /api/ads/slot/{menuModuleId}?platform=Android|iOS` resolves the master switch, the placement
+and the platform server-side and answers with one decision, so no client has to combine three
+things and get it wrong.
+
 ## Building the mobile heads locally
 
 `net10.0-ios` and `net10.0-windows10.0.19041.0` build with nothing extra on Windows.

@@ -42,6 +42,18 @@ public static class SeedConstants
     public static readonly Guid PujaMasterMenuId = new("82828282-8282-8282-8282-828282828282");
     public static readonly Guid PujaProcessConfigMenuId = new("83838383-8383-8383-8383-838383838383");
     public static readonly Guid PujaProcessMenuId = new("84848484-8484-8484-8484-848484848484");
+    public static readonly Guid AdConfigMenuId = new("90909090-9090-9090-9090-909090909090");
+
+    // The six ad formats the Google Mobile Ads SDK serves. Fixed ids so the placement rows that
+    // reference them survive a reseed.
+    public static readonly Guid AdFormatBannerId = new("a1a1a1a1-0001-0001-0001-000000000001");
+    public static readonly Guid AdFormatInterstitialId = new("a1a1a1a1-0001-0001-0001-000000000002");
+    public static readonly Guid AdFormatNativeId = new("a1a1a1a1-0001-0001-0001-000000000003");
+    public static readonly Guid AdFormatRewardedId = new("a1a1a1a1-0001-0001-0001-000000000004");
+    public static readonly Guid AdFormatRewardedInterstitialId = new("a1a1a1a1-0001-0001-0001-000000000005");
+    public static readonly Guid AdFormatAppOpenId = new("a1a1a1a1-0001-0001-0001-000000000006");
+
+    public static readonly Guid AdSettingsId = new("a1a1a1a1-0002-0002-0002-000000000001");
 
     /// <summary>Tamil was added after the original language seed; fixed id keeps migrations stable.</summary>
     public static readonly Guid TamilLanguageId = new("da000000-0000-0000-0000-000000000006");

@@ -8,6 +8,7 @@ public class UnitOfWork : IUnitOfWork
 
     public IUserRepository Users { get; }
     public IRefreshTokenRepository RefreshTokens { get; }
+    public IAdRepository Ads { get; }
     public IRoleRepository Roles { get; }
     public IMenuModuleRepository MenuModules { get; }
     public IRegionRepository Regions { get; }
@@ -30,11 +31,12 @@ public class UnitOfWork : IUnitOfWork
     public IUserNotificationRepository UserNotifications { get; }
     public ILocalizationRepository Localization { get; }
 
-    public UnitOfWork(ApplicationDbContext context, IUserRepository users, IRefreshTokenRepository refreshTokens, IRoleRepository roles, IMenuModuleRepository menuModules, IRegionRepository regions, IFestivalRepository festivals, IDayRepository days, IDeityRepository deities, IChantRepository chants, IWallpaperRepository wallpapers, IPujaRepository pujas, IPujaProcessRepository pujaProcess, IChantConfigRepository chantConfigs, ILanguageRepository languages, IPanchangamRepository panchangams, ISadhanaRepository sadhana, IModuleRoleMappingRepository moduleRoleMappings, IIssueTypeRepository issueTypes, IFeedbackRepository feedbacks, IUserFavoriteRepository favorites, INotificationConfigRepository notificationConfigs, IUserNotificationRepository userNotifications, ILocalizationRepository localization)
+    public UnitOfWork(ApplicationDbContext context, IUserRepository users, IRefreshTokenRepository refreshTokens, IAdRepository ads, IRoleRepository roles, IMenuModuleRepository menuModules, IRegionRepository regions, IFestivalRepository festivals, IDayRepository days, IDeityRepository deities, IChantRepository chants, IWallpaperRepository wallpapers, IPujaRepository pujas, IPujaProcessRepository pujaProcess, IChantConfigRepository chantConfigs, ILanguageRepository languages, IPanchangamRepository panchangams, ISadhanaRepository sadhana, IModuleRoleMappingRepository moduleRoleMappings, IIssueTypeRepository issueTypes, IFeedbackRepository feedbacks, IUserFavoriteRepository favorites, INotificationConfigRepository notificationConfigs, IUserNotificationRepository userNotifications, ILocalizationRepository localization)
     {
         _context = context;
         Users = users;
         RefreshTokens = refreshTokens;
+        Ads = ads;
         Roles = roles;
         MenuModules = menuModules;
         Regions = regions;

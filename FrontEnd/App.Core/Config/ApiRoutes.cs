@@ -188,6 +188,16 @@ public static class ApiRoutes
         public const string Mine = "notifications/me";
     }
 
+    public static class Ads
+    {
+        /// <summary>Admin: the whole ad configuration screen.</summary>
+        public const string Config = "adconfig";
+
+        /// <summary>What one form should show on the calling platform.</summary>
+        public static string Slot(Guid menuModuleId, string platform)
+            => Query($"ads/slot/{menuModuleId}", ("platform", platform));
+    }
+
     public static class IssueTypes
     {
         public const string Root = "issuetypes";

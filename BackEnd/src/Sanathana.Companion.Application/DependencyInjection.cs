@@ -47,6 +47,7 @@ public static class DependencyInjection
         services.AddScoped<IFeedbackService, FeedbackService>();
         services.AddScoped<IFavoritesService, FavoritesService>();
         services.AddScoped<INotificationService, NotificationService>();
+        services.AddScoped<IAdConfigService, AdConfigService>();
         return services;
     }
 }

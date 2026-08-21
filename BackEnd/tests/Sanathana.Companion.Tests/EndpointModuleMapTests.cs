@@ -96,6 +96,9 @@ public class EndpointModuleMapTests
 
         Assert.Equal(new[]
         {
+            // Answers "should this screen show an ad". Whether the seeker may open the screen at
+            // all is decided by that screen's own endpoints, so a role denied a form never asks.
+            "AdsController.GetSlot",
             "AuthController.ChangePassword",
             "FavoritesController.GetIds",
             "FavoritesController.Toggle",

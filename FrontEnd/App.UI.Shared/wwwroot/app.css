@@ -111,6 +111,9 @@ a:hover { text-decoration: underline; }
 .sc-alert { padding: 0.75rem 1rem; border-radius: var(--radius-md); font-size: 0.9rem; }
 .sc-alert-error { background: color-mix(in srgb, var(--color-error) 15%, transparent); color: var(--color-error); border: 1px solid var(--color-error); }
 .sc-alert-success { background: color-mix(in srgb, var(--color-success) 15%, transparent); color: var(--color-success); border: 1px solid var(--color-success); }
+/* Louder than info, quieter than error: for a setting that is legitimate but has a
+   consequence somebody should read before leaving the page. */
+.sc-alert-warn { background: color-mix(in srgb, #E0653B 14%, transparent); color: #B4531B; border: 1px solid color-mix(in srgb, #E0653B 45%, transparent); }
 
 /* ---------- Cards / Dashboard ---------- */
 .sc-card {

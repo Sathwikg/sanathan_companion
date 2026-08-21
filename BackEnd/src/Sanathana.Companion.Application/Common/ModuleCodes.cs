@@ -44,4 +44,5 @@ public static class ModuleCodes
     public const string NotificationConfig = "notificationConfig";
     public const string MyNotifications = "myNotifications";
     public const string LanguageConfigs = "languageConfigs";
+    public const string AdConfig = "adConfig";
 }

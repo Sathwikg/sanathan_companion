@@ -5,6 +5,7 @@ public interface IUnitOfWork
 {
     IUserRepository Users { get; }
     IRefreshTokenRepository RefreshTokens { get; }
+    IAdRepository Ads { get; }
     IRoleRepository Roles { get; }
     IMenuModuleRepository MenuModules { get; }
     IRegionRepository Regions { get; }

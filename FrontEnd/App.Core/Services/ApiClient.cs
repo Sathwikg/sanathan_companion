@@ -416,6 +416,18 @@ public class ApiClient : IApiClient
         return (false, null, await ExtractErrorAsync(response));
     }
 
+    public async Task<AdConfigModel?> GetAdConfigAsync()
+        => await _http.GetFromJsonAsync<AdConfigModel>(ApiRoutes.Ads.Config);
+
+    public async Task<(bool Success, string Error)> SaveAdConfigAsync(SaveAdConfigRequest request)
+    {
+        var response = await _http.PutAsJsonAsync(ApiRoutes.Ads.Config, request);
+        return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
+    }
+
+    public async Task<AdSlotModel?> GetAdSlotAsync(Guid menuModuleId, string platform)
+        => await _http.GetFromJsonAsync<AdSlotModel>(ApiRoutes.Ads.Slot(menuModuleId, platform));
+
     public async Task<List<LanguageModel>> GetLanguagesAsync(Guid? regionId = null, string? search = null)
         => await _http.GetFromJsonAsync<List<LanguageModel>>(ApiRoutes.Languages.List(regionId, search)) ?? new();
 

@@ -117,6 +117,14 @@ public interface IApiClient
     Task<PanchangamModel?> ComputePanchangamAsync(double lat, double lon, DateOnly? date = null, string? place = null);
     Task<(bool Success, GenerateResult? Result, string Error)> GeneratePanchangamAsync(GeneratePanchangamRequest request);
 
+    // Ads
+    /// <summary>Admin: the whole ad configuration screen in one call.</summary>
+    Task<AdConfigModel?> GetAdConfigAsync();
+    Task<(bool Success, string Error)> SaveAdConfigAsync(SaveAdConfigRequest request);
+
+    /// <summary>What one form should show on the calling platform.</summary>
+    Task<AdSlotModel?> GetAdSlotAsync(Guid menuModuleId, string platform);
+
     // Languages
     Task<List<LanguageModel>> GetLanguagesAsync(Guid? regionId = null, string? search = null);
     Task<LanguageModel?> GetLanguageAsync(Guid id);
