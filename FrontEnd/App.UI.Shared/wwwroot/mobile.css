@@ -1088,3 +1088,236 @@
   }
   .scm-panel { left: auto; right: max(0.6rem, var(--scm-safe-right)); width: min(420px, 92vw); }
 }
+
+/* ==================================================================== mobile home
+   Styles for Pages/MobileDashboard.razor — the "Mobile Home" form.
+
+   Everything here is scoped under .scm-shell because this file is also linked by the WEB host
+   (App.Web/wwwroot/index.html), so that setting Platform=Mobile previews the phone UI in a desktop
+   browser. Only MobileLayout renders .scm-shell, so an unscoped rule here would leak into the real
+   web app. The page cannot use a .razor.css companion either: App.Mobile sets
+   EnableDefaultCssItems=false, so scoped CSS would style the web preview and not the phone. */
+
+/* ---- greeting strip ----
+
+   The desktop hero is ~200px on a 375px screen: 1.6rem/1.8rem padding, an 82px ॐ tile, a 1.5rem
+   <h1> and two chips, then a 1.6rem bottom margin. This says the same thing in one row of about
+   64px, and keeps the saffron so the app still opens on its own colour. */
+.scm-shell .scm-greet {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.65rem 0.8rem;
+  border-radius: var(--scm-r-card);
+  background-image:
+    radial-gradient(120% 90% at 8% -20%, rgba(255, 255, 255, 0.22) 0%, transparent 60%),
+    var(--gradient-saffron);
+  color: #fff;
+  box-shadow: var(--scm-elev-1), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+  overflow: hidden;
+}
+
+.scm-shell .scm-greet-om {
+  flex: 0 0 auto;
+  width: 40px; height: 40px;
+  display: grid; place-items: center;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.16);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25);
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+/* min-width:0 so a long translated name ellipsizes instead of stretching the strip. */
+.scm-shell .scm-greet-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 0.1rem;
+}
+
+.scm-shell .scm-greet-kicker {
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  opacity: 0.9;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.scm-shell .scm-greet-name {
+  font-family: var(--font-heading);
+  font-size: 1.02rem;
+  line-height: 1.15;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+/* ---- sadhana summary: one row, always ----
+
+   app.css lays this out as nested wrapping flex rows with 1rem/1.2rem gaps and a 260px min-width
+   on .sc-streak, which on a 375px screen breaks into three stacked rows — flame, then stats, then
+   the button — with a gap between each. A four-track grid cannot wrap, so the summary stays one
+   row however many digits the numbers grow to. */
+.scm-shell .scm-sadhana-row {
+  display: grid;
+  grid-template-columns: 1.35fr 1fr 1fr 1fr;
+  /* stretch, not start. The cell separators below are border-left on the cells themselves, so a
+     cell sized to its own content gives a divider sized to that content — and the labels wrap to
+     different line counts per language ("Total malas" is one line in English, two in Telugu), so
+     `start` left the four dividers at four different heights. Stretching equalises them; the
+     content still sits at the top because each cell is a column flexbox. */
+  align-items: stretch;
+  gap: 0.5rem;
+}
+
+.scm-shell .scm-sadhana-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  min-width: 0;
+  text-align: center;
+}
+
+/* Hairline separators instead of gap, so the four cells read as one instrument. */
+.scm-shell .scm-sadhana-cell + .scm-sadhana-cell {
+  border-left: 1px solid var(--scm-hairline-soft);
+}
+
+.scm-shell .scm-sadhana-n {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  font-size: 1.3rem;
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--color-on-surface);
+  font-variant-numeric: tabular-nums;
+}
+
+/* The lead cell carries the streak, so it is the one that gets the accent. */
+.scm-shell .scm-sadhana-streak .scm-sadhana-n {
+  font-size: 1.6rem;
+  color: var(--color-primary);
+}
+.scm-shell .scm-sadhana-streak.cold .scm-sadhana-n { color: var(--color-secondary); }
+.scm-shell .scm-sadhana-flame { font-size: 1.1rem; filter: saturate(1.2); }
+.scm-shell .scm-sadhana-streak.cold .scm-sadhana-flame { filter: grayscale(1); opacity: 0.5; }
+
+/* Wraps to a second line rather than ellipsizing: "Total malas" is two words in English and
+   longer in te/hi/ta/kn, and a truncated label is worse than a tall one. */
+.scm-shell .scm-sadhana-l {
+  font-size: 0.6rem;
+  line-height: 1.2;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--color-secondary);
+  overflow-wrap: anywhere;
+}
+
+.scm-shell .scm-sadhana-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: 0.7rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid var(--scm-hairline-soft);
+}
+
+/* A text action, not a full-width button: the row above is the content, and a solid bar here
+   would out-weigh it. */
+.scm-shell .scm-sadhana-cta {
+  flex: 0 0 auto;
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+/* ---- quick actions ----
+
+   The tiles themselves are the More sheet's .scm-quick / .scm-quick-ic / .scm-quick-label, reused
+   verbatim. Do NOT redefine those names here: .scm-quick is a TILE (mobile.css:587) and
+   .scm-quick-ic is its 1.5rem icon (:608), both live in MobileMoreSheet. An earlier draft of this
+   block declared .scm-quick as a grid container, which silently turned every tile in the More
+   sheet into a grid and shrank its icons.
+
+   .scm-quickgrid already supplies the grid; this only pins the track count, because auto-fill at
+   minmax(84px, 1fr) yields three columns at 375px and the home screen wants four. */
+.scm-shell .scm-home-quick {
+  grid-template-columns: repeat(4, 1fr);
+  /* .scm-quickgrid carries margin-bottom for the sheet. On the page, .scm-content's `gap` owns
+     the spacing, and the sheet's margin is declared later in the file so it would otherwise win. */
+  margin-bottom: 0;
+  gap: var(--scm-gap);
+}
+
+/* A four-up row is tighter than the sheet's three-up, so the tile shrinks to match. */
+.scm-shell .scm-home-quick .scm-quick {
+  min-height: 74px;
+  padding: 0.6rem 0.25rem;
+  gap: 0.25rem;
+}
+.scm-shell .scm-home-quick .scm-quick-ic { font-size: 1.3rem; }
+.scm-shell .scm-home-quick .scm-quick-label { font-size: 0.64rem; }
+
+/* ================================================================ panchangam filters
+   The desktop bar is a wrapping flex row of .sc-filter columns, each with a `min-width: 170px`
+   and an uppercase caption above its control, separated by a 1rem gap. Two of those plus the
+   Today button need 356px of track; the phone's content box is 311px, so every one of them wraps
+   onto its own line and the bar costs roughly 190px before the card's padding — for two inputs.
+
+   Here it is a fixed two-row grid instead: the date stepper owns row one, the region select and
+   Today share row two. The captions go, because a date stepper and a region dropdown do not need
+   telling apart on a screen that shows two controls. */
+.scm-shell .sc-pchg-bar {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* The date stepper spans both tracks; auto-placement then drops the region into row 2 column 1
+   and the Today button beside it. */
+.scm-shell .sc-pchg-bar > .sc-filter:first-child { grid-column: 1 / -1; }
+
+/* min-width:0 defeats the desktop rule's 170px floor — without it the region select cannot
+   shrink to its track and pushes the Today button off the card. */
+.scm-shell .sc-pchg-bar > .sc-filter {
+  position: relative;
+  min-width: 0;
+  gap: 0;
+}
+
+/* Visually hidden, NOT display:none. These captions are the only thing naming the two controls,
+   and the region select has no aria-label of its own, so removing them from the accessibility
+   tree would leave a screen reader with an unlabelled combobox. */
+.scm-shell .sc-pchg-bar > .sc-filter > label {
+  position: absolute;
+  width: 1px; height: 1px;
+  margin: -1px; padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* The arrows keep their 44px touch target from app.css's `pointer: coarse` block — only the input
+   between them flexes, so the row shrinks by losing slack, never by shrinking the tap targets. */
+.scm-shell .sc-daynav { gap: 0.4rem; }
+.scm-shell .sc-daynav .sc-input {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Matches the arrows and the select, and is a proper touch target in its own right —
+   .sc-btn-sm is not one of the classes app.css lifts to 44px. */
+.scm-shell .sc-pchg-bar > .sc-btn-ghost { min-height: 44px; }
+
+/* Two rows of controls do not need a desktop card's inset around them. */
+.scm-shell .sc-pchg-filters { padding: 0.7rem; }
+
+/* The page heading repeats what the top bar already says, so it earns less room here. */
+.scm-shell .sc-page-emoji { font-size: 1.45rem; }
+.scm-shell .sc-page-title { gap: 0.55rem; }

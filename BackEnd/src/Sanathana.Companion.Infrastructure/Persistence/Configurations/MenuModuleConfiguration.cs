@@ -60,6 +60,29 @@ public class MenuModuleConfiguration : IEntityTypeConfiguration<MenuModule>
                 Code = "dashboard",
                 DisplayOrder = 2,
                 IsVisibleInMenu = true,
+                // The phone gets "Mobile Home" instead. This dashboard is laid out for a desktop
+                // column and a seeker on a 375px screen scrolls a long way past the hero before
+                // reaching anything actionable; Dashboard.razor redirects there on mobile.
+                ShowInMobile = false,
+                IsActive = true,
+                ParentId = null,
+                CreatedBy = "system",
+                CreatedDate = SeedConstants.SeedTimestamp
+            },
+            new MenuModule
+            {
+                Id = SeedConstants.MobileDashboardMenuId,
+                // Two words, because this Name is what the bottom tab renders at 0.6rem in a fifth
+                // of the screen — anything longer ellipsizes. The long form lives in Description.
+                Name = "Mobile Home",
+                Icon = "🏠",
+                Description = "User mobile dashboard — the phone home screen",
+                RoutePath = "/mobile-dashboard",
+                Code = "mobileDashboard",
+                // Ties with User Dashboard and breaks on Name, so it leads the mobile tab bar once
+                // that row is off mobile. Must stay <= 4 or it falls past the last tab into "More".
+                DisplayOrder = 2,
+                IsVisibleInMenu = true,
                 ShowInMobile = true,
                 IsActive = true,
                 ParentId = null,

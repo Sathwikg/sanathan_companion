@@ -10,7 +10,7 @@ namespace Sanathana.Companion.Api.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-[RequiresModule(ModuleCodes.Dashboard)]
+[RequiresModule(ModuleCodes.Dashboard, ModuleCodes.MobileDashboard)]
 public class DashboardController : ControllerBase
 {
     private readonly IDashboardService _dashboard;

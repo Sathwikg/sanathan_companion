@@ -20,6 +20,14 @@ public static class ModuleCodes
 {
     public const string AdminDashboard = "adminDashboard";
     public const string Dashboard = "dashboard";
+
+    /// <summary>
+    /// The phone's home screen. A separate form from <see cref="Dashboard"/> so an administrator
+    /// can grant the crisp mobile home without also granting the desktop dashboard, and so the two
+    /// can be reordered independently. The endpoints it reads name BOTH codes — see
+    /// DashboardController, SadhanaController and PanchangamController.
+    /// </summary>
+    public const string MobileDashboard = "mobileDashboard";
     public const string Modules = "modules";
     public const string Regions = "regions";
     public const string Festivals = "festivals";

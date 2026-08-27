@@ -25,7 +25,7 @@ public class SadhanaController : ControllerBase
 
     /// <summary>All active chants for the search tab, with the user's progress today.
     /// Optionally limited to one region.</summary>
-    [RequiresModule(ModuleCodes.Sadhana, ModuleCodes.Dashboard)]
+    [RequiresModule(ModuleCodes.Sadhana, ModuleCodes.Dashboard, ModuleCodes.MobileDashboard)]
     [HttpGet("chants")]
     [ProducesResponseType(typeof(IReadOnlyList<SadhanaChantDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> Chants([FromQuery] string? search, [FromQuery] Guid? regionId, CancellationToken cancellationToken)
@@ -49,7 +49,7 @@ public class SadhanaController : ControllerBase
     public async Task<IActionResult> Log([FromBody] LogCountDto dto, CancellationToken cancellationToken)
         => Ok(await _service.LogCountAsync(dto, cancellationToken));
 
-    [RequiresModule(ModuleCodes.Sadhana, ModuleCodes.Dashboard)]
+    [RequiresModule(ModuleCodes.Sadhana, ModuleCodes.Dashboard, ModuleCodes.MobileDashboard)]
     [HttpGet("streak")]
     [ProducesResponseType(typeof(SadhanaStreakDto), StatusCodes.Status200OK)]
     public async Task<IActionResult> Streak(CancellationToken cancellationToken)

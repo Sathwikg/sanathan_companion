@@ -173,6 +173,65 @@ jobs:
           -p:TargetFrameworks=net10.0-android
           -p:AndroidSdkDirectory=$ANDROID_HOME
 
+  ios:
+    name: Mobile (iOS head)
+    # macOS is not a preference here, it is the requirement. The iOS SDK, the codesign toolchain
+    # and the simulator all ship with Xcode, and Xcode runs on nothing else — so a Windows or Linux
+    # developer can compile the shared Blazor UI for iOS but can never produce a runnable .app or a
+    # store .ipa. This job is where that step actually happens.
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      # The whole maui workload, not just maui-ios, and NOT the -p:TargetFrameworks trick the
+      # Android job uses below. That property is global: MSBuild pushes it into App.Core and
+      # App.UI.Shared too, NuGet then restores those net10.0 libraries as net10.0-ios, and the
+      # build fails with NETSDK1005 "assets file doesn't have a target for 'net10.0'". Verified by
+      # hitting it.
+      #
+      # The Android job can get away with it on Linux because maui-ios and maui-maccatalyst have no
+      # Linux packs at all, so there is no alternative. macOS has packs for every head in
+      # TargetFrameworks (android, ios, maccatalyst — windows is already excluded by the csproj's
+      # IsOSPlatform condition), so installing them all lets plain -f resolve and leaves the
+      # project references alone.
+      - run: dotnet workload install maui
+
+      # No codesigning: an unsigned build answers "does it compile against the real iOS SDK", which
+      # is the question a Windows checkout cannot answer at all. Signing needs an Apple Developer
+      # certificate and provisioning profile, which are not in this repository.
+      - name: Compile for iOS
+        run: >
+          dotnet build FrontEnd/App.Mobile/App.Mobile.csproj -c Debug -f net10.0-ios
+          -p:CodesignRequireProvisioningProfile=false
+
+      # A simulator build is the one artifact this job can produce that someone can actually run,
+      # and it needs no certificate — the simulator does not enforce codesigning. Hand it to a
+      # reviewer with a Mac and they can open it in Xcode's Simulator without an Apple account.
+      - name: Build a runnable simulator app
+        run: >
+          dotnet build FrontEnd/App.Mobile/App.Mobile.csproj -c Debug -f net10.0-ios
+          -p:RuntimeIdentifier=iossimulator-arm64
+          -p:CodesignRequireProvisioningProfile=false
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ios-simulator-app
+          path: FrontEnd/App.Mobile/bin/Debug/net10.0-ios/iossimulator-arm64/**/*.app
+          if-no-files-found: error
+          retention-days: 14
+
+      # A device .ipa is deliberately NOT built here. It requires an Apple Developer certificate
+      # and a provisioning profile imported into the runner keychain, which means real secrets and
+      # a release workflow rather than a CI check. When that is set up, the step is:
+      #
+      #   dotnet publish FrontEnd/App.Mobile/App.Mobile.csproj -c Release -f net10.0-ios \
+      #     -p:RuntimeIdentifier=ios-arm64 -p:ArchiveOnBuild=true \
+      #     -p:CodesignKey="$IOS_SIGNING_IDENTITY" -p:CodesignProvision="$IOS_PROVISIONING_PROFILE"
+
   security:
     name: Security checks
     runs-on: ubuntu-latest

@@ -1,0 +1,164 @@
+@* The phone's home screen — a separate form from the desktop Dashboard, not a restyling of it.
+
+   The desktop dashboard opens with a 200px saffron hero and lays its sadhana summary out as a
+   wrapping flex row that collapses to three stacked rows on a 375px screen. That is a lot of
+   scrolling before a seeker reaches anything they can act on, so this page is built the other way
+   round: the greeting is one line, the sadhana summary is one row, and the actions come before the
+   reading material.
+
+   Every top-level block here is a DIRECT child of .scm-content on purpose. That container supplies
+   the 12px rhythm via `gap` and the page gutter via `padding`, and mobile.css targets
+   `.scm-content > *`. Wrapping this page in a single root div would silently lose both. *@
+@page "/mobile-dashboard"
+@attribute [Authorize]
+@inherits LocalizedComponentBase
+@inject IApiClient Api
+
+@if (_loading)
+{
+    <OmLoader FullPage="true" Message='@Loc["dashboard.loading", "Loading your sadhana…"]' />
+}
+else if (_model is not null)
+{
+    @* One line, not a hero. The ॐ tile is 44px rather than the desktop's 82px, and the seeker's
+       name carries the identity that the desktop spends a whole <h1> on. *@
+    <section class="scm-greet">
+        <span class="scm-greet-om">ॐ</span>
+        <span class="scm-greet-text">
+            <span class="scm-greet-kicker">@Greeting</span>
+            <span class="scm-greet-name">@DisplayName</span>
+        </span>
+    </section>
+
+    @if (_streak is not null)
+    {
+        <div class="sc-section-head">
+            <h2>🙏 @Loc["sadhana.mySadhana", "My Sadhana"]</h2>
+        </div>
+
+        <div class="sc-card scm-sadhana">
+            @* Four cells, one row, always. The streak is the lead cell and reads larger; the other
+               three are equal. A CSS grid rather than a flex row so the cells cannot wrap onto a
+               second line no matter how many digits a long-practising seeker accumulates. *@
+            <div class="scm-sadhana-row">
+                <div class="scm-sadhana-cell scm-sadhana-streak @(_streak.CurrentStreak > 0 ? "" : "cold")">
+                    <span class="scm-sadhana-n">
+                        <span class="scm-sadhana-flame" aria-hidden="true">🔥</span>@_streak.CurrentStreak
+                    </span>
+                    <span class="scm-sadhana-l">@Loc["sadhana.dayStreak", "day streak"]</span>
+                </div>
+                <div class="scm-sadhana-cell">
+                    <span class="scm-sadhana-n">@_streak.TotalMalas</span>
+                    <span class="scm-sadhana-l">@Loc["sadhana.totalMalas", "Total malas"]</span>
+                </div>
+                <div class="scm-sadhana-cell">
+                    <span class="scm-sadhana-n">@_streak.LongestStreak</span>
+                    <span class="scm-sadhana-l">@Loc["sadhana.longest", "Longest"]</span>
+                </div>
+                <div class="scm-sadhana-cell">
+                    <span class="scm-sadhana-n">@_streak.TotalDaysPracticed</span>
+                    <span class="scm-sadhana-l">@Loc["common.days", "Days"]</span>
+                </div>
+            </div>
+
+            <div class="scm-sadhana-foot">
+                <span class="sc-streak-today @(_streak.PracticedToday ? "done" : "pending")">
+                    @(_streak.PracticedToday
+                        ? "✓ " + Loc["sadhana.practicedToday", "Practiced today"]
+                        : Loc["sadhana.notYetToday", "Not yet today"])
+                </span>
+                <a href="sadhana" class="scm-sadhana-cta">@Loc["sadhana.continueSadhana", "Continue Sadhana"] →</a>
+            </div>
+        </div>
+    }
+
+    @* Actions before reading material: on a phone the home screen is a launcher first and a
+       digest second. *@
+    <div class="sc-section-head">
+        <h2>⚡ @Loc["mobileDashboard.quickActions", "Quick actions"]</h2>
+    </div>
+    @* Reuses the More sheet's tile system (.scm-quickgrid / .scm-quick / .scm-quick-ic /
+       .scm-quick-label) rather than inventing a second one, so the two launchers in this app stay
+       one design. .scm-home-quick only pins the track count — the sheet's auto-fill would give 3
+       or 4 columns depending on width, and the home screen wants exactly 4.
+
+       Every destination here is a form the seeded Sanathan role actually holds. /chants is
+       deliberately NOT among them: that route is the admin Chants master, gated on the "chants"
+       module, which a seeker is never granted — the tile would have led straight to access-denied.
+       Seekers reach chants through Sadhana. *@
+    <nav class="scm-quickgrid scm-home-quick">
+        <a class="scm-quick" href="sadhana">
+            <span class="scm-quick-ic" aria-hidden="true">📿</span>
+            <span class="scm-quick-label">@Loc["mobileDashboard.sadhana", "Sadhana"]</span>
+        </a>
+        <a class="scm-quick" href="puja-process">
+            <span class="scm-quick-ic" aria-hidden="true">🪔</span>
+            <span class="scm-quick-label">@Loc["pujaProcess.title", "Puja Process"]</span>
+        </a>
+        <a class="scm-quick" href="panchangam">
+            <span class="scm-quick-ic" aria-hidden="true">📅</span>
+            <span class="scm-quick-label">@Loc["mobileDashboard.panchangam", "Panchangam"]</span>
+        </a>
+        <a class="scm-quick" href="favorites">
+            <span class="scm-quick-ic" aria-hidden="true">⭐</span>
+            <span class="scm-quick-label">@Loc["mobileDashboard.favorites", "Favorites"]</span>
+        </a>
+    </nav>
+
+    @* Today's deity and its sadhana. Kept because it is the one block that changes daily and is
+       the reason to open the app at all. The hardcoded five-deity "Daily Darshan" strip from the
+       desktop dashboard is deliberately NOT repeated here — this component shows the same subject
+       with real data, and two deity carousels on one phone screen is one too many. *@
+    <TodayBhakti />
+
+    <PanchangamToday />
+}
+else
+{
+    <div class="sc-alert sc-alert-error">@_error</div>
+}
+
+@code {
+    private DashboardModel? _model;
+    private SadhanaStreak? _streak;
+    private bool _loading = true;
+    private string? _error;
+
+    private string DisplayName => string.IsNullOrWhiteSpace(_model?.SeekerName)
+        ? _model?.FullName ?? string.Empty
+        : _model!.SeekerName!;
+
+    private string Greeting
+    {
+        get
+        {
+            var hour = DateTime.Now.Hour;
+            return hour < 12 ? Loc["auth.greetingMorning", "Shubh Prabhat · Good Morning"]
+                 : hour < 17 ? Loc["auth.greetingAfternoon", "Namaste · Good Afternoon"]
+                 : Loc["auth.greetingEvening", "Shubh Sandhya · Good Evening"];
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        try
+        {
+            _model = await Api.GetDashboardAsync();
+        }
+        catch (Exception ex)
+        {
+            _error = Loc["dashboard.couldNotLoad", "Could not load the dashboard."] + " " + ex.Message;
+        }
+        finally
+        {
+            _loading = false;
+        }
+
+        // Best-effort, exactly as on the desktop dashboard: a seeker whose role was granted this
+        // form but not Sadhana still gets a working home screen, minus the summary card.
+        try { _streak = await Api.GetSadhanaStreakAsync(); }
+        catch { /* leave the card hidden */ }
+    }
+}

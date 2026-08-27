@@ -106,6 +106,19 @@ public class ModuleRoleMappingConfiguration : IEntityTypeConfiguration<ModuleRol
             },
             new ModuleRoleMapping
             {
+                Id = SeedConstants.SanathanMobileDashboardAccessId,
+                RoleId = SeedConstants.SanathanRoleId,
+                MenuModuleId = SeedConstants.MobileDashboardMenuId,
+                // Web off on purpose: this form is the phone home screen and has no desktop
+                // layout. AccessRightsCatalog unions the two columns, so MobileEnabled alone is
+                // still enough to grant the "mobileDashboard" code to the API.
+                WebEnabled = false,
+                MobileEnabled = true,
+                CreatedBy = "system",
+                CreatedDate = SeedConstants.SeedTimestamp
+            },
+            new ModuleRoleMapping
+            {
                 Id = SeedConstants.SanathanNotificationsAccessId,
                 RoleId = SeedConstants.SanathanRoleId,
                 MenuModuleId = SeedConstants.MyNotificationsMenuId,

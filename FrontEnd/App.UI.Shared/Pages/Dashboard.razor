@@ -2,8 +2,19 @@
 @attribute [Authorize]
 @inherits LocalizedComponentBase
 @inject IApiClient Api
+@inject AppConfig Config
+@inject NavigationManager Nav
 
-@if (_loading)
+@* On a phone this route is a doorway, not a page. Login and AccessDenied both navigate to "" and
+   the MAUI host cold-starts here, so redirecting is what actually moves those entry points onto
+   the mobile home — publishing /mobile-dashboard to the menu alone would leave every one of them
+   landing on the desktop layout. Rendering nothing while that happens avoids a frame of the wide
+   hero on a 375px screen. *@
+@if (Config.IsMobile)
+{
+    <OmLoader FullPage="true" Message='@Loc["dashboard.loading", "Loading your sadhana…"]' />
+}
+else if (_loading)
 {
     <OmLoader FullPage="true" Message='@Loc["dashboard.loading", "Loading your sadhana…"]' />
 }
@@ -110,6 +121,14 @@ else
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
+
+        // replace:true so the back gesture leaves the app instead of bouncing between "/" and the
+        // mobile home forever.
+        if (Config.IsMobile)
+        {
+            Nav.NavigateTo("mobile-dashboard", replace: true);
+            return;
+        }
 
         try
         {

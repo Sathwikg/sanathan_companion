@@ -25,13 +25,19 @@
     </div>
 </div>
 
-<div class="sc-card sc-filtercard">
+@* sc-pchg-filters is a hook for the phone layout only: .sc-filtercard is shared with eleven other
+   screens, so the compact padding has to be addressed to this bar rather than to that class. *@
+<div class="sc-card sc-filtercard sc-pchg-filters">
     <div class="sc-pchg-bar">
         <div class="sc-filter">
+            @* The phone hides this label visually (mobile.css) because a date stepper needs no
+               caption there. aria-label carries the same word to a screen reader, since the label
+               has no `for` and so was never bound to the input. *@
             <label>@Loc["common.date", "Date"]</label>
             <div class="sc-daynav">
                 <button type="button" title="@Loc["panchangam.previousDay", "Previous day"]" @onclick="() => Shift(-1)">‹</button>
-                <input type="date" class="sc-input sc-input-sm" value="@_date.ToString("yyyy-MM-dd")" @onchange="OnDateChanged" />
+                <input type="date" class="sc-input sc-input-sm" aria-label="@Loc["common.date", "Date"]"
+                       value="@_date.ToString("yyyy-MM-dd")" @onchange="OnDateChanged" />
                 <button type="button" title="@Loc["panchangam.nextDay", "Next day"]" @onclick="() => Shift(1)">›</button>
             </div>
         </div>

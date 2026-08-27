@@ -22,7 +22,7 @@ public class PanchangamController : ControllerBase
     /// A page of stored Panchangam rows, filterable by year / region / date range / text.
     /// </summary>
     /// <remarks>Returns an envelope, not a bare array — the response used to be unbounded.</remarks>
-    [RequiresModule(ModuleCodes.Panchangam, ModuleCodes.Dashboard)]
+    [RequiresModule(ModuleCodes.Panchangam, ModuleCodes.Dashboard, ModuleCodes.MobileDashboard)]
     [HttpGet]
     [ProducesResponseType(typeof(PanchangamPageDto), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll(

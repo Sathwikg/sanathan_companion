@@ -50,6 +50,29 @@ so publishing a form to mobile (Modules → *Show in mobile*) or reordering it c
 no app release. A form appears on a phone only when its **`ShowInMobile`** flag is set — including
 for Admin — and, for every other role, only when Access Rights also grants it the *Mobile* column.
 
+### The phone has its own home screen
+
+The two hosts share every page except the one a seeker sees first. `Dashboard` (`/`) is laid out
+for a desktop column — a 200px saffron hero, then a sadhana summary that wraps into three stacked
+rows on a 375px screen — so the phone gets **`MobileDashboard`** (`/mobile-dashboard`) instead: a
+one-line greeting, the same sadhana figures in a single four-cell row, then quick actions.
+
+It is a **separate module**, not a variant of the dashboard, so an administrator can grant, reorder
+or retire it on its own. Three things make that work, and all three are load-bearing:
+
+| | |
+|---|---|
+| `ShowInMobile` | `mobileDashboard` is on, `dashboard` is **off** — otherwise the bar would carry two home tabs. |
+| Landing route | `Dashboard` redirects to `/mobile-dashboard` when `AppConfig.IsMobile`. Login and Access-Denied both navigate to `""`, and the MAUI host cold-starts there, so the redirect — not the menu — is what moves those entry points. |
+| `DisplayOrder` | Must stay ≤ 4. `MobileMenu.IsHome` only pins a `"/"` route, so ordering is the only thing keeping the home screen out of the **More** sheet. |
+
+The endpoints it reads (`DashboardController`, plus the streak, chants and panchangam actions)
+name **both** `dashboard` and `mobileDashboard`. `ModuleAccessFilter` resolves the module from the
+endpoint's own attribute and never learns which page called it, so a seeker granted only the mobile
+home would otherwise get a 403 on every widget. `SeedDataTests` pins the code, the flags and the
+ordering, because `AccessRightsCatalog` compares codes **ordinally** — a row seeded as
+`"MobileDashboard"` would look correct everywhere and refuse the form at run time.
+
 ### Configuration, in one place each
 
 | Host | File | Notes |
@@ -300,7 +323,7 @@ dotnet build FrontEnd/App.Mobile/App.Mobile.csproj -c Release -f net10.0-android
 
 That produces a signed `.apk` and a Play Store `.aab` under
 `FrontEnd/App.Mobile/bin/Release/net10.0-android/`. The current build is also kept at
-`artifacts/android/SanathanCompanion-1.0.0-release.apk` so it is easy to find and hand to someone;
+`artifacts/android/SanathanCompanion-1.1.0-release.apk` (with the Play `.aab` beside it) so it is easy to find and hand to someone;
 `artifacts/` is gitignored, because a 36 MB binary per rebuild would outweigh the whole source tree
 in history.
 
@@ -327,8 +350,18 @@ Stop the API before running the backend suite: `dotnet test` cannot overwrite th
 compiles the Android head, on every push and pull request to `main` and `development`. It exists
 because `render.yaml` deploys straight off a commit, so before it the first thing that built a
 pushed branch was production. Make **Backend**, **Web** and **Security checks** required; leave
-**Mobile (Android head)** advisory until Android SDK provisioning on hosted runners has proven
-itself. `global.json` pins the SDK so the runner and your machine cannot drift apart.
+**Mobile (Android head)** and **Mobile (iOS head)** advisory until SDK provisioning on hosted
+runners has proven itself. `global.json` pins the SDK so the runner and your machine cannot drift
+apart.
+
+**Mobile (iOS head)** runs on `macos-latest`, and it is the only place iOS is genuinely built —
+Xcode ships the iOS SDK, the codesign toolchain and the simulator, and runs on nothing but macOS.
+A Windows checkout can compile the shared UI for iOS and stop there. The job compiles the head and
+uploads a **simulator `.app`** as a build artifact, which needs no Apple certificate and opens in
+Xcode’s Simulator. A device `.ipa` is deliberately not built: it needs a Developer certificate and
+a provisioning profile in the runner keychain, which belongs in a release workflow with real
+secrets, not a CI check. The exact `dotnet publish` line for that is written out in a comment at
+the end of the job.
 
 The exact test counts are deliberately not written here — they were wrong within a month last
 time. The workflow is the thing that knows.
