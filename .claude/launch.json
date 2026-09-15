@@ -12,6 +12,18 @@
       "runtimeExecutable": "dotnet",
       "runtimeArgs": ["run", "--project", "FrontEnd/App.Web"],
       "port": 7001
+    },
+    {
+      "name": "web-mobile",
+      "runtimeExecutable": "dotnet",
+      "runtimeArgs": [
+        "run",
+        "--project",
+        "FrontEnd/App.Web",
+        "--launch-profile",
+        "mobile"
+      ],
+      "port": 7002
     }
   ]
 }
