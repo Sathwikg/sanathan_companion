@@ -340,6 +340,8 @@ try
     }
     else
     {
+        app.UseSwagger();
+        app.UseSwaggerUI();
         app.UseHsts();
         app.UseHttpsRedirection();
     }
