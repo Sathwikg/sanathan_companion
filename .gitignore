@@ -62,7 +62,6 @@ wwwroot/_framework/
 wwwroot/service-worker-assets.js
 
 # ---- Secrets & local config (do NOT commit) ----
-appsettings.Development.json
 appsettings.*.Local.json
 secrets.json
 *.pfx
