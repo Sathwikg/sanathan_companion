@@ -27,10 +27,10 @@ builder.Services.AddScoped<ILocalizationCache, LocalStorageLocalizationCache>();
 // Almost always "Web". Set to "Mobile" and this host renders the phone shell — bottom navigation,
 // top notifications, the mobile skin — and asks the API for the mobile menu, which is how the MAUI
 // app's UI is reviewed in a desktop browser's device emulation without a device or an emulator.
-// Not for production: it also switches every non-Admin user to the Mobile column of the access
-// matrix.
+// Not for the service users log in to: it also switches every non-Admin user to the Mobile column
+// of the access matrix.
 //
-// Two ways in, and the second is the one to reach for:
+// Three ways in; locally the second is the one to reach for:
 //
 //   Platform in wwwroot/appsettings.json — a working-tree edit to a tracked file that must be
 //   reverted before committing. Easy to forget, and forgetting it ships the access-matrix switch.
@@ -38,6 +38,10 @@ builder.Services.AddScoped<ILocalizationCache, LocalStorageLocalizationCache>();
 //   The `mobile` launch profile — `dotnet run --project FrontEnd/App.Web --launch-profile mobile`
 //   serves the same build on :7002 with ASPNETCORE_ENVIRONMENT=Mobile, so the web shell on :7001
 //   and the phone shell on :7002 run side by side and nothing in the tree changes.
+//
+//   PLATFORM=Mobile on a deployed container — deploy/render/entrypoint.sh writes the variable into
+//   the appsettings.json it generates at start, which is how the development_mobileview branch
+//   hosts the phone shell as its own Render service without a tracked file changing.
 //
 // The origin is what distinguishes the two, because nothing else can. Both heads are ONE build
 // served twice, so they read the same appsettings.json; and the WebAssembly host neither fetches

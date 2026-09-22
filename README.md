@@ -78,11 +78,13 @@ ordering, because `AccessRightsCatalog` compares codes **ordinally** — a row s
 | Host | File | Notes |
 |---|---|---|
 | Mobile | `FrontEnd/App.Mobile/Resources/Raw/appsettings.json` | API URL per build configuration, app name, timeout. Read once at start-up by `MobileSettings.Load()`. Packaged, so changing it means a rebuild. |
-| Web | `FrontEnd/App.Web/wwwroot/appsettings.json` | API URL and `Platform`. Docker rewrites `ApiBaseUrl` at container start. |
+| Web | `FrontEnd/App.Web/wwwroot/appsettings.json` | API URL and `Platform`. Docker rewrites `ApiBaseUrl` and `Platform` at container start. |
 | Both | `FrontEnd/App.Core/Config/ApiRoutes.cs` | **Every REST path the clients call.** No URL string is spelled out anywhere else. |
 
 Set `"Platform": "Mobile"` in the *web* `appsettings.json` to render the phone shell in a desktop
-browser's device emulation — the quickest way to review mobile UI without a device.
+browser's device emulation — the quickest way to review mobile UI without a device. The same
+preview, hosted, is the `development_mobileview` branch: `development` plus `PLATFORM=Mobile` in
+its `render.yaml`. See `deploy/render/README.md`, "Hosting the phone shell as its own service".
 
 ## Run with Docker (single server, API under `/api`)
 

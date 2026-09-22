@@ -102,10 +102,12 @@ ENV DOTNET_hostBuilder__reloadConfigOnChange=false \
     DOTNET_USE_POLLING_FILE_WATCHER=true
 
 # Loopback-only: nothing outside the container can reach Kestrel directly.
+# PLATFORM is the shell the SPA renders, Web or Mobile — see entrypoint.sh.
 ENV ASPNETCORE_URLS=http://127.0.0.1:8080 \
     ASPNETCORE_ENVIRONMENT=Production \
     API_PORT=8080 \
     API_BASE_URL=/api \
+    PLATFORM=Web \
     PORT=10000
 
 # Informational — Render reads the actual listen port from $PORT at runtime.

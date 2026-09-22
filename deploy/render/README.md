@@ -32,6 +32,30 @@ The service is live only once `GET /api/regions/options` returns 200, which
 requires the database connection to work — a failing health check on first
 deploy is almost always the connection string.
 
+## Hosting the phone shell as its own service
+
+The SPA renders either the web shell or the phone shell, chosen by `Platform`
+in its `appsettings.json` (see `FrontEnd/App.Web/Program.cs`). `entrypoint.sh`
+writes that file on every start and takes the value from the `PLATFORM`
+environment variable — `Web` unless set, `Mobile` for the phone shell — so one
+image serves either, and any other value stops the container at start instead
+of quietly rendering the web shell.
+
+The `development_mobileview` branch is `development` plus one commit that sets
+`PLATFORM: Mobile` in `render.yaml` and names the service
+`sanathana-companion-mobile`, so the two Blueprints do not fight over a name.
+Deploy it exactly like the first deploy above, choosing that branch, then open
+the resulting URL in a desktop browser's device emulation or on a phone.
+
+Keep it current with `git merge development` on that branch, and never merge it
+the other way. Both services share the one Supabase database and each runs
+migrations at start-up, so a branch that falls behind runs an older API against
+a newer schema.
+
+`Mobile` also moves every non-Admin user to the Mobile column of the access
+matrix. That is what makes the preview faithful, and also why it must never be
+set on the service users actually log in to.
+
 ## Things that differ from compose
 
 **Supabase must use the session pooler.** Render has no outbound IPv6, and

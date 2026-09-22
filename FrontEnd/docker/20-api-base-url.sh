@@ -8,9 +8,17 @@
 set -eu
 
 API_BASE_URL="${API_BASE_URL:-/api}"
+# Web or Mobile: the shell the SPA renders. The same switch as `Platform` in
+# wwwroot/appsettings.json; deploy/render/entrypoint.sh has the full story.
+PLATFORM="${PLATFORM:-Web}"
 CONFIG=/usr/share/nginx/html/appsettings.json
 
-printf '{\n  "ApiBaseUrl": "%s"\n}\n' "$API_BASE_URL" > "$CONFIG"
+case "$PLATFORM" in
+    Web|Mobile) ;;
+    *) echo "20-api-base-url.sh: PLATFORM must be Web or Mobile, got '$PLATFORM'" >&2; exit 1 ;;
+esac
+
+printf '{\n  "ApiBaseUrl": "%s",\n  "Platform": "%s"\n}\n' "$API_BASE_URL" "$PLATFORM" > "$CONFIG"
 
 # Blazor publishes a precompressed sibling next to every static asset, and the
 # `gzip_static on` in nginx.conf prefers it over the plain file whenever the
@@ -21,4 +29,4 @@ printf '{\n  "ApiBaseUrl": "%s"\n}\n' "$API_BASE_URL" > "$CONFIG"
 # bytes there was nothing to gain by compressing it.
 rm -f "$CONFIG.gz" "$CONFIG.br"
 
-echo "20-api-base-url.sh: ApiBaseUrl set to $API_BASE_URL"
+echo "20-api-base-url.sh: ApiBaseUrl set to $API_BASE_URL, Platform set to $PLATFORM"

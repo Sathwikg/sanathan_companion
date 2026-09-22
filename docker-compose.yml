@@ -59,6 +59,8 @@ services:
       # /api proxy in this container. Point it at an absolute URL only if you
       # move the API somewhere else.
       API_BASE_URL: /api
+      # Web, or Mobile to serve the phone shell — see docker/20-api-base-url.sh.
+      PLATFORM: ${PLATFORM:-Web}
     ports:
       - "${WEB_PORT:-8080}:80"
     depends_on:
