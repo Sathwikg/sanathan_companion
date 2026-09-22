@@ -24,12 +24,15 @@ services:
     # plan does and does not survive; `plan: starter` removes the sleep.
     plan: free
 
-    # Render's `oregon` is AWS us-west-2, which is where the Supabase project
-    # lives — keep the two together. A single API request can issue several EF
-    # Core queries, and each one pays the app-to-database round trip, so putting
-    # the app nearer the users but further from Postgres multiplies a latency
-    # the user only pays once. Fixed at creation: Render cannot move a service
-    # between regions afterwards, so changing this later means recreating it.
+    # Render's `oregon` is AWS us-west-2, where the ORIGINAL Supabase project
+    # lived. That project is gone: since 2026-09-16 the database is Supabase
+    # project fqgfeogylvghearshhoa in ap-southeast-2 (Sydney), and Render has
+    # no Sydney region — `singapore` is the nearest. A single API request can
+    # issue several EF Core queries, and each one pays the app-to-database
+    # round trip, so the app should sit as close to Postgres as Render allows.
+    # Fixed at creation: Render cannot move a service between regions, so
+    # moving this one to `singapore` means creating a new service from this
+    # Blueprint and re-entering the connection string there.
     region: oregon
 
     dockerfilePath: ./deploy/render/Dockerfile
@@ -81,9 +84,21 @@ services:
       # transaction pooler on 6543 is also wrong here — it breaks the prepared
       # statements EF Core migrations rely on.
       #
-      #   Host=aws-0-<region>.pooler.supabase.com;Port=5432;Database=postgres;
-      #   Username=postgres.<project-ref>;Password=...;SSL Mode=VerifyFull;
+      #   Host=aws-0-ap-southeast-2.pooler.supabase.com;Port=5432;Database=postgres;
+      #   Username=postgres.fqgfeogylvghearshhoa;Password=...;SSL Mode=VerifyFull;
       #   Root Certificate=/etc/secrets/prod-ca.crt
+      #
+      # The pooler host MUST be the one for the project's own region and the
+      # username MUST carry the project ref. Get either wrong — or leave the
+      # string pointing at a project that has since been deleted — and startup
+      # dies inside Database.Migrate() with:
+      #
+      #   XX000: (ENOTFOUND) tenant/user postgres.<ref> not found
+      #
+      # That reply comes from Supabase's pooler, not from Postgres: it means
+      # "no project with this ref in this region", never a wrong password. When
+      # the Supabase project is replaced, this env var has to be updated by
+      # hand in the Render dashboard — nothing in the repo carries it.
       #
       # SSL Mode=Require encrypts but validates nothing — no chain, no hostname —
       # which on a hop across the public internet stops eavesdropping but not
