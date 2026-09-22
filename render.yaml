@@ -12,10 +12,17 @@
 # it cannot generate (the Supabase connection string).
 #
 # docker-compose.yml stays as-is and remains the way to run the stack locally.
+#
+# THIS BRANCH (development_mobileview) is the phone-shell preview host. It is
+# `development` plus the two lines this file changes — `name` and
+# PLATFORM=Mobile — and nothing else. Keep it current with `git merge
+# development` on this branch; never merge it the other way, or the web
+# service starts serving the phone shell. deploy/render/README.md, "Hosting
+# the phone shell as its own service", has the rest.
 
 services:
   - type: web
-    name: sanathana-companion
+    name: sanathana-companion-mobile
     runtime: docker
 
     # Free instances get 512 MB RAM / 0.1 CPU, sleep after 15 minutes with no
@@ -47,6 +54,14 @@ services:
     envVars:
       - key: ASPNETCORE_ENVIRONMENT
         value: Production
+
+      # The shell the SPA renders. Mobile is the phone shell — the MAUI app's UI
+      # in a desktop browser — and also puts every non-Admin user on the Mobile
+      # column of the access matrix. That is the point of this service, and the
+      # reason the web service leaves this unset: entrypoint.sh defaults it to
+      # Web and refuses to start on anything but Web or Mobile.
+      - key: PLATFORM
+        value: Mobile
 
       # ASP.NET Core defaults to the server GC, which sizes its heaps to the
       # machine's CPU count and trades memory for throughput — the wrong trade

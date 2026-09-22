@@ -6,7 +6,7 @@ name: CI
 # built a pushed branch was production.
 on:
   push:
-    branches: [main, development]
+    branches: [main, development, development_mobileview]
   pull_request:
     branches: [main, development]
   workflow_dispatch:
