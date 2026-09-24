@@ -27,6 +27,8 @@ Application/
 ## Run
 1. **Backend:** `RunBackend.cmd` → API on `http://localhost:7050`, Swagger at `/swagger`. Migrations + seed apply automatically on startup.
 2. **Web:** `RunFrontend.cmd` → `http://localhost:7001` (calls the API at `:7050`).
+   **On this branch (`development_mobileview`) that is the phone shell**, framed as a 412×915
+   handset when the browser window is desktop-sized — see "The mobile app" below.
 3. **Mobile (Android emulator):** `dotnet build FrontEnd/App.Mobile -t:Run -f net10.0-android` (API reached via `http://10.0.2.2:7050`).
    **Mobile (iOS simulator, on a Mac):** `dotnet build FrontEnd/App.Mobile -t:Run -f net10.0-ios`
    **Mobile (Windows):** `dotnet build FrontEnd/App.Mobile -t:Run -f net10.0-windows10.0.19041.0`
@@ -82,9 +84,24 @@ ordering, because `AccessRightsCatalog` compares codes **ordinally** — a row s
 | Both | `FrontEnd/App.Core/Config/ApiRoutes.cs` | **Every REST path the clients call.** No URL string is spelled out anywhere else. |
 
 Set `"Platform": "Mobile"` in the *web* `appsettings.json` to render the phone shell in a desktop
-browser's device emulation — the quickest way to review mobile UI without a device. The same
-preview, hosted, is the `development_mobileview` branch: `development` plus `PLATFORM=Mobile` in
-its `render.yaml`. See `deploy/render/README.md`, "Hosting the phone shell as its own service".
+browser — the quickest way to review mobile UI without a device. **This branch
+(`development_mobileview`) ships with it set**, so `RunFrontend.cmd` and `dotnet run` on `:7001`
+are the phone preview, and its `render.yaml` sets `PLATFORM=Mobile` so the hosted service is too.
+See `deploy/render/README.md`, "Hosting the phone shell as its own service".
+
+### The phone shell in a desktop browser looks like a phone
+
+A phone shell stretched across a 1920px window is not a preview of anything, so the web host
+frames it. `App.Web/wwwroot/phoneFrame.js` runs before Blazor starts: when the host is the phone
+shell (`Platform` is `Mobile`, or the origin is in `MobilePreviewOrigins`) and the window is
+desktop-sized, the page becomes a handset bezel with an `<iframe>` of itself as the 412×915
+screen, and the app boots inside that. An iframe is a real viewport — media queries, `dvh`,
+`position: fixed` sheets, the scroll lock — so what you see is what a Pixel-class phone shows,
+scaled to fit the window. The address bar and tab title follow the app inside, so deep links and
+refresh keep working.
+
+A phone-sized window (a real phone, or DevTools device emulation) gets the shell full-bleed, as
+before, and `?frame=0` on the URL forces that at any size. The MAUI host never links the script.
 
 ## Run with Docker (single server, API under `/api`)
 

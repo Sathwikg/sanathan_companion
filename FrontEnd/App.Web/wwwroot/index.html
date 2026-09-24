@@ -15,6 +15,9 @@
     <link rel="stylesheet" href="_content/App.UI.Shared/mobile.css" />
     <link rel="icon" type="image/png" href="favicon.png" />
     <link href="App.Web.styles.css" rel="stylesheet" />
+    <!-- The handset bezel phoneFrame.js builds around the phone shell on a desktop-sized window.
+         Scoped to .sc-phone-*, so it is inert on the web shell and inside the framed document. -->
+    <link rel="stylesheet" href="phoneFrame.css" />
     <!-- Applies the saved theme before render to avoid a flash of the wrong theme. Shared with
          the MAUI host, which needs the same behaviour for a different reason (see theme.js). -->
     <script src="_content/App.UI.Shared/theme.js"></script>
@@ -42,7 +45,12 @@
     <script src="_content/App.UI.Shared/geo.js"></script>
     <script src="_content/App.UI.Shared/scrollLock.js"></script>
     <script src="_content/App.UI.Shared/download.js"></script>
-    <script src="_framework/blazor.webassembly#[.{fingerprint}].js"></script>
+    <!-- Blazor does not start itself. phoneFrame.js starts it — unless this host is the phone shell
+         in a desktop-sized window, in which case this document becomes a handset around an iframe
+         of itself and the app boots inside that instead. See the header comment in phoneFrame.js. -->
+    <script src="_framework/blazor.webassembly#[.{fingerprint}].js" autostart="false"></script>
+    <script src="phoneFrame.js"></script>
+    <script>scPhoneFrame.boot();</script>
 </body>
 
 </html>

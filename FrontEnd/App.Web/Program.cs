@@ -30,10 +30,13 @@ builder.Services.AddScoped<ILocalizationCache, LocalStorageLocalizationCache>();
 // Not for the service users log in to: it also switches every non-Admin user to the Mobile column
 // of the access matrix.
 //
-// Three ways in; locally the second is the one to reach for:
+// Three ways in; on development the second is the one to reach for locally:
 //
-//   Platform in wwwroot/appsettings.json — a working-tree edit to a tracked file that must be
-//   reverted before committing. Easy to forget, and forgetting it ships the access-matrix switch.
+//   Platform in wwwroot/appsettings.json — on development a working-tree edit to a tracked file
+//   that must be reverted before committing, because forgetting it ships the access-matrix
+//   switch. On THIS branch (development_mobileview) it is committed as Mobile: the branch exists
+//   to be the phone preview, so a plain `dotnet run` renders the phone shell, and
+//   wwwroot/phoneFrame.js frames it as a handset in a desktop-sized window.
 //
 //   The `mobile` launch profile — `dotnet run --project FrontEnd/App.Web --launch-profile mobile`
 //   serves the same build on :7002 with ASPNETCORE_ENVIRONMENT=Mobile, so the web shell on :7001

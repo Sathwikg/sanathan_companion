@@ -41,11 +41,15 @@ environment variable — `Web` unless set, `Mobile` for the phone shell — so o
 image serves either, and any other value stops the container at start instead
 of quietly rendering the web shell.
 
-The `development_mobileview` branch is `development` plus one commit that sets
-`PLATFORM: Mobile` in `render.yaml` and names the service
-`sanathana-companion-mobile`, so the two Blueprints do not fight over a name.
-Deploy it exactly like the first deploy above, choosing that branch, then open
-the resulting URL in a desktop browser's device emulation or on a phone.
+The `development_mobileview` branch is `development` plus the phone preview:
+`PLATFORM: Mobile` in `render.yaml`, the service named
+`sanathana-companion-mobile` so the two Blueprints do not fight over a name,
+`Platform: Mobile` in the tracked `FrontEnd/App.Web/wwwroot/appsettings.json`
+so a local run renders the phone shell too, and `App.Web/wwwroot/phoneFrame.js`,
+which wraps the shell in a 412×915 handset whenever the browser window is
+desktop-sized. Deploy it exactly like the first deploy above, choosing that
+branch, then open the resulting URL: a desktop browser shows the app inside a
+phone, a phone shows it full-bleed.
 
 Keep it current with `git merge development` on that branch, and never merge it
 the other way. Both services share the one Supabase database and each runs

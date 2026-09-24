@@ -14,11 +14,13 @@
 # docker-compose.yml stays as-is and remains the way to run the stack locally.
 #
 # THIS BRANCH (development_mobileview) is the phone-shell preview host. It is
-# `development` plus the two lines this file changes — `name` and
-# PLATFORM=Mobile — and nothing else. Keep it current with `git merge
-# development` on this branch; never merge it the other way, or the web
-# service starts serving the phone shell. deploy/render/README.md, "Hosting
-# the phone shell as its own service", has the rest.
+# `development` plus the phone preview: the two lines this file changes —
+# `name` and PLATFORM=Mobile — Platform=Mobile in the tracked web
+# appsettings.json so a local run is the phone shell too, and the handset
+# frame in FrontEnd/App.Web/wwwroot/phoneFrame.js. Keep it current with
+# `git merge development` on this branch; never merge it the other way, or
+# the web service starts serving the phone shell. deploy/render/README.md,
+# "Hosting the phone shell as its own service", has the rest.
 
 services:
   - type: web
