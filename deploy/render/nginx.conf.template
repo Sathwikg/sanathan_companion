@@ -120,6 +120,9 @@ server {
         add_header Cache-Control          "no-cache" always;
         add_header X-Content-Type-Options nosniff     always;
         add_header Referrer-Policy        no-referrer always;
-        add_header X-Frame-Options        DENY        always;
+        # SAMEORIGIN, not DENY: on a desktop-sized window phoneFrame.js shows the
+        # phone shell inside an <iframe> of this same page, and DENY blanks it.
+        # Other sites still cannot frame it.
+        add_header X-Frame-Options        SAMEORIGIN  always;
     }
 }

@@ -36,10 +36,23 @@ deploy is almost always the connection string.
 
 The SPA renders either the web shell or the phone shell, chosen by `Platform`
 in its `appsettings.json` (see `FrontEnd/App.Web/Program.cs`). `entrypoint.sh`
-writes that file on every start and takes the value from the `PLATFORM`
-environment variable — `Web` unless set, `Mobile` for the phone shell — so one
-image serves either, and any other value stops the container at start instead
+writes that file on every start. The `PLATFORM` environment variable wins when
+it is set; unset, the container keeps the `Platform` already in the published
+file, so each branch's tracked `appsettings.json` decides — `Web` on
+`development`, `Mobile` on `development_mobileview`. One image serves either,
+and any value other than `Web` or `Mobile` stops the container at start instead
 of quietly rendering the web shell.
+
+Before this, an unset `PLATFORM` meant `Web` on every branch. `render.yaml`
+sets it, but Render applies `render.yaml` only to a service created or synced
+as a Blueprint, so a service created from the dashboard served the **web**
+shell from this branch. If a hosted phone preview shows the left-drawer web
+layout, check the service's Environment tab for a leftover `PLATFORM=Web`.
+
+The handset frame loads the page inside an `<iframe>` of itself, so both nginx
+configs send `X-Frame-Options: SAMEORIGIN` on the SPA, not `DENY`. With `DENY`
+the phone screen comes up blank on a desktop window. Other sites still cannot
+frame the app.
 
 The `development_mobileview` branch is `development` plus the phone preview:
 `PLATFORM: Mobile` in `render.yaml`, the service named

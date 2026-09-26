@@ -12,7 +12,19 @@ set -euo pipefail
 PORT="${PORT:-10000}"
 API_PORT="${API_PORT:-8080}"
 API_BASE_URL="${API_BASE_URL:-/api}"
-PLATFORM="${PLATFORM:-Web}"
+CONFIG=/usr/share/nginx/html/appsettings.json
+
+# PLATFORM, when set, wins. Unset or empty, the Platform baked into the published
+# appsettings.json is kept, so each branch's tracked file decides its hosted shell:
+# Web on development, Mobile on development_mobileview. Before this, an unset
+# PLATFORM meant Web on every branch, so a service created in the Render dashboard
+# rather than from render.yaml served the web shell from this branch.
+if [ -z "${PLATFORM:-}" ]; then
+    PLATFORM="$(grep -o '"Platform"[[:space:]]*:[[:space:]]*"[A-Za-z]*"' "$CONFIG" 2>/dev/null \
+                | head -n 1 | sed 's/.*"\([A-Za-z]*\)"$/\1/' || true)"
+    PLATFORM="${PLATFORM:-Web}"
+    echo "entrypoint: PLATFORM not set, using Platform=$PLATFORM from the published appsettings.json"
+fi
 export PORT API_PORT
 
 # ---- SPA configuration -----------------------------------------------------
@@ -36,8 +48,23 @@ case "$PLATFORM" in
     *) echo "entrypoint: PLATFORM must be Web or Mobile, got '$PLATFORM'" >&2; exit 1 ;;
 esac
 
-printf '{\n  "ApiBaseUrl": "%s",\n  "Platform": "%s"\n}\n' "$API_BASE_URL" "$PLATFORM" \
-    > /usr/share/nginx/html/appsettings.json
+# Patch the published file in place instead of replacing it, so every other
+# setting in the branch's tracked appsettings.json reaches the hosted app exactly
+# as it runs locally. Only ApiBaseUrl has to differ: locally the API is a second
+# origin (http://localhost:7050/api), here it is this origin's /api. Platform is
+# rewritten too, but unset PLATFORM already equals the file's own value above.
+# A file without both keys (never the tracked one) falls back to a minimal file.
+if grep -q '"ApiBaseUrl"[[:space:]]*:' "$CONFIG" 2>/dev/null \
+   && grep -q '"Platform"[[:space:]]*:' "$CONFIG" 2>/dev/null; then
+    api_sed="$(printf '%s' "$API_BASE_URL" | sed 's/[\\|&]/\\&/g')"
+    sed -i \
+        -e "s|\(\"ApiBaseUrl\"[[:space:]]*:[[:space:]]*\"\)[^\"]*\"|\1${api_sed}\"|" \
+        -e "s|\(\"Platform\"[[:space:]]*:[[:space:]]*\"\)[^\"]*\"|\1${PLATFORM}\"|" \
+        "$CONFIG"
+else
+    printf '{\n  "ApiBaseUrl": "%s",\n  "Platform": "%s"\n}\n' "$API_BASE_URL" "$PLATFORM" \
+        > "$CONFIG"
+fi
 
 # Blazor publishes a precompressed sibling next to every static asset, and
 # `gzip_static on` prefers it over the plain file whenever the client accepts
@@ -46,8 +73,7 @@ printf '{\n  "ApiBaseUrl": "%s",\n  "Platform": "%s"\n}\n' "$API_BASE_URL" "$PLA
 # goes on calling http://localhost:7050/api in production. Delete the siblings
 # so the file just written is the only candidate — at a few dozen bytes there
 # was nothing to gain by compressing it.
-rm -f /usr/share/nginx/html/appsettings.json.gz \
-      /usr/share/nginx/html/appsettings.json.br
+rm -f "$CONFIG.gz" "$CONFIG.br"
 
 echo "entrypoint: ApiBaseUrl set to $API_BASE_URL, Platform set to $PLATFORM"
 

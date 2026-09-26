@@ -10,15 +10,34 @@ set -eu
 API_BASE_URL="${API_BASE_URL:-/api}"
 # Web or Mobile: the shell the SPA renders. The same switch as `Platform` in
 # wwwroot/appsettings.json; deploy/render/entrypoint.sh has the full story.
-PLATFORM="${PLATFORM:-Web}"
+# Unset or empty keeps the Platform baked into the published appsettings.json, so
+# each branch's tracked file decides: Web on development, Mobile on this branch.
 CONFIG=/usr/share/nginx/html/appsettings.json
+if [ -z "${PLATFORM:-}" ]; then
+    PLATFORM="$(grep -o '"Platform"[[:space:]]*:[[:space:]]*"[A-Za-z]*"' "$CONFIG" 2>/dev/null \
+                | head -n 1 | sed 's/.*"\([A-Za-z]*\)"$/\1/' || true)"
+    PLATFORM="${PLATFORM:-Web}"
+fi
 
 case "$PLATFORM" in
     Web|Mobile) ;;
     *) echo "20-api-base-url.sh: PLATFORM must be Web or Mobile, got '$PLATFORM'" >&2; exit 1 ;;
 esac
 
-printf '{\n  "ApiBaseUrl": "%s",\n  "Platform": "%s"\n}\n' "$API_BASE_URL" "$PLATFORM" > "$CONFIG"
+# Patch the published file in place instead of replacing it, so every other
+# setting in the branch's tracked appsettings.json reaches the container exactly
+# as it runs locally. Only ApiBaseUrl has to differ; deploy/render/entrypoint.sh
+# has the full story.
+if grep -q '"ApiBaseUrl"[[:space:]]*:' "$CONFIG" 2>/dev/null \
+   && grep -q '"Platform"[[:space:]]*:' "$CONFIG" 2>/dev/null; then
+    api_sed="$(printf '%s' "$API_BASE_URL" | sed 's/[\\|&]/\\&/g')"
+    sed -i \
+        -e "s|\(\"ApiBaseUrl\"[[:space:]]*:[[:space:]]*\"\)[^\"]*\"|\1${api_sed}\"|" \
+        -e "s|\(\"Platform\"[[:space:]]*:[[:space:]]*\"\)[^\"]*\"|\1${PLATFORM}\"|" \
+        "$CONFIG"
+else
+    printf '{\n  "ApiBaseUrl": "%s",\n  "Platform": "%s"\n}\n' "$API_BASE_URL" "$PLATFORM" > "$CONFIG"
+fi
 
 # Blazor publishes a precompressed sibling next to every static asset, and the
 # `gzip_static on` in nginx.conf prefers it over the plain file whenever the

@@ -59,9 +59,11 @@ services:
 
       # The shell the SPA renders. Mobile is the phone shell — the MAUI app's UI
       # in a desktop browser — and also puts every non-Admin user on the Mobile
-      # column of the access matrix. That is the point of this service, and the
-      # reason the web service leaves this unset: entrypoint.sh defaults it to
-      # Web and refuses to start on anything but Web or Mobile.
+      # column of the access matrix. That is the point of this service. Unset,
+      # entrypoint.sh keeps the Platform in the branch's published
+      # appsettings.json (Mobile here, Web on development), so a service created
+      # from the dashboard instead of this Blueprint is still the phone shell.
+      # It refuses to start on anything but Web or Mobile.
       - key: PLATFORM
         value: Mobile
 
