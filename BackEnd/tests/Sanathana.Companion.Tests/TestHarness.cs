@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Sanathana.Companion.Application.Common;
 using Sanathana.Companion.Application.Interfaces;
 using Sanathana.Companion.Application.Services;
 using Sanathana.Companion.Application.Validators;
@@ -22,6 +23,11 @@ internal sealed class TestHarness : IDisposable
     public IPasswordHasher Hasher { get; }
     public IJwtTokenService Jwt { get; }
     public IRefreshTokenFactory RefreshTokens { get; }
+
+    /// <summary>Stands in for Google: whatever identity the test sets here is what "Google" vouches for.</summary>
+    public FakeGoogleVerifier Google { get; }
+
+    public IGoogleTicketService GoogleTickets { get; }
 
     public TestHarness()
     {
@@ -72,10 +78,31 @@ internal sealed class TestHarness : IDisposable
         Jwt = new JwtTokenService(jwtSettings);
         RefreshTokens = new RefreshTokenFactory(jwtSettings);
 
-        AuthService = new AuthService(UnitOfWork, Hasher, Jwt, RefreshTokens, new RegisterRequestValidator(), new LoginRequestValidator(), new ChangePasswordValidator());
+        var googleOptions = Options.Create(new GoogleSignInOptions { ClientIds = ["test-client-id.apps.googleusercontent.com"] });
+        Google = new FakeGoogleVerifier();
+        GoogleTickets = new GoogleTicketService(jwtSettings, googleOptions);
+
+        AuthService = new AuthService(
+            UnitOfWork, Hasher, Jwt, RefreshTokens,
+            new RegisterRequestValidator(), new LoginRequestValidator(), new ChangePasswordValidator(),
+            Google, GoogleTickets, new GoogleRegisterValidator(), new GoogleLinkValidator());
     }
 
     public void Dispose() => Context.Dispose();
+
+    /// <summary>
+    /// Returns a fixed identity for a fixed token string and null for everything else, so a test
+    /// can play both a real Google sign-in and a forged or expired token without any network.
+    /// </summary>
+    internal sealed class FakeGoogleVerifier : IGoogleIdTokenVerifier
+    {
+        public const string ValidToken = "valid-google-id-token";
+
+        public GoogleIdentity Identity { get; set; } = new("google-sub-1001", "seeker@gmail.com", true, "Ravi Kumar");
+
+        public Task<GoogleIdentity?> VerifyAsync(string idToken, CancellationToken cancellationToken = default)
+            => Task.FromResult(idToken == ValidToken ? Identity : null);
+    }
 
     private sealed class TestCurrentUser : ICurrentUserService
     {

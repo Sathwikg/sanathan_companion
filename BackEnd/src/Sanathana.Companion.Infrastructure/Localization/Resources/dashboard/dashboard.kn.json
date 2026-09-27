@@ -1,6 +1,22 @@
 {
+  "dashboard.bhaktiSub": "ನಿಮ್ಮ ದೈನಂದಿನ ಭಕ್ತಿಯ ಕೇಂದ್ರ",
+  "dashboard.chantsSub": "ವರ್ಗವಾರು ನೋಡಿ, ನಂತರ ನಿಮ್ಮ ಸಾಧನೆಯನ್ನು ಆರಂಭಿಸಿ",
   "dashboard.couldNotLoad": "ಡ್ಯಾಶ್ಬೋರ್ಡ್ ಲೋಡ್ ಮಾಡಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ.",
+  "dashboard.festivalWithName": "ಹಬ್ಬ · {0}",
   "dashboard.loading": "ನಿಮ್ಮ ಸಾಧನೆಯನ್ನು ಲೋಡ್ ಮಾಡಲಾಗುತ್ತಿದೆ…",
+  "dashboard.moreCount": "+{0} ಇನ್ನಷ್ಟು",
+  "dashboard.noSadhanaForDeity": "{0} ದೇವತೆಗೆ ಇನ್ನೂ ಯಾವುದೇ ಸಾಧನೆ ಸಂರಚಿಸಲಾಗಿಲ್ಲ.",
+  "dashboard.noSadhanaYet": "ಇನ್ನೂ ಯಾವುದೇ ಸಾಧನೆ ಸಂರಚಿಸಲಾಗಿಲ್ಲ.",
   "dashboard.panchangamTitle": "ಇಂದಿನ ಪಂಚಾಂಗ",
-  "dashboard.seeker": "ಸಾಧಕ"
+  "dashboard.prayerNow": "ಈಗ",
+  "dashboard.prayersSub": "ದಿನದ ಈ ಸಮಯಕ್ಕೆ",
+  "dashboard.prayersTitle": "ಪ್ರಾರ್ಥನೆಗಳು",
+  "dashboard.seeker": "ಸಾಧಕ",
+  "dashboard.showAllCount": "ಎಲ್ಲವನ್ನೂ ತೋರಿಸಿ ({0})",
+  "dashboard.showDeityOf": "{1}ರಲ್ಲಿ {0}ನೇ ದೇವತೆಯನ್ನು ತೋರಿಸಿ",
+  "dashboard.showLess": "ಕಡಿಮೆ ತೋರಿಸಿ",
+  "dashboard.tapForDetails": "ವಿವರಗಳಿಗಾಗಿ ಸ್ಪರ್ಶಿಸಿ",
+  "dashboard.todaysBhakti": "ಇಂದಿನ ಭಕ್ತಿ",
+  "dashboard.todaysDeity": "ಇಂದಿನ ದೇವತೆ",
+  "dashboard.viewDetails": "ವಿವರಗಳನ್ನು ವೀಕ್ಷಿಸಿ"
 }

@@ -9,7 +9,7 @@
 <div class="sc-shell">
     <header class="sc-topbar">
         <div class="sc-topbar-left">
-            <button class="sc-hamburger" @onclick="ToggleSidebar" title="@Loc["nav.toggleMenu", "Toggle menu"]">☰</button>
+            <button class="sc-hamburger" @onclick="ToggleSidebar" title="@Loc["nav.toggleMenu", "Toggle Menu"]">☰</button>
             <OmLogo Size="34" />
             <span class="sc-brand-text">@Loc["auth.appName", "Sanathan Companion"]</span>
         </div>
@@ -30,7 +30,7 @@
             <ThemeToggle />
             <AuthorizeView>
                 <Authorized>
-                    <NavLink class="sc-user sc-user-link" href="profile" title="@Loc["nav.viewProfile", "View my profile"]">
+                    <NavLink class="sc-user sc-user-link" href="profile" title="@Loc["nav.viewProfile", "View My Profile"]">
                         <span class="sc-user-ic">👤</span>
                         <span class="sc-user-name">@context.User.FindFirst("fullName")?.Value</span>
                     </NavLink>

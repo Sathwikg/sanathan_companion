@@ -1,6 +1,22 @@
 {
+  "dashboard.bhaktiSub": "మీ రోజువారీ భక్తికి కేంద్రబిందువు",
+  "dashboard.chantsSub": "విభాగాల వారీగా చూసి, మీ సాధనను ప్రారంభించండి",
   "dashboard.couldNotLoad": "డాష్బోర్డును లోడ్ చేయలేకపోయాం.",
+  "dashboard.festivalWithName": "పండుగ · {0}",
   "dashboard.loading": "మీ సాధన లోడ్ అవుతోంది…",
+  "dashboard.moreCount": "+{0} మరిన్ని",
+  "dashboard.noSadhanaForDeity": "{0} కోసం ఇంకా ఏ సాధనా అమర్చలేదు.",
+  "dashboard.noSadhanaYet": "ఇంకా ఏ సాధనా అమర్చలేదు.",
   "dashboard.panchangamTitle": "నేటి పంచాంగం",
-  "dashboard.seeker": "సాధకుడు"
+  "dashboard.prayerNow": "ఇప్పుడు",
+  "dashboard.prayersSub": "రోజులో ఈ సమయానికి",
+  "dashboard.prayersTitle": "ప్రార్థనలు",
+  "dashboard.seeker": "సాధకుడు",
+  "dashboard.showAllCount": "అన్నీ చూపించు ({0})",
+  "dashboard.showDeityOf": "{1}లో {0}వ దేవతను చూపు",
+  "dashboard.showLess": "తక్కువ చూపించు",
+  "dashboard.tapForDetails": "వివరాల కోసం తాకండి",
+  "dashboard.todaysBhakti": "నేటి భక్తి",
+  "dashboard.todaysDeity": "నేటి దేవత",
+  "dashboard.viewDetails": "వివరాలు చూడు"
 }

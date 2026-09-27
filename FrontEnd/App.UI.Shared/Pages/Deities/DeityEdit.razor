@@ -11,7 +11,7 @@
 
 <div class="sc-page-head">
     <h1>@(IsEdit ? Loc["deities.editDeity", "Edit Deity"] : Loc["deities.createDeity", "Create Deity"])</h1>
-    <button class="sc-btn-ghost sc-btn-sm" @onclick='() => Nav.NavigateTo("deities")'>← @Loc["common.backToList", "Back to list"]</button>
+    <button class="sc-btn-ghost sc-btn-sm" @onclick='() => Nav.NavigateTo("deities")'>← @Loc["common.backToList", "Back to List"]</button>
 </div>
 
 @if (_error is not null)
@@ -53,7 +53,7 @@ else
                         }
                     </div>
                     <label class="sc-btn-ghost sc-btn-sm sc-upload">
-                        📷 @(HasAnyImage ? Loc["deities.changePhoto", "Change"] : Loc["deities.addPhoto", "Add photo"])
+                        📷 @(HasAnyImage ? Loc["deities.changePhoto", "Change"] : Loc["deities.addPhoto", "Add Photo"])
                         <InputFile OnChange="OnImageSelected" accept="image/*" style="display:none" />
                     </label>
                     @if (HasAnyImage)

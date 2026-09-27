@@ -1,0 +1,86 @@
+@* The one place the app offers Google sign-in. Renders nothing on hosts that cannot obtain a token
+   (see IGoogleSignIn), Google's own button on the web, and an app-styled button on Android. The
+   page that hosts it receives the ID token and decides what to do with the API's answer. *@
+@inherits LocalizedComponentBase
+@inject IGoogleSignIn Google
+
+@if (Google.Mode != GoogleSignInMode.None)
+{
+    <div class="sc-auth-divider" aria-hidden="true"><span>@Loc["auth.or", "or"]</span></div>
+
+    <div class="sc-google-signin">
+        @if (Google.Mode == GoogleSignInMode.Button)
+        {
+            @* Google draws into this element after first render. Kept in the tree even while
+               busy: removing it would make Google draw a second button on the next render. *@
+            <div @ref="_container" class="sc-google-host"></div>
+        }
+        else
+        {
+            <button type="button" class="sc-btn-google" @onclick="NativeAsync" disabled="@(_busy || Disabled)">
+                <span class="sc-google-mark" aria-hidden="true">G</span>
+                <span>@(_busy ? Loc["common.signingIn", "Signing in…"] : Loc["auth.continueWithGoogle", "Continue with Google"])</span>
+            </button>
+        }
+
+        @if (_error is not null)
+        {
+            <div class="sc-alert sc-alert-error">@_error</div>
+        }
+    </div>
+}
+
+@code {
+    /// <summary>Raised with the Google ID token once the seeker completes the Google prompt.</summary>
+    [Parameter] public EventCallback<string> OnIdToken { get; set; }
+
+    /// <summary>Disables the native button while the host page is busy; Google's own button cannot be disabled.</summary>
+    [Parameter] public bool Disabled { get; set; }
+
+    private ElementReference _container;
+    private bool _rendered;
+    private bool _busy;
+    private string? _error;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_rendered || Google.Mode != GoogleSignInMode.Button) return;
+        _rendered = true;
+
+        try
+        {
+            await Google.RenderButtonAsync(_container, token => OnIdToken.InvokeAsync(token));
+        }
+        catch (Exception)
+        {
+            // The script is blocked, or Google is unreachable. The password form above still works.
+            _error = Loc["auth.googleUnavailable", "Google sign-in is not available right now."];
+            StateHasChanged();
+        }
+    }
+
+    private async Task NativeAsync()
+    {
+        _busy = true;
+        _error = null;
+        try
+        {
+            var token = await Google.GetIdTokenAsync();
+            if (token is null)
+            {
+                // The seeker dismissed the account picker. Not an error worth a red box.
+                return;
+            }
+
+            await OnIdToken.InvokeAsync(token);
+        }
+        catch (Exception)
+        {
+            _error = Loc["auth.googleUnavailable", "Google sign-in is not available right now."];
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+}

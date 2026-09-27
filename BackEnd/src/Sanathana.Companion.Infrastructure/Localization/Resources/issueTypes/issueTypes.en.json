@@ -3,7 +3,7 @@
   "issueTypes.confirmDeactivateBody": "Are you sure you want to deactivate “{0}”?",
   "issueTypes.createTitle": "Create Issue Type",
   "issueTypes.descriptionHint": "(shown as guidance on the form)",
-  "issueTypes.displayOrder": "Display order",
+  "issueTypes.displayOrder": "Display Order",
   "issueTypes.editTitle": "Edit Issue Type",
   "issueTypes.entityName": "issue type",
   "issueTypes.entityPlural": "issue types",

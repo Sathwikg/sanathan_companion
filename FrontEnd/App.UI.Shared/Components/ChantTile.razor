@@ -14,7 +14,7 @@
             }
         </div>
         <button type="button" class="sc-fav @(Favs.IsChant(Chant.Id) ? "on" : null)"
-                title="@(Favs.IsChant(Chant.Id) ? "Remove from favorites" : "Add to favorites")"
+                title="@(Favs.IsChant(Chant.Id) ? "Remove from Favorites" : "Add to Favorites")"
                 @onclick="ToggleFavAsync" @onclick:stopPropagation="true">♥</button>
     </div>
     @if (!string.IsNullOrWhiteSpace(Chant.RecommendReason))

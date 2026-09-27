@@ -1,5 +1,6 @@
 using App.Core.Auth;
 using App.Core.Models;
+using System.Globalization;
 
 namespace App.Core.Services;
 
@@ -253,6 +254,14 @@ public class LocalizationState : IUserSessionState
         try { return string.Format(template, args); }
         catch (FormatException) { return template; }
     }
+
+    /// <summary>
+    /// Title-cases a noun that a heading interpolates ("No {0} Yet" + "issue types" → "No Issue Types Yet").
+    /// Headings use title case, but the same noun keys also sit inside sentences, so they stay lowercase
+    /// in the dictionary and the heading capitalises at the call site. A no-op for scripts without letter case.
+    /// </summary>
+    public string TitleCase(string? text)
+        => string.IsNullOrWhiteSpace(text) ? string.Empty : CultureInfo.InvariantCulture.TextInfo.ToTitleCase(text);
 
     /// <summary>
     /// Translates a value that came from the database (a menu name, deity name…).

@@ -176,6 +176,33 @@ public class AuthPipelineTests
         Assert.Null(inner.Seen!.Headers.Authorization);
     }
 
+    [Theory]
+    [InlineData(ApiRoutes.Auth.Google)]
+    [InlineData(ApiRoutes.Auth.GoogleRegister)]
+    [InlineData(ApiRoutes.Auth.GoogleLink)]
+    public async Task Google_sign_in_calls_carry_no_stale_token(string route)
+    {
+        // Sign-ins in their own right: a leftover credential would leak, and it would turn the
+        // 401 that means "Google refused this token" into "your session has ended".
+        var (client, inner, _) = Pipeline(HttpStatusCode.OK);
+
+        await client.PostAsync(route, new StringContent("{}"));
+
+        Assert.Null(inner.Seen!.Headers.Authorization);
+    }
+
+    [Fact]
+    public async Task A_refused_Google_token_does_not_sign_the_user_out()
+    {
+        var (client, _, notifier) = Pipeline(HttpStatusCode.Unauthorized);
+        var expired = false;
+        notifier.Expired += () => expired = true;
+
+        await client.PostAsync(ApiRoutes.Auth.Google, new StringContent("{}"));
+
+        Assert.False(expired);
+    }
+
     [Fact]
     public async Task A_401_with_no_stored_token_is_not_an_expiry()
     {

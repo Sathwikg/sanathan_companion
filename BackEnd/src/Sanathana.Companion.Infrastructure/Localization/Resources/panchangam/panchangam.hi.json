@@ -25,6 +25,7 @@
   "panchangam.nextDay": "अगला दिन",
   "panchangam.noCoordinates": "(निर्देशांक नहीं)",
   "panchangam.noDataBody": "इस तिथि और क्षेत्र के लिए कोई संग्रहीत डेटा नहीं है। “तैयार करें” आज़माएँ, या तत्काल गणना के लिए “मेरा स्थान” का उपयोग करें।",
+  "panchangam.noDataBodySeeker": "इस तिथि और क्षेत्र के लिए कोई संग्रहीत डेटा नहीं है। तत्काल गणना के लिए “मेरा स्थान” का उपयोग करें।",
   "panchangam.noDataTitle": "इस दिन का कोई पंचांग नहीं",
   "panchangam.overwriteExisting": "मौजूदा दिनों को अधिलेखित करें",
   "panchangam.paksham": "पक्ष",

@@ -29,7 +29,7 @@
     <div class="sc-yearfilter">
         <label>@Loc["common.region", "Region"]</label>
         <select class="sc-input sc-input-sm" @bind="_regionFilter" @bind:after="ApplyFilters">
-            <option value="">@Loc["deities.allRegions", "All regions"]</option>
+            <option value="">@Loc["deities.allRegions", "All Regions"]</option>
             @foreach (var r in _options.Regions)
             {
                 <option value="@r">@r</option>
@@ -39,7 +39,7 @@
     <div class="sc-yearfilter">
         <label>@Loc["deities.day", "Day"]</label>
         <select class="sc-input sc-input-sm" @bind="_dayFilter" @bind:after="ApplyFilters">
-            <option value="">@Loc["deities.allDays", "All days"]</option>
+            <option value="">@Loc["deities.allDays", "All Days"]</option>
             @foreach (var d in _options.Days)
             {
                 <option value="@d">@d</option>
@@ -61,7 +61,7 @@ else if (_filtered.Count == 0)
 {
     <div class="sc-card sc-empty-state">
         <div class="sc-empty-om">🛕</div>
-        <h3>@(Loc.TF("msg.noItemsFound", "No {0} found", Loc["deities.noun", "deities"]))</h3>
+        <h3>@(Loc.TF("msg.noItemsFound", "No {0} Found", Loc.TitleCase(Loc["deities.noun", "deities"])))</h3>
         <p>@(_all.Count == 0 ? Loc.TF("msg.createFirst", "Create your first {0} to get started.", Loc["deities.nounSingular", "deity"]) : Loc["deities.noneMatchFilters", "No deities match the selected filters."])</p>
         <button class="sc-btn-primary sc-btn-sm" @onclick='() => Nav.NavigateTo("deities/create")'>+ @Loc["deities.createDeity", "Create Deity"]</button>
     </div>
@@ -210,8 +210,8 @@ else
                 ? Loc.TF("deities.confirmActivateBody", "Are you sure you want to activate “{0}”?", d.Name)
                 : Loc.TF("deities.confirmDeactivateBody", "Are you sure you want to deactivate “{0}”?", d.Name),
             ConfirmText = activate
-                ? Loc["common.yesActivate", "Yes, activate"]
-                : Loc["common.yesDeactivate", "Yes, deactivate"],
+                ? Loc["common.yesActivate", "Yes, Activate"]
+                : Loc["common.yesDeactivate", "Yes, Deactivate"],
             CancelText = Loc["common.cancel", "Cancel"],
             Kind = activate ? ConfirmKind.Success : ConfirmKind.Warning
         });

@@ -35,7 +35,7 @@ else if (_list.Count == 0)
 {
     <div class="sc-card sc-empty-state">
         <div class="sc-empty-om">🗺️</div>
-        <h3>@(Loc.TF("msg.noItemsYet", "No {0} yet", Loc["regions.noun", "regions"]))</h3>
+        <h3>@(Loc.TF("msg.noItemsYet", "No {0} Yet", Loc.TitleCase(Loc["regions.noun", "regions"])))</h3>
         <p>@(Loc.TF("msg.createFirst", "Create your first {0} to get started.", Loc["regions.nounSingular", "region"]))</p>
         <button class="sc-btn-primary sc-btn-sm" @onclick="OpenCreate">+ @Loc["regions.createRegion", "Create Region"]</button>
     </div>
@@ -294,8 +294,8 @@ else
                 ? Loc.TF("regions.confirmActivateBody", "Are you sure you want to activate “{0}”?", r.Name)
                 : Loc.TF("regions.confirmDeactivateBody", "Are you sure you want to deactivate “{0}”?", r.Name),
             ConfirmText = activate
-                ? Loc["common.yesActivate", "Yes, activate"]
-                : Loc["common.yesDeactivate", "Yes, deactivate"],
+                ? Loc["common.yesActivate", "Yes, Activate"]
+                : Loc["common.yesDeactivate", "Yes, Deactivate"],
             CancelText = Loc["common.cancel", "Cancel"],
             Kind = activate ? ConfirmKind.Success : ConfirmKind.Warning
         });

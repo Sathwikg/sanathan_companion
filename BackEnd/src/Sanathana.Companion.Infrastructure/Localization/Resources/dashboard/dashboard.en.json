@@ -1,6 +1,22 @@
 {
+  "dashboard.bhaktiSub": "Your daily devotional focus",
+  "dashboard.chantsSub": "Browse by type, then begin your sadhana",
   "dashboard.couldNotLoad": "Could not load the dashboard.",
+  "dashboard.festivalWithName": "Festival · {0}",
   "dashboard.loading": "Loading your sadhana…",
+  "dashboard.moreCount": "+{0} more",
+  "dashboard.noSadhanaForDeity": "No sadhana configured for {0} yet.",
+  "dashboard.noSadhanaYet": "No sadhana configured yet.",
   "dashboard.panchangamTitle": "Today's Panchangam",
-  "dashboard.seeker": "Seeker"
+  "dashboard.prayerNow": "Now",
+  "dashboard.prayersSub": "For this time of day",
+  "dashboard.prayersTitle": "Prayers",
+  "dashboard.seeker": "Seeker",
+  "dashboard.showAllCount": "Show All ({0})",
+  "dashboard.showDeityOf": "Show deity {0} of {1}",
+  "dashboard.showLess": "Show Less",
+  "dashboard.tapForDetails": "Tap for details",
+  "dashboard.todaysBhakti": "Today's Bhakti",
+  "dashboard.todaysDeity": "Today's Deity",
+  "dashboard.viewDetails": "View Details"
 }

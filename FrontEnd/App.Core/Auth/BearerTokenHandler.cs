@@ -42,6 +42,11 @@ public class BearerTokenHandler : DelegatingHandler
             // Refresh and sign-out carry the refresh token in the body; attaching a dead access
             // token would make the expiry handler read their 401 as a session ending.
             || path.EndsWith(ApiRoutes.Auth.Refresh, StringComparison.OrdinalIgnoreCase)
-            || path.EndsWith(ApiRoutes.Auth.Logout, StringComparison.OrdinalIgnoreCase);
+            || path.EndsWith(ApiRoutes.Auth.Logout, StringComparison.OrdinalIgnoreCase)
+            // The Google calls are sign-ins too: a 401 from them is a refused token, not an
+            // expired session, and a stale bearer has no business on them.
+            || path.EndsWith(ApiRoutes.Auth.Google, StringComparison.OrdinalIgnoreCase)
+            || path.EndsWith(ApiRoutes.Auth.GoogleRegister, StringComparison.OrdinalIgnoreCase)
+            || path.EndsWith(ApiRoutes.Auth.GoogleLink, StringComparison.OrdinalIgnoreCase);
     }
 }

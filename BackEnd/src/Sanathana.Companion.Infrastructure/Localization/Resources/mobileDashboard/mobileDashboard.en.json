@@ -1,6 +1,10 @@
 {
   "mobileDashboard.favorites": "Favorites",
+  "mobileDashboard.feedback": "Feedback",
   "mobileDashboard.panchangam": "Panchangam",
-  "mobileDashboard.quickActions": "Quick actions",
-  "mobileDashboard.sadhana": "Sadhana"
+  "mobileDashboard.profile": "Profile",
+  "mobileDashboard.quickActions": "Quick Actions",
+  "mobileDashboard.reminders": "Reminders",
+  "mobileDashboard.sadhana": "Sadhana",
+  "mobileDashboard.wallpapers": "Wallpapers"
 }

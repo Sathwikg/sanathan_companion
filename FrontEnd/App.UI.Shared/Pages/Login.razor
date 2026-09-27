@@ -2,41 +2,78 @@
 @inherits LocalizedComponentBase
 @layout AuthLayout
 @inject IAuthService AuthService
+@inject GoogleSignInState GoogleState
 @inject NavigationManager Nav
 
 <h2 class="sc-form-title">@Loc["auth.welcomeBack", "Welcome back, Seeker"]</h2>
 
-<EditForm Model="_model" OnValidSubmit="HandleLoginAsync" class="sc-form">
-    <DataAnnotationsValidator />
+@if (_linking)
+{
+    @* Google vouched for an address that already has an account here, made with a password. That
+       password is typed once to join the two; from then on Google alone signs the seeker in. Asked
+       here, on the login page, rather than on a page of its own: it is a step of signing in. *@
+    <div class="sc-form">
+        <h3 class="sc-google-link-title">@Loc["auth.googleLinkTitle", "Connect Your Google Account"]</h3>
+        <p class="sc-google-link-body">@Loc.TF("auth.googleLinkBody", "An account already exists for {0}. Enter its password once and Google will sign you in from now on.", GoogleState.Email ?? string.Empty)</p>
 
-    @if (!string.IsNullOrEmpty(_error))
-    {
-        <div class="sc-alert sc-alert-error">@_error</div>
-    }
+        @if (!string.IsNullOrEmpty(_error))
+        {
+            <div class="sc-alert sc-alert-error">@_error</div>
+        }
 
-    <div class="sc-field">
-        <label>@Loc["auth.emailOrMobile", "Email or Mobile"]</label>
-        <InputText @bind-Value="_model.Credential" class="sc-input" autocomplete="username" />
-        <ValidationMessage For="() => _model.Credential" />
+        <div class="sc-field">
+            <label>@Loc["auth.password", "Password"]</label>
+            <input type="password" class="sc-input" autocomplete="current-password"
+                   @bind="_linkPassword" @bind:event="oninput" disabled="@_busy" />
+        </div>
+
+        <button type="button" class="sc-btn-primary" @onclick="LinkAsync" disabled="@(_busy || string.IsNullOrWhiteSpace(_linkPassword))">
+            @if (_busy) { <OmLoader Inline="true" Size="18" Message='@Loc["auth.connecting", "Connecting…"]' /> } else { <span>@Loc["auth.googleLinkButton", "Connect and Sign In"]</span> }
+        </button>
+
+        <p class="sc-form-alt"><button type="button" class="sc-link-btn" @onclick="CancelLink" disabled="@_busy">@Loc["common.cancel", "Cancel"]</button></p>
     </div>
+}
+else
+{
+    <EditForm Model="_model" OnValidSubmit="HandleLoginAsync" class="sc-form">
+        <DataAnnotationsValidator />
 
-    <div class="sc-field">
-        <label>@Loc["auth.password", "Password"]</label>
-        <InputText type="password" @bind-Value="_model.Password" class="sc-input" autocomplete="current-password" />
-        <ValidationMessage For="() => _model.Password" />
-    </div>
+        @if (!string.IsNullOrEmpty(_error))
+        {
+            <div class="sc-alert sc-alert-error">@_error</div>
+        }
 
-    <button type="submit" class="sc-btn-primary" disabled="@_busy">
-        @if (_busy) { <OmLoader Inline="true" Size="18" Message='@Loc["common.signingIn", "Signing in…"]' /> } else { <span>@Loc["auth.signIn", "Begin Devotion"]</span> }
-    </button>
-</EditForm>
+        <div class="sc-field">
+            <label>@Loc["auth.emailOrMobile", "Email or Mobile"]</label>
+            <InputText @bind-Value="_model.Credential" class="sc-input" autocomplete="username" />
+            <ValidationMessage For="() => _model.Credential" />
+        </div>
 
-<p class="sc-form-alt">@Loc["auth.newHere", "New here?"] <a href="register">@Loc["auth.createAccount", "Create an account"]</a></p>
+        <div class="sc-field">
+            <label>@Loc["auth.password", "Password"]</label>
+            <InputText type="password" @bind-Value="_model.Password" class="sc-input" autocomplete="current-password" />
+            <ValidationMessage For="() => _model.Password" />
+        </div>
+
+        <button type="submit" class="sc-btn-primary" disabled="@_busy">
+            @if (_busy) { <OmLoader Inline="true" Size="18" Message='@Loc["common.signingIn", "Signing in…"]' /> } else { <span>@Loc["auth.signIn", "Begin Devotion"]</span> }
+        </button>
+    </EditForm>
+
+    @* Renders nothing on hosts without Google sign-in (see IGoogleSignIn). *@
+    <GoogleSignInButton OnIdToken="HandleGoogleAsync" Disabled="_busy" />
+
+    <p class="sc-form-alt">@Loc["auth.newHere", "New here?"] <a href="register">@Loc["auth.createAccount", "Create an Account"]</a></p>
+}
 
 @code {
     private readonly LoginRequest _model = new();
     private string? _error;
     private bool _busy;
+
+    private bool _linking;
+    private string _linkPassword = string.Empty;
 
     private async Task HandleLoginAsync()
     {
@@ -49,5 +86,67 @@
             Nav.NavigateTo("");
         else
             _error = error;
+    }
+
+    /// <summary>
+    /// Google has vouched for somebody. The API says whether that is enough (signed in), whether
+    /// they are new (finish the registration form), or whether an account with that address
+    /// already exists (type its password once).
+    /// </summary>
+    private async Task HandleGoogleAsync(string idToken)
+    {
+        _busy = true;
+        _error = null;
+        try
+        {
+            var (success, outcome, error) = await AuthService.SignInWithGoogleAsync(idToken);
+            if (!success)
+            {
+                _error = string.IsNullOrWhiteSpace(error) ? Loc["auth.googleFailed", "We could not sign you in with Google. Please try again."] : error;
+                return;
+            }
+
+            switch (outcome)
+            {
+                case GoogleOutcomes.SignedIn:
+                    Nav.NavigateTo("");
+                    break;
+                case GoogleOutcomes.RegistrationRequired:
+                    Nav.NavigateTo("register");
+                    break;
+                case GoogleOutcomes.LinkRequired:
+                    _linking = true;
+                    _linkPassword = string.Empty;
+                    break;
+                default:
+                    _error = Loc["auth.googleFailed", "We could not sign you in with Google. Please try again."];
+                    break;
+            }
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private async Task LinkAsync()
+    {
+        _busy = true;
+        _error = null;
+        var (success, error) = await AuthService.LinkGoogleAsync(_linkPassword);
+        _busy = false;
+
+        if (success)
+            Nav.NavigateTo("");
+        else
+            _error = error;
+    }
+
+    private void CancelLink()
+    {
+        _linking = false;
+        _linkPassword = string.Empty;
+        _error = null;
+        GoogleState.Clear();
     }
 }

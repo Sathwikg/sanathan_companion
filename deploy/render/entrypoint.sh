@@ -19,7 +19,10 @@ export PORT API_PORT
 # (http://localhost:7050/api). Rewrite it on every start so the image can be
 # repointed at a different API without a rebuild. The default is the relative
 # path /api, which App.Web resolves against the page origin.
-printf '{\n  "ApiBaseUrl": "%s"\n}\n' "$API_BASE_URL" \
+# One Google client id serves both halves: the API reads Google__ClientIds__0, and the SPA is
+# handed the same value here unless GOOGLE_CLIENT_ID says otherwise. Empty hides the button.
+GOOGLE_CLIENT_ID="${GOOGLE_CLIENT_ID:-${Google__ClientIds__0:-}}"
+printf '{\n  "ApiBaseUrl": "%s",\n  "GoogleClientId": "%s"\n}\n' "$API_BASE_URL" "$GOOGLE_CLIENT_ID" \
     > /usr/share/nginx/html/appsettings.json
 
 # Blazor publishes a precompressed sibling next to every static asset, and
@@ -32,7 +35,7 @@ printf '{\n  "ApiBaseUrl": "%s"\n}\n' "$API_BASE_URL" \
 rm -f /usr/share/nginx/html/appsettings.json.gz \
       /usr/share/nginx/html/appsettings.json.br
 
-echo "entrypoint: ApiBaseUrl set to $API_BASE_URL"
+echo "entrypoint: ApiBaseUrl set to $API_BASE_URL; GoogleClientId ${GOOGLE_CLIENT_ID:+set}${GOOGLE_CLIENT_ID:-empty (Google sign-in off)}"
 
 # ---- nginx configuration ---------------------------------------------------
 # Restrict envsubst to these two names so nginx's own $variables are left alone.

@@ -22,7 +22,7 @@ else if (_forbidden)
 {
     <div class="sc-card sc-empty-state">
         <div class="sc-empty-om">🔒</div>
-        <h3>@Loc["common.adminOnly", "Administrator access required"]</h3>
+        <h3>@Loc["common.adminOnly", "Administrator Access Required"]</h3>
         <p>@Loc["feedbackDashboard.adminOnlyBody", "The feedback dashboard is available to administrators only."]</p>
     </div>
 }
@@ -34,7 +34,7 @@ else if (_model is not null)
 {
     <div class="sc-stat-grid">
         <StatCard Icon="💬" Value="@_model.Total.ToString("N0")" Label="@Loc["feedbackDashboard.totalFeedback", "Total Feedback"]" Accent="true" />
-        <StatCard Icon="🆕" Value="@_model.New.ToString("N0")" Label="@Loc["feedbackDashboard.statusNew", "New"]" Sub="@Loc["feedbackDashboard.awaitingReview", "awaiting review"]" />
+        <StatCard Icon="🆕" Value="@_model.New.ToString("N0")" Label="@Loc["feedbackDashboard.statusNew", "New"]" Sub="@Loc["feedbackDashboard.awaitingReview", "Awaiting Review"]" />
         <StatCard Icon="👀" Value="@_model.Reviewed.ToString("N0")" Label="@Loc["feedbackDashboard.statusReviewed", "Reviewed"]" />
         <StatCard Icon="✅" Value="@_model.Resolved.ToString("N0")" Label="@Loc["feedbackDashboard.statusResolved", "Resolved"]" />
     </div>
@@ -59,7 +59,7 @@ else if (_model is not null)
     <div class="sc-section-head"><h2>🕒 @Loc["feedbackDashboard.recent", "Recent Feedback"]</h2><span class="sc-section-sub">@Loc["feedbackDashboard.recentSub", "Latest submissions"]</span></div>
     @if (_model.Recent.Count == 0)
     {
-        <div class="sc-card sc-empty-state"><div class="sc-empty-om">💬</div><h3>@Loc["feedbackDashboard.noFeedback", "No feedback yet"]</h3></div>
+        <div class="sc-card sc-empty-state"><div class="sc-empty-om">💬</div><h3>@Loc["feedbackDashboard.noFeedback", "No Feedback Yet"]</h3></div>
     }
     else
     {

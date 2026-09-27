@@ -3000,10 +3000,20 @@ namespace Sanathana.Companion.Infrastructure.Persistence.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
 
+                    b.Property<DateTime?>("EmailVerifiedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("FullName")
                         .IsRequired()
                         .HasMaxLength(150)
                         .HasColumnType("character varying(150)");
+
+                    b.Property<DateTime?>("GoogleLinkedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("GoogleSubject")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
 
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
@@ -3042,6 +3052,11 @@ namespace Sanathana.Companion.Infrastructure.Persistence.Migrations
                     b.HasIndex("Email")
                         .IsUnique()
                         .HasDatabaseName("UX_Users_Email");
+
+                    b.HasIndex("GoogleSubject")
+                        .IsUnique()
+                        .HasDatabaseName("UX_Users_GoogleSubject")
+                        .HasFilter("\"GoogleSubject\" IS NOT NULL");
 
                     b.HasIndex("MobileNumber")
                         .IsUnique()

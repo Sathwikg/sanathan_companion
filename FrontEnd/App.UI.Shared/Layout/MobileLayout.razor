@@ -6,13 +6,16 @@
 @inject NavigationManager Nav
 @inject LocalizationState Loc
 @inject LanguageContext LangContext
-@inject IApiClient Api
+@inject MenuState Menus
 @inject MenuRefreshService MenuRefresh
 @inject AppConfig Config
 @inject IJSRuntime JS
 @implements IDisposable
 
-<div class="sc-shell scm-shell">
+@* lang lets mobile.css loosen the Latin letter-spacing for Indic scripts, where tracking pulls a
+   conjunct's glyphs apart. From the bundle on screen, not the stored preference: a failed
+   download leaves the page in English. *@
+<div class="sc-shell scm-shell" lang="@LangCode">
     <header class="scm-topbar">
         <div class="scm-topbar-brand">
             <OmLogo Size="30" />
@@ -30,8 +33,8 @@
                        Only the bell is here — its panel is rendered below, outside the bar. *@
                     <MobileNotificationBell />
                     <button class="scm-avatar-btn" @onclick="OpenAccount"
-                            title="@Loc["nav.viewProfile", "View my profile"]"
-                            aria-label="@Loc["nav.viewProfile", "View my profile"]">
+                            title="@Loc["nav.viewProfile", "View My Profile"]"
+                            aria-label="@Loc["nav.viewProfile", "View My Profile"]">
                         <span class="scm-avatar">@Initials(context.User.FindFirst("fullName")?.Value)</span>
                     </button>
                 </Authorized>
@@ -61,26 +64,30 @@
 
     <AuthorizeView>
         <Authorized>
-            <MobileBottomNav Menu="_menu" Loading="_menu is null" OnMore="OpenMore" />
+            <MobileBottomNav Menu="Menus.Menu" Loading="Menus.Menu is null" OnMore="OpenMore" />
         </Authorized>
     </AuthorizeView>
 
-    <MobileSheet Open="_moreOpen" OnClose="CloseSheets" Title="@Loc["nav.allSections", "All sections"]">
-        <MobileMoreSheet Menu="_menu" OnNavigate="CloseSheets" />
+    <MobileSheet Open="_moreOpen" OnClose="CloseSheets" Title="@Loc["nav.allSections", "All Sections"]">
+        <MobileMoreSheet Menu="Menus.Menu" OnNavigate="CloseSheets" />
     </MobileSheet>
 
     <MobileSheet Open="_accountOpen" OnClose="CloseSheets" Title="@Loc["profile.title", "My Profile"]">
-        <MobileAccountSheet OnNavigate="CloseSheets" OnLogout="LogoutAsync" />
+        <MobileAccountSheet OnNavigate="CloseSheets" OnLogout="LogoutAsync" OnShowRole="ShowRole" />
     </MobileSheet>
+
+    @* A sibling of the sheets on purpose: on wide screens the sheet carries a transform, which would
+       make it the containing block for the popup's fixed backdrop and trap the popup inside it. *@
+    <RoleDetailsModal Visible="_role is not null" Role="_role" OnClose="CloseRole" />
 
     <ConfirmDialog />
     <ToastHost />
 </div>
 
 @code {
-    private List<MenuTreeNode>? _menu;
     private bool _moreOpen;
     private bool _accountOpen;
+    private RoleSummary? _role;
     private bool _scrollLocked;
 
     /// <summary>
@@ -91,37 +98,36 @@
     {
         get
         {
-            if (_menu is null) return Loc["auth.appName", "Sanathan Companion"];
+            if (Menus.Menu is not { } menu) return Loc["auth.appName", "Sanathan Companion"];
 
             var current = Nav.ToBaseRelativePath(Nav.Uri);
-            var match = MobileMenu.Leaves(_menu).FirstOrDefault(n => MobileMenu.IsActive(n, current));
+            var match = MobileMenu.Leaves(menu).FirstOrDefault(n => MobileMenu.IsActive(n, current));
             return match is null
                 ? Loc["auth.appName", "Sanathan Companion"]
                 : Loc.Entity("MenuModule", match.Id, "Name", match.Name);
         }
     }
 
+    private string LangCode => string.IsNullOrWhiteSpace(Loc.CurrentCode) ? LocalizationState.BaseCode : Loc.CurrentCode;
+
     protected override async Task OnInitializedAsync()
     {
         Loc.OnChanged += LanguageChanged;
         Nav.LocationChanged += RouteChanged;
-        MenuRefresh.OnChanged += MenuChanged;
+        MenuRefresh.OnChanged += MenuEdited;
+        Menus.OnChanged += MenuChanged;
 
         SetRoute();
         await Loc.EnsureLoadedAsync();
-        await LoadMenuAsync();
+        // Shared with the page: the home screen's quick actions are gated on this same fetch. A
+        // language switch re-keys this layout (Routes.razor), and this call is what then refetches
+        // the menu in the new language.
+        await Menus.EnsureLoadedAsync();
     }
 
-    private async Task LoadMenuAsync()
-    {
-        // An empty menu is the honest answer to "the API is unreachable": the bottom bar then
-        // shows its offline state rather than a row of tabs that would 404.
-        try { _menu = await Api.GetMenuAsync(); }
-        catch { _menu = new(); }
-    }
+    private void MenuEdited() => _ = InvokeAsync(Menus.ReloadAsync);
 
-    private void MenuChanged()
-        => _ = InvokeAsync(async () => { await LoadMenuAsync(); StateHasChanged(); });
+    private void MenuChanged() => InvokeAsync(StateHasChanged);
 
     // The server needs the current route to honour the per-form opt-out on the Forms tab.
     private void RouteChanged(object? sender, LocationChangedEventArgs e)
@@ -129,9 +135,10 @@
         SetRoute();
 
         // A sheet left open over the page the user just navigated to is the classic phone-nav bug.
-        if (_moreOpen || _accountOpen)
+        if (_moreOpen || _accountOpen || _role is not null)
         {
             _moreOpen = _accountOpen = false;
+            _role = null;
         }
 
         InvokeAsync(StateHasChanged);
@@ -153,6 +160,10 @@
         _moreOpen = false;
         _accountOpen = true;
     }
+
+    private void ShowRole(RoleSummary role) => _role = role;
+
+    private void CloseRole() => _role = null;
 
     private void CloseSheets()
     {
@@ -195,7 +206,8 @@
     {
         Loc.OnChanged -= LanguageChanged;
         Nav.LocationChanged -= RouteChanged;
-        MenuRefresh.OnChanged -= MenuChanged;
+        MenuRefresh.OnChanged -= MenuEdited;
+        Menus.OnChanged -= MenuChanged;
 
         if (_scrollLocked)
         {

@@ -17,7 +17,7 @@
         </div>
     </div>
     <div class="sc-page-actions">
-        <button class="sc-btn-ghost sc-btn-sm" @onclick="BackToList">← @Loc["common.backToList", "Back to list"]</button>
+        <button class="sc-btn-ghost sc-btn-sm" @onclick="BackToList">← @Loc["common.backToList", "Back to List"]</button>
         @if (_model is not null)
         {
             <button class="sc-btn-primary sc-btn-sm" @onclick='() => Nav.NavigateTo($"chants-config/{Id}/edit")'>✏️ @Loc["common.edit", "Edit"]</button>
@@ -38,9 +38,9 @@ else if (_model is null)
 {
     <div class="sc-card sc-empty-state">
         <div class="sc-empty-om">📜</div>
-        <h3>@Loc["chantsConfig.notFound", "Chant not found"]</h3>
+        <h3>@Loc["chantsConfig.notFound", "Chant Not Found"]</h3>
         <p>@Loc["chantsConfig.notFoundBody", "It may have been deleted."]</p>
-        <button class="sc-btn-primary sc-btn-sm" @onclick="BackToList">@Loc["common.backToList", "Back to list"]</button>
+        <button class="sc-btn-primary sc-btn-sm" @onclick="BackToList">@Loc["common.backToList", "Back to List"]</button>
     </div>
 }
 else
@@ -174,7 +174,7 @@ else
         {
             Title = Loc.TF("common.confirmDelete", "Delete {0}?", Loc["chantsConfig.entity", "chant"]),
             Message = Loc.TF("chantsConfig.deleteBody", "“{0}” and its audio will be permanently deleted. This cannot be undone.", _model.Name),
-            ConfirmText = Loc["common.yesDelete", "Yes, delete"],
+            ConfirmText = Loc["common.yesDelete", "Yes, Delete"],
             CancelText = Loc["common.cancel", "Cancel"],
             Kind = ConfirmKind.Danger
         });

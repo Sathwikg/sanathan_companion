@@ -1,16 +1,16 @@
 {
-  "favorites.addToFavorites": "Add to favorites",
-  "favorites.audioTag": "audio",
-  "favorites.browseChants": "Browse chants",
+  "favorites.addToFavorites": "Add to Favorites",
+  "favorites.audioTag": "Audio",
+  "favorites.browseChants": "Browse Chants",
   "favorites.chantCta": "Chant",
   "favorites.chants": "Chants",
   "favorites.emptyHint": "Tap the ♥ on a chant or a god to add it here.",
   "favorites.gods": "Gods",
   "favorites.loading": "Loading your favorites…",
-  "favorites.noChantsYet": "No favorite chants yet",
-  "favorites.noGodsYet": "No favorite gods yet",
-  "favorites.noneYet": "No favorites yet",
-  "favorites.removeFromFavorites": "Remove from favorites",
+  "favorites.noChantsYet": "No Favorite Chants Yet",
+  "favorites.noGodsYet": "No Favorite Gods Yet",
+  "favorites.noneYet": "No Favorites Yet",
+  "favorites.removeFromFavorites": "Remove from Favorites",
   "favorites.sub": "Your favorite chants and gods",
   "favorites.title": "Favorites"
 }

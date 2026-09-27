@@ -63,6 +63,9 @@ public class MyProfile
     public string MobileNumber { get; set; } = string.Empty;
     public string RoleName { get; set; } = string.Empty;
 
+    /// <summary>What the role means, as the Role master describes it. Shown by the "Your Role" popup.</summary>
+    public string? RoleDescription { get; set; }
+
     /// <summary>Independent of the display text — use this for styling and permission checks,
     /// never <see cref="RoleName"/>, which is translated.</summary>
     public bool IsAdmin { get; set; }
@@ -72,6 +75,9 @@ public class MyProfile
     /// <summary>The user's preferred region; seeds the app's region selector.</summary>
     public Guid? DefaultRegionId { get; set; }
     public string? DefaultRegionName { get; set; }
+
+    /// <summary>True once a Google account has been connected to this account.</summary>
+    public bool GoogleLinked { get; set; }
 
     public int CurrentStreak { get; set; }
     public int LongestStreak { get; set; }

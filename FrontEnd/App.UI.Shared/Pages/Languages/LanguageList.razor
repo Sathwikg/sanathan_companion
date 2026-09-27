@@ -30,7 +30,7 @@
             <div class="sc-filter">
                 <label>@Loc["common.region", "Region"]</label>
                 <SearchableSelect Options="RegionOptions" Value="@_regionId" ValueChanged="OnRegionChanged"
-                                  EmptyLabel="@Loc["languages.allRegions", "All regions"]" SearchPlaceholder="@Loc["languages.searchRegions", "Search regions…"]" />
+                                  EmptyLabel="@Loc["languages.allRegions", "All Regions"]" SearchPlaceholder="@Loc["languages.searchRegions", "Search regions…"]" />
             </div>
             <div class="sc-filter">
                 <label>@Loc["common.search", "Search"]</label>
@@ -55,7 +55,7 @@ else if (_view == "region")
     {
         <div class="sc-card sc-empty-state">
             <div class="sc-empty-om">🗺️</div>
-            <h3>@Loc.TF("msg.noItemsYet", "No {0} yet", Loc["languages.regionsWord", "regions"])</h3>
+            <h3>@Loc.TF("msg.noItemsYet", "No {0} Yet", Loc.TitleCase(Loc["languages.regionsWord", "regions"]))</h3>
             <p>@Loc["languages.noRegionsBody", "Add regions in the Region Master to map languages to them."]</p>
         </div>
     }
@@ -72,7 +72,7 @@ else if (_view == "region")
                     <h3 class="sc-tile-title">@r.RegionName</h3>
                     @if (r.Languages.Count == 0)
                     {
-                        <p class="sc-tile-desc">@Loc["languages.noneMapped", "No languages mapped yet"]</p>
+                        <p class="sc-tile-desc">@Loc["languages.noneMapped", "No Languages Mapped Yet"]</p>
                     }
                     else
                     {
@@ -87,7 +87,7 @@ else if (_list.Count == 0)
 {
     <div class="sc-card sc-empty-state">
         <div class="sc-empty-om">🗣️</div>
-        <h3>@Loc.TF("msg.noItemsFound", "No {0} found", Loc["languages.entityPlural", "languages"])</h3>
+        <h3>@Loc.TF("msg.noItemsFound", "No {0} Found", Loc.TitleCase(Loc["languages.entityPlural", "languages"]))</h3>
         <p>@(HasFilters
                 ? Loc.TF("msg.noMatchFilters", "No {0} match the current filters.", Loc["languages.entityPlural", "languages"])
                 : Loc.TF("msg.createFirst", "Create your first {0} to get started.", Loc["languages.entityName", "language"]))</p>
@@ -377,7 +377,7 @@ else
             Message = activate
                 ? Loc.TF("languages.confirmActivateBody", "Are you sure you want to activate “{0}”?", l.Name)
                 : Loc.TF("languages.confirmDeactivateBody", "Are you sure you want to deactivate “{0}”?", l.Name),
-            ConfirmText = activate ? Loc["common.yesActivate", "Yes, activate"] : Loc["common.yesDeactivate", "Yes, deactivate"],
+            ConfirmText = activate ? Loc["common.yesActivate", "Yes, Activate"] : Loc["common.yesDeactivate", "Yes, Deactivate"],
             CancelText = Loc["common.cancel", "Cancel"],
             Kind = activate ? ConfirmKind.Success : ConfirmKind.Warning
         });

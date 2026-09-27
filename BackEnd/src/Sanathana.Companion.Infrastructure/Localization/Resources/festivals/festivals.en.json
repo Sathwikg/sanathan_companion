@@ -4,7 +4,7 @@
   "festivals.createFestival": "Create Festival",
   "festivals.editFestival": "Edit Festival",
   "festivals.emptyBody": "Create a festival for this year to get started.",
-  "festivals.emptyTitleYear": "No festivals for {0}",
+  "festivals.emptyTitleYear": "No Festivals for {0}",
   "festivals.festival": "Festival",
   "festivals.festivalName": "Festival Name",
   "festivals.loadingList": "Loading festivals…",

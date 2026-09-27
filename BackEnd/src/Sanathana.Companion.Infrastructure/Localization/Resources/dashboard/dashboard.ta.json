@@ -1,6 +1,22 @@
 {
+  "dashboard.bhaktiSub": "உங்கள் தினசரி பக்தியின் மையம்",
+  "dashboard.chantsSub": "வகைவாரியாகப் பார்த்து, உங்கள் சாதனாவைத் தொடங்குங்கள்",
   "dashboard.couldNotLoad": "பலகையை ஏற்ற முடியவில்லை.",
+  "dashboard.festivalWithName": "பண்டிகை · {0}",
   "dashboard.loading": "உங்கள் சாதனாவை ஏற்றுகிறது…",
+  "dashboard.moreCount": "+{0} மேலும்",
+  "dashboard.noSadhanaForDeity": "{0} தெய்வத்திற்கு இன்னும் சாதனா எதுவும் அமைக்கப்படவில்லை.",
+  "dashboard.noSadhanaYet": "இன்னும் சாதனா எதுவும் அமைக்கப்படவில்லை.",
   "dashboard.panchangamTitle": "இன்றைய பஞ்சாங்கம்",
-  "dashboard.seeker": "சாதகர்"
+  "dashboard.prayerNow": "இப்போது",
+  "dashboard.prayersSub": "நாளின் இந்த நேரத்திற்கு",
+  "dashboard.prayersTitle": "பிரார்த்தனைகள்",
+  "dashboard.seeker": "சாதகர்",
+  "dashboard.showAllCount": "அனைத்தையும் காட்டு ({0})",
+  "dashboard.showDeityOf": "{1} தெய்வங்களில் {0}வதைக் காட்டு",
+  "dashboard.showLess": "குறைவாகக் காட்டு",
+  "dashboard.tapForDetails": "விவரங்களுக்குத் தட்டுங்கள்",
+  "dashboard.todaysBhakti": "இன்றைய பக்தி",
+  "dashboard.todaysDeity": "இன்றைய தெய்வம்",
+  "dashboard.viewDetails": "விவரங்களைப் பார்"
 }

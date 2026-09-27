@@ -29,6 +29,8 @@ services:
       # The API refuses to start if this is missing, under 32 bytes, or still
       # contains "change-me".
       JwtSettings__Secret: ${JWT_SECRET:?set JWT_SECRET in .env (32+ bytes, random)}
+      # Sign in with Google. Optional: empty keeps the feature off.
+      Google__ClientIds__0: ${GOOGLE_CLIENT_ID:-}
     volumes:
       # The database CA, read-only. The connection string points Root Certificate at
       # this path; see .env.example for why VerifyFull rather than Require.
@@ -59,6 +61,8 @@ services:
       # /api proxy in this container. Point it at an absolute URL only if you
       # move the API somewhere else.
       API_BASE_URL: /api
+      # The same Google client id, written into the SPA's appsettings.json at start.
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
     ports:
       - "${WEB_PORT:-8080}:80"
     depends_on:

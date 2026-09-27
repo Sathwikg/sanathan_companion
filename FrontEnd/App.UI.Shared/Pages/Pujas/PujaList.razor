@@ -35,7 +35,7 @@ else if (_list.Count == 0)
 {
     <div class="sc-card sc-empty-state">
         <div class="sc-empty-om">🛐</div>
-        <h3>@Loc["pujas.emptyTitle", "No pujas yet"]</h3>
+        <h3>@Loc["pujas.emptyTitle", "No Pujas Yet"]</h3>
         <p>@Loc["pujas.emptyBody", "Create your first puja and map it to a festival."]</p>
         <button class="sc-btn-primary sc-btn-sm" @onclick="OpenCreate">+ @Loc["pujas.createPuja", "Create Puja"]</button>
     </div>
@@ -63,7 +63,7 @@ else if (_view == "grid")
                     }
                     @if (!p.HasFestival && !p.HasDeity)
                     {
-                        <span class="sc-minichip sc-muted">@Loc["pujas.notMapped", "Not mapped"]</span>
+                        <span class="sc-minichip sc-muted">@Loc["pujas.notMapped", "Not Mapped"]</span>
                     }
                 </div>
                 <div class="sc-tile-foot">
@@ -141,7 +141,7 @@ else
         <div class="sc-field">
             <label>@Loc["pujas.festival", "Festival"] <span class="sc-optional">@Loc["common.optional", "(optional)"]</span></label>
             <InputSelect @bind-Value="_model.FestivalId" class="sc-input">
-                <option value="">@Loc["pujas.noFestival", "— No festival —"]</option>
+                <option value="">@Loc["pujas.noFestival", "— No Festival —"]</option>
                 @foreach (var f in _festivals)
                 {
                     <option value="@f.Id">@f.Label</option>
@@ -152,7 +152,7 @@ else
         <div class="sc-field">
             <label>@Loc["pujas.deity", "Deity"] <span class="sc-optional">@Loc["common.optional", "(optional)"]</span></label>
             <InputSelect @bind-Value="_model.DeityId" class="sc-input">
-                <option value="">@Loc["pujas.noDeity", "— No deity —"]</option>
+                <option value="">@Loc["pujas.noDeity", "— No Deity —"]</option>
                 @foreach (var d in _deities)
                 {
                     <option value="@d.Id">@d.Name</option>
@@ -286,8 +286,8 @@ else
                 ? Loc.TF("pujas.confirmActivateBody", "Are you sure you want to activate “{0}”?", p.Name)
                 : Loc.TF("pujas.confirmDeactivateBody", "Are you sure you want to deactivate “{0}”?", p.Name),
             ConfirmText = activate
-                ? Loc["common.yesActivate", "Yes, activate"]
-                : Loc["common.yesDeactivate", "Yes, deactivate"],
+                ? Loc["common.yesActivate", "Yes, Activate"]
+                : Loc["common.yesDeactivate", "Yes, Deactivate"],
             CancelText = Loc["common.cancel", "Cancel"],
             Kind = activate ? ConfirmKind.Success : ConfirmKind.Warning
         });

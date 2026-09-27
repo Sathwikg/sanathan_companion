@@ -40,7 +40,10 @@ else if (_p is not null)
                 {
                     <span>🕉️ @_p.SeekerName · </span>
                 }
-                <span class="sc-typechip @(_p.IsAdmin ? "god" : "goddess")">@_p.RoleName</span>
+                <button type="button" class="sc-typechip sc-typechip-btn @(_p.IsAdmin ? "god" : "goddess")"
+                        title="@Loc["profile.roleTapHint", "Show Role Details"]" @onclick="ShowRole">
+                    @_p.RoleName <span class="ic" aria-hidden="true">ⓘ</span>
+                </button>
             </div>
         </div>
         <div class="sc-profile-streak">
@@ -48,12 +51,12 @@ else if (_p is not null)
                 <span class="ic">🔥</span>
                 <div>
                     <div class="sc-streak-num">@_p.CurrentStreak</div>
-                    <div class="sc-streak-label">@Loc["sadhana.dayStreak", "day streak"]</div>
+                    <div class="sc-streak-label">@Loc["sadhana.dayStreak", "Day Streak"]</div>
                 </div>
             </div>
             <div class="sc-streak-stats">
                 <div class="sc-streak-stat"><div class="n">@_p.LongestStreak</div><div class="l">@Loc["sadhana.longest", "Longest"]</div></div>
-                <div class="sc-streak-stat"><div class="n">@_p.TotalMalas</div><div class="l">@Loc["sadhana.totalMalas", "Total malas"]</div></div>
+                <div class="sc-streak-stat"><div class="n">@_p.TotalMalas</div><div class="l">@Loc["sadhana.totalMalas", "Total Malas"]</div></div>
                 <div class="sc-streak-stat"><div class="n">@_p.TotalDaysPracticed</div><div class="l">@Loc["common.days", "Days"]</div></div>
             </div>
         </div>
@@ -68,17 +71,21 @@ else if (_p is not null)
     {
         <div class="sc-card">
             <div class="sc-detail-grid">
-                <div class="sc-detail-item"><span class="sc-detail-label">@Loc["profile.fullName", "Full name"]</span><span class="sc-detail-value">@_p.FullName</span></div>
+                <div class="sc-detail-item"><span class="sc-detail-label">@Loc["profile.fullName", "Full Name"]</span><span class="sc-detail-value">@_p.FullName</span></div>
                 @if (!string.IsNullOrWhiteSpace(_p.SeekerName))
                 {
-                    <div class="sc-detail-item"><span class="sc-detail-label">@Loc["profile.seekerName", "Seeker name"]</span><span class="sc-detail-value">🕉️ @_p.SeekerName</span></div>
+                    <div class="sc-detail-item"><span class="sc-detail-label">@Loc["profile.seekerName", "Seeker Name"]</span><span class="sc-detail-value">🕉️ @_p.SeekerName</span></div>
                 }
                 <div class="sc-detail-item"><span class="sc-detail-label">@Loc["common.email", "Email"]</span><span class="sc-detail-value">@_p.Email</span></div>
                 <div class="sc-detail-item"><span class="sc-detail-label">@Loc["common.mobile", "Mobile"]</span><span class="sc-detail-value">@_p.MobileNumber</span></div>
+                @if (_p.GoogleLinked)
+                {
+                    <div class="sc-detail-item"><span class="sc-detail-label">@Loc["profile.googleAccount", "Google Account"]</span><span class="sc-detail-value">✓ @Loc["profile.googleConnected", "Connected"]</span></div>
+                }
                 <div class="sc-detail-item"><span class="sc-detail-label">@Loc["common.role", "Role"]</span><span class="sc-detail-value">@_p.RoleName</span></div>
                 <div class="sc-detail-item"><span class="sc-detail-label">@Loc["profile.registered", "Registered"]</span><span class="sc-detail-value">@_p.RegisteredOn.ToLocalTime().ToString("dd MMM yyyy, HH:mm")</span></div>
-                <div class="sc-detail-item"><span class="sc-detail-label">@Loc["profile.lastPractice", "Last practice"]</span><span class="sc-detail-value">@(_p.LastPracticeDate?.ToString("dd MMM yyyy") ?? "—")</span></div>
-                <div class="sc-detail-item"><span class="sc-detail-label">@Loc["profile.practisedToday", "Practised today"]</span><span class="sc-detail-value">@(_p.PracticedToday ? "✓ " + Loc["common.yes", "Yes"] : Loc["profile.notYet", "Not yet"])</span></div>
+                <div class="sc-detail-item"><span class="sc-detail-label">@Loc["profile.lastPractice", "Last Practice"]</span><span class="sc-detail-value">@(_p.LastPracticeDate?.ToString("dd MMM yyyy") ?? "—")</span></div>
+                <div class="sc-detail-item"><span class="sc-detail-label">@Loc["profile.practisedToday", "Practised Today"]</span><span class="sc-detail-value">@(_p.PracticedToday ? "✓ " + Loc["common.yes", "Yes"] : Loc["profile.notYet", "Not Yet"])</span></div>
             </div>
         </div>
 
@@ -114,7 +121,7 @@ else if (_p is not null)
             </div>
             <div class="sc-preflist">
                 <div class="sc-prefrow">
-                    <span class="sc-prefrow-label">🌐 @Loc["nav.selectLanguage", "Select language"]</span>
+                    <span class="sc-prefrow-label">🌐 @Loc["nav.selectLanguage", "Select Language"]</span>
                     <LanguageSelector />
                 </div>
                 <div class="sc-prefrow">
@@ -141,25 +148,25 @@ else if (_p is not null)
             @if (!_changingPassword)
             {
                 <button type="button" class="sc-btn-ghost sc-btn-sm" @onclick="() => _changingPassword = true" disabled="@_busy">
-                    @Loc["profile.changePassword", "Change password"]
+                    @Loc["profile.changePassword", "Change Password"]
                 </button>
             }
             else
             {
                 <div class="sc-danger-confirm" style="max-width:340px">
                     <div class="sc-field">
-                        <label>@Loc["profile.currentPassword", "Current password"]</label>
+                        <label>@Loc["profile.currentPassword", "Current Password"]</label>
                         <input class="sc-input" type="password" autocomplete="current-password"
                                @bind="_currentPassword" @bind:event="oninput" disabled="@_busy" />
                     </div>
                     <div class="sc-field">
-                        <label>@Loc["profile.newPassword", "New password"]</label>
+                        <label>@Loc["profile.newPassword", "New Password"]</label>
                         <input class="sc-input" type="password" autocomplete="new-password"
                                @bind="_newPassword" @bind:event="oninput" disabled="@_busy" />
                         <span class="sc-hint">@Loc.TF("auth.passwordPolicyHint", "At least {0} characters. A short phrase you will remember beats a short password.", PasswordPolicy.MinimumLength)</span>
                     </div>
                     <div class="sc-field">
-                        <label>@Loc["profile.confirmNewPassword", "Confirm new password"]</label>
+                        <label>@Loc["profile.confirmNewPassword", "Confirm New Password"]</label>
                         <input class="sc-input" type="password" autocomplete="new-password"
                                @bind="_confirmPassword" @bind:event="oninput" disabled="@_busy" />
                     </div>
@@ -182,13 +189,13 @@ else if (_p is not null)
 
         <div class="sc-card sc-prefcard sc-dangercard">
             <div class="sc-section-head" style="margin-bottom:0.6rem">
-                <h2>🔐 @Loc["profile.yourData", "Your data"]</h2>
+                <h2>🔐 @Loc["profile.yourData", "Your Data"]</h2>
                 <span class="sc-section-sub">@Loc["profile.yourDataSub", "Take a copy, or close your account for good"]</span>
             </div>
 
             <div class="sc-preflist">
                 <button type="button" class="sc-prefrow sc-prefrow-link" @onclick="ExportAsync" disabled="@_busy">
-                    <span class="sc-prefrow-label">⬇️ @Loc["profile.downloadMyData", "Download my data"]</span>
+                    <span class="sc-prefrow-label">⬇️ @Loc["profile.downloadMyData", "Download My Data"]</span>
                     <span class="sc-prefrow-chev">›</span>
                 </button>
             </div>
@@ -202,7 +209,7 @@ else if (_p is not null)
             @if (!_confirmingDelete)
             {
                 <button type="button" class="sc-btn-danger" @onclick="() => _confirmingDelete = true" disabled="@_busy">
-                    @Loc["profile.deleteAccount", "Delete my account"]
+                    @Loc["profile.deleteAccount", "Delete My Account"]
                 </button>
             }
             else
@@ -227,7 +234,7 @@ else if (_p is not null)
                         <button type="button" class="sc-btn-danger" @onclick="DeleteAccountAsync"
                                 disabled="@(_busy || string.IsNullOrWhiteSpace(_deletePassword))">
                             @if (_busy) { <OmLoader Inline="true" Size="18" Message="@Loc["common.saving", "Saving…"]" /> }
-                            else { <span>@Loc["profile.deleteAccountConfirm", "Permanently delete"]</span> }
+                            else { <span>@Loc["profile.deleteAccountConfirm", "Permanently Delete"]</span> }
                         </button>
                     </div>
                 </div>
@@ -236,13 +243,11 @@ else if (_p is not null)
 
         <div class="sc-card sc-prefcard sc-aboutcard">
             <div class="sc-section-head" style="margin-bottom:0.6rem">
-                <h2>ℹ️ @Loc["profile.about", "About"]</h2>
+                <h2 class="sc-about-title"><OmLogo Size="24" /> @Loc["profile.about", "About"]</h2>
             </div>
             <div class="sc-detail-grid">
                 <div class="sc-detail-item"><span class="sc-detail-label">@Loc["profile.app", "App"]</span><span class="sc-detail-value">@Config.AppName</span></div>
                 <div class="sc-detail-item"><span class="sc-detail-label">@Loc["profile.version", "Version"]</span><span class="sc-detail-value">@Config.AppVersion</span></div>
-                <div class="sc-detail-item"><span class="sc-detail-label">@Loc["profile.platform", "Platform"]</span><span class="sc-detail-value">@Config.Platform</span></div>
-                <div class="sc-detail-item"><span class="sc-detail-label">@Loc["profile.environment", "Environment"]</span><span class="sc-detail-value">@Config.Environment</span></div>
             </div>
         </div>
     }
@@ -252,7 +257,7 @@ else if (_p is not null)
         {
             <div class="sc-card sc-empty-state">
                 <div class="sc-empty-om">🪷</div>
-                <h3>@Loc["profile.noSadhanaYet", "No sadhana yet"]</h3>
+                <h3>@Loc["profile.noSadhanaYet", "No Sadhana Yet"]</h3>
                 <p>@Loc["profile.noSadhanaBody", "Your daily practice will appear here once you begin."]</p>
                 <a href="sadhana" class="sc-btn-primary sc-btn-sm">@Loc["profile.beginSadhana", "Begin Sadhana"] →</a>
             </div>
@@ -290,11 +295,15 @@ else if (_p is not null)
     }
 }
 
+<RoleDetailsModal Visible="_roleOpen" Role="CurrentRole" OnClose="CloseRole" />
+
 @code {
     private MyProfile? _p;
     private bool _loading = true;
     private string? _error;
     private string _tab = "profile";
+    private bool _roleOpen;
+    private RoleSummary? CurrentRole => _p is null ? null : new(_p.RoleName, _p.RoleDescription, _p.IsAdmin);
 
     private Guid? _regionId;
     private bool _savingRegion;
@@ -308,6 +317,10 @@ else if (_p is not null)
     private bool _confirmingDelete;
     private string _deletePassword = string.Empty;
     private string? _deleteError;
+
+    private void ShowRole() => _roleOpen = true;
+
+    private void CloseRole() => _roleOpen = false;
 
     protected override async Task OnInitializedAsync()
     {

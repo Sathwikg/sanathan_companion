@@ -41,6 +41,12 @@ public static class CoreServiceCollectionExtensions
         services.AddAuthorizationCore();
 
         services.AddScoped<IAuthService, AuthService>();
+        // Carries a Google sign-in ticket from the login page to the page that finishes it. Scoped,
+        // in memory only, cleared on sign-out.
+        services.AddScoped<GoogleSignInState>();
+        // Google's JavaScript button by default. The MAUI host registers its own AFTER calling this:
+        // the native picker on Android, and "none" on the heads that do not offer Google.
+        services.AddScoped<IGoogleSignIn, JsGoogleSignIn>();
         // Browser geolocation by default. A native host registers its own AFTER calling this, so
         // the last registration wins and the WebView's blocked navigator.geolocation is bypassed.
         services.AddScoped<IGeolocationProvider, JsGeolocationProvider>();
@@ -67,6 +73,10 @@ public static class CoreServiceCollectionExtensions
         // Also a session state, though it caches no user data: the bundle's entity half is served
         // to authenticated callers only, so signing in has to fetch it again.
         services.AddScoped<IUserSessionState>(sp => sp.GetRequiredService<LocalizationState>());
+        // The menu is the role's access list on the phone, so the next account must not inherit
+        // the previous one's quick actions and tabs.
+        services.AddScoped<MenuState>();
+        services.AddScoped<IUserSessionState>(sp => sp.GetRequiredService<MenuState>());
         // The media ticket outlives a page but not a session.
         services.AddScoped<MediaUrlBuilder>();
         services.AddScoped<IUserSessionState>(sp => sp.GetRequiredService<MediaUrlBuilder>());

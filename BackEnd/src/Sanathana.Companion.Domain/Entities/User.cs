@@ -33,4 +33,24 @@ public class User : BaseEntity
     /// is not Utc, and nothing sets this at registration.
     /// </remarks>
     public DateTime TokensValidFromUtc { get; set; } = DateTime.UnixEpoch;
+
+    /// <summary>
+    /// Google's stable account id (the ID token's <c>sub</c>) once the seeker has connected a Google
+    /// account. Null until then. Unique where present: one Google account, one seeker.
+    /// </summary>
+    /// <remarks>
+    /// Matched on this, never on the email, once a link exists: a Google account can change its
+    /// address, and an email match is how someone who pre-registered another person's address would
+    /// get in. The email is used only to DISCOVER an unlinked account, and that path asks for the
+    /// account's password before linking — see AuthService.SignInWithGoogleAsync.
+    /// </remarks>
+    public string? GoogleSubject { get; set; }
+
+    public DateTime? GoogleLinkedAtUtc { get; set; }
+
+    /// <summary>
+    /// When a party we trust confirmed the address. Plain registration never verifies the email, so
+    /// this is null for most accounts and set the moment Google vouches for it.
+    /// </summary>
+    public DateTime? EmailVerifiedAtUtc { get; set; }
 }

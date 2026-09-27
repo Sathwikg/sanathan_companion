@@ -32,7 +32,10 @@ public static class MobileSettings
             AppName = Coalesce(file?.AppName, "Sanathan Companion"),
             Environment = Coalesce(file?.Environment, DefaultEnvironment),
             AppVersion = AppInfo.Current.VersionString,
-            HttpTimeoutSeconds = file?.HttpTimeoutSeconds is int seconds && seconds > 0 ? seconds : 100
+            HttpTimeoutSeconds = file?.HttpTimeoutSeconds is int seconds && seconds > 0 ? seconds : 100,
+            // The "Web application" client id, which Android's Credential Manager presents as the
+            // server client id so the token's audience is the one the API trusts. Empty = no button.
+            GoogleClientId = string.IsNullOrWhiteSpace(file?.GoogleServerClientId) ? null : file!.GoogleServerClientId!.Trim()
         };
     }
 
@@ -50,7 +53,7 @@ public static class MobileSettings
         return Coalesce(file?.ApiBaseUrlDebug, "http://localhost:7050/api");
     #endif
 #else
-        return Coalesce(file?.ApiBaseUrl, "https://sanathana-companion.onrender.com/api");
+        return Coalesce(file?.ApiBaseUrl, "https://sanathan-companion.onrender.com/api");
 #endif
     }
 
@@ -103,5 +106,6 @@ public static class MobileSettings
         public string? ApiBaseUrlDebug { get; set; }
         public string? ApiBaseUrlDebugAndroid { get; set; }
         public int? HttpTimeoutSeconds { get; set; }
+        public string? GoogleServerClientId { get; set; }
     }
 }

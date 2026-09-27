@@ -49,6 +49,55 @@ public class AuthController : ControllerBase
             : Ok(result);
     }
 
+    /// <summary>Signs in with a Google ID token, or says what has to happen first.</summary>
+    /// <remarks>
+    /// Anonymous like login. The outcome tells the client whether it now holds a session, must show
+    /// the registration form (new address) or must ask for the account's password (existing address
+    /// not yet connected). A token that does not verify is a 401 with no further detail: the reasons
+    /// (wrong audience, expired, forged) are all things an attacker would like to distinguish.
+    /// </remarks>
+    [HttpPost("google")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(GoogleSignInResultDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> SignInWithGoogle([FromBody] GoogleSignInDto request, CancellationToken cancellationToken)
+    {
+        var result = await _authService.SignInWithGoogleAsync(request, cancellationToken);
+        if (result is null)
+            return Unauthorized(new { message = "We could not verify your Google sign-in. Please try again." });
+
+        return result.Outcome == GoogleOutcomes.Rejected
+            ? Unauthorized(new { message = result.Message })
+            : Ok(result);
+    }
+
+    /// <summary>Completes registration after a first Google sign-in and returns a session.</summary>
+    [HttpPost("google/register")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(AuthResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> RegisterWithGoogle([FromBody] GoogleRegisterDto request, CancellationToken cancellationToken)
+        => Ok(await _authService.RegisterWithGoogleAsync(request, cancellationToken));
+
+    /// <summary>Connects a Google account to an existing account, given that account's password.</summary>
+    /// <remarks>
+    /// 400 rather than 401 for a wrong password: nothing about the session is at stake (there is
+    /// none yet), the ticket is still good, and the seeker simply tries again.
+    /// </remarks>
+    [HttpPost("google/link")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(AuthResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> LinkGoogle([FromBody] GoogleLinkDto request, CancellationToken cancellationToken)
+    {
+        var result = await _authService.LinkGoogleAsync(request, cancellationToken);
+        return result is null
+            ? BadRequest(new { message = "That password is incorrect." })
+            : Ok(result);
+    }
+
     /// <summary>Exchanges a refresh token for a fresh pair.</summary>
     /// <remarks>
     /// Anonymous because possession of the refresh token IS the credential — requiring a live

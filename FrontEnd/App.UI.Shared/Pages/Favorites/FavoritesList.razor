@@ -25,9 +25,9 @@ else if (_fav.Chants.Count == 0 && _fav.Gods.Count == 0)
 {
     <div class="sc-card sc-empty-state">
         <div class="sc-empty-om">⭐</div>
-        <h3>@Loc["favorites.noneYet", "No favorites yet"]</h3>
+        <h3>@Loc["favorites.noneYet", "No Favorites Yet"]</h3>
         <p>@Loc["favorites.emptyHint", "Tap the ♥ on a chant or a god to add it here."]</p>
-        <a href="sadhana" class="sc-btn-primary sc-btn-sm">@Loc["favorites.browseChants", "Browse chants"] →</a>
+        <a href="sadhana" class="sc-btn-primary sc-btn-sm">@Loc["favorites.browseChants", "Browse Chants"] →</a>
     </div>
 }
 else
@@ -41,7 +41,7 @@ else
     {
         @if (_fav.Chants.Count == 0)
         {
-            <div class="sc-card sc-empty-state"><div class="sc-empty-om">📿</div><h3>@Loc["favorites.noChantsYet", "No favorite chants yet"]</h3></div>
+            <div class="sc-card sc-empty-state"><div class="sc-empty-om">📿</div><h3>@Loc["favorites.noChantsYet", "No Favorite Chants Yet"]</h3></div>
         }
         else
         {
@@ -51,7 +51,7 @@ else
                     <div class="sc-tile" @onclick="() => OpenChant(c)" style="cursor:pointer">
                         <div class="sc-tile-top">
                             <div class="sc-tile-top-left"><span class="sc-minichip">@c.CategoryName</span></div>
-                            <button type="button" class="sc-fav on" title="@Loc["favorites.removeFromFavorites", "Remove from favorites"]"
+                            <button type="button" class="sc-fav on" title="@Loc["favorites.removeFromFavorites", "Remove from Favorites"]"
                                     @onclick="() => RemoveChantAsync(c)" @onclick:stopPropagation="true">♥</button>
                         </div>
                         <h3 class="sc-tile-title">@c.Name</h3>
@@ -60,7 +60,7 @@ else
                             <div class="sc-chiprow">@foreach (var d in c.DeityNames) { <span class="sc-minichip">@d</span> }</div>
                         }
                         <div class="sc-tile-foot">
-                            <span class="sc-chantprog">@(c.HasAudio ? "🔊 " + Loc["favorites.audioTag", "audio"] : "")</span>
+                            <span class="sc-chantprog">@(c.HasAudio ? "🔊 " + Loc["favorites.audioTag", "Audio"] : "")</span>
                             <button class="sc-btn-primary sc-btn-sm" @onclick="() => OpenChant(c)" @onclick:stopPropagation="true">@Loc["favorites.chantCta", "Chant"] →</button>
                         </div>
                     </div>
@@ -72,7 +72,7 @@ else
     {
         @if (_fav.Gods.Count == 0)
         {
-            <div class="sc-card sc-empty-state"><div class="sc-empty-om">🛕</div><h3>@Loc["favorites.noGodsYet", "No favorite gods yet"]</h3></div>
+            <div class="sc-card sc-empty-state"><div class="sc-empty-om">🛕</div><h3>@Loc["favorites.noGodsYet", "No Favorite Gods Yet"]</h3></div>
         }
         else
         {
@@ -84,7 +84,7 @@ else
                             <div class="sc-tile-top-left">
                                 <span class="sc-typechip @(g.DeityType == "Goddess" ? "goddess" : "god")">@g.DeityType</span>
                             </div>
-                            <button type="button" class="sc-fav on" title="@Loc["favorites.removeFromFavorites", "Remove from favorites"]"
+                            <button type="button" class="sc-fav on" title="@Loc["favorites.removeFromFavorites", "Remove from Favorites"]"
                                     @onclick="() => RemoveDeityAsync(g)">♥</button>
                         </div>
                         <div class="sc-fav-god">

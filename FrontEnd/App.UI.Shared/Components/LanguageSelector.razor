@@ -4,10 +4,10 @@
 
 @if (Loc.Locales.Count > 1)
 {
-    <div class="sc-langpick" title="@Loc["nav.selectLanguage", "Select language"]">
+    <div class="sc-langpick" title="@Loc["nav.selectLanguage", "Select Language"]">
         <span class="sc-langpick-ic">🌐</span>
         <select class="sc-langpick-select" value="@Loc.CurrentCode" @onchange="OnChangedAsync"
-                aria-label="@Loc["nav.selectLanguage", "Select language"]">
+                aria-label="@Loc["nav.selectLanguage", "Select Language"]">
             @foreach (var l in Loc.Locales)
             {
                 <option value="@l.Code">@l.DisplayName</option>
