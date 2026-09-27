@@ -10,7 +10,9 @@ set -eu
 API_BASE_URL="${API_BASE_URL:-/api}"
 CONFIG=/usr/share/nginx/html/appsettings.json
 
-printf '{\n  "ApiBaseUrl": "%s"\n}\n' "$API_BASE_URL" > "$CONFIG"
+# Empty hides the Sign in with Google button; the API side is Google__ClientIds__0.
+GOOGLE_CLIENT_ID="${GOOGLE_CLIENT_ID:-}"
+printf '{\n  "ApiBaseUrl": "%s",\n  "GoogleClientId": "%s"\n}\n' "$API_BASE_URL" "$GOOGLE_CLIENT_ID" > "$CONFIG"
 
 # Blazor publishes a precompressed sibling next to every static asset, and the
 # `gzip_static on` in nginx.conf prefers it over the plain file whenever the

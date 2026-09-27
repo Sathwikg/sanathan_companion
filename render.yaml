@@ -114,3 +114,10 @@ services:
       # than 32 bytes, or still contains "change-me".
       - key: JwtSettings__Secret
         generateValue: true
+
+      # Sign in with Google: the OAuth "Web application" client id from Google Cloud
+      # Console (…apps.googleusercontent.com). The API accepts ID tokens minted for
+      # it, and entrypoint.sh hands the same value to the SPA as GoogleClientId. Not
+      # a secret, but per deployment. Leave it unset to keep the button hidden.
+      - key: Google__ClientIds__0
+        sync: false

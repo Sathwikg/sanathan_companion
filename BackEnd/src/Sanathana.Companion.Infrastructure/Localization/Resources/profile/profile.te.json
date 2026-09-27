@@ -24,6 +24,8 @@
   "profile.exportFailed": "మీ డేటాను సిద్ధం చేయలేకపోయాము.",
   "profile.exportReady": "మీ డేటా డౌన్‌లోడ్ అయింది.",
   "profile.fullName": "పూర్తి పేరు",
+  "profile.googleAccount": "Google ఖాతా",
+  "profile.googleConnected": "కనెక్ట్ చేయబడింది",
   "profile.lastPractice": "చివరి సాధన",
   "profile.loading": "మీ ప్రొఫైల్ లోడ్ అవుతోంది…",
   "profile.malaCountMany": "{0} మాలలు",

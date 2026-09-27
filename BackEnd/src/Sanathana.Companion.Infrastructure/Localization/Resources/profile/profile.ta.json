@@ -24,6 +24,8 @@
   "profile.exportFailed": "உங்கள் தரவைத் தயாரிக்க முடியவில்லை.",
   "profile.exportReady": "உங்கள் தரவு பதிவிறக்கப்பட்டது.",
   "profile.fullName": "முழுப் பெயர்",
+  "profile.googleAccount": "Google கணக்கு",
+  "profile.googleConnected": "இணைக்கப்பட்டது",
   "profile.lastPractice": "கடைசிப் பயிற்சி",
   "profile.loading": "உங்கள் சுயவிவரத்தை ஏற்றுகிறது…",
   "profile.malaCountMany": "{0} ஜபமாலைகள்",

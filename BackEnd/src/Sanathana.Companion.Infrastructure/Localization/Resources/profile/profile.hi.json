@@ -24,6 +24,8 @@
   "profile.exportFailed": "आपका डेटा तैयार नहीं किया जा सका।",
   "profile.exportReady": "आपका डेटा डाउनलोड हो गया है।",
   "profile.fullName": "पूरा नाम",
+  "profile.googleAccount": "Google खाता",
+  "profile.googleConnected": "कनेक्ट किया गया",
   "profile.lastPractice": "अंतिम अभ्यास",
   "profile.loading": "आपकी प्रोफ़ाइल लोड हो रही है…",
   "profile.malaCountMany": "{0} मालाएँ",

@@ -6,6 +6,15 @@ public interface IApiClient
 {
     Task<(bool Success, string Message)> RegisterAsync(RegisterRequest request);
     Task<(bool Success, AuthResponse? Data, string Error)> LoginAsync(LoginRequest request);
+
+    /// <summary>Presents a Google ID token. Success means an outcome came back; the outcome may still ask for more.</summary>
+    Task<(bool Success, GoogleSignInResult? Data, string Error)> SignInWithGoogleAsync(string idToken);
+
+    /// <summary>Completes registration after a first Google sign-in and returns a session.</summary>
+    Task<(bool Success, AuthResponse? Data, string Error)> RegisterWithGoogleAsync(GoogleRegisterRequest request);
+
+    /// <summary>Connects Google to an existing account with its password and returns a session.</summary>
+    Task<(bool Success, AuthResponse? Data, string Error)> LinkGoogleAsync(GoogleLinkRequest request, string email);
     Task<DashboardModel?> GetDashboardAsync();
     Task<(bool Ok, AdminDashboardModel? Data, bool Forbidden, string Error)> GetAdminDashboardAsync();
     Task<TodayBhakti?> GetTodayBhaktiAsync(Guid? regionId = null);

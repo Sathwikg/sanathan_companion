@@ -238,6 +238,61 @@ Two things end a session before its tokens expire, both enforced per request aga
 `JwtSettings__ExpiryMinutes` is now safe — the client renews in the background — and is worth doing:
 the shorter it is, the less a stolen access token is worth.
 
+### Sign in with Google
+
+A seeker can sign in with a Google account as well as with email-or-mobile + password. It is free:
+Google charges nothing for Sign in with Google, the app needs only a Google Cloud project (no
+billing account, no Firebase), and apps that request nothing beyond `openid email profile` do not
+have to go through Google's OAuth verification.
+
+**How it works.** The client obtains a Google ID token and posts it to `POST /api/auth/google`. The
+API verifies the token's signature, issuer, expiry and, crucially, its audience against
+`Google:ClientIds` (a token minted for some other site's OAuth client is refused), then answers
+with one of three outcomes:
+
+| Outcome | When | What the client does |
+|---|---|---|
+| `SignedIn` | the Google account is already connected | stores the session; done |
+| `RegistrationRequired` | nobody has this email yet | opens the registration form with the email locked and the name pre-filled; the seeker adds mobile, seeker name, region and **a password, chosen once**; `POST /api/auth/google/register` creates the account, connects Google and signs the seeker in |
+| `LinkRequired` | an account with this email exists but is not connected | asks for that account's password **once**; `POST /api/auth/google/link` connects the two and signs in |
+
+After the first time, every Google sign-in is instant, and email + password keeps working for the
+same account. Accounts are matched on Google's stable id (`Users.GoogleSubject`), never on the
+address, once connected. The password step when linking is deliberate: plain registration never
+verifies an email, so the account holding a Gmail address may have been created by somebody who
+knew the address but not the inbox, and neither party should be able to walk into the other's
+account. The register and link calls carry a ten-minute HMAC ticket (the same construction as the
+media ticket) rather than the ID token, so nothing about the sign-in is stored between the two calls.
+
+**Where the button appears.** The website (Google's own button, drawn by Google Identity Services,
+which the login page loads on demand) and the Android app (the system account sheet, through
+Credential Manager, because Google no longer lets a new Android app run the OAuth redirect through
+a browser). **Not the iOS app**: App Store guideline 4.8 says an app that offers Google sign-in must
+also offer an equivalent login that collects only name and email and lets the user hide their
+address, and our registration asks for a mobile number, so it does not qualify. Adding Sign in with
+Apple lifts that restriction and is the natural next step.
+
+**Setting it up** (Google Cloud Console, all free):
+
+1. *APIs & Services → OAuth consent screen*: External, app name, support and developer emails,
+   scopes `openid email profile`, then **Publish to production** (otherwise it is capped at 100
+   test users). Brand verification is optional and only affects whether your logo shows.
+2. *Credentials → Create OAuth client ID → Web application*: authorised JavaScript origins
+   `http://localhost:7001`, `http://localhost:7002` and your deployed origin (for example
+   `https://sanathan-companion.onrender.com`). No redirect URIs are needed. **Its client id is the
+   one value used everywhere.**
+3. *Create OAuth client ID → Android*: package name `com.sanathana.companion` and the SHA-1 of the
+   signing certificate: the debug keystore now
+   (`keytool -list -v -keystore %USERPROFILE%\.android\debug.keystore -alias androiddebugkey -storepass android`),
+   the Play App Signing key before release. Nothing from this client goes into the code; it is how
+   Google knows this APK may ask.
+4. Configure the id: API `Google__ClientIds__0` (Render, compose via `GOOGLE_CLIENT_ID`, or
+   `appsettings.Development.json`); web `GoogleClientId` in `App.Web/wwwroot/appsettings.json`
+   (Docker and Render write it from `GOOGLE_CLIENT_ID` at container start); Android
+   `GoogleServerClientId` in `App.Mobile/Resources/Raw/appsettings.json` (a rebuild, like every
+   mobile setting). Leaving any of them empty hides the button on that client, and the API logs a
+   warning and answers 401 while its own list is empty.
+
 ### Before deploying `NormalizeUserCredentials`
 
 This migration lower-cases every email and reduces every mobile number to its digits, then makes
@@ -262,6 +317,9 @@ original casing or punctuation.
 |---|---|---|---|
 | POST | `/api/auth/register` | anon | Register (FullName, Email, MobileNumber, Password, ConfirmPassword, SeekerName?) |
 | POST | `/api/auth/login` | anon | Login with email-or-mobile + password → access token + refresh token |
+| POST | `/api/auth/google` | anon | Sign in with a Google ID token → `SignedIn` (session), `RegistrationRequired` or `LinkRequired` (ticket) |
+| POST | `/api/auth/google/register` | anon | Complete registration with the ticket (FullName, MobileNumber, Password, ConfirmPassword, SeekerName?, RegionId?) → session |
+| POST | `/api/auth/google/link` | anon | Connect Google to the existing account with the ticket + its password → session |
 | POST | `/api/auth/refresh` | anon | Exchange a refresh token for a fresh pair |
 | POST | `/api/auth/logout` | anon | Revoke the refresh-token family (always 204) |
 | PUT  | `/api/users/{id}/status` | Admin | Open or close an account |

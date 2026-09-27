@@ -58,6 +58,16 @@ public static class MauiProgram
         // that idles while backgrounded reads the same instance.
         builder.Services.AddSingleton<IAppLifecycle, MauiAppLifecycle>();
 
+        // Sign in with Google. Android gets the native Credential Manager picker; every other head
+        // gets "none": iOS because offering Google there obliges the app to offer Sign in with Apple
+        // too (App Store guideline 4.8), Windows and Mac because they are development heads.
+#if ANDROID
+        // global:: because inside namespace App.Mobile the bare name App is the App class.
+        builder.Services.AddScoped<IGoogleSignIn, global::App.Mobile.Platforms.Android.Services.AndroidGoogleSignIn>();
+#else
+        builder.Services.AddScoped<IGoogleSignIn, UnavailableGoogleSignIn>();
+#endif
+
         return builder.Build();
     }
 }

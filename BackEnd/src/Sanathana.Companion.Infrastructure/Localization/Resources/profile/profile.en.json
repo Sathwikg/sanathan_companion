@@ -24,6 +24,8 @@
   "profile.exportFailed": "Could not prepare your data.",
   "profile.exportReady": "Your data has been downloaded.",
   "profile.fullName": "Full name",
+  "profile.googleAccount": "Google account",
+  "profile.googleConnected": "Connected",
   "profile.lastPractice": "Last practice",
   "profile.loading": "Loading your profile…",
   "profile.malaCountMany": "{0} malas",

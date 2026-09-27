@@ -28,4 +28,25 @@ public interface IAuthService
     /// is still valid.
     /// </summary>
     Task<AuthResponseDto?> ChangePasswordAsync(Guid userId, ChangePasswordDto request, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Verifies a Google ID token and decides what happens next: a session when the Google account
+    /// is already connected, a registration ticket when the address is new, or a link ticket when an
+    /// account with that address exists and has to consent with its password. Returns null when the
+    /// token does not verify, which the caller surfaces as a 401 without saying why.
+    /// </summary>
+    Task<GoogleSignInResultDto?> SignInWithGoogleAsync(GoogleSignInDto request, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Creates the account a registration ticket was issued for and signs it in. The email is the
+    /// ticket's; the password is chosen here so email + password works for this account too.
+    /// </summary>
+    Task<AuthResponseDto> RegisterWithGoogleAsync(GoogleRegisterDto request, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Connects the Google account in a link ticket to the existing account holding its address, once
+    /// that account's password has been typed. Returns null when the password is wrong (a 400: the
+    /// ticket is fine and may be retried).
+    /// </summary>
+    Task<AuthResponseDto?> LinkGoogleAsync(GoogleLinkDto request, CancellationToken cancellationToken = default);
 }

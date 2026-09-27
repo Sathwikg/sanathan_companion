@@ -17,6 +17,9 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(u => u.MobileNumber).IsRequired().HasMaxLength(20);
         builder.Property(u => u.PasswordHash).IsRequired().HasMaxLength(200);
         builder.Property(u => u.SeekerName).HasMaxLength(150);
+        // Google's `sub` is documented as up to 255 characters, though in practice it is a 21-digit
+        // number; 64 leaves room without inviting something that is not a subject.
+        builder.Property(u => u.GoogleSubject).HasMaxLength(64);
         builder.Property(u => u.CreatedBy).HasMaxLength(100);
         builder.Property(u => u.ModifiedBy).HasMaxLength(100);
 
@@ -25,6 +28,13 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         // The mobile number is a login credential too, so two accounts sharing one makes the
         // credential ambiguous. Both columns hold the normalised spelling; see CredentialNormalizer.
         builder.HasIndex(u => u.MobileNumber).IsUnique().HasDatabaseName("UX_Users_Mobile");
+
+        // One Google account, one seeker. Filtered, because most rows hold null and PostgreSQL treats
+        // nulls as distinct anyway — the filter just keeps the index small and its intent readable.
+        builder.HasIndex(u => u.GoogleSubject)
+            .IsUnique()
+            .HasFilter("\"GoogleSubject\" IS NOT NULL")
+            .HasDatabaseName("UX_Users_GoogleSubject");
 
         builder.HasOne(u => u.Role)
             .WithMany(r => r.Users)

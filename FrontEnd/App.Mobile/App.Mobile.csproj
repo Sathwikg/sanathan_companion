@@ -82,6 +82,23 @@
         <CodesignEntitlements>Platforms\MacCatalyst\Entitlements.plist</CodesignEntitlements>
     </PropertyGroup>
 
+    <!-- Sign in with Google on Android goes through Credential Manager: Google no longer lets a
+         new Android app run the OAuth redirect through a browser, and the Blazor WebView may not
+         host Google's web button. Android only; the other heads offer no Google sign-in. -->
+    <ItemGroup Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">
+        <PackageReference Include="Xamarin.AndroidX.Credentials" Version="1.6.0.1" />
+        <PackageReference Include="Xamarin.AndroidX.Credentials.PlayServicesAuth" Version="1.6.0.2" />
+        <PackageReference Include="Xamarin.Google.Android.Libraries.Identity.GoogleId" Version="1.1.0.16" />
+        <!-- Credential Manager 1.6 is built against the AndroidX 1.19-era libraries, while MAUI
+             10.0.20 pins the 2.9 / 1.8 Kotlin-extension packages with a narrow upper bound, which
+             NuGet reports as NU1608 once the core libraries are lifted. Referencing the matching
+             extension versions keeps every AndroidX pair on the same line. -->
+        <PackageReference Include="Xamarin.AndroidX.Lifecycle.LiveData" Version="2.11.0.1" />
+        <PackageReference Include="Xamarin.AndroidX.Lifecycle.LiveData.Core.Ktx" Version="2.11.0.1" />
+        <PackageReference Include="Xamarin.AndroidX.Fragment.Ktx" Version="1.9.0" />
+        <PackageReference Include="Xamarin.AndroidX.Collection.Ktx" Version="1.6.0.1" />
+    </ItemGroup>
+
     <ItemGroup>
         <PackageReference Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
         <PackageReference Include="Microsoft.AspNetCore.Components.WebView.Maui" Version="$(MauiVersion)" />

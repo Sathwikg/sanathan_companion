@@ -142,6 +142,7 @@ public class UserService : IUserService
             LastUpdatedOn = u.ModifiedDate,
             DefaultRegionId = u.DefaultRegionId,
             DefaultRegionName = regionName,
+            GoogleLinked = u.GoogleSubject is not null,
             CurrentStreak = DisplayStreak(streak),
             LongestStreak = streak?.LongestStreak ?? 0,
             TotalMalas = streak?.TotalMalas ?? 0,

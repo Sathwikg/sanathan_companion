@@ -41,6 +41,12 @@ public static class CoreServiceCollectionExtensions
         services.AddAuthorizationCore();
 
         services.AddScoped<IAuthService, AuthService>();
+        // Carries a Google sign-in ticket from the login page to the page that finishes it. Scoped,
+        // in memory only, cleared on sign-out.
+        services.AddScoped<GoogleSignInState>();
+        // Google's JavaScript button by default. The MAUI host registers its own AFTER calling this:
+        // the native picker on Android, and "none" on the heads that do not offer Google.
+        services.AddScoped<IGoogleSignIn, JsGoogleSignIn>();
         // Browser geolocation by default. A native host registers its own AFTER calling this, so
         // the last registration wins and the WebView's blocked navigator.geolocation is bypassed.
         services.AddScoped<IGeolocationProvider, JsGeolocationProvider>();

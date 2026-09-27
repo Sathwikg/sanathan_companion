@@ -25,6 +25,13 @@ public static class ApiRoutes
         public const string Refresh = "auth/refresh";
         /// <summary>Anonymous too, and always 204 — see AuthController.Logout.</summary>
         public const string Logout = "auth/logout";
+
+        /// <summary>Anonymous: a Google ID token is the credential. Answers with an outcome, not always a session.</summary>
+        public const string Google = "auth/google";
+        /// <summary>Anonymous: completes registration with the ticket a Google sign-in handed back.</summary>
+        public const string GoogleRegister = "auth/google/register";
+        /// <summary>Anonymous: connects Google to an existing account, given its password.</summary>
+        public const string GoogleLink = "auth/google/link";
     }
 
     public static class Dashboard

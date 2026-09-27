@@ -18,6 +18,10 @@ public class AuthService : IAuthService
     private readonly IValidator<RegisterRequestDto> _registerValidator;
     private readonly IValidator<LoginRequestDto> _loginValidator;
     private readonly IValidator<ChangePasswordDto> _changePasswordValidator;
+    private readonly IGoogleIdTokenVerifier _google;
+    private readonly IGoogleTicketService _googleTickets;
+    private readonly IValidator<GoogleRegisterDto> _googleRegisterValidator;
+    private readonly IValidator<GoogleLinkDto> _googleLinkValidator;
 
     public AuthService(
         IUnitOfWork uow,
@@ -26,7 +30,11 @@ public class AuthService : IAuthService
         IRefreshTokenFactory refreshTokens,
         IValidator<RegisterRequestDto> registerValidator,
         IValidator<LoginRequestDto> loginValidator,
-        IValidator<ChangePasswordDto> changePasswordValidator)
+        IValidator<ChangePasswordDto> changePasswordValidator,
+        IGoogleIdTokenVerifier google,
+        IGoogleTicketService googleTickets,
+        IValidator<GoogleRegisterDto> googleRegisterValidator,
+        IValidator<GoogleLinkDto> googleLinkValidator)
     {
         _uow = uow;
         _passwordHasher = passwordHasher;
@@ -35,6 +43,10 @@ public class AuthService : IAuthService
         _registerValidator = registerValidator;
         _loginValidator = loginValidator;
         _changePasswordValidator = changePasswordValidator;
+        _google = google;
+        _googleTickets = googleTickets;
+        _googleRegisterValidator = googleRegisterValidator;
+        _googleLinkValidator = googleLinkValidator;
     }
 
     public async Task<string> RegisterAsync(RegisterRequestDto request, CancellationToken cancellationToken = default)
@@ -184,6 +196,156 @@ public class AuthService : IAuthService
         var response = await IssueAsync(user, familyId: Guid.NewGuid(), cancellationToken);
         await _uow.SaveChangesAsync(cancellationToken);
 
+        return response;
+    }
+
+    // ------------------------------------------------------------------ Google
+
+    public async Task<GoogleSignInResultDto?> SignInWithGoogleAsync(GoogleSignInDto request, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(request.IdToken)) return null;
+
+        var identity = await _google.VerifyAsync(request.IdToken, cancellationToken);
+
+        // An unverified address proves nothing about who is typing, and everything below hangs
+        // off the address. Google sets the flag false only for a few legacy account types, so
+        // this refuses almost nobody and closes the one door that matters.
+        if (identity is null || !identity.EmailVerified || string.IsNullOrWhiteSpace(identity.Email))
+            return null;
+
+        var now = DateTime.UtcNow;
+        var email = CredentialNormalizer.Email(identity.Email);
+
+        // Linked already: match on Google's id and nothing else. The address is not consulted,
+        // because a Google account can change its address and because an address match is
+        // exactly what an impostor with a pre-registered account would be hoping for.
+        var linked = await _uow.Users.GetTrackedByGoogleSubjectAsync(identity.Subject, cancellationToken);
+        if (linked is not null)
+        {
+            if (!linked.IsActive)
+                return new GoogleSignInResultDto { Outcome = GoogleOutcomes.Rejected, Message = "This account has been closed." };
+
+            var session = await IssueAsync(linked, familyId: Guid.NewGuid(), cancellationToken);
+            await _uow.SaveChangesAsync(cancellationToken);
+            return new GoogleSignInResultDto { Outcome = GoogleOutcomes.SignedIn, Session = session };
+        }
+
+        // Not linked. The address decides between "new seeker" and "existing account", and in
+        // the second case the account's own password has to be typed once before the link is
+        // made: plain registration never verifies an email, so the account holding this address
+        // may have been created by somebody else who knew the address but not the inbox.
+        var byEmail = await _uow.Users.GetTrackedByEmailAsync(email, cancellationToken);
+        if (byEmail is not null && !byEmail.IsActive)
+            return new GoogleSignInResultDto { Outcome = GoogleOutcomes.Rejected, Message = "This account has been closed." };
+
+        var purpose = byEmail is null ? GoogleTicketPurposes.Register : GoogleTicketPurposes.Link;
+        var (ticket, expiresAt) = _googleTickets.Issue(purpose, new GoogleTicket(identity.Subject, email), now);
+
+        return new GoogleSignInResultDto
+        {
+            Outcome = byEmail is null ? GoogleOutcomes.RegistrationRequired : GoogleOutcomes.LinkRequired,
+            Ticket = ticket,
+            TicketExpiresAtUtc = expiresAt,
+            Email = email,
+            FullName = byEmail is null ? identity.Name?.Trim() : null
+        };
+    }
+
+    public async Task<AuthResponseDto> RegisterWithGoogleAsync(GoogleRegisterDto request, CancellationToken cancellationToken = default)
+    {
+        await _googleRegisterValidator.ValidateAndThrowAsync(request, cancellationToken);
+
+        var now = DateTime.UtcNow;
+        var ticket = _googleTickets.TryRead(GoogleTicketPurposes.Register, request.Ticket, now)
+                     ?? throw new BadRequestException("Your Google sign-in has expired. Please try again.");
+
+        // The email is the ticket's, never the form's: the form could name any address, and the
+        // whole point of this path is that Google already vouched for one.
+        var email = ticket.Email;
+        var mobile = CredentialNormalizer.Mobile(request.MobileNumber)!;   // validator guarantees ten digits
+
+        if (IdentityInPassword.Contains(email, mobile, request.Password))
+            throw new BadRequestException("Your password must not contain your email address or mobile number.");
+
+        // Same oracle as RegisterAsync, for the same reason; the first check also covers the window
+        // between the sign-in call and this one, during which somebody may have registered.
+        if (await _uow.Users.EmailExistsAsync(email, cancellationToken))
+            throw new ConflictException("An account already exists with this email address. Please sign in with Google again to connect it.");
+        if (await _uow.Users.MobileExistsAsync(mobile, cancellationToken))
+            throw new ConflictException("An account already exists with this mobile number. Please sign in, or use a different number.");
+        if (await _uow.Users.GetTrackedByGoogleSubjectAsync(ticket.GoogleSubject, cancellationToken) is not null)
+            throw new ConflictException("This Google account is already connected to another account.");
+
+        var role = await _uow.Roles.GetByNameAsync(RoleNames.Sanathan, cancellationToken)
+                   ?? throw new NotFoundException($"Default role '{RoleNames.Sanathan}' is not configured.");
+
+        if (request.RegionId is { } regionId)
+        {
+            var region = await _uow.Regions.GetByIdAsync(regionId, cancellationToken);
+            if (region is null || !region.IsActive)
+                throw new BadRequestException("Please choose a valid region.");
+        }
+
+        var user = new User
+        {
+            UserId = Guid.NewGuid(),
+            FullName = request.FullName.Trim(),
+            Email = email,
+            MobileNumber = mobile,
+            // A password is chosen once here so email + password keeps working for this account;
+            // Google is a second door, not the only one.
+            PasswordHash = _passwordHasher.Hash(request.Password),
+            SeekerName = string.IsNullOrWhiteSpace(request.SeekerName) ? null : request.SeekerName.Trim(),
+            DefaultRegionId = request.RegionId,
+            RoleId = role.RoleId,
+            // Role is set as well as RoleId: the token minted below reads Role.RoleName, and a
+            // freshly constructed entity has no navigation loaded.
+            Role = role,
+            GoogleSubject = ticket.GoogleSubject,
+            GoogleLinkedAtUtc = now,
+            EmailVerifiedAtUtc = now
+        };
+
+        await _uow.Users.AddAsync(user, cancellationToken);
+
+        // Signed in straight away, unlike the plain form, which sends the seeker back to the login
+        // screen: they have just proved who they are to Google, and asking them to type the
+        // password they chose ten seconds ago would be theatre.
+        var response = await IssueAsync(user, familyId: Guid.NewGuid(), cancellationToken);
+        await _uow.SaveChangesAsync(cancellationToken);
+        return response;
+    }
+
+    public async Task<AuthResponseDto?> LinkGoogleAsync(GoogleLinkDto request, CancellationToken cancellationToken = default)
+    {
+        await _googleLinkValidator.ValidateAndThrowAsync(request, cancellationToken);
+
+        var now = DateTime.UtcNow;
+        var ticket = _googleTickets.TryRead(GoogleTicketPurposes.Link, request.Ticket, now)
+                     ?? throw new BadRequestException("Your Google sign-in has expired. Please try again.");
+
+        var user = await _uow.Users.GetTrackedByEmailAsync(ticket.Email, cancellationToken)
+                   ?? throw new NotFoundException("Your account could not be found. Please sign in with Google again.");
+
+        // The password is the account's consent to be joined to this Google account. Checked
+        // before the closed-account test for the same enumeration reason LoginAsync gives.
+        if (!_passwordHasher.Verify(request.Password, user.PasswordHash))
+            return null;
+
+        if (!user.IsActive)
+            throw new BadRequestException("This account has been closed.");
+
+        var holder = await _uow.Users.GetTrackedByGoogleSubjectAsync(ticket.GoogleSubject, cancellationToken);
+        if (holder is not null && holder.UserId != user.UserId)
+            throw new ConflictException("This Google account is already connected to another account.");
+
+        user.GoogleSubject = ticket.GoogleSubject;
+        user.GoogleLinkedAtUtc = now;
+        // Google has just confirmed the address the account was registered with.
+        user.EmailVerifiedAtUtc ??= now;
+
+        var response = await IssueAsync(user, familyId: Guid.NewGuid(), cancellationToken);
+        await _uow.SaveChangesAsync(cancellationToken);
         return response;
     }
 

@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Sanathana.Companion.Application.Common;
 using Sanathana.Companion.Application.Interfaces;
 using Sanathana.Companion.Domain.Interfaces;
 using Sanathana.Companion.Infrastructure.Identity;
@@ -52,6 +53,11 @@ public static class DependencyInjection
         services.AddScoped<IRefreshTokenFactory, RefreshTokenFactory>();
         services.AddScoped<ITokenValidityService, TokenValidityService>();
         services.AddSingleton<IMediaTicketService, MediaTicketService>();
+        // Sign in with Google: token verification against Google's keys, and the HMAC ticket that
+        // carries a verified identity to the register / link call. Both are stateless.
+        services.Configure<GoogleSignInOptions>(configuration.GetSection(GoogleSignInOptions.SectionName));
+        services.AddSingleton<IGoogleIdTokenVerifier, GoogleIdTokenVerifier>();
+        services.AddSingleton<IGoogleTicketService, GoogleTicketService>();
         services.AddScoped<IPasswordHasher, BCryptPasswordHasher>();
         services.AddScoped<IAccountDataReader, AccountDataReader>();
         // Runs once at start-up to open the locked administrator account from configuration.

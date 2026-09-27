@@ -86,6 +86,9 @@ public class MyProfileDto
     public Guid? DefaultRegionId { get; set; }
     public string? DefaultRegionName { get; set; }
 
+    /// <summary>True once a Google account has been connected, so the profile can say so.</summary>
+    public bool GoogleLinked { get; set; }
+
     public int CurrentStreak { get; set; }
     public int LongestStreak { get; set; }
     public int TotalMalas { get; set; }
