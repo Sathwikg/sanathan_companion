@@ -10,7 +10,7 @@
   <ItemGroup>
     <PackageReference Include="coverlet.collector" Version="6.0.4" />
     <PackageReference Include="FluentValidation" Version="12.1.1" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.10" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.12" />
     <!-- Npgsql.EntityFrameworkCore.PostgreSQL 10.0.3 only floors Relational at 10.0.4, and
          Infrastructure's Design/Tools references are PrivateAssets="all" so their 10.0.10 does
          not flow here. Without this direct pin the tests bind an older Relational than the
