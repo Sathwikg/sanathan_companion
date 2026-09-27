@@ -29,7 +29,7 @@ jobs:
     name: Backend
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: actions/setup-dotnet@v4
         with:
@@ -83,7 +83,7 @@ jobs:
     name: Web (Blazor WebAssembly)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: actions/setup-dotnet@v4
         with:
@@ -140,7 +140,7 @@ jobs:
     name: Mobile (Android head)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       # The .NET Android build drives the Android SDK's Java tooling, and the .NET 10 head refuses
       # anything but JDK 21 — error XA0030 names the version explicitly. The runner ships several
@@ -181,7 +181,7 @@ jobs:
     # store .ipa. This job is where that step actually happens.
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: actions/setup-dotnet@v4
         with:
@@ -237,7 +237,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # Full history: the secret scan is about what was ever committed, not about the tip.
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
