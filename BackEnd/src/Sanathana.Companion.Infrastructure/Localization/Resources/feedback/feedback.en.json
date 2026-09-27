@@ -2,7 +2,7 @@
   "feedback.chooseIssueType": "Please choose an issue type.",
   "feedback.descriptionPlaceholder": "Tell us what's on your mind…",
   "feedback.issueType": "Issue Type",
-  "feedback.noIssueTypes": "No issue types available",
+  "feedback.noIssueTypes": "No Issue Types Available",
   "feedback.noIssueTypesBody": "An administrator needs to add feedback issue types first.",
   "feedback.selectIssueType": "— Select an issue type —",
   "feedback.sub": "Share a suggestion, appreciation or report an issue",

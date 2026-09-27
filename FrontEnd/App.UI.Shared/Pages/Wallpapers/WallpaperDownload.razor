@@ -6,10 +6,12 @@
 @inject MediaUrlBuilder Media
 
 <div class="sc-page-head">
-    <span class="sc-page-emoji">📱</span>
-    <div>
-        <h1 class="sc-page-title">@Loc["wallpapersDownload.title", "Download Wallpapers"]</h1>
-        <p class="sc-page-sub">@Loc["wallpapersDownload.sub", "Choose a deity, then tap a wallpaper to save it"]</p>
+    <div class="sc-page-title">
+        <span class="sc-page-emoji">📱</span>
+        <div>
+            <h1>@Loc["wallpapersDownload.title", "Download Wallpapers"]</h1>
+            <p class="sc-page-sub">@Loc["wallpapersDownload.sub", "Choose a deity, then tap a wallpaper to save it"]</p>
+        </div>
     </div>
 </div>
 
@@ -57,7 +59,7 @@ else
 {
     <div class="sc-wp-bar">
         <button type="button" class="sc-btn-ghost sc-btn-sm" @onclick="BackToDeities">
-            ← @Loc["wallpapersDownload.allDeities", "All deities"]
+            ← @Loc["wallpapersDownload.allDeities", "All Deities"]
         </button>
         <span class="sc-wp-bar-title">@_selected.Name</span>
     </div>

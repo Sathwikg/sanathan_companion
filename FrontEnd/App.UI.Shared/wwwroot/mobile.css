@@ -1747,27 +1747,44 @@
    Today button need 356px of track; the phone's content box is 311px, so every one of them wraps
    onto its own line and the bar costs roughly 190px before the card's padding — for two inputs.
 
-   Here it is a fixed two-row grid instead: the date stepper owns row one, the region select and
-   Today share row two. The captions go, because a date stepper and a region dropdown do not need
-   telling apart on a screen that shows two controls. */
+   Here it is a two-row, three-column grid instead, and the two fields share both edges:
+
+       [ date ................ ][ ‹ ][ › ]
+       [ region .............. ][  Today  ]
+
+   The date input and the region select sit in the same 1fr column, so their left and right
+   edges line up exactly; the two arrows and the Today button share the right-hand columns, so
+   that side lines up too. The arrows and the input are lifted out of their wrappers with
+   display: contents so the grid can place them directly — DOM order, and so tab order, is
+   unchanged. The captions go, because a date stepper and a region dropdown do not need telling
+   apart on a screen that shows two controls. */
 .scm-shell .sc-pchg-bar {
   display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: center;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: stretch;
   gap: 0.5rem;
 }
 
-/* The date stepper spans both tracks; auto-placement then drops the region into row 2 column 1
-   and the Today button beside it. */
-.scm-shell .sc-pchg-bar > .sc-filter:first-child { grid-column: 1 / -1; }
+.scm-shell .sc-pchg-bar > .sc-filter:first-child,
+.scm-shell .sc-daynav { display: contents; }
 
-/* min-width:0 defeats the desktop rule's 170px floor — without it the region select cannot
-   shrink to its track and pushes the Today button off the card. */
+/* Row one: the date input, then the two arrows at the right. */
+.scm-shell .sc-daynav > .sc-input { grid-area: 1 / 1 / 2 / 2; width: 100%; min-width: 0; }
+.scm-shell .sc-daynav > button:first-child { grid-area: 1 / 2 / 2 / 3; }
+.scm-shell .sc-daynav > button:last-child { grid-area: 1 / 3 / 2 / 4; }
+
+/* Row two: the region select under the date, Today under the arrows. */
+.scm-shell .sc-pchg-bar > .sc-filter:nth-child(2) { grid-area: 2 / 1 / 3 / 2; }
+.scm-shell .sc-pchg-bar > .sc-btn-ghost { grid-area: 2 / 2 / 3 / 4; }
+
+/* min-width:0 defeats the desktop rules' 170px floors — without it the region select cannot
+   shrink to its track and pushes the right-hand column off the card. */
 .scm-shell .sc-pchg-bar > .sc-filter {
   position: relative;
   min-width: 0;
   gap: 0;
 }
+.scm-shell .sc-pchg-bar .sc-ss { min-width: 0; }
 
 /* Visually hidden, NOT display:none. These captions are the only thing naming the two controls,
    and the region select has no aria-label of its own, so removing them from the accessibility
@@ -1781,17 +1798,16 @@
   white-space: nowrap;
 }
 
-/* The arrows keep their 44px touch target from app.css's `pointer: coarse` block — only the input
-   between them flexes, so the row shrinks by losing slack, never by shrinking the tap targets. */
-.scm-shell .sc-daynav { gap: 0.4rem; }
-.scm-shell .sc-daynav .sc-input {
-  flex: 1;
-  min-width: 0;
+/* One height for every control in the bar, so the two rows read as two clean bands. 44px is the
+   smallest reliably tappable target; the arrows already get it from app.css's `pointer: coarse`
+   block on a real phone, and this makes the input, the select and the browser preview match. */
+.scm-shell .sc-pchg-bar .sc-input,
+.scm-shell .sc-daynav > button,
+.scm-shell .sc-pchg-bar > .sc-btn-ghost {
+  height: auto;
+  min-height: 44px;
 }
-
-/* Matches the arrows and the select, and is a proper touch target in its own right —
-   .sc-btn-sm is not one of the classes app.css lifts to 44px. */
-.scm-shell .sc-pchg-bar > .sc-btn-ghost { min-height: 44px; }
+.scm-shell .sc-daynav > button { width: 44px; }
 
 /* Two rows of controls do not need a desktop card's inset around them. */
 .scm-shell .sc-pchg-filters { padding: 0.7rem; }

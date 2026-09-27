@@ -43,7 +43,7 @@
         @if (IsCapped)
         {
             <button type="button" class="sc-prayer-more" aria-expanded="@(_expanded ? "true" : "false")" @onclick="ToggleAll">
-                @(_expanded ? Loc["dashboard.showLess", "Show less"] : Loc.TF("dashboard.showAllCount", "Show all ({0})", _prayers.Count))
+                @(_expanded ? Loc["dashboard.showLess", "Show Less"] : Loc.TF("dashboard.showAllCount", "Show All ({0})", _prayers.Count))
             </button>
         }
     </div>

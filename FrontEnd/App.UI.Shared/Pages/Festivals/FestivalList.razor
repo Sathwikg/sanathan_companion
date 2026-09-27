@@ -44,7 +44,7 @@ else if (_list.Count == 0)
 {
     <div class="sc-card sc-empty-state">
         <div class="sc-empty-om">🎉</div>
-        <h3>@(Loc.TF("festivals.emptyTitleYear", "No festivals for {0}", _year))</h3>
+        <h3>@(Loc.TF("festivals.emptyTitleYear", "No Festivals for {0}", _year))</h3>
         <p>@Loc["festivals.emptyBody", "Create a festival for this year to get started."]</p>
         <button class="sc-btn-primary sc-btn-sm" @onclick="OpenCreate">+ @Loc["festivals.createFestival", "Create Festival"]</button>
     </div>
@@ -346,8 +346,8 @@ else
                 ? Loc.TF("festivals.confirmActivateBody", "Are you sure you want to activate “{0}”?", f.Name)
                 : Loc.TF("festivals.confirmDeactivateBody", "Are you sure you want to deactivate “{0}”?", f.Name),
             ConfirmText = activate
-                ? Loc["common.yesActivate", "Yes, activate"]
-                : Loc["common.yesDeactivate", "Yes, deactivate"],
+                ? Loc["common.yesActivate", "Yes, Activate"]
+                : Loc["common.yesDeactivate", "Yes, Deactivate"],
             CancelText = Loc["common.cancel", "Cancel"],
             Kind = activate ? ConfirmKind.Success : ConfirmKind.Warning
         });

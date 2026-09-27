@@ -31,7 +31,7 @@ internal static class ReminderNotifier
         // interrupt with a heads-up banner over whatever the seeker is doing.
         var channel = new NotificationChannel(
             ChannelId,
-            "Daily reminders",
+            "Daily Reminders",
             NotificationImportance.Default)
         {
             Description = "Reminders for your sadhana, panchangam and pujas."

@@ -25,7 +25,7 @@
                     <select class="sc-input sc-input-sm" value="@_roleId" @onchange="OnRoleChanged">
                         @if (_roles.Count == 0)
                         {
-                            <option value="0">No configurable roles</option>
+                            <option value="0">No Configurable Roles</option>
                         }
                         @foreach (var r in _roles)
                         {
@@ -34,7 +34,7 @@
                     </select>
                 </div>
                 <div class="sc-filter">
-                    <label>Search forms</label>
+                    <label>Search Forms</label>
                     <input class="sc-input sc-input-sm" placeholder="Filter by form name…" @bind="_search" @bind:event="oninput" />
                 </div>
                 @if (_matrix is not null)
@@ -70,17 +70,17 @@
                                 <th class="sc-access-col">
                                     Web
                                     <div class="sc-access-all">
-                                        <button type="button" class="sc-linkbtn" @onclick="() => SetAll(web: true, on: true)">all</button>
+                                        <button type="button" class="sc-linkbtn" @onclick="() => SetAll(web: true, on: true)">All</button>
                                         <span>·</span>
-                                        <button type="button" class="sc-linkbtn" @onclick="() => SetAll(web: true, on: false)">none</button>
+                                        <button type="button" class="sc-linkbtn" @onclick="() => SetAll(web: true, on: false)">None</button>
                                     </div>
                                 </th>
                                 <th class="sc-access-col">
                                     Mobile
                                     <div class="sc-access-all">
-                                        <button type="button" class="sc-linkbtn" @onclick="() => SetAll(web: false, on: true)">all</button>
+                                        <button type="button" class="sc-linkbtn" @onclick="() => SetAll(web: false, on: true)">All</button>
                                         <span>·</span>
-                                        <button type="button" class="sc-linkbtn" @onclick="() => SetAll(web: false, on: false)">none</button>
+                                        <button type="button" class="sc-linkbtn" @onclick="() => SetAll(web: false, on: false)">None</button>
                                     </div>
                                 </th>
                             </tr>
@@ -105,7 +105,7 @@
                                             <span class="sc-access-icon">@(m.Icon ?? "•")</span> @m.ModuleName
                                             @if (!m.ShowInMobile)
                                             {
-                                                <span class="sc-minichip sc-minichip-muted" title="This form is not published to mobile">web-only</span>
+                                                <span class="sc-minichip sc-minichip-muted" title="This form is not published to mobile">Web-only</span>
                                             }
                                         </td>
                                         <td class="sc-access-col">
@@ -128,7 +128,7 @@
                 <div class="sc-formfoot">
                     <div class="sc-hint">Changes apply the next time the user signs in or refreshes.</div>
                     <button class="sc-btn-primary" @onclick="SaveAsync" disabled="@_saving">
-                        @(_saving ? "Saving…" : "💾 Save access rights")
+                        @(_saving ? "Saving…" : "💾 Save Access Rights")
                     </button>
                 </div>
             </div>
@@ -137,7 +137,7 @@
     <NotAuthorized>
         <div class="sc-card sc-empty-state">
             <div class="sc-empty-om">🔒</div>
-            <h3>Admins only</h3>
+            <h3>Admins Only</h3>
             <p>Access rights can only be managed by an administrator.</p>
         </div>
     </NotAuthorized>

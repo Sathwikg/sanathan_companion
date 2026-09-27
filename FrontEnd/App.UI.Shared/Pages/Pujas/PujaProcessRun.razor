@@ -34,9 +34,9 @@ else
     @* Pujas are the point of this screen; the festival only narrows the list. *@
     <div class="sc-card sc-filtercard">
         <div class="sc-field">
-            <label>@Loc["pujaProcess.filterByFestival", "Filter by festival"]</label>
+            <label>@Loc["pujaProcess.filterByFestival", "Filter by Festival"]</label>
             <select class="sc-input" value="@_festivalId" @onchange="OnFestivalChanged">
-                <option value="">@Loc.TF("pujaProcess.allFestivals", "All pujas ({0})", _allCount)</option>
+                <option value="">@Loc.TF("pujaProcess.allFestivals", "All Pujas ({0})", _allCount)</option>
                 @foreach (var f in _festivals)
                 {
                     <option value="@f.Id">@f.Label (@f.PujaCount)@(f.IsCurrent ? $" — {Loc["pujaProcess.current", "current"]}" : "")</option>
@@ -57,7 +57,7 @@ else
                 <div class="sc-empty-om">📿</div>
                 <p>@Loc["pujaProcess.noPujas", "No puja is configured for this festival yet."]</p>
                 <button type="button" class="sc-btn-ghost sc-btn-sm" @onclick="() => ApplyFilterAsync(null)">
-                    @Loc["pujaProcess.showAll", "Show all pujas"]
+                    @Loc["pujaProcess.showAll", "Show All Pujas"]
                 </button>
             </div>
         }
@@ -92,7 +92,7 @@ else
     {
         <div class="sc-wp-bar">
             <button type="button" class="sc-btn-ghost sc-btn-sm" @onclick="BackToList">
-                ← @Loc["pujaProcess.allPujas", "All pujas"]
+                ← @Loc["pujaProcess.allPujas", "All Pujas"]
             </button>
             <span class="sc-wp-bar-title">@_process.PujaName</span>
         </div>
@@ -104,7 +104,7 @@ else
                 <div class="sc-puja-done">
                     <span class="sc-puja-done-icon">🎉</span>
                     <div>
-                        <strong>@Loc["pujaProcess.completedTitle", "Puja completed"]</strong>
+                        <strong>@Loc["pujaProcess.completedTitle", "Puja Completed"]</strong>
                         <p class="sc-muted">@Loc["pujaProcess.completedBody", "You have finished every step. May your prayers be answered."]</p>
                     </div>
                 </div>
@@ -115,14 +115,14 @@ else
                     <strong>@Loc.TF("pujaProcess.stepsOf", "{0} of {1} steps", _process.CompletedCount, _process.TotalSteps)</strong>
                     @if (_process.CurrentStepNumber is { } n)
                     {
-                        <span class="sc-muted">@Loc.TF("pujaProcess.nextUp", "Next: step {0}", n)</span>
+                        <span class="sc-muted">@Loc.TF("pujaProcess.nextUp", "Next: Step {0}", n)</span>
                     }
                 </div>
             }
             <div class="sc-progress-track"><div class="sc-progress-fill" style="width:@(_process.PercentComplete)%"></div></div>
             @if (_process.CompletedCount > 0)
             {
-                <button type="button" class="sc-linkbtn" @onclick="StartOver">@Loc["pujaProcess.startOver", "Start over"]</button>
+                <button type="button" class="sc-linkbtn" @onclick="StartOver">@Loc["pujaProcess.startOver", "Start Over"]</button>
             }
         </div>
 
@@ -130,7 +130,7 @@ else
         @if (_process.Materials.Count > 0)
         {
             <div class="sc-section-head">
-                <h2>🧺 @Loc["pujaProcess.materials", "Required materials"]</h2>
+                <h2>🧺 @Loc["pujaProcess.materials", "Required Materials"]</h2>
             </div>
             <div class="sc-card">
                 <ul class="sc-material-list readonly">
@@ -156,7 +156,7 @@ else
             var isNext = !s.IsCompleted && s.StepNumber == _process.CurrentStepNumber;
             <div class="sc-card sc-runstep @(s.IsCompleted ? "done" : null) @(isNext ? "next" : null)">
                 <button type="button" class="sc-runstep-check" @onclick="() => ToggleStep(s)"
-                        title="@(s.IsCompleted ? Loc["pujaProcess.undo", "Mark as not done"] : Loc["pujaProcess.markDone", "Mark done"])">
+                        title="@(s.IsCompleted ? Loc["pujaProcess.undo", "Mark as Not Done"] : Loc["pujaProcess.markDone", "Mark Done"])">
                     @(s.IsCompleted ? "✓" : s.StepNumber.ToString())
                 </button>
                 <div class="sc-runstep-body">
@@ -164,7 +164,7 @@ else
                         <strong>@(string.IsNullOrWhiteSpace(s.Title) ? Loc.TF("pujaProcess.stepN", "Step {0}", s.StepNumber) : s.Title)</strong>
                         @if (isNext)
                         {
-                            <span class="sc-minichip">@Loc["pujaProcess.youAreHere", "You are here"]</span>
+                            <span class="sc-minichip">@Loc["pujaProcess.youAreHere", "You Are Here"]</span>
                         }
                     </div>
                     @if (!string.IsNullOrWhiteSpace(s.Content))
@@ -252,7 +252,7 @@ else
         step.IsCompleted = !step.IsCompleted;
 
         if (!wasCompleted && _process.IsCompleted)
-            Toast.Success(Loc["pujaProcess.completedTitle", "Puja completed"]);
+            Toast.Success(Loc["pujaProcess.completedTitle", "Puja Completed"]);
     }
 
     /// <summary>Clears the tick marks. No confirmation needed — nothing durable is being lost.</summary>

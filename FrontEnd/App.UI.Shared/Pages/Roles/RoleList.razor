@@ -29,7 +29,7 @@
 {
     <div class="sc-card sc-empty-state">
         <div class="sc-empty-om">🔒</div>
-        <h3>@Loc["common.adminOnly", "Administrator access required"]</h3>
+        <h3>@Loc["common.adminOnly", "Administrator Access Required"]</h3>
         <p>@Loc["common.adminOnlyBody", "The Role master is available to administrators only."]</p>
     </div>
 }
@@ -57,7 +57,7 @@ else
     {
         <div class="sc-card sc-empty-state">
             <div class="sc-empty-om">🎭</div>
-            <h3>@Loc.TF("msg.noItemsFound", "No {0} found", Loc["roles.entityPlural", "roles"])</h3>
+            <h3>@Loc.TF("msg.noItemsFound", "No {0} Found", Loc.TitleCase(Loc["roles.entityPlural", "roles"]))</h3>
             <p>@(string.IsNullOrWhiteSpace(_search)
                     ? Loc.TF("msg.createFirst", "Create your first {0} to get started.", Loc["roles.entityName", "role"])
                     : Loc["roles.emptySearch", "No roles match the current search."])</p>
@@ -241,7 +241,7 @@ else
     // Admin bypasses the access matrix entirely, so a mapping count would read as "0 forms" and mislead.
     private string FormAccessLabel(RoleModel r)
     {
-        if (IsAdmin(r)) return "🔐 " + Loc["roles.fullAccess", "Full access"];
+        if (IsAdmin(r)) return "🔐 " + Loc["roles.fullAccess", "Full Access"];
         var word = r.FormCount == 1 ? Loc["roles.formWord", "form"] : Loc["roles.formsWord", "forms"];
         return "🔐 " + r.FormCount + " " + word;
     }
@@ -299,7 +299,7 @@ else
         {
             Title = Loc.TF("common.confirmDelete", "Delete {0}?", Loc["roles.entityName", "role"]),
             Message = Loc.TF("roles.confirmDeleteBody", "“{0}” will be removed along with its access rights. This cannot be undone.", r.RoleName),
-            ConfirmText = Loc["common.yesDelete", "Yes, delete"],
+            ConfirmText = Loc["common.yesDelete", "Yes, Delete"],
             CancelText = Loc["common.cancel", "Cancel"],
             Kind = ConfirmKind.Danger
         });

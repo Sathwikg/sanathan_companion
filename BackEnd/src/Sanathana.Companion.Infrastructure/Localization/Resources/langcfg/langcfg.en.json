@@ -9,16 +9,16 @@
   "langcfg.exportJson": "Export JSON",
   "langcfg.forms": "Forms",
   "langcfg.formsHint": "Forms that are turned off stay in English even when this language is selected.",
-  "langcfg.gapsOnly": "Only rows with gaps",
-  "langcfg.harvest": "Scan for new terms",
+  "langcfg.gapsOnly": "Only Rows with Gaps",
+  "langcfg.harvest": "Scan for New Terms",
   "langcfg.harvested": "Found {0} new term(s), {1} from values the app could not translate, {2} filled in from shipped translations.",
   "langcfg.key": "Key",
   "langcfg.missing": "missing",
   "langcfg.namespace": "Section",
   "langcfg.noLabels": "No labels match your search.",
-  "langcfg.reimportSeed": "Re-import from files",
+  "langcfg.reimportSeed": "Re-import from Files",
   "langcfg.rows": "rows",
-  "langcfg.saveTranslations": "Save translations",
+  "langcfg.saveTranslations": "Save Translations",
   "langcfg.savesAllPages": "Saving stores your edits on every page, not just this one.",
   "langcfg.scope": "Form / Section",
   "langcfg.searchLabels": "Search labels…",
@@ -33,5 +33,5 @@
   "langcfg.translatedCount": "{0} of {1} labels translated",
   "langcfg.translation": "Translation",
   "langcfg.unsavedEdits": "{0} unsaved edit(s)",
-  "langcfg.untranslatedOnly": "Untranslated only"
+  "langcfg.untranslatedOnly": "Untranslated Only"
 }

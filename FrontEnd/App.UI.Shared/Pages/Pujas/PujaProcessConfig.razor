@@ -125,11 +125,11 @@ else
                 var text = step.TextFor(activeId);
             }
             <div class="sc-field">
-                <label>@Loc["pujaProcessConfig.stepTitle", "Step title"]</label>
+                <label>@Loc["pujaProcessConfig.stepTitle", "Step Title"]</label>
                 <input class="sc-input" @bind="text.Title" @bind:event="oninput" />
             </div>
             <div class="sc-field">
-                <label>@Loc["pujaProcessConfig.stepContent", "What to do"]</label>
+                <label>@Loc["pujaProcessConfig.stepContent", "What to Do"]</label>
                 <RichTextEditor @bind-Value="text.Content" />
             </div>
         </div>

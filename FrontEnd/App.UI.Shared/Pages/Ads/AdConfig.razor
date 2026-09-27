@@ -31,27 +31,27 @@ else if (_forbidden)
 {
     <div class="sc-card sc-empty-state">
         <div class="sc-empty-om">🔒</div>
-        <p>@Loc["common.adminOnly", "Administrator access required."]</p>
+        <p>@Loc["common.adminOnly", "Administrator Access Required"]</p>
     </div>
 }
 else if (_model is not null)
 {
     <div class="sc-card sc-prefcard">
         <div class="sc-section-head" style="margin-bottom:0.6rem">
-            <h2>⚙️ @Loc["adConfig.account", "AdMob account"]</h2>
+            <h2>⚙️ @Loc["adConfig.account", "AdMob Account"]</h2>
             <span class="sc-section-sub">@Loc["adConfig.accountSub", "Applies to the iOS and Android apps. The web app never shows ads."]</span>
         </div>
 
         <div class="sc-preflist">
             <div class="sc-prefrow">
-                <span class="sc-prefrow-label">@Loc["adConfig.adsEnabled", "Show ads at all"]</span>
+                <span class="sc-prefrow-label">@Loc["adConfig.adsEnabled", "Show Ads at All"]</span>
                 <label class="sc-switch">
                     <input type="checkbox" checked="@_model.AdsEnabled" @onchange="e => _model.AdsEnabled = (bool)e.Value!" />
                     <span class="sc-slider"></span>
                 </label>
             </div>
             <div class="sc-prefrow">
-                <span class="sc-prefrow-label">@Loc["adConfig.useTestAds", "Use test ads"]</span>
+                <span class="sc-prefrow-label">@Loc["adConfig.useTestAds", "Use Test Ads"]</span>
                 <label class="sc-switch">
                     <input type="checkbox" checked="@_model.UseTestAds" @onchange="e => _model.UseTestAds = (bool)e.Value!" />
                     <span class="sc-slider"></span>
@@ -70,11 +70,11 @@ else if (_model is not null)
 
         <div class="sc-detail-grid" style="margin-top:1rem">
             <div class="sc-field">
-                <label>@Loc["adConfig.androidAppId", "Android app ID"]</label>
+                <label>@Loc["adConfig.androidAppId", "Android App ID"]</label>
                 <input class="sc-input" @bind="_model.AndroidAppId" placeholder="ca-app-pub-0000000000000000~0000000000" />
             </div>
             <div class="sc-field">
-                <label>@Loc["adConfig.iosAppId", "iOS app ID"]</label>
+                <label>@Loc["adConfig.iosAppId", "iOS App ID"]</label>
                 <input class="sc-input" @bind="_model.IosAppId" placeholder="ca-app-pub-0000000000000000~0000000000" />
             </div>
         </div>
@@ -83,7 +83,7 @@ else if (_model is not null)
 
     <div class="sc-card sc-prefcard">
         <div class="sc-section-head" style="margin-bottom:0.6rem">
-            <h2>📐 @Loc["adConfig.formats", "Ad formats"]</h2>
+            <h2>📐 @Loc["adConfig.formats", "Ad Formats"]</h2>
             <span class="sc-section-sub">@Loc["adConfig.formatsSub", "What Google can serve, and where each one is allowed"]</span>
         </div>
 
@@ -95,7 +95,7 @@ else if (_model is not null)
                         <h3 class="sc-tile-title">@f.Name</h3>
                         @if (f.IsFullScreen)
                         {
-                            <span class="sc-typechip god">@Loc["adConfig.fullScreen", "Full screen"]</span>
+                            <span class="sc-typechip god">@Loc["adConfig.fullScreen", "Full Screen"]</span>
                         }
                     </div>
                     <p class="sc-tile-desc">@f.Description</p>
@@ -110,7 +110,7 @@ else if (_model is not null)
 
     <div class="sc-card sc-tablewrap">
         <div class="sc-section-head" style="margin-bottom:0.6rem">
-            <h2>🗂️ @Loc["adConfig.perForm", "Ads by form"]</h2>
+            <h2>🗂️ @Loc["adConfig.perForm", "Ads by Form"]</h2>
             <span class="sc-section-sub">@Loc["adConfig.perFormSub", "One format per form. Switching a form off clears its choice."]</span>
         </div>
 
@@ -118,10 +118,10 @@ else if (_model is not null)
             <thead>
                 <tr>
                     <th>@Loc["adConfig.formColumn", "Form"]</th>
-                    <th>@Loc["adConfig.showAds", "Show ads"]</th>
+                    <th>@Loc["adConfig.showAds", "Show Ads"]</th>
                     <th>@Loc["adConfig.format", "Format"]</th>
-                    <th>@Loc["adConfig.androidUnit", "Android ad unit"]</th>
-                    <th>@Loc["adConfig.iosUnit", "iOS ad unit"]</th>
+                    <th>@Loc["adConfig.androidUnit", "Android Ad Unit"]</th>
+                    <th>@Loc["adConfig.iosUnit", "iOS Ad Unit"]</th>
                 </tr>
             </thead>
             <tbody>

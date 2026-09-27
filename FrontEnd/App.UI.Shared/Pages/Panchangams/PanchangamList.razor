@@ -21,7 +21,13 @@
         <button class="sc-btn-ghost sc-btn-sm sc-locbtn" @onclick="UseMyLocation" disabled="@_locating">
             @if (_locating) { <OmLoader Inline="true" Size="16" Message='@Loc["common.locating", "Locating…"]' /> } else { <span>📍 @Loc["panchangam.myLocation", "My Location"]</span> }
         </button>
-        <button class="sc-btn-ghost sc-btn-sm" @onclick="OpenGenerate">⚙ @Loc["panchangam.generate", "Generate"]</button>
+        @* Generating stores a whole year for a region: an administrator's job, and the API refuses
+           anyone else, so seekers never see the button. *@
+        <AuthorizeView Roles="Admin">
+            <Authorized>
+                <button class="sc-btn-ghost sc-btn-sm" @onclick="OpenGenerate">⚙ @Loc["panchangam.generate", "Generate"]</button>
+            </Authorized>
+        </AuthorizeView>
     </div>
 </div>
 
@@ -35,23 +41,28 @@
                has no `for` and so was never bound to the input. *@
             <label>@Loc["common.date", "Date"]</label>
             <div class="sc-daynav">
-                <button type="button" title="@Loc["panchangam.previousDay", "Previous day"]" @onclick="() => Shift(-1)">‹</button>
+                <button type="button" title="@Loc["panchangam.previousDay", "Previous Day"]" @onclick="() => Shift(-1)">‹</button>
                 <input type="date" class="sc-input sc-input-sm" aria-label="@Loc["common.date", "Date"]"
                        value="@_date.ToString("yyyy-MM-dd")" @onchange="OnDateChanged" />
-                <button type="button" title="@Loc["panchangam.nextDay", "Next day"]" @onclick="() => Shift(1)">›</button>
+                <button type="button" title="@Loc["panchangam.nextDay", "Next Day"]" @onclick="() => Shift(1)">›</button>
             </div>
         </div>
         <div class="sc-filter">
             <label>@Loc["common.region", "Region"]</label>
             <SearchableSelect Options="RegionOptions" Value="@_regionId" ValueChanged="OnRegionChanged"
-                              PlaceholderLabel='@Loc["panchangam.selectRegion", "Select region"]'
+                              PlaceholderLabel='@Loc["panchangam.selectRegion", "Select Region"]'
                               SearchPlaceholder='@Loc["panchangam.searchRegions", "Search regions…"]' />
         </div>
         <button class="sc-btn-ghost sc-btn-sm" @onclick="GoToday">@Loc["panchangam.today", "Today"]</button>
     </div>
     @if (_missingCoords)
     {
-        <div class="sc-hint sc-hint-error">@Loc["panchangam.missingCoords", "This region has no coordinates set — add them in the Region Master to generate its Panchangam."]</div>
+        @* Only an administrator can act on this; a seeker gets the empty state's advice instead. *@
+        <AuthorizeView Roles="Admin">
+            <Authorized>
+                <div class="sc-hint sc-hint-error">@Loc["panchangam.missingCoords", "This region has no coordinates set — add them in the Region Master to generate its Panchangam."]</div>
+            </Authorized>
+        </AuthorizeView>
     }
 </div>
 
@@ -68,10 +79,17 @@ else if (_current is null)
 {
     <div class="sc-card sc-empty-state">
         <div class="sc-empty-om">🗓️</div>
-        <h3>@Loc["panchangam.noDataTitle", "No Panchangam for this day"]</h3>
-        <p>@(_missingCoords
-            ? Loc["panchangam.setCoordsFirst", "Set the region's coordinates first."]
-            : Loc["panchangam.noDataBody", "No stored data for this date and region. Try “Generate”, or use “My Location” for an on-the-fly calculation."])</p>
+        <h3>@Loc["panchangam.noDataTitle", "No Panchangam for This Day"]</h3>
+        <AuthorizeView Roles="Admin">
+            <Authorized>
+                <p>@(_missingCoords
+                    ? Loc["panchangam.setCoordsFirst", "Set the region's coordinates first."]
+                    : Loc["panchangam.noDataBody", "No stored data for this date and region. Try “Generate”, or use “My Location” for an on-the-fly calculation."])</p>
+            </Authorized>
+            <NotAuthorized>
+                <p>@Loc["panchangam.noDataBodySeeker", "No stored data for this date and region. Use “My Location” for an on-the-fly calculation."]</p>
+            </NotAuthorized>
+        </AuthorizeView>
     </div>
 }
 else
@@ -85,7 +103,7 @@ else
                     @if (p.IsComputed)
                     {
                         <span>📍 @p.PlaceLabel</span>
-                        <span class="sc-livechip">@Loc["panchangam.liveLocation", "Live · your location"]</span>
+                        <span class="sc-livechip">@Loc["panchangam.liveLocation", "Live · Your Location"]</span>
                     }
                     else
                     {
@@ -144,7 +162,7 @@ else
             <div class="sc-field">
                 <label>@Loc["common.region", "Region"]</label>
                 <select class="sc-input" @bind="_genRegionId">
-                    <option value="">@Loc["panchangam.allRegionsWithCoords", "All regions with coordinates"]</option>
+                    <option value="">@Loc["panchangam.allRegionsWithCoords", "All Regions with Coordinates"]</option>
                     @foreach (var r in _options.Regions)
                     {
                         <option value="@r.Id" disabled="@(!r.HasCoordinates)">@r.Name @(r.HasCoordinates ? "" : Loc["panchangam.noCoordinates", "(no coordinates)"])</option>
@@ -154,7 +172,7 @@ else
         </div>
         <div class="sc-switchrow">
             <label class="sc-switch"><input type="checkbox" @bind="_genOverwrite" /><span class="sc-slider"></span></label>
-            <span>@Loc["panchangam.overwriteExisting", "Overwrite existing days"]</span>
+            <span>@Loc["panchangam.overwriteExisting", "Overwrite Existing Days"]</span>
         </div>
         <div class="sc-modal-actions">
             <button type="button" class="sc-btn-ghost" @onclick="() => _showGenerate = false">@Loc["common.cancel", "Cancel"]</button>

@@ -9,10 +9,12 @@
 @inject MediaUrlBuilder Media
 
 <div class="sc-page-head">
-    <span class="sc-page-emoji">🖼️</span>
-    <div>
-        <h1 class="sc-page-title">@Loc["wallpapers.title", "Wallpaper Master"]</h1>
-        <p class="sc-page-sub">@Loc["wallpapers.sub", "Upload downloadable wallpapers for each deity"]</p>
+    <div class="sc-page-title">
+        <span class="sc-page-emoji">🖼️</span>
+        <div>
+            <h1>@Loc["wallpapers.title", "Wallpaper Master"]</h1>
+            <p class="sc-page-sub">@Loc["wallpapers.sub", "Upload downloadable wallpapers for each deity"]</p>
+        </div>
     </div>
 </div>
 
@@ -31,9 +33,9 @@
     @if (_selectedDeity is not null)
     {
         <div class="sc-field">
-            <label>@Loc["wallpapers.addFiles", "Add wallpapers"]</label>
+            <label>@Loc["wallpapers.addFiles", "Add Wallpapers"]</label>
             <label class="sc-btn-primary sc-btn-sm sc-upload">
-                ⬆️ @Loc["wallpapers.chooseFiles", "Choose images"]
+                ⬆️ @Loc["wallpapers.chooseFiles", "Choose Images"]
                 <InputFile OnChange="OnFilesSelected" accept="image/*" multiple style="display:none" />
             </label>
             <span class="sc-hint">@Loc["wallpapers.uploadHint", "Several at once · compressed to WebP · max 25 per upload"]</span>
@@ -211,7 +213,7 @@ else
     {
         var name = string.IsNullOrWhiteSpace(w.Title) ? Loc["wallpapers.untitled", "Untitled"] : w.Title!;
         var confirmed = await Confirm.ConfirmAsync(
-            Loc["wallpapers.confirmDeleteTitle", "Delete wallpaper"],
+            Loc["wallpapers.confirmDeleteTitle", "Delete Wallpaper"],
             Loc.TF("wallpapers.confirmDelete", "Delete '{0}'? This cannot be undone.", name),
             Loc["common.delete", "Delete"],
             Loc["common.cancel", "Cancel"]);

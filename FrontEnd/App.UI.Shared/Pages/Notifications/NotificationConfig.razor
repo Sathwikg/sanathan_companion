@@ -16,7 +16,7 @@
     {
         <div class="sc-page-actions">
             <button class="sc-btn-primary sc-btn-sm" @onclick="SaveAsync" disabled="@_saving">
-                @if (_saving) { <OmLoader Inline="true" Size="18" Message="@Loc["common.saving", "Saving…"]" /> } else { <span>@Loc["common.saveChanges", "Save changes"]</span> }
+                @if (_saving) { <OmLoader Inline="true" Size="18" Message="@Loc["common.saving", "Saving…"]" /> } else { <span>@Loc["common.saveChanges", "Save Changes"]</span> }
             </button>
         </div>
     }
@@ -30,7 +30,7 @@ else if (_forbidden)
 {
     <div class="sc-card sc-empty-state">
         <div class="sc-empty-om">🔒</div>
-        <h3>@Loc["common.adminOnly", "Administrator access required"]</h3>
+        <h3>@Loc["common.adminOnly", "Administrator Access Required"]</h3>
         <p>@Loc["notificationConfig.adminOnlyBody", "Notification configuration is available to administrators only."]</p>
     </div>
 }
@@ -42,14 +42,14 @@ else
 {
     <div class="sc-card sc-filtercard">
         <div class="sc-filter" style="min-width:280px">
-            <label>@Loc["notificationConfig.searchModules", "Search modules"]</label>
+            <label>@Loc["notificationConfig.searchModules", "Search Modules"]</label>
             <input class="sc-input sc-input-sm" placeholder="@Loc["notificationConfig.searchPlaceholder", "Module name…"]" @bind="_search" @bind:event="oninput" />
         </div>
         <div class="sc-notif-summary">
             <span class="sc-badge on">@Loc.TF("notificationConfig.enabledCount", "{0} enabled", _modules.Count(m => m.IsEnabled))</span>
             <span class="sc-muted">@Loc.TF("notificationConfig.ofModules", "of {0} modules", _modules.Count)</span>
-            <button class="sc-btn-ghost sc-btn-sm" @onclick="ExpandAll">⊞ @Loc["common.expandAll", "Expand all"]</button>
-            <button class="sc-btn-ghost sc-btn-sm" @onclick="CollapseAll">⊟ @Loc["common.collapseAll", "Collapse all"]</button>
+            <button class="sc-btn-ghost sc-btn-sm" @onclick="ExpandAll">⊞ @Loc["common.expandAll", "Expand All"]</button>
+            <button class="sc-btn-ghost sc-btn-sm" @onclick="CollapseAll">⊟ @Loc["common.collapseAll", "Collapse All"]</button>
         </div>
     </div>
 
@@ -59,8 +59,8 @@ else
                 <tr>
                     <th style="width:32%">@Loc["notificationConfig.colModule", "Module"]</th>
                     <th style="width:16%">@Loc["notificationConfig.colNotifications", "Notifications"]</th>
-                    <th>@Loc["notificationConfig.colTitleDesc", "Title & description shown to users"]</th>
-                    <th style="width:12%">@Loc["notificationConfig.colDefaultOn", "Default on"]</th>
+                    <th>@Loc["notificationConfig.colTitleDesc", "Title & Description Shown to Users"]</th>
+                    <th style="width:12%">@Loc["notificationConfig.colDefaultOn", "Default On"]</th>
                     <th style="width:12%">@Loc["notificationConfig.colMandatory", "Mandatory"]</th>
                 </tr>
             </thead>
@@ -71,7 +71,7 @@ else
                     <tr class="sc-notif-grouprow" @onclick="() => ToggleGroup(group.Key)">
                         <td colspan="5">
                             <span class="sc-mtree-caret">@(expanded ? "▾" : "▸")</span>
-                            <strong>@(group.Key == TopLevelGroup ? Loc["notificationConfig.topLevel", "Top level"] : group.Key)</strong>
+                            <strong>@(group.Key == TopLevelGroup ? Loc["notificationConfig.topLevel", "Top Level"] : group.Key)</strong>
                             <span class="sc-mtree-count">@group.Count()</span>
                             @if (group.Count(m => m.IsEnabled) > 0)
                             {
@@ -132,7 +132,7 @@ else
     </div>
 
     <p class="sc-hint" style="margin-top:0.6rem">
-        💡 <strong>@Loc["notificationConfig.colDefaultOn", "Default on"]</strong>
+        💡 <strong>@Loc["notificationConfig.colDefaultOn", "Default On"]</strong>
         @Loc["notificationConfig.defaultOnHint", "applies to users who haven't chosen for themselves — including new sign-ups. Turning a module off keeps everyone's saved choices, so re-enabling it restores them."]
     </p>
 }
@@ -146,7 +146,7 @@ else
     private string? _error;
 
     /// <summary>Label for forms that sit at the top level rather than under a main module.</summary>
-    private const string TopLevelGroup = "Top level";
+    private const string TopLevelGroup = "Top Level";
 
     private readonly HashSet<string> _expanded = new();
     private bool _searching => !string.IsNullOrWhiteSpace(_search);

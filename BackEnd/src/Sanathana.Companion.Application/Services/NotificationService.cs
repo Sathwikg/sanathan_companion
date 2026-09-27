@@ -161,13 +161,13 @@ public class NotificationService : INotificationService
     {
         // Mandatory types survive the master switch and an opt-out, but never quiet hours —
         // quiet hours exist so the app stays silent while the seeker rests.
-        if (inQuiet) return (false, "Quiet hours");
-        if (!item.IsEnabled) return (false, "Turned off");
-        if (!masterEnabled && !item.IsMandatory) return (false, "All notifications paused");
+        if (inQuiet) return (false, "Quiet Hours");
+        if (!item.IsEnabled) return (false, "Turned Off");
+        if (!masterEnabled && !item.IsMandatory) return (false, "All Notifications Paused");
 
         if (item.FromTime is not null && item.ToTime is not null
             && !TimeWindow.Contains(item.FromTime, item.ToTime, now))
-            return (false, "Outside its time window");
+            return (false, "Outside Its Time Window");
 
         return (true, null);
     }

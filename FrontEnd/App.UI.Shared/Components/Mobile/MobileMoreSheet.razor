@@ -1,5 +1,10 @@
-@* Everything the bottom bar had no room for: the rest of the menu as a tappable grid, then the
-   whole tree grouped exactly as the server sent it. Same data as the sidebar, phone-shaped. *@
+@* Everything the bottom bar had no room for, as one grouped list. Same data as the sidebar,
+   phone-shaped: a module with several forms keeps its heading and lists them; a module that is
+   really one destination — childless with a route, or a group of exactly one form — is a plain
+   row, because a heading over a single line only repeats it. Consecutive single rows share one
+   list so they read as a set rather than as a run of one-line sections. There is deliberately no
+   quick grid above the list any more: it showed the very items the list shows, so every one of
+   them appeared twice on one sheet. *@
 @implements IDisposable
 @inject NavigationManager Nav
 @inject LocalizationState Loc
@@ -18,57 +23,33 @@ else if (Menu.Count == 0)
 }
 else
 {
-    @if (_plan.Secondary.Count > 0)
-    {
-        <div class="scm-quickgrid">
-            @foreach (var node in _plan.Secondary)
-            {
-                <a class="scm-quick @(MobileMenu.IsActive(node, _current) ? "active" : "")"
-                   href="@MobileMenu.Href(node)" @onclick="Navigated" @onclick:preventDefault="false">
-                    <span class="scm-quick-ic">@Icon(node)</span>
-                    <span class="scm-quick-label">@Label(node)</span>
-                </a>
-            }
-        </div>
-    }
-
     <div class="scm-more-tree">
-        @foreach (var root in Menu)
+        @foreach (var block in _blocks)
         {
-            <section class="scm-group">
-                <h3 class="scm-group-head">
-                    <span class="scm-group-ic">@Icon(root)</span>
-                    <span>@Label(root)</span>
-                </h3>
-
-                @if (root.Children.Count == 0)
-                {
-                    @if (!string.IsNullOrWhiteSpace(root.RoutePath))
-                    {
-                        <a class="scm-row @(MobileMenu.IsActive(root, _current) ? "active" : "")"
-                           href="@MobileMenu.Href(root)" @onclick="Navigated" @onclick:preventDefault="false">
-                            <span class="scm-row-label">@Loc["nav.open", "Open"]</span>
-                            <span class="scm-row-chev">›</span>
-                        </a>
-                    }
-                }
-                else
-                {
+            if (block.Group is { } group)
+            {
+                <section class="scm-group">
+                    <h3 class="scm-group-head">
+                        <span class="scm-group-ic">@Icon(group)</span>
+                        <span>@Label(group)</span>
+                    </h3>
                     <ul class="scm-rows">
-                        @foreach (var child in root.Children)
+                        @foreach (var child in block.Rows)
                         {
-                            <li>
-                                <a class="scm-row @(MobileMenu.IsActive(child, _current) ? "active" : "")"
-                                   href="@MobileMenu.Href(child)" @onclick="Navigated" @onclick:preventDefault="false">
-                                    <span class="scm-row-ic">@Icon(child)</span>
-                                    <span class="scm-row-label">@Label(child)</span>
-                                    <span class="scm-row-chev">›</span>
-                                </a>
-                            </li>
+                            @Row(child)
                         }
                     </ul>
-                }
-            </section>
+                </section>
+            }
+            else
+            {
+                <ul class="scm-rows">
+                    @foreach (var node in block.Rows)
+                    {
+                        @Row(node)
+                    }
+                </ul>
+            }
         }
     </div>
 }
@@ -77,7 +58,10 @@ else
     [Parameter] public List<MenuTreeNode>? Menu { get; set; }
     [Parameter] public EventCallback OnNavigate { get; set; }
 
-    private MobileMenu.Plan _plan = MobileMenu.Build(null);
+    /// <summary>A heading with its forms when <see cref="Group"/> is set; otherwise a run of standalone rows.</summary>
+    private sealed record Block(MenuTreeNode? Group, List<MenuTreeNode> Rows);
+
+    private List<Block> _blocks = new();
     private string _current = string.Empty;
 
     protected override void OnInitialized()
@@ -86,7 +70,45 @@ else
         _current = Nav.ToBaseRelativePath(Nav.Uri);
     }
 
-    protected override void OnParametersSet() => _plan = MobileMenu.Build(Menu);
+    protected override void OnParametersSet() => _blocks = Arrange(Menu ?? new List<MenuTreeNode>());
+
+    private static List<Block> Arrange(IReadOnlyList<MenuTreeNode> tree)
+    {
+        var blocks = new List<Block>();
+        foreach (var root in tree)
+        {
+            var single = SingleDestination(root);
+            if (single is not null)
+            {
+                if (blocks.Count == 0 || blocks[^1].Group is not null)
+                    blocks.Add(new Block(null, new List<MenuTreeNode>()));
+                blocks[^1].Rows.Add(single);
+            }
+            else if (root.Children.Count > 0)
+            {
+                blocks.Add(new Block(root, root.Children.ToList()));
+            }
+            // A childless module without a route has nowhere to go and is left out.
+        }
+        return blocks;
+    }
+
+    /// <summary>The one form a module stands for, or null when it is a real group.</summary>
+    private static MenuTreeNode? SingleDestination(MenuTreeNode root) => root.Children.Count switch
+    {
+        0 => string.IsNullOrWhiteSpace(root.RoutePath) ? null : root,
+        1 when root.Children[0].Children.Count == 0 && !string.IsNullOrWhiteSpace(root.Children[0].RoutePath) => root.Children[0],
+        _ => null
+    };
+
+    private RenderFragment Row(MenuTreeNode node) => @<li>
+        <a class="scm-row @(MobileMenu.IsActive(node, _current) ? "active" : "")"
+           href="@MobileMenu.Href(node)" @onclick="Navigated" @onclick:preventDefault="false">
+            <span class="scm-row-ic">@Icon(node)</span>
+            <span class="scm-row-label">@Label(node)</span>
+            <span class="scm-row-chev">›</span>
+        </a>
+    </li>;
 
     private string Label(MenuTreeNode node) => Loc.Entity("MenuModule", node.Id, "Name", node.Name);
 

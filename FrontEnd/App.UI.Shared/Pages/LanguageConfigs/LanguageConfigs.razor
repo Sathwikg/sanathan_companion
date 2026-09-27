@@ -67,7 +67,7 @@
                         <label>&nbsp;</label>
                         <label class="sc-switchrow" style="gap:.4rem">
                             <input type="checkbox" @bind="_gapsOnly" @bind:after="ResetLabelPage" />
-                            <span>@Loc["langcfg.gapsOnly", "Only rows with gaps"]</span>
+                            <span>@Loc["langcfg.gapsOnly", "Only Rows with Gaps"]</span>
                         </label>
                     </div>
                 </div>
@@ -146,7 +146,7 @@
                             }
                         </div>
                         <button class="sc-btn-primary" @onclick="SaveMatrixAsync" disabled="@_saving">
-                            @(_saving ? Loc["common.saving", "Saving…"] : Loc["langcfg.saveTranslations", "Save translations"])
+                            @(_saving ? Loc["common.saving", "Saving…"] : Loc["langcfg.saveTranslations", "Save Translations"])
                         </button>
                     </div>
                 </div>
@@ -263,13 +263,13 @@
                         <label>&nbsp;</label>
                         <label class="sc-switchrow" style="gap:.4rem">
                             <input type="checkbox" checked="@_dictMissingOnly" @onchange="OnDictMissingChanged" />
-                            <span>@Loc["langcfg.gapsOnly", "Only rows with gaps"]</span>
+                            <span>@Loc["langcfg.gapsOnly", "Only Rows with Gaps"]</span>
                         </label>
                     </div>
                     <div class="sc-filter sc-filter-note">
                         <label>&nbsp;</label>
                         <button class="sc-btn-ghost sc-btn-sm" @onclick="HarvestAsync" disabled="@_saving">
-                            ⟳ @Loc["langcfg.harvest", "Scan for new terms"]
+                            ⟳ @Loc["langcfg.harvest", "Scan for New Terms"]
                         </button>
                     </div>
                 </div>
@@ -347,7 +347,7 @@
                             }
                         </div>
                         <button class="sc-btn-primary" @onclick="SaveDictionaryAsync" disabled="@(_saving || _dirty.Count == 0)">
-                            @(_saving ? Loc["common.saving", "Saving…"] : Loc["langcfg.saveTranslations", "Save translations"])
+                            @(_saving ? Loc["common.saving", "Saving…"] : Loc["langcfg.saveTranslations", "Save Translations"])
                         </button>
                     </div>
                 </div>
@@ -422,7 +422,7 @@
     <NotAuthorized>
         <div class="sc-card sc-empty-state">
             <div class="sc-empty-om">🔒</div>
-            <h3>@Loc["common.adminOnly", "Administrator access required"]</h3>
+            <h3>@Loc["common.adminOnly", "Administrator Access Required"]</h3>
             <p>@Loc["common.adminOnlyBody", "This section is available to administrators only."]</p>
         </div>
     </NotAuthorized>

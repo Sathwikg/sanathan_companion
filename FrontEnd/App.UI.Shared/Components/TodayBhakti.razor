@@ -20,7 +20,7 @@
 
     <div class="sc-card sc-bhakti">
         <div class="sc-bhakti-main">
-            <button type="button" class="sc-bhakti-deity" @onclick="() => OpenDetails(d)" title="@Loc["dashboard.viewDetails", "View details"]">
+            <button type="button" class="sc-bhakti-deity" @onclick="() => OpenDetails(d)" title="@Loc["dashboard.viewDetails", "View Details"]">
                 <div class="sc-bhakti-avatar">
                     @if (d.HasImage)
                     {
@@ -109,7 +109,7 @@
                 </div>
                 <button type="button" class="sc-fav lg @(Favs.IsDeity(_detail.Id) ? "on" : null)"
                         style="margin-left:auto"
-                        title="@(Favs.IsDeity(_detail.Id) ? Loc["favorites.removeFromFavorites", "Remove from favorites"] : Loc["favorites.addToFavorites", "Add to favorites"])"
+                        title="@(Favs.IsDeity(_detail.Id) ? Loc["favorites.removeFromFavorites", "Remove from Favorites"] : Loc["favorites.addToFavorites", "Add to Favorites"])"
                         @onclick="() => Favs.ToggleDeityAsync(_detail.Id)">♥</button>
             </div>
 

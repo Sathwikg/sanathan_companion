@@ -3,9 +3,9 @@
    The desktop dashboard opens with a 200px saffron hero and lays its sadhana summary out as a
    wrapping flex row that collapses to three stacked rows on a 375px screen. That is a lot of
    scrolling before a seeker reaches anything they can act on, so this page is built the other way
-   round: the greeting is one line, the sadhana summary is one row, and the actions come before the
-   reading material — then what is due now (prayers), what is special today (bhakti, panchangam),
-   and last the browse strip (chants).
+   round: the greeting is one line, the sadhana summary is one row, then what is special today —
+   the Panchangam, today's bhakti — then what is due now (prayers), the browse strip (chants),
+   and last the quick-action launcher, which the bottom bar and the More sheet already cover.
 
    Every destination is filtered through MenuState, the same Modules tree the bottom bar is built
    from, so the home screen never offers a seeker a door that opens onto access-denied.
@@ -51,11 +51,11 @@ else if (_model is not null)
                     <span class="scm-sadhana-n">
                         <span class="scm-sadhana-flame" aria-hidden="true">🔥</span>@_streak.CurrentStreak
                     </span>
-                    <span class="scm-sadhana-l">@Loc["sadhana.dayStreak", "day streak"]</span>
+                    <span class="scm-sadhana-l">@Loc["sadhana.dayStreak", "Day Streak"]</span>
                 </div>
                 <div class="scm-sadhana-cell">
                     <span class="scm-sadhana-n">@_streak.TotalMalas</span>
-                    <span class="scm-sadhana-l">@Loc["sadhana.totalMalas", "Total malas"]</span>
+                    <span class="scm-sadhana-l">@Loc["sadhana.totalMalas", "Total Malas"]</span>
                 </div>
                 <div class="scm-sadhana-cell">
                     <span class="scm-sadhana-n">@_streak.LongestStreak</span>
@@ -70,8 +70,8 @@ else if (_model is not null)
             <div class="scm-sadhana-foot">
                 <span class="sc-streak-today @(_streak.PracticedToday ? "done" : "pending")">
                     @(_streak.PracticedToday
-                        ? "✓ " + Loc["sadhana.practicedToday", "Practiced today"]
-                        : Loc["sadhana.notYetToday", "Not yet today"])
+                        ? "✓ " + Loc["sadhana.practicedToday", "Practiced Today"]
+                        : Loc["sadhana.notYetToday", "Not Yet Today"])
                 </span>
                 @* Gated on the menu, not on the streak having loaded. The API grant and the phone
                    menu are separate switches (a form also needs Show in mobile to reach the
@@ -84,8 +84,33 @@ else if (_model is not null)
         </div>
     }
 
-    @* Actions before reading material: on a phone the home screen is a launcher first and a
-       digest second.
+    @* Straight after the seeker's own summary: the one block that is about the day itself. The
+       summary is useful on its own, so it stays for a seeker without the Panchangam form; only
+       the link to the full page goes. *@
+    <PanchangamToday Linked='@Menus.CanOpen("panchangam")' />
+
+    @* Today's deity and its sadhana, after the day's Panchangam. Kept because it is the one block
+       that changes daily and is the reason to open the app at all. The hardcoded five-deity "Daily Darshan" strip from the
+       desktop dashboard is deliberately NOT repeated here — this component shows the same subject
+       with real data, and two deity carousels on one phone screen is one too many. *@
+    <TodayBhakti />
+
+    @* The time-of-day prayers: the one block with a deadline. Three rows, the current one first, and the rest behind "Show all" — the full list
+       is a day's worth, most of it already past or hours away. Gated on Sadhana because every
+       prayer opens sadhana/chant/{id}; without that form each row would be a dead end. *@
+    @if (Menus.CanOpen("sadhana"))
+    {
+        <PrayerTimes MaxItems="3" />
+    }
+
+    @* After the day's blocks, because it is for browsing rather than for today. Same Sadhana gate
+       as the prayers: every chant in a category opens sadhana/chant/{id}. *@
+    @if (Menus.CanOpen("sadhana"))
+    {
+        <ChantCategories />
+    }
+    @* Last on the page: the bottom bar and the More sheet are the launchers a thumb reaches for,
+       so these tiles are a convenience after the day's content rather than the reason to open it.
 
        Reuses the More sheet's tile system (.scm-quickgrid / .scm-quick / .scm-quick-ic /
        .scm-quick-label) rather than inventing a second one, so the two launchers in this app stay
@@ -106,7 +131,7 @@ else if (_model is not null)
     @if (tiles.Count > 0)
     {
         <div class="sc-section-head">
-            <h2>⚡ @Loc["mobileDashboard.quickActions", "Quick actions"]</h2>
+            <h2>⚡ @Loc["mobileDashboard.quickActions", "Quick Actions"]</h2>
         </div>
         <nav class="scm-quickgrid scm-home-quick">
             @foreach (var t in tiles)
@@ -119,31 +144,6 @@ else if (_model is not null)
         </nav>
     }
 
-    @* The time-of-day prayers come before the daily digest because they are the one block with a
-       deadline. Three rows, the current one first, and the rest behind "Show all" — the full list
-       is a day's worth, most of it already past or hours away. Gated on Sadhana because every
-       prayer opens sadhana/chant/{id}; without that form each row would be a dead end. *@
-    @if (Menus.CanOpen("sadhana"))
-    {
-        <PrayerTimes MaxItems="3" />
-    }
-
-    @* Today's deity and its sadhana. Kept because it is the one block that changes daily and is
-       the reason to open the app at all. The hardcoded five-deity "Daily Darshan" strip from the
-       desktop dashboard is deliberately NOT repeated here — this component shows the same subject
-       with real data, and two deity carousels on one phone screen is one too many. *@
-    <TodayBhakti />
-
-    @* The summary is useful on its own, so it stays for a seeker without the Panchangam form; only
-       the link to the full page goes. *@
-    <PanchangamToday Linked='@Menus.CanOpen("panchangam")' />
-
-    @* Last, because it is for browsing rather than for today. Same Sadhana gate as the prayers:
-       every chant in a category opens sadhana/chant/{id}. *@
-    @if (Menus.CanOpen("sadhana"))
-    {
-        <ChantCategories />
-    }
 }
 else
 {
