@@ -95,6 +95,16 @@ public static class MobileMenu
             || current.StartsWith(route + "/", StringComparison.OrdinalIgnoreCase);
     }
 
+    /// <summary>
+    /// Whether any leaf of the menu leads to <paramref name="route"/> — the phone's answer to "may
+    /// I link there?". The server already cut the tree down to what this role may open on this
+    /// platform, so a shortcut to a route outside it would land on the access-denied page.
+    /// Built on <see cref="IsActive"/> so a deep link ("sadhana/chant/{id}") inherits its section's
+    /// grant and "chants-config" never borrows the one on "/chants".
+    /// </summary>
+    public static bool Contains(IEnumerable<MenuTreeNode> tree, string route)
+        => Leaves(tree).Any(n => IsActive(n, route));
+
     private static string Normalise(string? path)
     {
         var value = path ?? string.Empty;

@@ -1,3 +1,5 @@
+using Sanathana.Companion.Application.Common.Translation;
+using Sanathana.Companion.Application.DTOs.Dashboard;
 using Sanathana.Companion.Application.Services;
 using Sanathana.Companion.Domain.Entities;
 
@@ -149,5 +151,78 @@ public class DashboardServiceTests
 
         // Active prayers rank ahead of inactive ones.
         Assert.True(result.Prayers[0].IsActiveNow);
+    }
+
+    /// <summary>
+    /// The phone home shows prayers and Today's Bhakti beside Telugu labels, so their database text
+    /// is annotated — but DeityType and Slot are compared to English literals on the client, and a
+    /// translated value would silently change the avatar and the prayer icon. Every value below IS a
+    /// dictionary hit, so an unannotated property coming back unchanged proves it was never touched.
+    /// </summary>
+    [Fact]
+    public void Dashboard_display_text_is_translated_but_client_identifiers_stay_english()
+    {
+        var deityId = Guid.NewGuid();
+        var festival = new Dictionary<string, string> { ["Holi"] = "[holi]", ["Vasant Panchami"] = "[vasant]" };
+        var other = new Dictionary<string, string>
+        {
+            ["Sunday"] = "[sunday]", ["Navami"] = "[navami]", ["Hanuman"] = "[hanuman]",
+            ["Goddess"] = "[goddess]", ["Stotra"] = "[stotra]", ["Morning"] = "[morning]"
+        };
+        var all = festival.Concat(other).ToDictionary(kv => kv.Key, kv => kv.Value);
+
+        var snapshot = new TranslationSnapshot(
+            Guid.NewGuid(), "te",
+            new Dictionary<string, string> { [TranslationSnapshot.EntityKey("Deity", deityId.ToString(), "Name")] = "[row]" },
+            all.ToDictionary(kv => TermMatcher.NormaliseKey(kv.Key), kv => kv.Value),
+            new Dictionary<string, TermMatcher> { ["festival"] = new(festival), ["panchangam"] = new(other) },
+            new TermMatcher(all),
+            new HashSet<string>());
+
+        var bhakti = new TodayBhaktiDto
+        {
+            DayOfWeek = "Sunday",
+            // "Rama Navami" is not a festival term: the category scope must stop the panchangam
+            // "Navami" biting into it and leaving a half-translated name.
+            FestivalName = "Holi, Vasant Panchami, Rama Navami",
+            Deities =
+            [
+                new TodayDeityDto
+                {
+                    Id = deityId, Name = "Hanuman", DeityType = "Goddess", Days = ["Sunday"], Reason = "Sunday",
+                    Sadhanas = [new TodaySadhanaDto { Name = "Stotra", CategoryName = "Stotra" }]
+                }
+            ]
+        };
+        var prayers = new PrayersDto
+        {
+            Prayers = [new PrayerDto { Name = "Stotra", CategoryName = "Stotra", DeityNames = ["Hanuman"], TimeDescription = "Morning", Slot = "Morning" }]
+        };
+
+        // A festival reason keeps its English prefix, which the client re-words, and translates the name.
+        var festivalDeity = new TodayDeityDto { Id = Guid.NewGuid(), Name = "Hanuman", Reason = "Festival · Holi" };
+
+        new ObjectGraphTranslator(snapshot).Walk(bhakti);
+        new ObjectGraphTranslator(snapshot).Walk(prayers);
+        new ObjectGraphTranslator(snapshot).Walk(festivalDeity);
+
+        Assert.Equal("[holi], [vasant], Rama Navami", bhakti.FestivalName);
+        var deity = Assert.Single(bhakti.Deities);
+        Assert.Equal("[row]", deity.Name);                 // per-row override beats the dictionary
+        Assert.Equal("[sunday]", Assert.Single(deity.Days));
+        Assert.Equal("[sunday]", deity.Reason);
+        Assert.Equal("Festival · [holi]", festivalDeity.Reason);
+        Assert.Equal("[stotra]", deity.Sadhanas[0].CategoryName);
+        var prayer = Assert.Single(prayers.Prayers);
+        Assert.Equal("[stotra]", prayer.CategoryName);
+        Assert.Equal("[hanuman]", Assert.Single(prayer.DeityNames));
+
+        // Identifiers and deliberately-English text.
+        Assert.Equal("Goddess", deity.DeityType);
+        Assert.Equal("Morning", prayer.Slot);
+        Assert.Equal("Sunday", bhakti.DayOfWeek);
+        Assert.Equal("Stotra", deity.Sadhanas[0].Name);
+        Assert.Equal("Stotra", prayer.Name);
+        Assert.Equal("Morning", prayer.TimeDescription);
     }
 }

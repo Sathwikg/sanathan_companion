@@ -1,5 +1,6 @@
 @* Today's Bhakti — today's deity (auto slideshow when more than one) and the sadhana
    configured for it. Tapping the deity opens details; tapping a sadhana opens its japa screen. *@
+@inherits LocalizedComponentBase
 @implements IDisposable
 @inject IApiClient Api
 @inject IAppLifecycle Lifecycle
@@ -13,13 +14,13 @@
 {
     var d = Current;
     <div class="sc-section-head">
-        <h2>🪔 Today's Bhakti</h2>
+        <h2>🪔 @Loc["dashboard.todaysBhakti", "Today's Bhakti"]</h2>
         <span class="sc-section-sub">@Subtitle</span>
     </div>
 
     <div class="sc-card sc-bhakti">
         <div class="sc-bhakti-main">
-            <button type="button" class="sc-bhakti-deity" @onclick="() => OpenDetails(d)" title="View details">
+            <button type="button" class="sc-bhakti-deity" @onclick="() => OpenDetails(d)" title="@Loc["dashboard.viewDetails", "View details"]">
                 <div class="sc-bhakti-avatar">
                     @if (d.HasImage)
                     {
@@ -31,18 +32,18 @@
                     }
                 </div>
                 <div class="sc-bhakti-deity-meta">
-                    <span class="sc-bhakti-kicker">Today's Deity</span>
+                    <span class="sc-bhakti-kicker">@Loc["dashboard.todaysDeity", "Today's Deity"]</span>
                     <strong class="sc-bhakti-name">@d.Name</strong>
-                    <span class="sc-bhakti-reason">@(string.IsNullOrWhiteSpace(d.Reason) ? d.DeityType : d.Reason)</span>
-                    <span class="sc-bhakti-hint">Tap for details →</span>
+                    <span class="sc-bhakti-reason">@(string.IsNullOrWhiteSpace(d.Reason) ? TypeLabel(d) : ReasonText(d.Reason))</span>
+                    <span class="sc-bhakti-hint">@Loc["dashboard.tapForDetails", "Tap for details"] →</span>
                 </div>
             </button>
 
             <div class="sc-bhakti-sadhana">
-                <span class="sc-bhakti-kicker">Today's Sadhana</span>
+                <span class="sc-bhakti-kicker">@Loc["sadhana.title", "Today's Sadhana"]</span>
                 @if (d.Sadhanas.Count == 0)
                 {
-                    <p class="sc-bhakti-empty">No sadhana configured for @d.Name yet.</p>
+                    <p class="sc-bhakti-empty">@Loc.TF("dashboard.noSadhanaForDeity", "No sadhana configured for {0} yet.", d.Name)</p>
                 }
                 else
                 {
@@ -60,7 +61,7 @@
                     @if (d.Sadhanas.Count > CardMaxSadhanas)
                     {
                         <button type="button" class="sc-bhakti-more" @onclick="() => OpenDetails(d)">
-                            +@(d.Sadhanas.Count - CardMaxSadhanas) more →
+                            @Loc.TF("dashboard.moreCount", "+{0} more", d.Sadhanas.Count - CardMaxSadhanas) →
                         </button>
                     }
                 }
@@ -74,14 +75,14 @@
                 {
                     var idx = i;
                     <button type="button" class="sc-bhakti-dot @(idx == _index ? "active" : null)"
-                            @onclick="() => Show(idx)" aria-label="@($"Show deity {idx + 1} of {_deities.Count}")"></button>
+                            @onclick="() => Show(idx)" aria-label="@(Loc.TF("dashboard.showDeityOf", "Show deity {0} of {1}", idx + 1, _deities.Count))"></button>
                 }
             </div>
         }
     </div>
 }
 
-<ScModal Visible="_detail is not null" Title="@(_detail?.Name ?? "Deity")" OnClose="CloseDetails">
+<ScModal Visible="_detail is not null" Title="@(_detail?.Name ?? Loc["chantsConfig.deity", "Deity"])" OnClose="CloseDetails">
     @if (_detail is not null)
     {
         <div class="sc-deity-detail">
@@ -99,16 +100,16 @@
                 <div>
                     <strong class="sc-bhakti-name">@_detail.Name</strong>
                     <div class="sc-deity-tags">
-                        <span class="sc-chip">@_detail.DeityType</span>
+                        <span class="sc-chip">@TypeLabel(_detail)</span>
                         @if (!string.IsNullOrWhiteSpace(_detail.Reason))
                         {
-                            <span class="sc-chip">@_detail.Reason</span>
+                            <span class="sc-chip">@ReasonText(_detail.Reason)</span>
                         }
                     </div>
                 </div>
                 <button type="button" class="sc-fav lg @(Favs.IsDeity(_detail.Id) ? "on" : null)"
                         style="margin-left:auto"
-                        title="@(Favs.IsDeity(_detail.Id) ? "Remove from favorites" : "Add to favorites")"
+                        title="@(Favs.IsDeity(_detail.Id) ? Loc["favorites.removeFromFavorites", "Remove from favorites"] : Loc["favorites.addToFavorites", "Add to favorites"])"
                         @onclick="() => Favs.ToggleDeityAsync(_detail.Id)">♥</button>
             </div>
 
@@ -122,14 +123,14 @@
             }
             @if (_detail.Days.Count > 0)
             {
-                <p class="sc-deity-days"><span class="k">Days</span>@string.Join(", ", _detail.Days)</p>
+                <p class="sc-deity-days"><span class="k">@Loc["common.days", "Days"]</span>@string.Join(", ", _detail.Days)</p>
             }
 
             <div class="sc-deity-sadhanas">
-                <span class="sc-bhakti-kicker">Sadhana</span>
+                <span class="sc-bhakti-kicker">@Loc["sadhana.sadhanaLabel", "Sadhana"]</span>
                 @if (_detail.Sadhanas.Count == 0)
                 {
-                    <p class="sc-bhakti-empty">No sadhana configured yet.</p>
+                    <p class="sc-bhakti-empty">@Loc["dashboard.noSadhanaYet", "No sadhana configured yet."]</p>
                 }
                 else
                 {
@@ -164,11 +165,13 @@
     private TodayDeity Current => _deities[_index];
 
     private string Subtitle => _isFestival && !string.IsNullOrWhiteSpace(_festivalName)
-        ? $"Festival · {_festivalName}"
-        : "Your daily devotional focus";
+        ? Loc.TF("dashboard.festivalWithName", "Festival · {0}", _festivalName)
+        : Loc["dashboard.bhaktiSub", "Your daily devotional focus"];
 
     protected override async Task OnInitializedAsync()
     {
+        await base.OnInitializedAsync();
+
         // The ticket every media URL on this page carries; see MediaUrlBuilder.
         await Media.EnsureAsync();
         Lifecycle.Changed += OnLifecycleChanged;
@@ -245,9 +248,29 @@
     private string ImgSrc(Guid id) => Media.Absolute(ApiRoutes.Media.DeityImage(id));
 
     private static string Fallback(TodayDeity d)
-        => string.Equals(d.DeityType, "Goddess", StringComparison.OrdinalIgnoreCase) ? "🙏" : "🕉️";
+        => IsGoddess(d) ? "🙏" : "🕉️";
 
-    public void Dispose()
+    private static bool IsGoddess(TodayDeity d)
+        => string.Equals(d.DeityType, "Goddess", StringComparison.OrdinalIgnoreCase);
+
+    // DeityType stays English on the wire because Fallback compares it; the label is the client's.
+    private string TypeLabel(TodayDeity d)
+        => IsGoddess(d) ? Loc["deities.goddess", "Goddess"] : Loc["deities.god", "God"];
+
+    /// <summary>
+    /// The server sends a weekday ("Sunday", translated whole) or "Festival · {name}", whose name
+    /// the server translates in place but whose "Festival · " prefix it cannot — so the prefix is
+    /// re-worded here with the same key the section subtitle uses.
+    /// </summary>
+    private string ReasonText(string? reason)
+    {
+        const string festivalPrefix = "Festival · ";
+        return reason is not null && reason.StartsWith(festivalPrefix, StringComparison.Ordinal)
+            ? Loc.TF("dashboard.festivalWithName", "Festival · {0}", reason[festivalPrefix.Length..])
+            : reason ?? string.Empty;
+    }
+
+    public override void Dispose()
     {
         _timer?.Dispose();
         Favs.OnChanged -= OnFavChanged;
@@ -255,5 +278,6 @@
         // The lifecycle service is a singleton, so a missed unsubscribe would keep this component
         // — and the deity list it holds — alive for the rest of the process.
         Lifecycle.Changed -= OnLifecycleChanged;
+        base.Dispose();
     }
 }

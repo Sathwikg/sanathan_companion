@@ -1,6 +1,10 @@
 {
   "mobileDashboard.favorites": "ಮೆಚ್ಚಿನವು",
+  "mobileDashboard.feedback": "ಪ್ರತಿಕ್ರಿಯೆ",
   "mobileDashboard.panchangam": "ಪಂಚಾಂಗ",
+  "mobileDashboard.profile": "ಪ್ರೊಫೈಲ್",
   "mobileDashboard.quickActions": "ತ್ವರಿತ ಕ್ರಿಯೆಗಳು",
-  "mobileDashboard.sadhana": "ಸಾಧನೆ"
+  "mobileDashboard.reminders": "ಜ್ಞಾಪನೆಗಳು",
+  "mobileDashboard.sadhana": "ಸಾಧನೆ",
+  "mobileDashboard.wallpapers": "ವಾಲ್‌ಪೇಪರ್"
 }

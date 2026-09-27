@@ -147,6 +147,32 @@ public class MobileMenuTests
         Assert.True(MobileMenu.IsHome(Node("Home", "/")));
     }
 
+    [Theory]
+    // Contains gates the home screen's shortcuts, so it must answer exactly as the bottom bar
+    // would: a deep link inherits its section, a look-alike route does not.
+    [InlineData("sadhana", true)]
+    [InlineData("/sadhana", true)]
+    [InlineData("sadhana/chant/8f0d2c1e-5b7a-4c1e-9d3f-2a6b8e4f1c07", true)]
+    [InlineData("panchangam", false)]
+    [InlineData("chants-config", false)]
+    public void Contains_answers_whether_the_menu_reaches_a_route(string route, bool expected)
+        => Assert.Equal(expected, MobileMenu.Contains(SampleMenu(), route));
+
+    [Fact]
+    public void A_routeless_group_does_not_grant_its_name_as_a_route()
+    {
+        // "Masters" is a heading, not a form; only its children are reachable.
+        Assert.False(MobileMenu.Contains(SampleMenu(), "masters"));
+        Assert.True(MobileMenu.Contains(SampleMenu(), "festivals"));
+    }
+
+    [Fact]
+    public void An_empty_menu_reaches_nothing()
+    {
+        Assert.False(MobileMenu.Contains([], "sadhana"));
+        Assert.False(MobileMenu.Contains([], ""));
+    }
+
     [Fact]
     public void Query_strings_and_fragments_do_not_break_the_match()
     {

@@ -1,5 +1,11 @@
 @* Dashboard component: time-configured prayers. The one whose window includes the current
-   time is highlighted as "Now"; each carries an icon for its time of day. Tapping opens sadhana. *@
+   time is highlighted as "Now"; each carries an icon for its time of day. Tapping opens sadhana.
+
+   MaxItems is for the phone home, where a full day of prayers would push everything below it
+   off the first screen: the list is capped, the prayer that is "Now" is moved to the front so the
+   cap never hides it, and a "Show all" tile inside the grid opens the rest in place. Without
+   MaxItems (the desktop) every prayer renders in API order, exactly as before. *@
+@inherits LocalizedComponentBase
 @implements IDisposable
 @inject IApiClient Api
 @inject NavigationManager Nav
@@ -8,12 +14,12 @@
 @if (_loaded && _prayers.Count > 0)
 {
     <div class="sc-section-head">
-        <h2>🙏 Prayers</h2>
-        <span class="sc-section-sub">For this time of day</span>
+        <h2>🙏 @Loc["dashboard.prayersTitle", "Prayers"]</h2>
+        <span class="sc-section-sub">@Loc["dashboard.prayersSub", "For this time of day"]</span>
     </div>
 
     <div class="sc-prayergrid">
-        @foreach (var p in _prayers)
+        @foreach (var p in Visible)
         {
             <button type="button" class="sc-card sc-prayer-card @(p.IsActiveNow ? "now" : null)" @onclick="() => Go(p)">
                 <span class="sc-prayer-ic">@Icon(p.Slot)</span>
@@ -23,7 +29,7 @@
                 </span>
                 @if (p.IsActiveNow)
                 {
-                    <span class="sc-prayer-now">Now</span>
+                    <span class="sc-prayer-now">@Loc["dashboard.prayerNow", "Now"]</span>
                 }
                 else
                 {
@@ -31,15 +37,49 @@
                 }
             </button>
         }
+        @* The toggle is the grid's last cell rather than a block after it, so it sits in the grid's
+           own gap instead of adding a row to the page rhythm; aria-expanded tells a screen reader
+           the list grew in place. *@
+        @if (IsCapped)
+        {
+            <button type="button" class="sc-prayer-more" aria-expanded="@(_expanded ? "true" : "false")" @onclick="ToggleAll">
+                @(_expanded ? Loc["dashboard.showLess", "Show less"] : Loc.TF("dashboard.showAllCount", "Show all ({0})", _prayers.Count))
+            </button>
+        }
     </div>
 }
 
 @code {
+    /// <summary>
+    /// Caps the grid at this many prayers behind a "Show all" toggle. Null (the default) shows
+    /// every prayer, which is what the desktop dashboard wants.
+    /// </summary>
+    [Parameter] public int? MaxItems { get; set; }
+
     private List<Prayer> _prayers = new();
     private bool _loaded;
+    private bool _expanded;
+
+    private bool IsCapped => MaxItems is { } max && _prayers.Count > max;
+
+    /// <summary>
+    /// With a cap, the active prayer goes first. OrderByDescending is a stable sort, so the rest
+    /// keep the order the API sent them in rather than being reshuffled.
+    /// </summary>
+    private IEnumerable<Prayer> Visible
+    {
+        get
+        {
+            if (MaxItems is not { } max) return _prayers;
+            var ordered = _prayers.OrderByDescending(p => p.IsActiveNow);
+            return IsCapped && !_expanded ? ordered.Take(max) : ordered;
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {
+        await base.OnInitializedAsync();
+
         Region.OnChanged += OnRegionChanged;
         await Region.EnsureLoadedAsync();
         await LoadAsync();
@@ -47,6 +87,8 @@
 
     private async Task LoadAsync()
     {
+        // A new region is a new list; opening it already expanded would undo the cap.
+        _expanded = false;
         try
         {
             var result = await Api.GetPrayersAsync(Region.SelectedRegionId);
@@ -65,7 +107,13 @@
     private void OnRegionChanged()
         => _ = InvokeAsync(async () => { await LoadAsync(); StateHasChanged(); });
 
-    public void Dispose() => Region.OnChanged -= OnRegionChanged;
+    public override void Dispose()
+    {
+        Region.OnChanged -= OnRegionChanged;
+        base.Dispose();
+    }
+
+    private void ToggleAll() => _expanded = !_expanded;
 
     private void Go(Prayer p) => Nav.NavigateTo($"sadhana/chant/{p.ChantConfigId}");
 
@@ -79,17 +127,26 @@
         _ => "🙏"
     };
 
+    // No-break spaces hold each time, and the range, together, and keep the " · " separator at the
+    // end of a line rather than starting the next: on a narrow phone the line broke as
+    // "12:30 PM –" / "1:30 PM" and "7:00" / "AM", and continued with "· Lord Venkateswara". The
+    // range also needs a word joiner after its dash: Unicode allows a break after an en dash even
+    // when a no-break space follows, and the next line then opened with that space.
+    private const string Nbsp = "\u00A0";
+    private const string RangeDash = "\u00A0–\u2060\u00A0";
+    private const string TimeFormat = "h:mm\u00A0tt";
+
     private static string SubLine(Prayer p)
     {
         var parts = new List<string>();
         if (!string.IsNullOrWhiteSpace(p.TimeDescription)) parts.Add(p.TimeDescription!);
         if (p.FromTime is { } f)
         {
-            var window = f.ToString("h:mm tt");
-            if (p.ToTime is { } t) window += " – " + t.ToString("h:mm tt");
+            var window = f.ToString(TimeFormat);
+            if (p.ToTime is { } t) window += RangeDash + t.ToString(TimeFormat);
             parts.Add(window);
         }
         if (p.DeityNames.Count > 0) parts.Add(string.Join(", ", p.DeityNames));
-        return string.Join(" · ", parts);
+        return string.Join(Nbsp + "· ", parts);
     }
 }

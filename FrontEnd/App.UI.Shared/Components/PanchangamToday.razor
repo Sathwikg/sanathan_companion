@@ -1,7 +1,11 @@
 @* Dashboard component: a one-line Panchangam summary. Deliberately compact — only the three
    facts a seeker checks at a glance (tithi, nakshatram, Rahu Kalam); the whole strip opens the
    full Panchangam page for everything else. Best-effort: if there is no stored Panchangam for
-   today it stays hidden rather than showing an empty shell. *@
+   today it stays hidden rather than showing an empty shell.
+
+   Linked="false" is for a seeker whose Access Rights do not include Panchangam: the facts are
+   still worth reading, but a tappable strip with an arrow would lead to a page they are refused,
+   so the same content renders as a plain card with no arrow. *@
 @inherits LocalizedComponentBase
 @implements IDisposable
 @inject IApiClient Api
@@ -9,31 +13,28 @@
 
 @if (_today is not null)
 {
-    <a href="panchangam" class="sc-card sc-pchg-mini">
-        <span class="sc-pchg-mini-ic">🗓️</span>
-
-        <span class="sc-pchg-mini-body">
-            <span class="sc-pchg-mini-head">
-                <span class="sc-pchg-mini-title">@Loc["dashboard.panchangamTitle", "Today's Panchangam"]</span>
-                <span class="sc-pchg-mini-date">@_today.Date.ToString("ddd, dd MMM yyyy")</span>
-                @if (!string.IsNullOrWhiteSpace(_today.RegionName))
-                {
-                    <span class="sc-pchg-mini-region">🗺️ @_today.RegionName</span>
-                }
-            </span>
-
-            <span class="sc-pchg-mini-facts">
-                @Fact(Loc["panchangam.tithi", "Tithi"], _today.TithiDetails)
-                @Fact(Loc["panchangam.nakshatram", "Nakshatram"], _today.NakshatramDetails)
-                @Fact(Loc["panchangam.rahuKalam", "Rahu Kalam"], _today.RahuKalam, warn: true)
-            </span>
-        </span>
-
-        <span class="sc-pchg-mini-go" aria-hidden="true">→</span>
-    </a>
+    @if (Linked)
+    {
+        <a href="panchangam" class="sc-card sc-pchg-mini">
+            @Summary(_today)
+            <span class="sc-pchg-mini-go" aria-hidden="true">→</span>
+        </a>
+    }
+    else
+    {
+        <div class="sc-card sc-pchg-mini">
+            @Summary(_today)
+        </div>
+    }
 }
 
 @code {
+    /// <summary>
+    /// True (the default) makes the strip a link to the Panchangam page. Pass false when the
+    /// seeker cannot open that page.
+    /// </summary>
+    [Parameter] public bool Linked { get; set; } = true;
+
     private PanchangamModel? _today;
 
     protected override async Task OnInitializedAsync()
@@ -71,6 +72,32 @@
         Region.OnChanged -= OnRegionChanged;
         base.Dispose();
     }
+
+    /// <summary>
+    /// The icon and body shared by both wrappers, written once so the linked and plain strips
+    /// cannot drift apart. The parameter must be named __builder for Razor to compile the markup.
+    /// </summary>
+    private RenderFragment Summary(PanchangamModel today) => __builder =>
+    {
+        <span class="sc-pchg-mini-ic">🗓️</span>
+
+        <span class="sc-pchg-mini-body">
+            <span class="sc-pchg-mini-head">
+                <span class="sc-pchg-mini-title">@Loc["dashboard.panchangamTitle", "Today's Panchangam"]</span>
+                <span class="sc-pchg-mini-date">@today.Date.ToString("ddd, dd MMM yyyy")</span>
+                @if (!string.IsNullOrWhiteSpace(today.RegionName))
+                {
+                    <span class="sc-pchg-mini-region">🗺️ @today.RegionName</span>
+                }
+            </span>
+
+            <span class="sc-pchg-mini-facts">
+                @Fact(Loc["panchangam.tithi", "Tithi"], today.TithiDetails)
+                @Fact(Loc["panchangam.nakshatram", "Nakshatram"], today.NakshatramDetails)
+                @Fact(Loc["panchangam.rahuKalam", "Rahu Kalam"], today.RahuKalam, warn: true)
+            </span>
+        </span>
+    };
 
     /// <summary>
     /// One label/value pair. The value is never trimmed in code — long values are ellipsised by

@@ -1,6 +1,10 @@
 {
   "mobileDashboard.favorites": "பிடித்தவை",
+  "mobileDashboard.feedback": "கருத்து",
   "mobileDashboard.panchangam": "பஞ்சாங்கம்",
+  "mobileDashboard.profile": "சுயவிவரம்",
   "mobileDashboard.quickActions": "விரைவு செயல்கள்",
-  "mobileDashboard.sadhana": "சாதனா"
+  "mobileDashboard.reminders": "நினைவூட்டல்",
+  "mobileDashboard.sadhana": "சாதனா",
+  "mobileDashboard.wallpapers": "வால்பேப்பர்"
 }

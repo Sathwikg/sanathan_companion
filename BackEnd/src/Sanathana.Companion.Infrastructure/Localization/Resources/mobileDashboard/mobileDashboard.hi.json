@@ -1,6 +1,10 @@
 {
   "mobileDashboard.favorites": "पसंदीदा",
+  "mobileDashboard.feedback": "प्रतिक्रिया",
   "mobileDashboard.panchangam": "पंचांग",
+  "mobileDashboard.profile": "प्रोफ़ाइल",
   "mobileDashboard.quickActions": "त्वरित कार्य",
-  "mobileDashboard.sadhana": "साधना"
+  "mobileDashboard.reminders": "अनुस्मारक",
+  "mobileDashboard.sadhana": "साधना",
+  "mobileDashboard.wallpapers": "वॉलपेपर"
 }
