@@ -54,7 +54,7 @@ jobs:
           dotnet test BackEnd/Sanathana.Companion.slnx -c Release --no-build
           --logger "trx;LogFileName=backend.trx" --results-directory TestResults
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: backend-test-results
@@ -111,7 +111,7 @@ jobs:
       # is a break in the deploy. It needs no wasm-tools workload — that Dockerfile proves it.
       - run: dotnet publish FrontEnd/App.Web/App.Web.csproj -c Release --no-restore -o publish/web
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: web-test-results
@@ -217,7 +217,7 @@ jobs:
           -p:RuntimeIdentifier=iossimulator-arm64
           -p:CodesignRequireProvisioningProfile=false
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: ios-simulator-app
           path: FrontEnd/App.Mobile/bin/Debug/net10.0-ios/iossimulator-arm64/**/*.app
@@ -297,7 +297,7 @@ jobs:
       # failure only — a green run has nothing to say.
       - name: Secret scan report
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: gitleaks-report
           path: gitleaks-report.json
