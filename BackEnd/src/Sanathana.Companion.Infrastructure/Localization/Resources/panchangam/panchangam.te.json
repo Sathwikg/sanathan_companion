@@ -25,6 +25,7 @@
   "panchangam.nextDay": "తదుపరి రోజు",
   "panchangam.noCoordinates": "(అక్షాంశ రేఖాంశాలు లేవు)",
   "panchangam.noDataBody": "ఈ తేదీకి, ఈ ప్రాంతానికి నిల్వ చేసిన సమాచారం లేదు. “రూపొందించు” ప్రయత్నించండి, లేదా తక్షణ గణన కోసం “నా స్థానం” ఉపయోగించండి.",
+  "panchangam.noDataBodySeeker": "ఈ తేదీకి, ఈ ప్రాంతానికి నిల్వ చేసిన సమాచారం లేదు. తక్షణ గణన కోసం “నా స్థానం” ఉపయోగించండి.",
   "panchangam.noDataTitle": "ఈ రోజుకి పంచాంగం లేదు",
   "panchangam.overwriteExisting": "ఇప్పటికే ఉన్న రోజులను తిరిగి రాయి",
   "panchangam.paksham": "పక్షం",

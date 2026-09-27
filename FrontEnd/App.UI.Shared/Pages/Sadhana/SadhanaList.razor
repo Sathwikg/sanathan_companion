@@ -33,16 +33,16 @@ else if (_today is not null)
                 <span class="ic">🔥</span>
                 <div>
                     <div class="sc-streak-num">@s.CurrentStreak</div>
-                    <div class="sc-streak-label">@Loc["sadhana.dayStreak", "day streak"]</div>
+                    <div class="sc-streak-label">@Loc["sadhana.dayStreak", "Day Streak"]</div>
                 </div>
             </div>
             <span class="sc-streak-today @(s.PracticedToday ? "done" : "pending")">
-                @(s.PracticedToday ? "✓ " + Loc["sadhana.practicedToday", "Practiced today"] : Loc["sadhana.notYetToday", "Not yet today"])
+                @(s.PracticedToday ? "✓ " + Loc["sadhana.practicedToday", "Practiced Today"] : Loc["sadhana.notYetToday", "Not Yet Today"])
             </span>
             <div class="sc-streak-stats">
                 <div class="sc-streak-stat"><div class="n">@s.LongestStreak</div><div class="l">@Loc["sadhana.longest", "Longest"]</div></div>
-                <div class="sc-streak-stat"><div class="n">@_today.TodayMalas</div><div class="l">@Loc["sadhana.malasToday", "Malas today"]</div></div>
-                <div class="sc-streak-stat"><div class="n">@s.TotalMalas</div><div class="l">@Loc["sadhana.totalMalas", "Total malas"]</div></div>
+                <div class="sc-streak-stat"><div class="n">@_today.TodayMalas</div><div class="l">@Loc["sadhana.malasToday", "Malas Today"]</div></div>
+                <div class="sc-streak-stat"><div class="n">@s.TotalMalas</div><div class="l">@Loc["sadhana.totalMalas", "Total Malas"]</div></div>
                 <div class="sc-streak-stat"><div class="n">@s.TotalDaysPracticed</div><div class="l">@Loc["common.days", "Days"]</div></div>
             </div>
         </div>
@@ -68,9 +68,9 @@ else if (_today is not null)
         {
             <div class="sc-card sc-empty-state">
                 <div class="sc-empty-om">🪷</div>
-                <h3>@Loc.TF("sadhana.noRecoForDay", "No specific recommendation for {0}", _today.DayOfWeek)</h3>
+                <h3>@Loc.TF("sadhana.noRecoForDay", "No Specific Recommendation for {0}", _today.DayOfWeek)</h3>
                 <p>@Loc["sadhana.noRecoBody", "No deity is mapped to today in the Deity master. Browse all chants and practice any you wish."]</p>
-                <button class="sc-btn-primary sc-btn-sm" @onclick="SwitchToAll">@Loc["sadhana.browseAllChants", "Browse all chants"]</button>
+                <button class="sc-btn-primary sc-btn-sm" @onclick="SwitchToAll">@Loc["sadhana.browseAllChants", "Browse All Chants"]</button>
             </div>
         }
         else
@@ -87,13 +87,13 @@ else if (_today is not null)
     {
         <div class="sc-card sc-filtercard">
             <div class="sc-filter" style="min-width:280px">
-                <label>@Loc["sadhana.searchSavedChants", "Search saved chants"]</label>
+                <label>@Loc["sadhana.searchSavedChants", "Search Saved Chants"]</label>
                 <input class="sc-input sc-input-sm" placeholder="@Loc["sadhana.searchPlaceholder", "Name, deity or category…"]" @bind="_search" @bind:event="oninput" @bind:after="SearchAsync" />
             </div>
         </div>
         @if (_allChants.Count == 0)
         {
-            <div class="sc-card sc-empty-state"><div class="sc-empty-om">🔎</div><h3>@Loc["sadhana.noChantsFound", "No chants found"]</h3></div>
+            <div class="sc-card sc-empty-state"><div class="sc-empty-om">🔎</div><h3>@Loc["sadhana.noChantsFound", "No Chants Found"]</h3></div>
         }
         else
         {

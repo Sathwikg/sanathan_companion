@@ -25,7 +25,7 @@
 {
     <div class="sc-card sc-empty-state">
         <div class="sc-empty-om">🔒</div>
-        <h3>@Loc["common.adminOnly", "Administrator access required"]</h3>
+        <h3>@Loc["common.adminOnly", "Administrator Access Required"]</h3>
         <p>@Loc["common.adminOnlyBody", "Issue types are managed by administrators only."]</p>
     </div>
 }
@@ -41,7 +41,7 @@ else if (_list.Count == 0)
 {
     <div class="sc-card sc-empty-state">
         <div class="sc-empty-om">🏷️</div>
-        <h3>@Loc.TF("msg.noItemsYet", "No {0} yet", Loc["issueTypes.entityPlural", "issue types"])</h3>
+        <h3>@Loc.TF("msg.noItemsYet", "No {0} Yet", Loc.TitleCase(Loc["issueTypes.entityPlural", "issue types"]))</h3>
         <p>@Loc.TF("msg.createFirst", "Create your first {0} to get started.", Loc["issueTypes.entityName", "issue type"])</p>
         <button class="sc-btn-primary sc-btn-sm" @onclick="OpenCreate">+ @Loc["issueTypes.createTitle", "Create Issue Type"]</button>
     </div>
@@ -95,7 +95,7 @@ else
             <ValidationMessage For="() => _model.Description" />
         </div>
         <div class="sc-field" style="max-width:160px">
-            <label>@Loc["issueTypes.displayOrder", "Display order"]</label>
+            <label>@Loc["issueTypes.displayOrder", "Display Order"]</label>
             <InputNumber @bind-Value="_model.DisplayOrder" class="sc-input" />
         </div>
 
@@ -200,7 +200,7 @@ else
             Message = activate
                 ? Loc.TF("issueTypes.confirmActivateBody", "Are you sure you want to activate “{0}”?", t.Name)
                 : Loc.TF("issueTypes.confirmDeactivateBody", "Are you sure you want to deactivate “{0}”?", t.Name),
-            ConfirmText = activate ? Loc["common.yesActivate", "Yes, activate"] : Loc["common.yesDeactivate", "Yes, deactivate"],
+            ConfirmText = activate ? Loc["common.yesActivate", "Yes, Activate"] : Loc["common.yesDeactivate", "Yes, Deactivate"],
             CancelText = Loc["common.cancel", "Cancel"],
             Kind = activate ? ConfirmKind.Success : ConfirmKind.Warning
         });

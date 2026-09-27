@@ -618,6 +618,8 @@ button.sc-prefrow { width: 100%; border: none; font: inherit; text-align: left; 
 button.sc-prefrow:disabled { opacity: 0.55; cursor: default; }
 button.sc-prefrow:disabled:hover { background: var(--color-surface-2); }
 .sc-aboutcard .sc-detail-grid { margin-bottom: 0; }
+.sc-about-title { display: flex; align-items: center; gap: 0.5rem; }
+.sc-about-title .sc-om { flex-shrink: 0; border-radius: 7px; }
 
 /* ---- Profile: account closure ----
    Deliberately the last card and deliberately quiet until opened: the destructive control only
@@ -820,6 +822,10 @@ button.sc-prefrow:disabled:hover { background: var(--color-surface-2); }
   }
   .sc-modal.sc-modal-form { max-height: calc(100dvh - 2.5rem); padding-bottom: 0; }
   .sc-modal-actions { flex-direction: column-reverse; }
+  /* In a column, the 8rem flex-basis the desktop rule gives these buttons stops being a width and
+     becomes their HEIGHT (flex-basis wins over height on the main axis), so every action grew to
+     128px tall. Let the height rule size them, and make each one span the row. */
+  .sc-modal-actions .sc-btn-ghost, .sc-modal-actions .sc-btn-primary, .sc-modal-actions .sc-btn-danger { flex: 0 0 auto; width: 100%; }
   .sc-modal.sc-modal-form .sc-modal-actions {
     padding-bottom: max(0.25rem, env(safe-area-inset-bottom));
   }
@@ -893,6 +899,21 @@ button.sc-prefrow:disabled:hover { background: var(--color-surface-2); }
 .sc-chiprow { display: flex; flex-wrap: wrap; gap: 0.3rem; }
 .sc-minichip { font-size: 0.68rem; padding: 0.12rem 0.5rem; border-radius: 999px; background: var(--color-primary-container); color: var(--color-on-primary-container); }
 .sc-minichip.day { background: color-mix(in srgb, var(--color-gold) 22%, transparent); color: var(--color-on-surface); }
+
+/* ---- Role chip as a button + the "Your Role" popup (RoleDetailsModal) ---- */
+.sc-typechip-btn { border: 0; margin: 0; font-family: inherit; line-height: 1.5; cursor: pointer; display: inline-flex; align-items: center; gap: 0.25rem; }
+.sc-typechip-btn .ic { font-size: 0.78rem; opacity: 0.8; }
+.sc-typechip-btn:hover { filter: brightness(0.94); }
+.sc-typechip-btn:focus-visible { outline: 2px solid color-mix(in srgb, var(--color-primary) 45%, transparent); outline-offset: 2px; }
+.sc-rolecards { display: flex; flex-direction: column; gap: 0.9rem; }
+.sc-rolecard { display: flex; flex-direction: column; gap: 0.5rem; padding: 0.95rem 1.05rem; border-radius: 16px; border: 1px solid var(--glass-border); background: color-mix(in srgb, var(--color-primary) 5%, var(--color-surface)); }
+.sc-rolecard-head { display: flex; align-items: center; gap: 0.55rem; flex-wrap: wrap; }
+.sc-rolecard-head .sc-typechip { font-size: 0.82rem; padding: 0.22rem 0.7rem; }
+.sc-rolecard-name { font-family: var(--font-heading); font-size: 1.05rem; color: var(--color-on-surface); }
+.sc-rolecard-desc { margin: 0; color: var(--color-secondary); font-size: 0.9rem; line-height: 1.45; }
+.sc-rolecard.is-upcoming { border-style: dashed; border-color: color-mix(in srgb, var(--color-gold) 60%, transparent); background: color-mix(in srgb, var(--color-gold) 9%, var(--color-surface)); }
+.sc-rolecard-perks { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.sc-rolecard-perks li { font-size: 0.85rem; font-weight: 600; padding: 0.25rem 0.65rem; border-radius: 999px; background: color-mix(in srgb, var(--color-success) 14%, transparent); color: var(--color-success); }
 
 /* ---- Rich text editor ---- */
 .sc-rte { border: 1px solid var(--color-outline); border-radius: var(--radius-md); background: var(--color-background); overflow: hidden; }

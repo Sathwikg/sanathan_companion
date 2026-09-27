@@ -28,17 +28,17 @@
         <div class="sc-filter">
             <label>@Loc["common.type", "Type"]</label>
             <SearchableSelect Options="CategoryOptions" Value="@_chantId" ValueChanged="OnTypeChanged"
-                              EmptyLabel="@Loc["chantsConfig.allTypes", "All types"]" SearchPlaceholder="@Loc["chantsConfig.searchTypes", "Search types…"]" />
+                              EmptyLabel="@Loc["chantsConfig.allTypes", "All Types"]" SearchPlaceholder="@Loc["chantsConfig.searchTypes", "Search types…"]" />
         </div>
         <div class="sc-filter">
             <label>@Loc["chantsConfig.deity", "Deity"]</label>
             <SearchableSelect Options="DeityOptions" Value="@_deityId" ValueChanged="OnDeityChanged"
-                              EmptyLabel="@Loc["chantsConfig.allDeities", "All deities"]" SearchPlaceholder="@Loc["chantsConfig.searchDeities", "Search deities…"]" />
+                              EmptyLabel="@Loc["chantsConfig.allDeities", "All Deities"]" SearchPlaceholder="@Loc["chantsConfig.searchDeities", "Search deities…"]" />
         </div>
         <div class="sc-filter">
             <label>@Loc["common.time", "Time"]</label>
             <SearchableSelect Options="TimeSelectOptions" Value="@_timeFilter" ValueChanged="OnTimeChanged"
-                              EmptyLabel="@Loc["chantsConfig.allTimes", "All times"]" SearchPlaceholder="@Loc["chantsConfig.searchTimes", "Search times…"]" />
+                              EmptyLabel="@Loc["chantsConfig.allTimes", "All Times"]" SearchPlaceholder="@Loc["chantsConfig.searchTimes", "Search times…"]" />
         </div>
         <div class="sc-filter">
             <label>@Loc["common.search", "Search"]</label>
@@ -60,7 +60,7 @@ else if (Filtered.Count == 0)
 {
     <div class="sc-card sc-empty-state">
         <div class="sc-empty-om">📜</div>
-        <h3>@Loc["chantsConfig.emptyTitle", "No chants configured"]</h3>
+        <h3>@Loc["chantsConfig.emptyTitle", "No Chants Configured"]</h3>
         <p>@(HasFilters ? Loc["chantsConfig.noMatch", "No chants match the current filters."] : Loc["chantsConfig.emptyBody", "Add your first chant to get started."])</p>
         <button class="sc-btn-primary sc-btn-sm" @onclick='() => Nav.NavigateTo("chants-config/create")'>+ @Loc["chantsConfig.addNew", "Add New Chant"]</button>
     </div>
@@ -311,8 +311,8 @@ else
                 ? Loc.TF("chantsConfig.confirmActivateBody", "Are you sure you want to activate “{0}”?", c.Name)
                 : Loc.TF("chantsConfig.confirmDeactivateBody", "Are you sure you want to deactivate “{0}”?", c.Name),
             ConfirmText = activate
-                ? Loc["common.yesActivate", "Yes, activate"]
-                : Loc["common.yesDeactivate", "Yes, deactivate"],
+                ? Loc["common.yesActivate", "Yes, Activate"]
+                : Loc["common.yesDeactivate", "Yes, Deactivate"],
             CancelText = Loc["common.cancel", "Cancel"],
             Kind = activate ? ConfirmKind.Success : ConfirmKind.Warning
         });
@@ -333,7 +333,7 @@ else
         {
             Title = Loc.TF("common.confirmDelete", "Delete {0}?", Loc["chantsConfig.entity", "chant"]),
             Message = Loc.TF("chantsConfig.deleteBody", "“{0}” and its audio will be permanently deleted. This cannot be undone.", c.Name),
-            ConfirmText = Loc["common.yesDelete", "Yes, delete"],
+            ConfirmText = Loc["common.yesDelete", "Yes, Delete"],
             CancelText = Loc["common.cancel", "Cancel"],
             Kind = ConfirmKind.Danger
         });

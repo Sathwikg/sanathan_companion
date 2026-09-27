@@ -27,7 +27,7 @@ else if (_forbidden)
 {
     <div class="sc-card sc-empty-state">
         <div class="sc-empty-om">🔒</div>
-        <h3>@Loc["common.adminOnly", "Administrator access required"]</h3>
+        <h3>@Loc["common.adminOnly", "Administrator Access Required"]</h3>
         <p>@Loc["common.adminOnlyBody", "The Admin dashboard is available to administrators only."]</p>
     </div>
 }
@@ -38,10 +38,10 @@ else if (_model is not null)
         <span class="sc-section-sub">@Loc["adminDashboard.communitySub", "Seekers who have joined the companion"]</span>
     </div>
     <div class="sc-stat-grid">
-        <StatCard Icon="👥" Value="@_model.TotalUsers.ToString("N0")" Label='@Loc["adminDashboard.totalUsers", "Total Users"]' Sub='@Loc["adminDashboard.onboarded", "onboarded"]' Accent="true" />
+        <StatCard Icon="👥" Value="@_model.TotalUsers.ToString("N0")" Label='@Loc["adminDashboard.totalUsers", "Total Users"]' Sub='@Loc["adminDashboard.onboarded", "Onboarded"]' Accent="true" />
         <StatCard Icon="🪷" Value="@_model.TotalSeekers.ToString("N0")" Label='@Loc["adminDashboard.seekers", "Seekers"]' />
         <StatCard Icon="🛡️" Value="@_model.TotalAdmins.ToString("N0")" Label='@Loc["adminDashboard.admins", "Admins"]' />
-        <StatCard Icon="✨" Value="@_model.NewThisWeek.ToString("N0")" Label='@Loc["adminDashboard.newThisWeek", "New This Week"]' Sub='@Loc["adminDashboard.last7Days", "last 7 days"]' />
+        <StatCard Icon="✨" Value="@_model.NewThisWeek.ToString("N0")" Label='@Loc["adminDashboard.newThisWeek", "New This Week"]' Sub='@Loc["adminDashboard.last7Days", "Last 7 Days"]' />
     </div>
 
     <div class="sc-section-head">
@@ -49,10 +49,10 @@ else if (_model is not null)
         <span class="sc-section-sub">@Loc["adminDashboard.sadhanaSub", "Practice across all seekers"]</span>
     </div>
     <div class="sc-stat-grid">
-        <StatCard Icon="📿" Value="@_model.TotalMalas.ToString("N0")" Label='@Loc["adminDashboard.totalMalas", "Total Malas"]' Sub='@Loc["adminDashboard.completed", "completed"]' Accent="true" />
-        <StatCard Icon="🔢" Value="@_model.TotalJapa.ToString("N0")" Label='@Loc["adminDashboard.totalJapa", "Total Japa"]' Sub='@Loc["adminDashboard.repetitions", "repetitions"]' />
-        <StatCard Icon="🔥" Value="@_model.ActiveToday.ToString("N0")" Label='@Loc["adminDashboard.activeToday", "Active Today"]' Sub='@Loc["adminDashboard.practicedToday", "practiced today"]' />
-        <StatCard Icon="📖" Value="@_model.TotalSessions.ToString("N0")" Label='@Loc["adminDashboard.sessions", "Sessions"]' Sub='@Loc["adminDashboard.sadhanaLogged", "sadhana logged"]' />
+        <StatCard Icon="📿" Value="@_model.TotalMalas.ToString("N0")" Label='@Loc["adminDashboard.totalMalas", "Total Malas"]' Sub='@Loc["adminDashboard.completed", "Completed"]' Accent="true" />
+        <StatCard Icon="🔢" Value="@_model.TotalJapa.ToString("N0")" Label='@Loc["adminDashboard.totalJapa", "Total Japa"]' Sub='@Loc["adminDashboard.repetitions", "Repetitions"]' />
+        <StatCard Icon="🔥" Value="@_model.ActiveToday.ToString("N0")" Label='@Loc["adminDashboard.activeToday", "Active Today"]' Sub='@Loc["adminDashboard.practicedToday", "Practiced Today"]' />
+        <StatCard Icon="📖" Value="@_model.TotalSessions.ToString("N0")" Label='@Loc["adminDashboard.sessions", "Sessions"]' Sub='@Loc["adminDashboard.sadhanaLogged", "Sadhana Logged"]' />
         <StatCard Icon="📅" Value="@_model.TotalDaysPracticed.ToString("N0")" Label='@Loc["adminDashboard.practiceDays", "Practice Days"]' />
         <StatCard Icon="🏅" Value="@_model.LongestStreak.ToString("N0")" Label='@Loc["adminDashboard.longestStreak", "Longest Streak"]' Sub='@Loc["common.days", "days"]' />
     </div>

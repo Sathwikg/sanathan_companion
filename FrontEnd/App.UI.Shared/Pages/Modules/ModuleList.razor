@@ -69,8 +69,8 @@ else
                 ? Loc.TF("modules.mainModuleCountOne", "{0} main module", _tree.Count)
                 : Loc.TF("modules.mainModuleCountMany", "{0} main modules", _tree.Count))</span>
             <span class="sc-flex-spacer"></span>
-            <button class="sc-btn-ghost sc-btn-sm" @onclick="ExpandAll">⊞ @Loc["common.expandAll", "Expand all"]</button>
-            <button class="sc-btn-ghost sc-btn-sm" @onclick="CollapseAll">⊟ @Loc["common.collapseAll", "Collapse all"]</button>
+            <button class="sc-btn-ghost sc-btn-sm" @onclick="ExpandAll">⊞ @Loc["common.expandAll", "Expand All"]</button>
+            <button class="sc-btn-ghost sc-btn-sm" @onclick="CollapseAll">⊟ @Loc["common.collapseAll", "Collapse All"]</button>
         </div>
         <ul class="sc-mtree">
             @foreach (var node in _tree)
@@ -148,8 +148,8 @@ else
                 ? Loc.TF("modules.confirmActivateBody", "Are you sure you want to activate “{0}”?", name)
                 : Loc.TF("modules.confirmDeactivateBody", "Are you sure you want to deactivate “{0}”?", name),
             ConfirmText = activate
-                ? Loc["common.yesActivate", "Yes, activate"]
-                : Loc["common.yesDeactivate", "Yes, deactivate"],
+                ? Loc["common.yesActivate", "Yes, Activate"]
+                : Loc["common.yesDeactivate", "Yes, Deactivate"],
             CancelText = Loc["common.cancel", "Cancel"],
             Kind = activate ? ConfirmKind.Success : ConfirmKind.Warning
         });

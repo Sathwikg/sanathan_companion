@@ -75,11 +75,11 @@
                                 <span class="scm-notif-meta">
                                     @if (item.IsActiveNow)
                                     {
-                                        <span class="scm-notif-live">● @Loc["nav.notifActiveNow", "Active now"]</span>
+                                        <span class="scm-notif-live">● @Loc["nav.notifActiveNow", "Active Now"]</span>
                                     }
                                     else
                                     {
-                                        <span class="scm-notif-off">@(item.InactiveReason ?? Loc["nav.notifInactive", "Not active"])</span>
+                                        <span class="scm-notif-off">@(item.InactiveReason ?? Loc["nav.notifInactive", "Not Active"])</span>
                                     }
                                     @if (item.FromTime is not null && item.ToTime is not null)
                                     {
@@ -95,7 +95,7 @@
 
         <div class="scm-panel-foot">
             <a class="sc-btn-primary sc-btn-sm" href="my-notifications" @onclick="Close" @onclick:preventDefault="false">
-                @Loc["nav.notifManage", "Manage notifications"] →
+                @Loc["nav.notifManage", "Manage Notifications"] →
             </a>
         </div>
     </div>

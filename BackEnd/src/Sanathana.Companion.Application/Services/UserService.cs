@@ -137,6 +137,7 @@ public class UserService : IUserService
             Email = u.Email,
             MobileNumber = u.MobileNumber,
             RoleName = u.Role?.RoleName ?? string.Empty,
+            RoleDescription = u.Role?.Description,
             IsAdmin = string.Equals(u.Role?.RoleName, RoleNames.Admin, StringComparison.OrdinalIgnoreCase),
             RegisteredOn = u.CreatedDate,
             LastUpdatedOn = u.ModifiedDate,

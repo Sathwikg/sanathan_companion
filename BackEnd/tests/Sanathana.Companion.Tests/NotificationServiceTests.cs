@@ -61,7 +61,7 @@ public class NotificationServiceTests
 
         var item = (await service.GetMySettingsAsync(UserId)).Items.Single();
         Assert.False(item.IsEnabled);
-        Assert.Equal("Turned off", item.InactiveReason);
+        Assert.Equal("Turned Off", item.InactiveReason);
     }
 
     [Fact]
@@ -100,7 +100,7 @@ public class NotificationServiceTests
 
         var item = (await service.GetMySettingsAsync(UserId)).Items.Single();
         Assert.False(item.IsActiveNow);
-        Assert.Equal("All notifications paused", item.InactiveReason);
+        Assert.Equal("All Notifications Paused", item.InactiveReason);
     }
 
     [Fact]
@@ -123,7 +123,7 @@ public class NotificationServiceTests
         var mine = await service.GetMySettingsAsync(UserId);
         Assert.True(mine.InQuietHoursNow);
         Assert.False(mine.Items.Single().IsActiveNow);
-        Assert.Equal("Quiet hours", mine.Items.Single().InactiveReason);
+        Assert.Equal("Quiet Hours", mine.Items.Single().InactiveReason);
     }
 
     [Fact]

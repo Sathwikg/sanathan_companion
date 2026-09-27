@@ -25,6 +25,7 @@
   "panchangam.nextDay": "ಮುಂದಿನ ದಿನ",
   "panchangam.noCoordinates": "(ನಿರ್ದೇಶಾಂಕಗಳಿಲ್ಲ)",
   "panchangam.noDataBody": "ಈ ದಿನಾಂಕ ಮತ್ತು ಪ್ರದೇಶಕ್ಕೆ ಸಂಗ್ರಹಿತ ಮಾಹಿತಿ ಇಲ್ಲ. “ಸೃಷ್ಟಿಸಿ” ಪ್ರಯತ್ನಿಸಿ, ಅಥವಾ ತಕ್ಷಣದ ಲೆಕ್ಕಾಚಾರಕ್ಕೆ “ನನ್ನ ಸ್ಥಳ” ಬಳಸಿ.",
+  "panchangam.noDataBodySeeker": "ಈ ದಿನಾಂಕ ಮತ್ತು ಪ್ರದೇಶಕ್ಕೆ ಸಂಗ್ರಹಿತ ಮಾಹಿತಿ ಇಲ್ಲ. ತಕ್ಷಣದ ಲೆಕ್ಕಾಚಾರಕ್ಕೆ “ನನ್ನ ಸ್ಥಳ” ಬಳಸಿ.",
   "panchangam.noDataTitle": "ಈ ದಿನಕ್ಕೆ ಪಂಚಾಂಗ ಇಲ್ಲ",
   "panchangam.overwriteExisting": "ಈಗಿರುವ ದಿನಗಳನ್ನು ಮರುಬರೆಯಿರಿ",
   "panchangam.paksham": "ಪಕ್ಷ",

@@ -28,7 +28,7 @@
 {
     <div class="sc-card sc-empty-state">
         <div class="sc-empty-om">🔒</div>
-        <h3>@Loc["common.adminOnly", "Administrator access required"]</h3>
+        <h3>@Loc["common.adminOnly", "Administrator Access Required"]</h3>
         <p>@Loc["common.adminOnlyBody", "The User master is available to administrators only."]</p>
     </div>
 }
@@ -51,7 +51,7 @@ else
 
     @if (Filtered.Count == 0)
     {
-        <div class="sc-card sc-empty-state"><div class="sc-empty-om">👥</div><h3>@Loc.TF("msg.noItemsFound", "No {0} found", Loc["users.entityPlural", "users"])</h3></div>
+        <div class="sc-card sc-empty-state"><div class="sc-empty-om">👥</div><h3>@Loc.TF("msg.noItemsFound", "No {0} Found", Loc.TitleCase(Loc["users.entityPlural", "users"]))</h3></div>
     }
     else if (_view == "grid")
     {
@@ -78,7 +78,7 @@ else
                                     @onclick="() => ConfirmToggle(u)" @onclick:stopPropagation="true">
                                 @(u.IsActive ? Loc["users.close", "Close"] : Loc["users.reopen", "Reopen"])
                             </button>
-                            <button class="sc-btn-ghost sc-btn-sm" @onclick="() => Open(u)" @onclick:stopPropagation="true">@Loc["users.viewProfile", "View profile"]</button>
+                            <button class="sc-btn-ghost sc-btn-sm" @onclick="() => Open(u)" @onclick:stopPropagation="true">@Loc["users.viewProfile", "View Profile"]</button>
                         </div>
                     </div>
                 </div>
@@ -141,23 +141,23 @@ else
             <div class="sc-detail-item"><span class="sc-detail-label">@Loc["common.email", "Email"]</span><span class="sc-detail-value">@p.Email</span></div>
             <div class="sc-detail-item"><span class="sc-detail-label">@Loc["common.mobile", "Mobile"]</span><span class="sc-detail-value">@p.MobileNumber</span></div>
             <div class="sc-detail-item"><span class="sc-detail-label">@Loc["users.registered", "Registered"]</span><span class="sc-detail-value">@p.RegisteredOn.ToLocalTime().ToString("dd MMM yyyy, HH:mm")</span></div>
-            <div class="sc-detail-item"><span class="sc-detail-label">@Loc["users.lastPractice", "Last practice"]</span><span class="sc-detail-value">@(p.LastPracticeDate?.ToString("dd MMM yyyy") ?? "—")</span></div>
+            <div class="sc-detail-item"><span class="sc-detail-label">@Loc["users.lastPractice", "Last Practice"]</span><span class="sc-detail-value">@(p.LastPracticeDate?.ToString("dd MMM yyyy") ?? "—")</span></div>
         </div>
 
         <div class="sc-detail-section">
             <h3>@Loc["users.sadhana", "Sadhana"]</h3>
             <div class="sc-streak-stats" style="margin:0;flex-wrap:wrap;gap:1.6rem">
-                <div class="sc-streak-stat"><div class="n">🔥 @p.CurrentStreak</div><div class="l">@Loc["users.currentStreak", "Current streak"]</div></div>
+                <div class="sc-streak-stat"><div class="n">🔥 @p.CurrentStreak</div><div class="l">@Loc["users.currentStreak", "Current Streak"]</div></div>
                 <div class="sc-streak-stat"><div class="n">@p.LongestStreak</div><div class="l">@Loc["users.longestStreak", "Longest"]</div></div>
-                <div class="sc-streak-stat"><div class="n">@p.TotalMalas</div><div class="l">@Loc["users.totalMalas", "Total malas"]</div></div>
-                <div class="sc-streak-stat"><div class="n">@p.TotalDaysPracticed</div><div class="l">@Loc["users.daysPracticed", "Days practiced"]</div></div>
+                <div class="sc-streak-stat"><div class="n">@p.TotalMalas</div><div class="l">@Loc["users.totalMalas", "Total Malas"]</div></div>
+                <div class="sc-streak-stat"><div class="n">@p.TotalDaysPracticed</div><div class="l">@Loc["users.daysPracticed", "Days Practiced"]</div></div>
             </div>
         </div>
 
         @if (p.RecentSadhana.Count > 0)
         {
             <div class="sc-detail-section">
-                <h3>@Loc["users.recentPractice", "Recent practice"]</h3>
+                <h3>@Loc["users.recentPractice", "Recent Practice"]</h3>
                 <div class="sc-tablewrap">
                     <table class="sc-table">
                         <thead><tr><th>@Loc["common.date", "Date"]</th><th>@Loc["users.chantColumn", "Chant"]</th><th>@Loc["users.deityColumn", "Deity"]</th><th>@Loc["users.malasColumn", "Malas"]</th><th>@Loc["common.count", "Count"]</th></tr></thead>
@@ -213,7 +213,7 @@ else
                 : Loc.TF("users.confirmCloseBody",
                     "“{0}” will be signed out everywhere immediately and will not be able to sign in. Nothing is deleted.",
                     u.FullName),
-            ConfirmText = reopen ? Loc["users.yesReopen", "Yes, reopen"] : Loc["users.yesClose", "Yes, close"],
+            ConfirmText = reopen ? Loc["users.yesReopen", "Yes, Reopen"] : Loc["users.yesClose", "Yes, Close"],
             CancelText = Loc["common.cancel", "Cancel"],
             Kind = reopen ? ConfirmKind.Success : ConfirmKind.Warning
         });

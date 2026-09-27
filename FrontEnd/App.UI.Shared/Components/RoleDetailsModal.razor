@@ -1,0 +1,41 @@
+@* "Your Role" popup, opened from the role chip on the profile (web page and phone account sheet).
+   It names the role the seeker signed in with, what that role means as the Role master describes
+   it, and the premium tier that is on its way. Render it as a root-level sibling, never inside a
+   bottom sheet: on wide screens the sheet carries a transform, which would make it the containing
+   block for this fixed-position backdrop and trap the popup inside the sheet. *@
+@inherits LocalizedComponentBase
+
+<ScModal Visible="Visible && Role is not null" Title="@Loc["profile.roleDetailsTitle", "Your Role"]" OnClose="OnClose">
+    @if (Role is not null)
+    {
+        <div class="sc-rolecards">
+            <section class="sc-rolecard">
+                <span class="sc-detail-label">@Loc["profile.roleCurrent", "Current Role"]</span>
+                <div class="sc-rolecard-head">
+                    <span class="sc-typechip @(Role.IsAdmin ? "god" : "goddess")">@Role.Name</span>
+                </div>
+                <p class="sc-rolecard-desc">
+                    @(string.IsNullOrWhiteSpace(Role.Description)
+                        ? Loc["profile.roleNoDescription", "No description has been set for this role."]
+                        : Role.Description)
+                </p>
+            </section>
+
+            <section class="sc-rolecard is-upcoming">
+                <div class="sc-rolecard-head">
+                    <strong class="sc-rolecard-name">✨ @Loc["profile.premiumRole", "Sanathan Premium"]</strong>
+                    <span class="sc-minichip day">@Loc["profile.premiumComingSoon", "Coming Soon"]</span>
+                </div>
+                <ul class="sc-rolecard-perks">
+                    <li>🚫 @Loc["profile.premiumNoAds", "No Ads"]</li>
+                </ul>
+            </section>
+        </div>
+    }
+</ScModal>
+
+@code {
+    [Parameter] public bool Visible { get; set; }
+    [Parameter] public RoleSummary? Role { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+}

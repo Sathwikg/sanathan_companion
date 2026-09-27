@@ -1,5 +1,5 @@
 {
-  "languages.allRegions": "All regions",
+  "languages.allRegions": "All Regions",
   "languages.byRegionView": "By Region",
   "languages.code": "Code",
   "languages.codeHint": "(ISO, e.g. te)",
@@ -13,7 +13,7 @@
   "languages.nativeName": "Native Name",
   "languages.nativeNameHint": "(in its own script)",
   "languages.noRegionsBody": "Add regions in the Region Master to map languages to them.",
-  "languages.noneMapped": "No languages mapped yet",
+  "languages.noneMapped": "No Languages Mapped Yet",
   "languages.regionsHint": "(a language can span several regions)",
   "languages.regionsWord": "regions",
   "languages.searchPlaceholder": "Name, native name or code…",

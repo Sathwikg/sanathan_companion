@@ -1,10 +1,10 @@
 {
-  "wallpapers.addFiles": "Add wallpapers",
+  "wallpapers.addFiles": "Add Wallpapers",
   "wallpapers.choose": "— Select a deity —",
-  "wallpapers.chooseFiles": "Choose images",
+  "wallpapers.chooseFiles": "Choose Images",
   "wallpapers.compressing": "Preparing {0} of {1}…",
   "wallpapers.confirmDelete": "Delete '{0}'? This cannot be undone.",
-  "wallpapers.confirmDeleteTitle": "Delete wallpaper",
+  "wallpapers.confirmDeleteTitle": "Delete Wallpaper",
   "wallpapers.couldNotRead": "Could not read {0}.",
   "wallpapers.noneYet": "No wallpapers yet for this deity.",
   "wallpapers.pickFirst": "Choose a deity to manage its wallpapers.",

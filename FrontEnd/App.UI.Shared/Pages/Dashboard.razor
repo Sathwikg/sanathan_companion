@@ -44,14 +44,14 @@ else if (_model is not null)
                     <span class="ic">🔥</span>
                     <div>
                         <div class="sc-streak-num">@_streak.CurrentStreak</div>
-                        <div class="sc-streak-label">@Loc["sadhana.dayStreak", "day streak"]</div>
+                        <div class="sc-streak-label">@Loc["sadhana.dayStreak", "Day Streak"]</div>
                     </div>
                 </div>
                 <span class="sc-streak-today @(_streak.PracticedToday ? "done" : "pending")">
-                    @(_streak.PracticedToday ? "✓ " + Loc["sadhana.practicedToday", "Practiced today"] : Loc["sadhana.notYetToday", "Not yet today"])
+                    @(_streak.PracticedToday ? "✓ " + Loc["sadhana.practicedToday", "Practiced Today"] : Loc["sadhana.notYetToday", "Not Yet Today"])
                 </span>
                 <div class="sc-streak-stats">
-                    <div class="sc-streak-stat"><div class="n">@_streak.TotalMalas</div><div class="l">@Loc["sadhana.totalMalas", "Total malas"]</div></div>
+                    <div class="sc-streak-stat"><div class="n">@_streak.TotalMalas</div><div class="l">@Loc["sadhana.totalMalas", "Total Malas"]</div></div>
                     <div class="sc-streak-stat"><div class="n">@_streak.LongestStreak</div><div class="l">@Loc["sadhana.longest", "Longest"]</div></div>
                     <div class="sc-streak-stat"><div class="n">@_streak.TotalDaysPracticed</div><div class="l">@Loc["common.days", "Days"]</div></div>
                 </div>

@@ -11,7 +11,7 @@
     @* A first Google sign-in lands here: the address is Google's and cannot be edited, the name is
        Google's suggestion, and everything else is the same form as a plain registration — including
        a password, chosen once, so email + password works for this account as well. *@
-    <h2 class="sc-form-title">@Loc["auth.googleFinishTitle", "Finish creating your account"]</h2>
+    <h2 class="sc-form-title">@Loc["auth.googleFinishTitle", "Finish Creating Your Account"]</h2>
     <p class="sc-google-link-body">@Loc.TF("auth.googleFinishSub", "Google has verified {0}. Add a few details to finish.", GoogleState.Email ?? string.Empty)</p>
 
     <EditForm Model="_google" OnValidSubmit="HandleGoogleRegisterAsync" class="sc-form">
@@ -23,7 +23,7 @@
                 @_error
                 @if (_expired)
                 {
-                    <span> <a href="login">@Loc["auth.signInInstead", "Sign in"]</a></span>
+                    <span> <a href="login">@Loc["auth.signInInstead", "Sign In"]</a></span>
                 }
             </div>
         }
@@ -83,7 +83,7 @@
         </div>
 
         <button type="submit" class="sc-btn-primary" disabled="@_busy">
-            @if (_busy) { <OmLoader Inline="true" Size="18" Message='@Loc["common.creating", "Creating…"]' /> } else { <span>@Loc["auth.createMyAccount", "Create my account"]</span> }
+            @if (_busy) { <OmLoader Inline="true" Size="18" Message='@Loc["common.creating", "Creating…"]' /> } else { <span>@Loc["auth.createMyAccount", "Create My Account"]</span> }
         </button>
     </EditForm>
 
@@ -91,12 +91,12 @@
 }
 else
 {
-    <h2 class="sc-form-title">@Loc["auth.register", "Begin your journey"]</h2>
+    <h2 class="sc-form-title">@Loc["auth.register", "Create Your Account"]</h2>
 
     @if (_success)
     {
         <div class="sc-alert sc-alert-success">
-            🕉️ @Loc["auth.registrationSuccess", "Registration Successful!"] @Loc["auth.youMayNow", "You may now"] <a href="login">@Loc["auth.signInInstead", "Sign in"]</a>.
+            🕉️ @Loc["auth.registrationSuccess", "Registration successful!"] @Loc["auth.youMayNow", "You may now"] <a href="login">@Loc["auth.signInInstead", "Sign In"]</a>.
         </div>
     }
     else
@@ -166,7 +166,7 @@ else
             </button>
         </EditForm>
 
-        <p class="sc-form-alt">@Loc["auth.alreadyHaveAccount", "Already a seeker?"] <a href="login">@Loc["auth.signInInstead", "Sign in"]</a></p>
+        <p class="sc-form-alt">@Loc["auth.alreadyHaveAccount", "Already a seeker?"] <a href="login">@Loc["auth.signInInstead", "Sign In"]</a></p>
     }
 }
 

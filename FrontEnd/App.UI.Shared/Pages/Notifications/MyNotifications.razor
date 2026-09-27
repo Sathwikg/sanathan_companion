@@ -51,7 +51,7 @@ else
                 <span class="sc-slider"></span>
             </label>
             <div>
-                <strong>@Loc["myNotifications.allNotifications", "All notifications"]</strong>
+                <strong>@Loc["myNotifications.allNotifications", "All Notifications"]</strong>
                 <div class="sc-muted">@(_settings.MasterEnabled ? Loc["myNotifications.masterOn", "You'll receive the notifications selected below."] : Loc["myNotifications.masterOff", "Everything is paused — only required notices get through."])</div>
             </div>
             <span class="sc-flex-spacer"></span>
@@ -65,12 +65,12 @@ else
                     <span class="sc-slider"></span>
                 </label>
                 <div>
-                    <strong>🌙 @Loc["myNotifications.quietHours", "Quiet hours"]</strong>
+                    <strong>🌙 @Loc["myNotifications.quietHours", "Quiet Hours"]</strong>
                     <div class="sc-muted">@Loc["myNotifications.quietHoursHint", "Stay silent during these hours — even for required notices."]</div>
                 </div>
                 @if (_settings.InQuietHoursNow)
                 {
-                    <span class="sc-badge on">@Loc["myNotifications.activeNow", "Active now"]</span>
+                    <span class="sc-badge on">@Loc["myNotifications.activeNow", "Active Now"]</span>
                 }
             </div>
             @if (_settings.QuietHoursEnabled)
@@ -96,14 +96,14 @@ else
     {
         <div class="sc-card sc-empty-state">
             <div class="sc-empty-om">🔕</div>
-            <h3>@Loc["myNotifications.noneAvailable", "No notifications available yet"]</h3>
+            <h3>@Loc["myNotifications.noneAvailable", "No Notifications Available Yet"]</h3>
             <p>@Loc["myNotifications.noneAvailableBody", "An administrator hasn't enabled any notifications. Check back later."]</p>
         </div>
     }
     else
     {
         <div class="sc-section-head">
-            <h2>@Loc["myNotifications.whatHeading", "What to notify me about"]</h2>
+            <h2>@Loc["myNotifications.whatHeading", "What to Notify Me About"]</h2>
             <span class="sc-section-sub">@Loc["myNotifications.whatSub", "Set an optional time window for each"]</span>
         </div>
 
@@ -126,7 +126,7 @@ else
                                 }
                                 @if (item.IsActiveNow)
                                 {
-                                    <span class="sc-badge on">@Loc["myNotifications.wouldNotifyNow", "Would notify now"]</span>
+                                    <span class="sc-badge on">@Loc["myNotifications.wouldNotifyNow", "Would Notify Now"]</span>
                                 }
                                 else if (!string.IsNullOrWhiteSpace(item.InactiveReason))
                                 {
@@ -160,7 +160,7 @@ else
                             }
                             else
                             {
-                                <button class="sc-btn-ghost sc-btn-sm" @onclick="() => ClearWindow(item)">@Loc["myNotifications.clearWindow", "Clear window"]</button>
+                                <button class="sc-btn-ghost sc-btn-sm" @onclick="() => ClearWindow(item)">@Loc["myNotifications.clearWindow", "Clear Window"]</button>
                             }
                         </div>
                     }

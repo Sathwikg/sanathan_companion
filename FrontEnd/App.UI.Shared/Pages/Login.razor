@@ -13,7 +13,7 @@
        password is typed once to join the two; from then on Google alone signs the seeker in. Asked
        here, on the login page, rather than on a page of its own: it is a step of signing in. *@
     <div class="sc-form">
-        <h3 class="sc-google-link-title">@Loc["auth.googleLinkTitle", "Connect your Google account"]</h3>
+        <h3 class="sc-google-link-title">@Loc["auth.googleLinkTitle", "Connect Your Google Account"]</h3>
         <p class="sc-google-link-body">@Loc.TF("auth.googleLinkBody", "An account already exists for {0}. Enter its password once and Google will sign you in from now on.", GoogleState.Email ?? string.Empty)</p>
 
         @if (!string.IsNullOrEmpty(_error))
@@ -28,7 +28,7 @@
         </div>
 
         <button type="button" class="sc-btn-primary" @onclick="LinkAsync" disabled="@(_busy || string.IsNullOrWhiteSpace(_linkPassword))">
-            @if (_busy) { <OmLoader Inline="true" Size="18" Message='@Loc["auth.connecting", "Connecting…"]' /> } else { <span>@Loc["auth.googleLinkButton", "Connect and sign in"]</span> }
+            @if (_busy) { <OmLoader Inline="true" Size="18" Message='@Loc["auth.connecting", "Connecting…"]' /> } else { <span>@Loc["auth.googleLinkButton", "Connect and Sign In"]</span> }
         </button>
 
         <p class="sc-form-alt"><button type="button" class="sc-link-btn" @onclick="CancelLink" disabled="@_busy">@Loc["common.cancel", "Cancel"]</button></p>
@@ -64,7 +64,7 @@ else
     @* Renders nothing on hosts without Google sign-in (see IGoogleSignIn). *@
     <GoogleSignInButton OnIdToken="HandleGoogleAsync" Disabled="_busy" />
 
-    <p class="sc-form-alt">@Loc["auth.newHere", "New here?"] <a href="register">@Loc["auth.createAccount", "Create an account"]</a></p>
+    <p class="sc-form-alt">@Loc["auth.newHere", "New here?"] <a href="register">@Loc["auth.createAccount", "Create an Account"]</a></p>
 }
 
 @code {

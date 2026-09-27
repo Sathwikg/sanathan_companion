@@ -63,6 +63,9 @@ public class MyProfile
     public string MobileNumber { get; set; } = string.Empty;
     public string RoleName { get; set; } = string.Empty;
 
+    /// <summary>What the role means, as the Role master describes it. Shown by the "Your Role" popup.</summary>
+    public string? RoleDescription { get; set; }
+
     /// <summary>Independent of the display text — use this for styling and permission checks,
     /// never <see cref="RoleName"/>, which is translated.</summary>
     public bool IsAdmin { get; set; }
