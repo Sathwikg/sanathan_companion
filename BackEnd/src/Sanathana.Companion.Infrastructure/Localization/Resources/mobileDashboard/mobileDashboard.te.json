@@ -1,6 +1,10 @@
 {
   "mobileDashboard.favorites": "ఇష్టమైనవి",
+  "mobileDashboard.feedback": "అభిప్రాయం",
   "mobileDashboard.panchangam": "పంచాంగం",
+  "mobileDashboard.profile": "ప్రొఫైల్",
   "mobileDashboard.quickActions": "చర్యలు",
-  "mobileDashboard.sadhana": "సాధన"
+  "mobileDashboard.reminders": "రిమైండర్‌లు",
+  "mobileDashboard.sadhana": "సాధన",
+  "mobileDashboard.wallpapers": "వాల్‌పేపర్‌లు"
 }

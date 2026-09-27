@@ -73,6 +73,10 @@ public static class CoreServiceCollectionExtensions
         // Also a session state, though it caches no user data: the bundle's entity half is served
         // to authenticated callers only, so signing in has to fetch it again.
         services.AddScoped<IUserSessionState>(sp => sp.GetRequiredService<LocalizationState>());
+        // The menu is the role's access list on the phone, so the next account must not inherit
+        // the previous one's quick actions and tabs.
+        services.AddScoped<MenuState>();
+        services.AddScoped<IUserSessionState>(sp => sp.GetRequiredService<MenuState>());
         // The media ticket outlives a page but not a session.
         services.AddScoped<MediaUrlBuilder>();
         services.AddScoped<IUserSessionState>(sp => sp.GetRequiredService<MediaUrlBuilder>());

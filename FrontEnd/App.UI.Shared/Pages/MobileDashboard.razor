@@ -4,7 +4,11 @@
    wrapping flex row that collapses to three stacked rows on a 375px screen. That is a lot of
    scrolling before a seeker reaches anything they can act on, so this page is built the other way
    round: the greeting is one line, the sadhana summary is one row, and the actions come before the
-   reading material.
+   reading material — then what is due now (prayers), what is special today (bhakti, panchangam),
+   and last the browse strip (chants).
+
+   Every destination is filtered through MenuState, the same Modules tree the bottom bar is built
+   from, so the home screen never offers a seeker a door that opens onto access-denied.
 
    Every top-level block here is a DIRECT child of .scm-content on purpose. That container supplies
    the 12px rhythm via `gap` and the page gutter via `padding`, and mobile.css targets
@@ -12,7 +16,9 @@
 @page "/mobile-dashboard"
 @attribute [Authorize]
 @inherits LocalizedComponentBase
+@implements IDisposable
 @inject IApiClient Api
+@inject MenuState Menus
 
 @if (_loading)
 {
@@ -20,7 +26,7 @@
 }
 else if (_model is not null)
 {
-    @* One line, not a hero. The ॐ tile is 44px rather than the desktop's 82px, and the seeker's
+    @* One line, not a hero. The ॐ tile is 40px rather than the desktop's 82px, and the seeker's
        name carries the identity that the desktop spends a whole <h1> on. *@
     <section class="scm-greet">
         <span class="scm-greet-om">ॐ</span>
@@ -67,43 +73,60 @@ else if (_model is not null)
                         ? "✓ " + Loc["sadhana.practicedToday", "Practiced today"]
                         : Loc["sadhana.notYetToday", "Not yet today"])
                 </span>
-                <a href="sadhana" class="scm-sadhana-cta">@Loc["sadhana.continueSadhana", "Continue Sadhana"] →</a>
+                @* Gated on the menu, not on the streak having loaded. The API grant and the phone
+                   menu are separate switches (a form also needs Show in mobile to reach the
+                   phone), and the link has to follow the one that decides whether the page opens. *@
+                @if (Menus.CanOpen("sadhana"))
+                {
+                    <a href="sadhana" class="scm-sadhana-cta">@Loc["sadhana.continueSadhana", "Continue Sadhana"] →</a>
+                }
             </div>
         </div>
     }
 
     @* Actions before reading material: on a phone the home screen is a launcher first and a
-       digest second. *@
-    <div class="sc-section-head">
-        <h2>⚡ @Loc["mobileDashboard.quickActions", "Quick actions"]</h2>
-    </div>
-    @* Reuses the More sheet's tile system (.scm-quickgrid / .scm-quick / .scm-quick-ic /
+       digest second.
+
+       Reuses the More sheet's tile system (.scm-quickgrid / .scm-quick / .scm-quick-ic /
        .scm-quick-label) rather than inventing a second one, so the two launchers in this app stay
        one design. .scm-home-quick only pins the track count — the sheet's auto-fill would give 3
-       or 4 columns depending on width, and the home screen wants exactly 4.
+       or 4 columns depending on width, and the home screen wants exactly 4, so eight tiles are two
+       even rows.
 
-       Every destination here is a form the seeded Sanathan role actually holds. /chants is
-       deliberately NOT among them: that route is the admin Chants master, gated on the "chants"
-       module, which a seeker is never granted — the tile would have led straight to access-denied.
-       Seekers reach chants through Sadhana. *@
-    <nav class="scm-quickgrid scm-home-quick">
-        <a class="scm-quick" href="sadhana">
-            <span class="scm-quick-ic" aria-hidden="true">📿</span>
-            <span class="scm-quick-label">@Loc["mobileDashboard.sadhana", "Sadhana"]</span>
-        </a>
-        <a class="scm-quick" href="puja-process">
-            <span class="scm-quick-ic" aria-hidden="true">🪔</span>
-            <span class="scm-quick-label">@Loc["pujaProcess.title", "Puja Process"]</span>
-        </a>
-        <a class="scm-quick" href="panchangam">
-            <span class="scm-quick-ic" aria-hidden="true">📅</span>
-            <span class="scm-quick-label">@Loc["mobileDashboard.panchangam", "Panchangam"]</span>
-        </a>
-        <a class="scm-quick" href="favorites">
-            <span class="scm-quick-ic" aria-hidden="true">⭐</span>
-            <span class="scm-quick-label">@Loc["mobileDashboard.favorites", "Favorites"]</span>
-        </a>
-    </nav>
+       Each tile is shown only when the seeker's menu holds its route — the same check the bottom
+       bar and the More sheet make, so a tile never leads to access-denied. Profile is the one
+       exception: /profile has no menu row and its endpoints are exempt, so everyone can open it.
+       The section waits for the menu rather than guessing: rendering all eight and then removing
+       some would reflow the two rows under the seeker's thumb.
+
+       /chants is deliberately NOT a tile. That route is the admin Chants master, gated on the
+       "chants" module, which a seeker is never granted. Seekers reach chants through Sadhana and
+       the Chants strip at the foot of this page. *@
+    var tiles = Menus.Menu is null ? new List<Tile>() : Tiles.Where(t => t.AlwaysOn || Menus.CanOpen(t.Route)).ToList();
+    @if (tiles.Count > 0)
+    {
+        <div class="sc-section-head">
+            <h2>⚡ @Loc["mobileDashboard.quickActions", "Quick actions"]</h2>
+        </div>
+        <nav class="scm-quickgrid scm-home-quick">
+            @foreach (var t in tiles)
+            {
+                <a class="scm-quick" href="@t.Route">
+                    <span class="scm-quick-ic" aria-hidden="true">@t.Icon</span>
+                    <span class="scm-quick-label">@t.Label(Loc)</span>
+                </a>
+            }
+        </nav>
+    }
+
+    @* The time-of-day prayers come before the daily digest because they are the one block with a
+       deadline. Three rows, the current one first, and the rest behind "Show all" — the full list
+       is a day's worth, most of it already past or hours away. Gated on Sadhana because every
+       prayer opens sadhana/chant/{id}; without that form each row would be a dead end. *@
+    @if (Menus.CanOpen("sadhana"))
+    {
+        <PrayerTimes MaxItems="3" />
+    }
 
     @* Today's deity and its sadhana. Kept because it is the one block that changes daily and is
        the reason to open the app at all. The hardcoded five-deity "Daily Darshan" strip from the
@@ -111,7 +134,16 @@ else if (_model is not null)
        with real data, and two deity carousels on one phone screen is one too many. *@
     <TodayBhakti />
 
-    <PanchangamToday />
+    @* The summary is useful on its own, so it stays for a seeker without the Panchangam form; only
+       the link to the full page goes. *@
+    <PanchangamToday Linked='@Menus.CanOpen("panchangam")' />
+
+    @* Last, because it is for browsing rather than for today. Same Sadhana gate as the prayers:
+       every chant in a category opens sadhana/chant/{id}. *@
+    @if (Menus.CanOpen("sadhana"))
+    {
+        <ChantCategories />
+    }
 }
 else
 {
@@ -124,6 +156,25 @@ else
     private bool _loading = true;
     private string? _error;
 
+    /// <summary>One quick-action tile. Route is both the href and the menu route it is gated on.</summary>
+    private sealed record Tile(string Route, string Icon, Func<LocalizationState, string> Label, bool AlwaysOn = false);
+
+    // Each label is a literal Loc["key", "fallback"] call rather than a Key/Fallback pair of fields:
+    // LocalizationKeyUsageTests finds keys by matching `Loc["…` in the .razor source, so a key held
+    // in a string field would be invisible to it and a renamed key would fall back to English
+    // forever without failing the build. The lambda parameter is named Loc for exactly that match.
+    private static readonly Tile[] Tiles =
+    {
+        new("sadhana", "📿", Loc => Loc["mobileDashboard.sadhana", "Sadhana"]),
+        new("panchangam", "📅", Loc => Loc["mobileDashboard.panchangam", "Panchangam"]),
+        new("puja-process", "🪔", Loc => Loc["pujaProcess.title", "Puja Process"]),
+        new("favorites", "⭐", Loc => Loc["mobileDashboard.favorites", "Favorites"]),
+        new("wallpapers-download", "🖼️", Loc => Loc["mobileDashboard.wallpapers", "Wallpapers"]),
+        new("my-notifications", "🔔", Loc => Loc["mobileDashboard.reminders", "Reminders"]),
+        new("feedback", "💬", Loc => Loc["mobileDashboard.feedback", "Feedback"]),
+        new("profile", "👤", Loc => Loc["mobileDashboard.profile", "Profile"], AlwaysOn: true),
+    };
+
     private string DisplayName => string.IsNullOrWhiteSpace(_model?.SeekerName)
         ? _model?.FullName ?? string.Empty
         : _model!.SeekerName!;
@@ -134,7 +185,7 @@ else
         {
             var hour = DateTime.Now.Hour;
             return hour < 12 ? Loc["auth.greetingMorning", "Shubh Prabhat · Good Morning"]
-                 : hour < 17 ? Loc["auth.greetingAfternoon", "Namaste · Good Afternoon"]
+                 : hour < 17 ? Loc["auth.greetingAfternoon", "Shubh Dopahar · Good Afternoon"]
                  : Loc["auth.greetingEvening", "Shubh Sandhya · Good Evening"];
         }
     }
@@ -142,6 +193,18 @@ else
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
+
+        // Subscribed before the load so a reload (MenuRefreshService) or a language switch that
+        // lands while the dashboard request is in flight still re-renders the gated blocks. On the
+        // phone the layout has already started this load, so the call shares its task; opened
+        // under the desktop layout, this is the only thing that loads the menu at all.
+        //
+        // Started before the dashboard request and awaited after it, so the two round trips overlap
+        // instead of queueing — but still awaited before the loader goes, so the gated tiles are
+        // in place on the first paint rather than popping in and reflowing the page. EnsureLoadedAsync
+        // never throws (a failed fetch is an empty menu), so the finally still clears the loader.
+        Menus.OnChanged += MenuChanged;
+        var menu = Menus.EnsureLoadedAsync();
 
         try
         {
@@ -153,12 +216,24 @@ else
         }
         finally
         {
+            await menu;
             _loading = false;
         }
 
-        // Best-effort, exactly as on the desktop dashboard: a seeker whose role was granted this
-        // form but not Sadhana still gets a working home screen, minus the summary card.
+        // Best-effort, exactly as on the desktop dashboard. The streak endpoint names this form as
+        // well as Sadhana, so a seeker granted only the mobile home still gets the card — which is
+        // why its "Continue Sadhana" link is gated on the menu separately above. Do not rely on
+        // this catch to hide anything on a denial: a module 403 is turned into a navigation to
+        // access-denied by ForbiddenHandler before the exception ever reaches here.
         try { _streak = await Api.GetSadhanaStreakAsync(); }
-        catch { /* leave the card hidden */ }
+        catch { /* leave the block hidden */ }
+    }
+
+    private void MenuChanged() => _ = InvokeAsync(StateHasChanged);
+
+    public override void Dispose()
+    {
+        Menus.OnChanged -= MenuChanged;
+        base.Dispose();
     }
 }
