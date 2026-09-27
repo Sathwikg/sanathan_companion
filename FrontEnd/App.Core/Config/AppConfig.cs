@@ -51,6 +51,15 @@ public class AppConfig
     /// </summary>
     public int HttpTimeoutSeconds { get; set; } = 100;
 
+    /// <summary>
+    /// The Google OAuth "Web application" client id. Null or empty means this build offers no Google
+    /// sign-in, and the shared button component renders nothing. Not a secret: it ships in the page
+    /// and in the app bundle by design, and the API decides what it will accept.
+    /// </summary>
+    public string? GoogleClientId { get; set; }
+
+    public bool GoogleSignInConfigured => !string.IsNullOrWhiteSpace(GoogleClientId);
+
     /// <summary>True when the shared UI should render its phone shell (bottom navigation) instead of the desktop rail.</summary>
     public bool IsMobile => string.Equals(Platform, PlatformNames.Mobile, StringComparison.OrdinalIgnoreCase);
 

@@ -24,6 +24,8 @@
   "profile.exportFailed": "ನಿಮ್ಮ ಡೇಟಾ ಸಿದ್ಧಪಡಿಸಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ.",
   "profile.exportReady": "ನಿಮ್ಮ ಡೇಟಾ ಡೌನ್‌ಲೋಡ್ ಆಗಿದೆ.",
   "profile.fullName": "ಪೂರ್ಣ ಹೆಸರು",
+  "profile.googleAccount": "Google ಖಾತೆ",
+  "profile.googleConnected": "ಸಂಪರ್ಕಿಸಲಾಗಿದೆ",
   "profile.lastPractice": "ಕೊನೆಯ ಅಭ್ಯಾಸ",
   "profile.loading": "ನಿಮ್ಮ ಪ್ರೊಫೈಲ್ ಲೋಡ್ ಆಗುತ್ತಿದೆ…",
   "profile.malaCountMany": "{0} ಮಾಲೆಗಳು",

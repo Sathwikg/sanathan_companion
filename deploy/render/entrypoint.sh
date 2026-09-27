@@ -48,6 +48,10 @@ case "$PLATFORM" in
     *) echo "entrypoint: PLATFORM must be Web or Mobile, got '$PLATFORM'" >&2; exit 1 ;;
 esac
 
+# One Google client id serves both halves: the API reads Google__ClientIds__0, and the SPA is
+# handed the same value here unless GOOGLE_CLIENT_ID says otherwise. Empty hides the button.
+GOOGLE_CLIENT_ID="${GOOGLE_CLIENT_ID:-${Google__ClientIds__0:-}}"
+
 # Patch the published file in place instead of replacing it, so every other
 # setting in the branch's tracked appsettings.json reaches the hosted app exactly
 # as it runs locally. Only ApiBaseUrl has to differ: locally the API is a second
@@ -61,8 +65,13 @@ if grep -q '"ApiBaseUrl"[[:space:]]*:' "$CONFIG" 2>/dev/null \
         -e "s|\(\"ApiBaseUrl\"[[:space:]]*:[[:space:]]*\"\)[^\"]*\"|\1${api_sed}\"|" \
         -e "s|\(\"Platform\"[[:space:]]*:[[:space:]]*\"\)[^\"]*\"|\1${PLATFORM}\"|" \
         "$CONFIG"
+    # The tracked file already carries the Google client id; GOOGLE_CLIENT_ID, when set,
+    # replaces it so a deployment can point at a different OAuth client without a rebuild.
+    if [ -n "$GOOGLE_CLIENT_ID" ]; then
+        sed -i -e "s|\(\"GoogleClientId\"[[:space:]]*:[[:space:]]*\"\)[^\"]*\"|\1${GOOGLE_CLIENT_ID}\"|" "$CONFIG"
+    fi
 else
-    printf '{\n  "ApiBaseUrl": "%s",\n  "Platform": "%s"\n}\n' "$API_BASE_URL" "$PLATFORM" \
+    printf '{\n  "ApiBaseUrl": "%s",\n  "Platform": "%s",\n  "GoogleClientId": "%s"\n}\n' "$API_BASE_URL" "$PLATFORM" "$GOOGLE_CLIENT_ID" \
         > "$CONFIG"
 fi
 
@@ -75,7 +84,7 @@ fi
 # was nothing to gain by compressing it.
 rm -f "$CONFIG.gz" "$CONFIG.br"
 
-echo "entrypoint: ApiBaseUrl set to $API_BASE_URL, Platform set to $PLATFORM"
+echo "entrypoint: ApiBaseUrl set to $API_BASE_URL, Platform set to $PLATFORM; GoogleClientId ${GOOGLE_CLIENT_ID:+set}${GOOGLE_CLIENT_ID:-empty (Google sign-in off)}"
 
 # ---- nginx configuration ---------------------------------------------------
 # Restrict envsubst to these two names so nginx's own $variables are left alone.

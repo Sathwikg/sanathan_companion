@@ -51,6 +51,17 @@ public class UserRepository : BaseRepository<User>, IUserRepository
         => await Set.Include(u => u.Role)
             .FirstOrDefaultAsync(u => u.UserId == userId, cancellationToken);
 
+    public async Task<User?> GetTrackedByGoogleSubjectAsync(string googleSubject, CancellationToken cancellationToken = default)
+        => await Set.Include(u => u.Role)
+            .FirstOrDefaultAsync(u => u.GoogleSubject == googleSubject, cancellationToken);
+
+    public async Task<User?> GetTrackedByEmailAsync(string email, CancellationToken cancellationToken = default)
+    {
+        var normalised = CredentialNormalizer.Email(email);
+        return await Set.Include(u => u.Role)
+            .FirstOrDefaultAsync(u => u.Email == normalised, cancellationToken);
+    }
+
     public async Task PurgeUserDataAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         // Order matters only for feedback, whose FK is Restrict; the rest would cascade, but doing

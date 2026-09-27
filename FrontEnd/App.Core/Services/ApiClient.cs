@@ -44,6 +44,41 @@ public class ApiClient : IApiClient
         return (false, null, await ExtractErrorAsync(response));
     }
 
+    public async Task<(bool Success, GoogleSignInResult? Data, string Error)> SignInWithGoogleAsync(string idToken)
+    {
+        var response = await _http.PostAsJsonAsync(ApiRoutes.Auth.Google, new { idToken });
+        if (response.IsSuccessStatusCode)
+            return (true, await response.Content.ReadFromJsonAsync<GoogleSignInResult>(), string.Empty);
+
+        return (false, null, await ExtractErrorAsync(response));
+    }
+
+    public async Task<(bool Success, AuthResponse? Data, string Error)> RegisterWithGoogleAsync(GoogleRegisterRequest request)
+    {
+        var response = await _http.PostAsJsonAsync(ApiRoutes.Auth.GoogleRegister, request);
+        return response.IsSuccessStatusCode
+            ? (true, await response.Content.ReadFromJsonAsync<AuthResponse>(), string.Empty)
+            : (false, null, await ExtractErrorAsync(response));
+    }
+
+    public async Task<(bool Success, AuthResponse? Data, string Error)> LinkGoogleAsync(GoogleLinkRequest request, string email)
+    {
+        // The subject header lets the API throttle this address on its own, the way it throttles a
+        // password sign-in per credential, rather than sharing one bucket with everyone on the
+        // same network. Sent here and not on the first Google call, where nothing is known yet.
+        using var message = new HttpRequestMessage(HttpMethod.Post, ApiRoutes.Auth.GoogleLink)
+        {
+            Content = JsonContent.Create(request)
+        };
+        if (!string.IsNullOrWhiteSpace(email))
+            message.Headers.TryAddWithoutValidation("X-Auth-Subject", email);
+
+        var response = await _http.SendAsync(message);
+        return response.IsSuccessStatusCode
+            ? (true, await response.Content.ReadFromJsonAsync<AuthResponse>(), string.Empty)
+            : (false, null, await ExtractErrorAsync(response));
+    }
+
     public async Task<DashboardModel?> GetDashboardAsync()
         => await _http.GetFromJsonAsync<DashboardModel>(ApiRoutes.Dashboard.Mine);
 

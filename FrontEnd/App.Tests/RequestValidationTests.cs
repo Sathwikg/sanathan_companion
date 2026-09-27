@@ -51,6 +51,39 @@ public class RequestValidationTests
         Assert.NotEmpty(Validate(model));
     }
 
+    private static GoogleRegisterRequest ValidGoogleRegistration() => new()
+    {
+        Ticket = "ticket-from-the-api",
+        FullName = "Ravi Kumar",
+        MobileNumber = "9876543210",
+        Password = "a quiet lamp",
+        ConfirmPassword = "a quiet lamp"
+    };
+
+    [Fact]
+    public void Valid_google_registration_passes()
+        => Assert.Empty(Validate(ValidGoogleRegistration()));
+
+    [Fact]
+    public void Google_registration_still_needs_a_mobile_number_and_a_real_password()
+    {
+        var noMobile = ValidGoogleRegistration();
+        noMobile.MobileNumber = string.Empty;
+        Assert.NotEmpty(Validate(noMobile));
+
+        var shortPassword = ValidGoogleRegistration();
+        shortPassword.Password = shortPassword.ConfirmPassword = "short";
+        Assert.NotEmpty(Validate(shortPassword));
+    }
+
+    [Fact]
+    public void Google_registration_has_no_email_field()
+    {
+        // The address is the one Google verified, carried in the ticket. A field here would be
+        // an invitation to type a different one, which the server would ignore anyway.
+        Assert.Null(typeof(GoogleRegisterRequest).GetProperty("Email"));
+    }
+
     [Fact]
     public void Empty_login_fails()
         => Assert.NotEmpty(Validate(new LoginRequest()));

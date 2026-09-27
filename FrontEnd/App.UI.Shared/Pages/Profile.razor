@@ -75,6 +75,10 @@ else if (_p is not null)
                 }
                 <div class="sc-detail-item"><span class="sc-detail-label">@Loc["common.email", "Email"]</span><span class="sc-detail-value">@_p.Email</span></div>
                 <div class="sc-detail-item"><span class="sc-detail-label">@Loc["common.mobile", "Mobile"]</span><span class="sc-detail-value">@_p.MobileNumber</span></div>
+                @if (_p.GoogleLinked)
+                {
+                    <div class="sc-detail-item"><span class="sc-detail-label">@Loc["profile.googleAccount", "Google account"]</span><span class="sc-detail-value">✓ @Loc["profile.googleConnected", "Connected"]</span></div>
+                }
                 <div class="sc-detail-item"><span class="sc-detail-label">@Loc["common.role", "Role"]</span><span class="sc-detail-value">@_p.RoleName</span></div>
                 <div class="sc-detail-item"><span class="sc-detail-label">@Loc["profile.registered", "Registered"]</span><span class="sc-detail-value">@_p.RegisteredOn.ToLocalTime().ToString("dd MMM yyyy, HH:mm")</span></div>
                 <div class="sc-detail-item"><span class="sc-detail-label">@Loc["profile.lastPractice", "Last practice"]</span><span class="sc-detail-value">@(_p.LastPracticeDate?.ToString("dd MMM yyyy") ?? "—")</span></div>

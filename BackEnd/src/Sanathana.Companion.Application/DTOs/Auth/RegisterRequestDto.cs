@@ -1,6 +1,6 @@
 namespace Sanathana.Companion.Application.DTOs.Auth;
 
-public class RegisterRequestDto
+public class RegisterRequestDto : IRegistrationFields
 {
     public string FullName { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;

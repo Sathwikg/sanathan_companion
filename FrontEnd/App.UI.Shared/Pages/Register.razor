@@ -3,54 +3,62 @@
 @layout AuthLayout
 @inject IAuthService AuthService
 @inject IApiClient Api
+@inject GoogleSignInState GoogleState
+@inject NavigationManager Nav
 
-<h2 class="sc-form-title">@Loc["auth.register", "Begin your journey"]</h2>
+@if (_fromGoogle)
+{
+    @* A first Google sign-in lands here: the address is Google's and cannot be edited, the name is
+       Google's suggestion, and everything else is the same form as a plain registration — including
+       a password, chosen once, so email + password works for this account as well. *@
+    <h2 class="sc-form-title">@Loc["auth.googleFinishTitle", "Finish creating your account"]</h2>
+    <p class="sc-google-link-body">@Loc.TF("auth.googleFinishSub", "Google has verified {0}. Add a few details to finish.", GoogleState.Email ?? string.Empty)</p>
 
-@if (_success)
-{
-    <div class="sc-alert sc-alert-success">
-        🕉️ @Loc["auth.registrationSuccess", "Registration Successful!"] @Loc["auth.youMayNow", "You may now"] <a href="login">@Loc["auth.signInInstead", "Sign in"]</a>.
-    </div>
-}
-else
-{
-    <EditForm Model="_model" OnValidSubmit="HandleRegisterAsync" class="sc-form">
+    <EditForm Model="_google" OnValidSubmit="HandleGoogleRegisterAsync" class="sc-form">
         <DataAnnotationsValidator />
 
         @if (!string.IsNullOrEmpty(_error))
         {
-            <div class="sc-alert sc-alert-error">@_error</div>
+            <div class="sc-alert sc-alert-error">
+                @_error
+                @if (_expired)
+                {
+                    <span> <a href="login">@Loc["auth.signInInstead", "Sign in"]</a></span>
+                }
+            </div>
         }
 
         <div class="sc-field">
-            <label>@Loc["auth.fullName", "Full Name"]</label>
-            <InputText @bind-Value="_model.FullName" class="sc-input" />
-            <ValidationMessage For="() => _model.FullName" />
+            <label>@Loc["common.email", "Email"]</label>
+            <div class="sc-input-adorned">
+                <input class="sc-input" value="@GoogleState.Email" readonly />
+                <span class="sc-input-suffix sc-verified-chip">✓ @Loc["auth.verifiedByGoogle", "Verified by Google"]</span>
+            </div>
         </div>
 
         <div class="sc-field">
-            <label>@Loc["common.email", "Email"]</label>
-            <InputText @bind-Value="_model.Email" class="sc-input" autocomplete="email" />
-            <ValidationMessage For="() => _model.Email" />
+            <label>@Loc["auth.fullName", "Full Name"]</label>
+            <InputText @bind-Value="_google.FullName" class="sc-input" autocomplete="name" />
+            <ValidationMessage For="() => _google.FullName" />
         </div>
 
         <div class="sc-field">
             <label>@Loc["auth.mobileNumber", "Mobile Number"]</label>
-            <InputText @bind-Value="_model.MobileNumber" class="sc-input" />
-            <ValidationMessage For="() => _model.MobileNumber" />
+            <InputText @bind-Value="_google.MobileNumber" class="sc-input" autocomplete="tel" />
+            <ValidationMessage For="() => _google.MobileNumber" />
         </div>
 
         <div class="sc-field">
             <label>@Loc["auth.seekerName", "Seeker Name"] <span class="sc-optional">(@Loc["common.optional", "optional"])</span></label>
-            <InputText @bind-Value="_model.SeekerName" class="sc-input" placeholder="@Loc["auth.seekerNamePlaceholder", "Your spiritual name"]" />
-            <ValidationMessage For="() => _model.SeekerName" />
+            <InputText @bind-Value="_google.SeekerName" class="sc-input" placeholder="@Loc["auth.seekerNamePlaceholder", "Your spiritual name"]" />
+            <ValidationMessage For="() => _google.SeekerName" />
         </div>
 
         @if (_regions.Count > 0)
         {
             <div class="sc-field">
                 <label>@Loc["common.region", "Region"] <span class="sc-optional">(@Loc["common.optional", "optional"])</span></label>
-                <InputSelect @bind-Value="_model.RegionId" class="sc-input">
+                <InputSelect @bind-Value="_google.RegionId" class="sc-input">
                     <option value="">@Loc["auth.chooseRegionLater", "— Choose later —"]</option>
                     @foreach (var r in _regions)
                     {
@@ -63,35 +71,124 @@ else
 
         <div class="sc-field">
             <label>@Loc["auth.password", "Password"]</label>
-            <InputText type="password" @bind-Value="_model.Password" class="sc-input" autocomplete="new-password" />
+            <InputText type="password" @bind-Value="_google.Password" class="sc-input" autocomplete="new-password" />
             <span class="sc-hint">@Loc.TF("auth.passwordPolicyHint", "At least {0} characters. A short phrase you will remember beats a short password.", PasswordPolicy.MinimumLength)</span>
-            <ValidationMessage For="() => _model.Password" />
+            <ValidationMessage For="() => _google.Password" />
         </div>
 
         <div class="sc-field">
             <label>@Loc["auth.confirmPassword", "Confirm Password"]</label>
-            <InputText type="password" @bind-Value="_model.ConfirmPassword" class="sc-input" autocomplete="new-password" />
-            <ValidationMessage For="() => _model.ConfirmPassword" />
+            <InputText type="password" @bind-Value="_google.ConfirmPassword" class="sc-input" autocomplete="new-password" />
+            <ValidationMessage For="() => _google.ConfirmPassword" />
         </div>
 
         <button type="submit" class="sc-btn-primary" disabled="@_busy">
-            @if (_busy) { <OmLoader Inline="true" Size="18" Message='@Loc["common.creating", "Creating…"]' /> } else { <span>@Loc["auth.beginJourney", "Begin Journey"]</span> }
+            @if (_busy) { <OmLoader Inline="true" Size="18" Message='@Loc["common.creating", "Creating…"]' /> } else { <span>@Loc["auth.createMyAccount", "Create my account"]</span> }
         </button>
     </EditForm>
 
-    <p class="sc-form-alt">@Loc["auth.alreadyHaveAccount", "Already a seeker?"] <a href="login">@Loc["auth.signInInstead", "Sign in"]</a></p>
+    <p class="sc-form-alt"><a href="login">@Loc["common.cancel", "Cancel"]</a></p>
+}
+else
+{
+    <h2 class="sc-form-title">@Loc["auth.register", "Begin your journey"]</h2>
+
+    @if (_success)
+    {
+        <div class="sc-alert sc-alert-success">
+            🕉️ @Loc["auth.registrationSuccess", "Registration Successful!"] @Loc["auth.youMayNow", "You may now"] <a href="login">@Loc["auth.signInInstead", "Sign in"]</a>.
+        </div>
+    }
+    else
+    {
+        <EditForm Model="_model" OnValidSubmit="HandleRegisterAsync" class="sc-form">
+            <DataAnnotationsValidator />
+
+            @if (!string.IsNullOrEmpty(_error))
+            {
+                <div class="sc-alert sc-alert-error">@_error</div>
+            }
+
+            <div class="sc-field">
+                <label>@Loc["auth.fullName", "Full Name"]</label>
+                <InputText @bind-Value="_model.FullName" class="sc-input" />
+                <ValidationMessage For="() => _model.FullName" />
+            </div>
+
+            <div class="sc-field">
+                <label>@Loc["common.email", "Email"]</label>
+                <InputText @bind-Value="_model.Email" class="sc-input" autocomplete="email" />
+                <ValidationMessage For="() => _model.Email" />
+            </div>
+
+            <div class="sc-field">
+                <label>@Loc["auth.mobileNumber", "Mobile Number"]</label>
+                <InputText @bind-Value="_model.MobileNumber" class="sc-input" />
+                <ValidationMessage For="() => _model.MobileNumber" />
+            </div>
+
+            <div class="sc-field">
+                <label>@Loc["auth.seekerName", "Seeker Name"] <span class="sc-optional">(@Loc["common.optional", "optional"])</span></label>
+                <InputText @bind-Value="_model.SeekerName" class="sc-input" placeholder="@Loc["auth.seekerNamePlaceholder", "Your spiritual name"]" />
+                <ValidationMessage For="() => _model.SeekerName" />
+            </div>
+
+            @if (_regions.Count > 0)
+            {
+                <div class="sc-field">
+                    <label>@Loc["common.region", "Region"] <span class="sc-optional">(@Loc["common.optional", "optional"])</span></label>
+                    <InputSelect @bind-Value="_model.RegionId" class="sc-input">
+                        <option value="">@Loc["auth.chooseRegionLater", "— Choose later —"]</option>
+                        @foreach (var r in _regions)
+                        {
+                            <option value="@r.Id">@r.Name</option>
+                        }
+                    </InputSelect>
+                    <span class="sc-hint">@Loc["auth.regionHint", "Gods and chants will be shown for this region. You can change it any time."]</span>
+                </div>
+            }
+
+            <div class="sc-field">
+                <label>@Loc["auth.password", "Password"]</label>
+                <InputText type="password" @bind-Value="_model.Password" class="sc-input" autocomplete="new-password" />
+                <span class="sc-hint">@Loc.TF("auth.passwordPolicyHint", "At least {0} characters. A short phrase you will remember beats a short password.", PasswordPolicy.MinimumLength)</span>
+                <ValidationMessage For="() => _model.Password" />
+            </div>
+
+            <div class="sc-field">
+                <label>@Loc["auth.confirmPassword", "Confirm Password"]</label>
+                <InputText type="password" @bind-Value="_model.ConfirmPassword" class="sc-input" autocomplete="new-password" />
+                <ValidationMessage For="() => _model.ConfirmPassword" />
+            </div>
+
+            <button type="submit" class="sc-btn-primary" disabled="@_busy">
+                @if (_busy) { <OmLoader Inline="true" Size="18" Message='@Loc["common.creating", "Creating…"]' /> } else { <span>@Loc["auth.beginJourney", "Begin Journey"]</span> }
+            </button>
+        </EditForm>
+
+        <p class="sc-form-alt">@Loc["auth.alreadyHaveAccount", "Already a seeker?"] <a href="login">@Loc["auth.signInInstead", "Sign in"]</a></p>
+    }
 }
 
 @code {
     private readonly RegisterRequest _model = new();
+    private readonly GoogleRegisterRequest _google = new();
     private List<RegionOption> _regions = new();
     private string? _error;
     private bool _busy;
     private bool _success;
+    private bool _fromGoogle;
+    private bool _expired;
 
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
+
+        // Decided once, on arrival: a ticket that expires while the form is open is reported by
+        // the submit, with a way back to the login page, rather than by the form vanishing.
+        _fromGoogle = GoogleState.IsUsable;
+        if (_fromGoogle)
+            _google.FullName = GoogleState.FullName ?? string.Empty;
 
         // Anonymous endpoint — the region picker is optional, so failures just hide it.
         try { _regions = await Api.GetRegionOptionsAsync(); }
@@ -109,5 +206,25 @@ else
             _success = true;
         else
             _error = message;
+    }
+
+    private async Task HandleGoogleRegisterAsync()
+    {
+        _busy = true;
+        _error = null;
+        _expired = false;
+
+        var (success, error) = await AuthService.RegisterWithGoogleAsync(_google);
+        _busy = false;
+
+        if (success)
+        {
+            // Signed in by the API as part of registering: no second trip through the login page.
+            Nav.NavigateTo("");
+            return;
+        }
+
+        _expired = !GoogleState.IsUsable || error.Contains("expired", StringComparison.OrdinalIgnoreCase);
+        _error = _expired ? Loc["auth.googleExpired", "Your Google sign-in has expired. Please try again."] : error;
     }
 }

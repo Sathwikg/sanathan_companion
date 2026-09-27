@@ -46,4 +46,16 @@ public interface IUserRepository : IRepository<User>
     /// plain FindAsync would leave it null and quietly issue a token with no role at all.
     /// </remarks>
     Task<User?> GetTrackedWithRoleAsync(Guid userId, CancellationToken cancellationToken = default);
+
+    /// <summary>The account a Google account is connected to, tracked and with its role. Null when none is.</summary>
+    Task<User?> GetTrackedByGoogleSubjectAsync(string googleSubject, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// The account holding this email, tracked and with its role. Normalised by the implementation.
+    /// </summary>
+    /// <remarks>
+    /// Tracked because the caller links a Google account to it and mints a token from it in the same
+    /// unit of work; the role is what the token carries.
+    /// </remarks>
+    Task<User?> GetTrackedByEmailAsync(string email, CancellationToken cancellationToken = default);
 }

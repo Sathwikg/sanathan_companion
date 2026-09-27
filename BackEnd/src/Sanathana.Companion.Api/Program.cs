@@ -14,6 +14,7 @@ using Sanathana.Companion.Api.Filters;
 using Sanathana.Companion.Api.Middleware;
 using Sanathana.Companion.Api.Services;
 using Sanathana.Companion.Application;
+using Sanathana.Companion.Application.Common;
 using Sanathana.Companion.Api.Configuration;
 using Sanathana.Companion.Application.Interfaces;
 using Sanathana.Companion.Infrastructure;
@@ -80,6 +81,12 @@ try
     builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
     builder.Services.AddApplication();
     builder.Services.AddInfrastructure(builder.Configuration);
+
+    // Sign in with Google is off until an OAuth client id is configured. Warn rather than throw: the
+    // password login works without it, and the clients only show the button when they have an id.
+    var googleSignIn = builder.Configuration.GetSection(GoogleSignInOptions.SectionName).Get<GoogleSignInOptions>() ?? new GoogleSignInOptions();
+    if (!googleSignIn.IsConfigured)
+        Log.Warning("Google:ClientIds is empty, so Sign in with Google is switched off on this deployment (POST /api/auth/google answers 401).");
 
     // Warn, never throw: a database link that encrypts without validating is worth shouting about,
     // but taking the whole site down over a connection-string keyword is worse than the keyword.

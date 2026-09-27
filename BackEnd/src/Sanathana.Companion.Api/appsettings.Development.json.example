@@ -5,6 +5,10 @@
   "JwtSettings": {
     "Secret": "REPLACE_WITH_A_LONG_RANDOM_BASE64_SECRET_AT_LEAST_32_BYTES"
   },
+  "//Google": "The Web application OAuth client id from Google Cloud Console. Leave the array empty to run without Sign in with Google.",
+  "Google": {
+    "ClientIds": [ "REPLACE-WITH-YOUR-WEB-CLIENT-ID.apps.googleusercontent.com" ]
+  },
   "//Serilog": "EF Core stays at Information here on purpose: seeing the SQL is the point of a development machine.",
   "Serilog": {
     "MinimumLevel": {

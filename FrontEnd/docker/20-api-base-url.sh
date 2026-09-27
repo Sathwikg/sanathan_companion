@@ -24,6 +24,9 @@ case "$PLATFORM" in
     *) echo "20-api-base-url.sh: PLATFORM must be Web or Mobile, got '$PLATFORM'" >&2; exit 1 ;;
 esac
 
+# Empty hides the Sign in with Google button; the API side is Google__ClientIds__0.
+GOOGLE_CLIENT_ID="${GOOGLE_CLIENT_ID:-}"
+
 # Patch the published file in place instead of replacing it, so every other
 # setting in the branch's tracked appsettings.json reaches the container exactly
 # as it runs locally. Only ApiBaseUrl has to differ; deploy/render/entrypoint.sh
@@ -35,8 +38,13 @@ if grep -q '"ApiBaseUrl"[[:space:]]*:' "$CONFIG" 2>/dev/null \
         -e "s|\(\"ApiBaseUrl\"[[:space:]]*:[[:space:]]*\"\)[^\"]*\"|\1${api_sed}\"|" \
         -e "s|\(\"Platform\"[[:space:]]*:[[:space:]]*\"\)[^\"]*\"|\1${PLATFORM}\"|" \
         "$CONFIG"
+    # The tracked file already carries the Google client id; GOOGLE_CLIENT_ID, when set,
+    # replaces it so a deployment can point at a different OAuth client without a rebuild.
+    if [ -n "$GOOGLE_CLIENT_ID" ]; then
+        sed -i -e "s|\(\"GoogleClientId\"[[:space:]]*:[[:space:]]*\"\)[^\"]*\"|\1${GOOGLE_CLIENT_ID}\"|" "$CONFIG"
+    fi
 else
-    printf '{\n  "ApiBaseUrl": "%s",\n  "Platform": "%s"\n}\n' "$API_BASE_URL" "$PLATFORM" > "$CONFIG"
+    printf '{\n  "ApiBaseUrl": "%s",\n  "Platform": "%s",\n  "GoogleClientId": "%s"\n}\n' "$API_BASE_URL" "$PLATFORM" "$GOOGLE_CLIENT_ID" > "$CONFIG"
 fi
 
 # Blazor publishes a precompressed sibling next to every static asset, and the
