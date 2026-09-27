@@ -145,7 +145,7 @@ jobs:
       # The .NET Android build drives the Android SDK's Java tooling, and the .NET 10 head refuses
       # anything but JDK 21 — error XA0030 names the version explicitly. The runner ships several
       # JDKs, so pin one rather than inherit whichever happens to be default.
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: '21'
