@@ -151,6 +151,10 @@ else
     </div>
 }
 
+@* The floating share button and its sheet. A root-level sibling like the dialog below, for the
+   same reason: a fixed-position element inside a transformed ancestor is trapped by it. *@
+<PanchangamShare Day="_current" Date="_date" LocationLabel="@ShareLocationLabel()" />
+
 <ScModal Visible="_showGenerate" Title='@Loc["panchangam.generateTitle", "Generate Panchangam Data"]' OnClose="() => _showGenerate = false">
     <div class="sc-form">
         <p class="sc-muted">@Loc["panchangam.generateHelp", "Compute and store a full year for a region. Existing days are skipped unless you overwrite."]</p>
@@ -306,6 +310,19 @@ else
     {
         _date = DateOnly.FromDateTime(DateTime.Now);
         await RefreshAsync();
+    }
+
+    /// <summary>What the shared picture says under the date: the region, or the live location.</summary>
+    private string ShareLocationLabel()
+    {
+        if (_regionId == CurrentLocationValue)
+        {
+            var mine = Loc["panchangam.myCurrentLocation", "My Current Location"];
+            return string.IsNullOrWhiteSpace(_current?.PlaceLabel) ? mine : $"{mine} · {_current!.PlaceLabel}";
+        }
+        return _current?.RegionName
+            ?? RegionOptions.FirstOrDefault(o => o.Value == _regionId)?.Label
+            ?? string.Empty;
     }
 
     private async Task UseMyLocation()

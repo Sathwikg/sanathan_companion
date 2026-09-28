@@ -32,7 +32,7 @@
                     }
                 </div>
                 <div class="sc-bhakti-deity-meta">
-                    <span class="sc-bhakti-kicker">@Loc["dashboard.todaysDeity", "Today's Deity"]</span>
+                    <span class="sc-bhakti-kicker">@(IsGoddess(d) ? Loc["dashboard.todaysGoddess", "Today's Goddess"] : Loc["dashboard.todaysGod", "Today's God"])</span>
                     <strong class="sc-bhakti-name">@d.Name</strong>
                     <span class="sc-bhakti-reason">@(string.IsNullOrWhiteSpace(d.Reason) ? TypeLabel(d) : ReasonText(d.Reason))</span>
                     <span class="sc-bhakti-hint">@Loc["dashboard.tapForDetails", "Tap for details"] →</span>
