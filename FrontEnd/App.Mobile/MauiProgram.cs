@@ -50,6 +50,10 @@ public static class MauiProgram
         // system prompt instead. See MauiGeolocationProvider.
         builder.Services.AddScoped<IGeolocationProvider, MauiGeolocationProvider>();
 
+        // Same override pattern. A WebView's navigator.share is not wired to the system chooser, so
+        // the rendered picture goes out through MAUI's Share. See MauiImageShare.
+        builder.Services.AddScoped<IImageShare, MauiImageShare>();
+
         // Same override pattern. The API models what a seeker wants to be reminded about but has
         // no way to deliver it, so the phone schedules the reminders locally.
         builder.Services.AddScoped<IReminderScheduler, MauiReminderScheduler>();

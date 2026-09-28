@@ -13,19 +13,26 @@
 
 @if (_today is not null)
 {
-    @if (Linked)
-    {
-        <a href="panchangam" class="sc-card sc-pchg-mini">
-            @Summary(_today)
-            <span class="sc-pchg-mini-go" aria-hidden="true">→</span>
-        </a>
-    }
-    else
-    {
-        <div class="sc-card sc-pchg-mini">
-            @Summary(_today)
-        </div>
-    }
+    @* The share button is a SIBLING of the card, never inside it: a button inside the linked <a>
+       is invalid HTML (the tap would also follow the link), and the card lifts on hover with a
+       transform, which would trap the share sheet's fixed backdrop inside it. The wrapper is the
+       positioned box the button pins itself to. *@
+    <div class="sc-pchg-mini-wrap">
+        @if (Linked)
+        {
+            <a href="panchangam" class="sc-card sc-pchg-mini">
+                @Summary(_today)
+                <span class="sc-pchg-mini-go" aria-hidden="true">→</span>
+            </a>
+        }
+        else
+        {
+            <div class="sc-card sc-pchg-mini">
+                @Summary(_today)
+            </div>
+        }
+        <PanchangamShare Inline="true" Day="_today" Date="_today.Date" LocationLabel="@(_today.RegionName ?? string.Empty)" />
+    </div>
 }
 
 @code {

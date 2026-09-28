@@ -50,6 +50,10 @@ public static class CoreServiceCollectionExtensions
         // Browser geolocation by default. A native host registers its own AFTER calling this, so
         // the last registration wins and the WebView's blocked navigator.geolocation is bypassed.
         services.AddScoped<IGeolocationProvider, JsGeolocationProvider>();
+
+        // Sharing a picture: the browser does it from JavaScript, so the default has nothing to do;
+        // the MAUI host overrides it with the system share sheet. See IImageShare.
+        services.AddScoped<IImageShare, BrowserImageShare>();
         // Same pattern: a browser cannot schedule a notification that outlives its tab, so the
         // default does nothing and the MAUI host replaces it.
         services.AddScoped<IReminderScheduler, NoOpReminderScheduler>();

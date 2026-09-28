@@ -900,6 +900,29 @@ button.sc-prefrow:disabled:hover { background: var(--color-surface-2); }
 .sc-minichip { font-size: 0.68rem; padding: 0.12rem 0.5rem; border-radius: 999px; background: var(--color-primary-container); color: var(--color-on-primary-container); }
 .sc-minichip.day { background: color-mix(in srgb, var(--color-gold) 22%, transparent); color: var(--color-on-surface); }
 
+/* ---- Share (PanchangamShare): floating button, preview sheet, and the carved-name font ---- */
+/* Cinzel (SIL OFL, fonts/Cinzel-OFL.txt) is only ever drawn on the share canvas, and a browser does
+   not fetch a face until something uses it, so declaring it here costs nothing on ordinary pages. */
+@font-face { font-family: "Cinzel"; src: url("fonts/Cinzel-Variable.ttf") format("truetype"); font-weight: 400 900; font-display: swap; }
+.sc-share-fab { position: fixed; right: 1.25rem; bottom: 1.25rem; z-index: 35; width: 58px; height: 58px; border-radius: 999px; border: 0; cursor: pointer; display: grid; place-items: center; color: #fff; background: var(--gradient-saffron); box-shadow: 0 12px 28px -8px rgba(141, 78, 25, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.25); transition: transform .14s ease, box-shadow .14s ease; }
+.sc-share-fab:hover { transform: translateY(-2px); box-shadow: 0 16px 32px -8px rgba(141, 78, 25, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.25); }
+.sc-share-fab:active { transform: scale(0.96); }
+.sc-share-fab:focus-visible { outline: 3px solid color-mix(in srgb, var(--color-accent) 45%, transparent); outline-offset: 3px; }
+.sc-share-wait { display: grid; place-items: center; padding: 2.5rem 0; }
+.sc-share-inline { position: absolute; right: 0.7rem; bottom: 0.7rem; z-index: 2; width: 40px; height: 40px; border-radius: 999px; border: 0; cursor: pointer; display: grid; place-items: center; color: #fff; background: var(--gradient-saffron); box-shadow: 0 6px 16px -6px rgba(141, 78, 25, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.25); transition: transform .14s ease; }
+.sc-share-inline:hover { transform: translateY(-1px); }
+.sc-share-inline:active { transform: scale(0.94); }
+.sc-share-inline:focus-visible { outline: 3px solid color-mix(in srgb, var(--color-accent) 45%, transparent); outline-offset: 2px; }
+/* The dashboard's Panchangam card: the wrapper positions the share button, and the text keeps clear
+   of the button's corner. On the linked card the arrow column already sits at the right edge, so the
+   space is reserved on the text column and the arrow keeps its place; the plain card has no arrow,
+   so the card itself makes the room. */
+.sc-pchg-mini-wrap { position: relative; }
+.sc-pchg-mini-wrap > a.sc-pchg-mini .sc-pchg-mini-body { padding-right: 0.9rem; }
+.sc-pchg-mini-wrap > div.sc-pchg-mini { padding-right: 3.6rem; }
+.sc-share-preview { display: block; width: auto; max-width: 100%; max-height: 58vh; margin: 0 auto; object-fit: contain; border-radius: 14px; border: 1px solid var(--glass-border); background: var(--color-background); box-shadow: var(--shadow-lg); }
+.sc-share-hint { margin: 0.8rem 0 0; text-align: center; }
+
 /* ---- Role chip as a button + the "Your Role" popup (RoleDetailsModal) ---- */
 .sc-typechip-btn { border: 0; margin: 0; font-family: inherit; line-height: 1.5; cursor: pointer; display: inline-flex; align-items: center; gap: 0.25rem; }
 .sc-typechip-btn .ic { font-size: 0.78rem; opacity: 0.8; }
