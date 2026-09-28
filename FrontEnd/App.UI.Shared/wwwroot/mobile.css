@@ -1653,6 +1653,11 @@
 /* With the icon column gone the arrow is the only thing beside the text; it points from the
    title line rather than floating at the middle of a five-line card. */
 .scm-shell .sc-pchg-mini-go { align-self: flex-start; line-height: 1.3; }
+/* Keep the facts clear of the share button in the card's bottom-right corner; restated here
+   because the shell's card padding rules outrank app.css. A 44px target on a phone. */
+.scm-shell .sc-pchg-mini-wrap > a.sc-pchg-mini .sc-pchg-mini-body { padding-right: 1.1rem; }
+.scm-shell .sc-pchg-mini-wrap > div.sc-pchg-mini { padding-right: 3.8rem; }
+.scm-shell .sc-share-inline { width: 44px; height: 44px; right: 0.65rem; bottom: 0.65rem; }
 
 /* ---- category sheet ----
 
@@ -1811,6 +1816,12 @@
 
 /* Two rows of controls do not need a desktop card's inset around them. */
 .scm-shell .sc-pchg-filters { padding: 0.7rem; }
+
+/* The share button clears the bottom bar and the home indicator, and sits under the sheets. */
+.scm-shell .sc-share-fab {
+  right: max(1rem, var(--scm-safe-right));
+  bottom: calc(var(--scm-bottomnav-h) + var(--scm-safe-bottom) + 1rem);
+}
 
 /* The page heading repeats what the top bar already says, so it earns less room here. */
 .scm-shell .sc-page-emoji { font-size: 1.45rem; }

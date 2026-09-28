@@ -1,0 +1,278 @@
+@* The floating "Share" button on the Panchangam page and the sheet it opens: the day's Panchangam
+   rendered as one 4K portrait picture (2160×3840) with today's deity as a soft shadow behind the
+   facts and the seeker's name carved along the foot, ready for WhatsApp, Instagram or a status.
+   The drawing happens in the browser (wwwroot/panchangamShare.js) so both hosts produce the same
+   picture; only the last step differs — the web shares from JavaScript or downloads, the phone
+   hands the bytes to the system share sheet through IImageShare. Render it as a root-level sibling
+   of the page's content, never inside a transformed ancestor, or the fixed button gets trapped. *@
+@inherits LocalizedComponentBase
+@implements IAsyncDisposable
+@inject IJSRuntime JS
+@inject IApiClient Api
+@inject MediaUrlBuilder Media
+@inject AppConfig Config
+@inject IImageShare Share
+@inject ToastService Toast
+@inject RegionState Region
+
+@if (Day is not null)
+{
+    <button type="button" class="@(Inline ? "sc-share-inline" : "sc-share-fab")" title="@Loc["panchangam.share", "Share"]"
+            aria-label="@Loc["panchangam.share", "Share"]" @onclick="OpenAsync">
+        <svg viewBox="0 0 24 24" width="@(Inline ? 20 : 26)" height="@(Inline ? 20 : 26)" aria-hidden="true">
+            <path fill="currentColor" d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z" />
+        </svg>
+    </button>
+}
+
+<ScModal Visible="_open" Title="@Loc["panchangam.shareTitle", "Share Panchangam"]" OnClose="Close">
+    @if (_preview is null)
+    {
+        <div class="sc-share-wait">
+            <OmLoader Inline="true" Size="28" Message="@Loc["panchangam.sharePreparing", "Preparing your Panchangam image…"]" />
+        </div>
+    }
+    else
+    {
+        <img class="sc-share-preview" src="@_preview" alt="@Loc["panchangam.shareTitle", "Share Panchangam"]" />
+        <p class="sc-hint sc-share-hint">@Loc["panchangam.shareHint", "Share it on WhatsApp, Instagram or anywhere you like."]</p>
+        <div class="sc-modal-actions">
+            @if (!Share.IsNative)
+            {
+                <button type="button" class="sc-btn-ghost" disabled="@_busy" @onclick="DownloadAsync">
+                    ⬇️ @Loc["panchangam.shareDownload", "Download Image"]
+                </button>
+            }
+            @if (_canShare)
+            {
+                <button type="button" class="sc-btn-primary" disabled="@_busy" @onclick="ShareAsync">
+                    📤 @Loc["panchangam.share", "Share"]
+                </button>
+            }
+        </div>
+    }
+</ScModal>
+
+@code {
+    /// <summary>The day being shown; the button appears only once there is one.</summary>
+    [Parameter] public PanchangamModel? Day { get; set; }
+    [Parameter] public DateOnly Date { get; set; }
+    /// <summary>
+    /// False (the default) is the floating button of the Panchangam page. True is a small round
+    /// button pinned to the bottom-right corner of the nearest positioned ancestor, for a card such
+    /// as the dashboard's Panchangam summary.
+    /// </summary>
+    [Parameter] public bool Inline { get; set; }
+
+    /// <summary>The region, or the live location, exactly as the page names it.</summary>
+    [Parameter] public string LocationLabel { get; set; } = string.Empty;
+
+    [CascadingParameter] private Task<AuthenticationState>? AuthState { get; set; }
+
+    private IJSObjectReference? _module;
+    private bool _open;
+    private bool _busy;
+    private bool _canShare;
+    private string? _preview;
+
+    private string DateText => Date.ToDateTime(TimeOnly.MinValue).ToString("dddd, dd MMMM yyyy");
+    private string FileName => $"panchangam-{Date:yyyy-MM-dd}.jpg";
+    private string ShareTitle => Loc["panchangam.shareTitle", "Share Panchangam"];
+    private string ShareText => Loc.TF("panchangam.shareText", "Panchangam for {0}", DateText)
+        + (string.IsNullOrWhiteSpace(LocationLabel) ? string.Empty : " · " + LocationLabel);
+
+    private async Task OpenAsync()
+    {
+        if (Day is null) return;
+        _open = true;
+        _preview = null;
+        _busy = true;
+        try
+        {
+            _module ??= await JS.InvokeAsync<IJSObjectReference>("import", "./_content/App.UI.Shared/panchangamShare.js");
+            _preview = await _module.InvokeAsync<string>("render", await BuildPayloadAsync(Day));
+            _canShare = Share.IsNative || await _module.InvokeAsync<bool>("canShareFiles");
+        }
+        catch (Exception ex)
+        {
+            _open = false;
+            Toast.Error(Loc["panchangam.shareFailed", "Could not prepare the image."] + " " + ex.Message);
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private async Task ShareAsync()
+    {
+        if (_module is null) return;
+        _busy = true;
+        try
+        {
+            if (Share.IsNative)
+            {
+                var bytes = await _module.InvokeAsync<byte[]>("getImageBytes");
+                await Share.ShareAsync(bytes, FileName, ShareTitle, ShareText);
+            }
+            else
+            {
+                var result = await _module.InvokeAsync<string>("shareOrDownload", FileName, ShareTitle, ShareText);
+                if (result == "downloaded") Toast.Success(Loc["panchangam.shareDownloaded", "Your Panchangam image has been downloaded."]);
+            }
+        }
+        catch (Exception ex)
+        {
+            Toast.Error(Loc["panchangam.shareFailed", "Could not prepare the image."] + " " + ex.Message);
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private async Task DownloadAsync()
+    {
+        if (_module is null) return;
+        try
+        {
+            await _module.InvokeVoidAsync("download", FileName);
+            Toast.Success(Loc["panchangam.shareDownloaded", "Your Panchangam image has been downloaded."]);
+        }
+        catch (Exception ex)
+        {
+            Toast.Error(Loc["panchangam.shareFailed", "Could not prepare the image."] + " " + ex.Message);
+        }
+    }
+
+    private void Close()
+    {
+        _open = false;
+        _preview = null;
+    }
+
+    /// <summary>
+    /// Everything the picture says, already in the app's language: the labels come from the
+    /// dictionary and the values arrive translated from the API, so the script only draws.
+    /// </summary>
+    private async Task<object> BuildPayloadAsync(PanchangamModel d)
+    {
+        TodayDeity? deity = null;
+        try
+        {
+            var bhakti = await Api.GetTodayBhaktiAsync(Region.SelectedRegionId);
+            deity = bhakti?.Deities.FirstOrDefault();
+        }
+        catch { /* the picture still renders, just without the deity */ }
+
+        string? imageUrl = null;
+        if (deity is { HasImage: true })
+        {
+            try
+            {
+                await Media.EnsureAsync();
+                imageUrl = Media.Absolute(ApiRoutes.Media.DeityImage(deity.Id));
+            }
+            catch { /* same: no portrait, no shadow */ }
+        }
+
+        string? userName = null;
+        if (AuthState is not null)
+        {
+            var state = await AuthState;
+            userName = state.User.FindFirst("fullName")?.Value;   // the same claim the account sheet shows
+        }
+
+        return new
+        {
+            appName = Config.AppName,
+            tagline = Loc["auth.tagline", "Your sacred guide to daily sadhana"],
+            title = Loc["panchangam.title", "Panchangam"],
+            dateLabel = DateText,
+            locationLabel = LocationLabel,
+            // God or Goddess, as the Deity master sets it — never a neutral word that reads as one of them.
+            deityLabel = deity is not null && string.Equals(deity.DeityType, "Goddess", StringComparison.OrdinalIgnoreCase)
+                ? Loc["dashboard.todaysGoddess", "Today's Goddess"]
+                : Loc["dashboard.todaysGod", "Today's God"],
+            deity = deity is null ? null : new { name = deity.Name, imageUrl },
+            sections = Sections(d),
+            sharedByLabel = Loc["panchangam.sharedBy", "Shared by"],
+            userName = string.IsNullOrWhiteSpace(userName) ? Loc["dashboard.seeker", "Seeker"] : userName,
+            fileName = FileName
+        };
+    }
+
+    /// <summary>The page's four groups, in the page's order; rows without a value are left out.</summary>
+    private List<object> Sections(PanchangamModel d)
+    {
+        // 24-hour here; Section() turns every clock time in every value into 12-hour in one place.
+        static string? Clock(TimeOnly? t) => t?.ToString("HH:mm");
+        var saka = d.SakaSamvatsaram is null && d.VikramaSamvatsaram is null
+            ? null
+            : $"{d.SakaSamvatsaram?.ToString() ?? "—"} / {d.VikramaSamvatsaram?.ToString() ?? "—"}";
+
+        var sections = new List<object?>
+        {
+            Section("calendar", Loc["panchangam.groupCalendar", "Calendar"],
+                (Loc["panchangam.samvatsaram", "Samvatsaram"], d.TeluguSamvatsaram),
+                (Loc["panchangam.masam", "Masam"], d.Masam),
+                (Loc["panchangam.paksham", "Paksham"], d.Paksham),
+                (Loc["panchangam.rutuvu", "Rutuvu"], d.Rutuvu),
+                (Loc["panchangam.ayanam", "Ayanam"], d.Ayanam),
+                (Loc["panchangam.sakaVikrama", "Saka / Vikrama"], saka)),
+            Section("day", Loc["panchangam.groupDayElements", "Day & Elements"],
+                (Loc["panchangam.vaaram", "Vaaram (Day)"], d.DayOfWeek),
+                (Loc["panchangam.sunrise", "Sunrise"], Clock(d.Sunrise)),
+                (Loc["panchangam.sunset", "Sunset"], Clock(d.Sunset)),
+                (Loc["panchangam.tithi", "Tithi"], d.TithiDetails),
+                (Loc["panchangam.nakshatram", "Nakshatram"], d.NakshatramDetails)),
+            Section("good", Loc["panchangam.groupAuspicious", "Auspicious"],
+                (Loc["panchangam.abhijitMuhurtham", "Abhijit Muhurtham"], d.AbhijitMuhurtham),
+                (Loc["panchangam.amruthaKalam", "Amrutha Kalam"], d.AmruthaKalam)),
+            Section("bad", Loc["panchangam.groupInauspicious", "Inauspicious"],
+                (Loc["panchangam.rahuKalam", "Rahu Kalam"], d.RahuKalam),
+                (Loc["panchangam.yamagandam", "Yamagandam"], d.Yamagandam),
+                (Loc["panchangam.gulika", "Gulika"], d.Gulika),
+                (Loc["panchangam.durmuhurtham", "Durmuhurtham"], d.Durmuhurtham),
+                (Loc["panchangam.varjyam", "Varjyam"], d.Varjyam))
+        };
+        return sections.Where(s => s is not null).Cast<object>().ToList();
+    }
+
+    /// <summary>One card. <paramref name="tone"/> picks its colour in the picture: calendar, day, good or bad.</summary>
+    private static object? Section(string tone, string title, params (string Label, string? Value)[] rows)
+    {
+        var kept = rows
+            .Where(r => !string.IsNullOrWhiteSpace(r.Value))
+            .Select(r => new { label = r.Label, value = To12Hour(r.Value!.Trim()) })
+            .ToList();
+        return kept.Count == 0 ? null : new { tone, title, rows = kept };
+    }
+
+    /// <summary>A clock time such as 19:14 or 07:27, and nothing that merely contains a colon.</summary>
+    private static readonly System.Text.RegularExpressions.Regex ClockTime =
+        new(@"(?<![\d:])([01]?\d|2[0-3]):([0-5]\d)(?![\d:])", System.Text.RegularExpressions.RegexOptions.Compiled);
+
+    /// <summary>
+    /// Every clock time in a value, 24-hour to 12-hour: "Vidiya upto 19:14" becomes "Vidiya upto
+    /// 7:14 PM", "07:27 – 08:58" becomes "7:27 AM – 8:58 AM". The API sends Tithi, Rahu Kalam and
+    /// the rest as ready-made text, so the times are rewritten inside it. AM/PM stay in English in
+    /// every language, like the rest of the app's dates and times.
+    /// </summary>
+    private static string To12Hour(string value) => ClockTime.Replace(value, m =>
+    {
+        var hour = int.Parse(m.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture);
+        var h12 = hour % 12 == 0 ? 12 : hour % 12;
+        return $"{h12}:{m.Groups[2].Value} {(hour < 12 ? "AM" : "PM")}";
+    });
+
+    public async ValueTask DisposeAsync()
+    {
+        Dispose();   // LocalizedComponentBase: stop listening for language changes
+        if (_module is not null)
+        {
+            try { await _module.DisposeAsync(); }
+            catch (JSDisconnectedException) { /* the page is already gone */ }
+        }
+    }
+}
