@@ -79,6 +79,7 @@ try
     // Current user (reads claims) + application/infrastructure services
     builder.Services.AddHttpContextAccessor();
     builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+    builder.Services.AddScoped<IAuditRequestContext, HttpAuditRequestContext>();
     builder.Services.AddApplication();
     builder.Services.AddInfrastructure(builder.Configuration);
 
@@ -250,6 +251,18 @@ try
                 factory: _ => new FixedWindowRateLimiterOptions
                 {
                     PermitLimit = builder.Configuration.GetValue("RateLimits:ComputePerMinute", 30),
+                    Window = TimeSpan.FromMinutes(1),
+                    QueueLimit = 0
+                }));
+        // The two audit telemetry endpoints. Errors are anonymous, so without a ceiling anyone could
+        // fill the error table; partitioned on the signed-in user where there is one, so a NAT full
+        // of seekers does not share a single bucket.
+        options.AddPolicy("telemetry", httpContext =>
+            RateLimitPartition.GetFixedWindowLimiter(
+                partitionKey: ComputeRateLimitPartition.For(httpContext),
+                factory: _ => new FixedWindowRateLimiterOptions
+                {
+                    PermitLimit = builder.Configuration.GetValue("RateLimits:TelemetryPerMinute", 120),
                     Window = TimeSpan.FromMinutes(1),
                     QueueLimit = 0
                 }));

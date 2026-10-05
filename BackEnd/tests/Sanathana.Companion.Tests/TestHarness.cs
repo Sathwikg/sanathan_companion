@@ -29,6 +29,15 @@ internal sealed class TestHarness : IDisposable
 
     public IGoogleTicketService GoogleTickets { get; }
 
+    /// <summary>Captures everything the code under test hands to the audit writer.</summary>
+    public RecordingAuditQueue AuditQueue { get; } = new();
+
+    /// <summary>Audit switches the test can flip; everything on by default, as on a fresh install.</summary>
+    public FakeAuditConfigCache AuditCache { get; } = new();
+
+    /// <summary>Plays an HTTP request so audit code that only runs inside one can be exercised.</summary>
+    public FakeAuditRequestContext RequestContext { get; } = new();
+
     public TestHarness()
     {
         var options = new DbContextOptionsBuilder<ApplicationDbContext>()
@@ -62,7 +71,8 @@ internal sealed class TestHarness : IDisposable
         var localization = new LocalizationRepository(Context);
         var refreshTokens = new RefreshTokenRepository(Context);
         var ads = new AdRepository(Context);
-        UnitOfWork = new UnitOfWork(Context, users, refreshTokens, ads, roles, menuModules, regions, festivals, days, deities, chants, wallpapers, pujas, pujaProcess, chantConfigs, languages, panchangams, sadhana, moduleRoleMappings, issueTypes, feedbacks, favorites, notificationConfigs, userNotifications, localization);
+        var audit = new AuditRepository(Context);
+        UnitOfWork = new UnitOfWork(Context, users, refreshTokens, ads, roles, menuModules, regions, festivals, days, deities, chants, wallpapers, pujas, pujaProcess, chantConfigs, languages, panchangams, sadhana, moduleRoleMappings, issueTypes, feedbacks, favorites, notificationConfigs, userNotifications, localization, audit);
 
         Hasher = new BCryptPasswordHasher();
 
@@ -85,7 +95,8 @@ internal sealed class TestHarness : IDisposable
         AuthService = new AuthService(
             UnitOfWork, Hasher, Jwt, RefreshTokens,
             new RegisterRequestValidator(), new LoginRequestValidator(), new ChangePasswordValidator(),
-            Google, GoogleTickets, new GoogleRegisterValidator(), new GoogleLinkValidator());
+            Google, GoogleTickets, new GoogleRegisterValidator(), new GoogleLinkValidator(),
+            new AuditSessionTracker(AuditQueue, AuditCache, RequestContext));
     }
 
     public void Dispose() => Context.Dispose();

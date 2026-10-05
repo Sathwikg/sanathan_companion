@@ -203,4 +203,17 @@ public interface IApiClient
     Task<(bool Success, string Error)> CreateChantAsync(ChantRequest request);
     Task<(bool Success, string Error)> UpdateChantAsync(Guid id, ChantRequest request);
     Task<(bool Success, string Error)> SetChantStatusAsync(Guid id, bool isActive);
+
+    // Audit & Error Logging
+    Task<AuditConfigResponseModel?> GetAuditConfigAsync();
+    Task<(bool Success, string Error, AuditConfigResponseModel? Saved)> SaveAuditConfigAsync(SaveAuditConfigModel request);
+    /// <summary>Fire and forget: never throws.</summary>
+    Task LogActivityAsync(LogActivityRequestModel request);
+    /// <summary>Fire and forget: never throws.</summary>
+    Task LogErrorAsync(LogErrorRequestModel request);
+    Task<AuditPageModel<AuditSessionLogModel>> GetAuditSessionsAsync(AuditLogQuery query);
+    Task<AuditPageModel<AuditActivityLogModel>> GetAuditActivitiesAsync(AuditLogQuery query);
+    Task<AuditPageModel<AuditDataLogModel>> GetAuditDataLogsAsync(AuditLogQuery query);
+    Task<AuditPageModel<ErrorLogModel>> GetAuditErrorsAsync(AuditLogQuery query);
+    Task<(bool Success, string Error, ErrorLogModel? Resolved)> ResolveAuditErrorAsync(Guid id);
 }

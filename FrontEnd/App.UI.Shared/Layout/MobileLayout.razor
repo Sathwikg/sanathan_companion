@@ -59,7 +59,7 @@
     <main class="sc-content scm-content">
         @* No @key here: @Body is a RenderFragment owned by the Router, so keying it would not
            re-instantiate the page. The language key lives on AuthorizeRouteView in Routes.razor. *@
-        @Body
+        <AppErrorBoundary>@Body</AppErrorBoundary>
     </main>
 
     <AuthorizeView>

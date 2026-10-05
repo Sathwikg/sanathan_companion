@@ -1,3 +1,4 @@
+using App.Core.Models;
 namespace App.Core.Config;
 
 /// <summary>
@@ -273,6 +274,32 @@ public static class ApiRoutes
         public static string WallpaperImage(Guid wallpaperId) => $"wallpapers/{wallpaperId}/image";
         /// <summary>Same bytes as <see cref="WallpaperImage"/>, but with a Content-Disposition that saves them.</summary>
         public static string WallpaperDownload(Guid wallpaperId) => $"wallpapers/{wallpaperId}/download";
+    }
+
+    public static class Audit
+    {
+        /// <summary>Admin: the switches and per-form rules.</summary>
+        public const string Config = "audit/config";
+        /// <summary>A page visit by the signed-in user.</summary>
+        public const string Activity = "audit/activity";
+        /// <summary>Anonymous: a client-side crash report.</summary>
+        public const string Errors = "audit/errors";
+
+        public static string Sessions(AuditLogQuery q) => Page("audit/sessions", q);
+        public static string Activities(AuditLogQuery q) => Page("audit/activities", q);
+        public static string DataLogs(AuditLogQuery q) => Page("audit/data-logs", q);
+        public static string ErrorLogs(AuditLogQuery q) => Page("audit/errors", q);
+        public static string ResolveError(Guid id) => $"audit/errors/{id}/resolve";
+
+        private static string Page(string path, AuditLogQuery q) => Query(path,
+            ("page", q.Page),
+            ("pageSize", q.PageSize),
+            ("search", q.Search),
+            ("from", q.From),
+            ("to", q.To),
+            ("action", q.Action),
+            ("source", q.Source),
+            ("resolved", q.Resolved));
     }
 
     // ------------------------------------------------------------------ helpers

@@ -22,6 +22,7 @@ public class AuthService : IAuthService
     private readonly IGoogleTicketService _googleTickets;
     private readonly IValidator<GoogleRegisterDto> _googleRegisterValidator;
     private readonly IValidator<GoogleLinkDto> _googleLinkValidator;
+    private readonly IAuditSessionTracker _sessions;
 
     public AuthService(
         IUnitOfWork uow,
@@ -34,7 +35,8 @@ public class AuthService : IAuthService
         IGoogleIdTokenVerifier google,
         IGoogleTicketService googleTickets,
         IValidator<GoogleRegisterDto> googleRegisterValidator,
-        IValidator<GoogleLinkDto> googleLinkValidator)
+        IValidator<GoogleLinkDto> googleLinkValidator,
+        IAuditSessionTracker sessions)
     {
         _uow = uow;
         _passwordHasher = passwordHasher;
@@ -47,6 +49,7 @@ public class AuthService : IAuthService
         _googleTickets = googleTickets;
         _googleRegisterValidator = googleRegisterValidator;
         _googleLinkValidator = googleLinkValidator;
+        _sessions = sessions;
     }
 
     public async Task<string> RegisterAsync(RegisterRequestDto request, CancellationToken cancellationToken = default)
@@ -120,7 +123,7 @@ public class AuthService : IAuthService
         if (!user.IsActive) return null;
 
         var response = await IssueAsync(user, familyId: Guid.NewGuid(), cancellationToken);
-        await _uow.SaveChangesAsync(cancellationToken);
+        await CommitSignInAsync(cancellationToken);
         return response;
     }
 
@@ -139,6 +142,7 @@ public class AuthService : IAuthService
         {
             await _uow.RefreshTokens.RevokeFamilyAsync(stored.FamilyId, "reuse-detected", now, cancellationToken);
             await _uow.SaveChangesAsync(cancellationToken);
+            _sessions.Closed(stored.FamilyId, AuditExitReasons.ReuseDetected);
             return null;
         }
 
@@ -151,10 +155,11 @@ public class AuthService : IAuthService
         stored.RevokedAtUtc = now;
         stored.RevokedReason = "rotated";
 
-        var response = await IssueAsync(stored.User, stored.FamilyId, cancellationToken);
+        var response = await IssueAsync(stored.User, stored.FamilyId, cancellationToken, opensSession: false);
         stored.ReplacedByTokenId = _lastIssuedId;
 
         await _uow.SaveChangesAsync(cancellationToken);
+        _sessions.Heartbeat(stored.FamilyId);
         return response;
     }
 
@@ -167,6 +172,7 @@ public class AuthService : IAuthService
 
         await _uow.RefreshTokens.RevokeFamilyAsync(stored.FamilyId, "signed-out", DateTime.UtcNow, cancellationToken);
         await _uow.SaveChangesAsync(cancellationToken);
+        _sessions.Closed(stored.FamilyId, AuditExitReasons.ExplicitLogout);
     }
 
     public async Task<AuthResponseDto?> ChangePasswordAsync(Guid userId, ChangePasswordDto request, CancellationToken cancellationToken = default)
@@ -193,8 +199,10 @@ public class AuthService : IAuthService
         user.TokensValidFromUtc = now;
         await _uow.RefreshTokens.RevokeAllForUserAsync(userId, "password-changed", now, cancellationToken);
 
-        var response = await IssueAsync(user, familyId: Guid.NewGuid(), cancellationToken);
-        await _uow.SaveChangesAsync(cancellationToken);
+        var familyId = Guid.NewGuid();
+        var response = await IssueAsync(user, familyId, cancellationToken);
+        await CommitSignInAsync(cancellationToken);
+        _sessions.ClosedForUser(userId, AuditExitReasons.PasswordChanged, exceptSessionId: familyId);
 
         return response;
     }
@@ -226,7 +234,7 @@ public class AuthService : IAuthService
                 return new GoogleSignInResultDto { Outcome = GoogleOutcomes.Rejected, Message = "This account has been closed." };
 
             var session = await IssueAsync(linked, familyId: Guid.NewGuid(), cancellationToken);
-            await _uow.SaveChangesAsync(cancellationToken);
+            await CommitSignInAsync(cancellationToken);
             return new GoogleSignInResultDto { Outcome = GoogleOutcomes.SignedIn, Session = session };
         }
 
@@ -312,7 +320,7 @@ public class AuthService : IAuthService
         // screen: they have just proved who they are to Google, and asking them to type the
         // password they chose ten seconds ago would be theatre.
         var response = await IssueAsync(user, familyId: Guid.NewGuid(), cancellationToken);
-        await _uow.SaveChangesAsync(cancellationToken);
+        await CommitSignInAsync(cancellationToken);
         return response;
     }
 
@@ -345,12 +353,30 @@ public class AuthService : IAuthService
         user.EmailVerifiedAtUtc ??= now;
 
         var response = await IssueAsync(user, familyId: Guid.NewGuid(), cancellationToken);
-        await _uow.SaveChangesAsync(cancellationToken);
+        await CommitSignInAsync(cancellationToken);
         return response;
     }
 
     /// <summary>Id of the row <see cref="IssueAsync"/> created last, so rotation can link to it.</summary>
     private Guid _lastIssuedId;
+
+    /// <summary>The sign-in <see cref="IssueAsync"/> started, held until it has been committed.</summary>
+    private (Guid SessionId, Guid UserId, string? Email)? _pendingSession;
+
+    /// <summary>
+    /// Saves, and only then records the new session: a sign-in whose tokens failed to save must not
+    /// appear in the session log.
+    /// </summary>
+    private async Task CommitSignInAsync(CancellationToken cancellationToken)
+    {
+        await _uow.SaveChangesAsync(cancellationToken);
+
+        if (_pendingSession is { } pending)
+        {
+            _pendingSession = null;
+            _sessions.Opened(pending.SessionId, pending.UserId, pending.Email);
+        }
+    }
 
     /// <summary>
     /// Mints an access token and a refresh token for a user. Does not save; the caller commits.
@@ -360,9 +386,12 @@ public class AuthService : IAuthService
     /// role yields a token carrying no role at all, which fails in a way that looks like a
     /// permissions bug rather than an authentication one.
     /// </remarks>
-    private async Task<AuthResponseDto> IssueAsync(User user, Guid familyId, CancellationToken cancellationToken)
+    private async Task<AuthResponseDto> IssueAsync(User user, Guid familyId, CancellationToken cancellationToken, bool opensSession = true)
     {
-        var (token, expiresAt) = _jwtTokenService.GenerateToken(user);
+        // The family id doubles as the session id: it is stable across every refresh of this
+        // sign-in, so the access token can name its session and page visits can be tied to it.
+        var (token, expiresAt) = _jwtTokenService.GenerateToken(user, familyId);
+        if (opensSession) _pendingSession = (familyId, user.UserId, user.Email);
         var (refresh, hash) = _refreshTokens.Create();
         var refreshExpiresAt = _refreshTokens.ExpiresAt(DateTime.UtcNow);
 
