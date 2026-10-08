@@ -36,6 +36,7 @@ public static class CoreServiceCollectionExtensions
         // LocalizationState writes to — and every request would ship a stale language.
         services.AddSingleton<LanguageContext>();
         services.AddScoped<LanguageHeaderHandler>();
+        services.AddTransient<PlatformHeaderHandler>();
         services.AddScoped<JwtAuthenticationStateProvider>();
         services.AddScoped<AuthenticationStateProvider>(sp => sp.GetRequiredService<JwtAuthenticationStateProvider>());
         services.AddAuthorizationCore();
@@ -64,6 +65,10 @@ public static class CoreServiceCollectionExtensions
         services.AddScoped<ConfirmService>();
         services.AddScoped<ToastService>();
         services.AddScoped<NotificationCenterState>();
+        services.AddScoped<NavigationTrackerService>();
+        services.AddScoped<ClientErrorReporter>();
+        // The browser has no "about to crash" moment to save one in; the MAUI host replaces this.
+        services.AddSingleton<ICrashStore, NoCrashStore>();
         // Per-user caches. Registered twice so the IUserSessionState reset (on sign-in/out)
         // acts on the very same instances the components inject.
         services.AddScoped<FavoritesState>();
@@ -110,7 +115,9 @@ public static class CoreServiceCollectionExtensions
             .AddHttpMessageHandler<ForbiddenHandler>()
             .AddHttpMessageHandler<BearerTokenHandler>()
             // Stamps X-App-Language so the server translates database text for this user.
-            .AddHttpMessageHandler<LanguageHeaderHandler>();
+            .AddHttpMessageHandler<LanguageHeaderHandler>()
+            // Stamps X-Platform (Web, Android, iOS) for the session and page-visit audit log.
+            .AddHttpMessageHandler<PlatformHeaderHandler>();
 
         return services;
     }

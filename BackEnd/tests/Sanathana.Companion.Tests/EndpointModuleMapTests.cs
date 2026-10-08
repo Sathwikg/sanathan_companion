@@ -99,6 +99,8 @@ public class EndpointModuleMapTests
             // Answers "should this screen show an ad". Whether the seeker may open the screen at
             // all is decided by that screen's own endpoints, so a role denied a form never asks.
             "AdsController.GetSlot",
+            // A page visit by any signed-in role; recording it is not a privilege of any one form.
+            "AuditTelemetryController.LogActivity",
             "AuthController.ChangePassword",
             "FavoritesController.GetIds",
             "FavoritesController.Toggle",

@@ -12,6 +12,15 @@
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="10.0.10" PrivateAssets="all" />
   </ItemGroup>
 
+  <!-- The name and logo come from FrontEnd/Branding: index.html is stamped from its template, and
+       the favicons are served from that folder as if they lived in wwwroot. -->
+  <ItemGroup>
+    <BrandedHtml Include="index.template.html" Link="wwwroot\index.html" />
+    <BrandedHtml Include="privacy.template.html" Link="wwwroot\privacy.html" />
+    <Content Include="$(BrandingDir)favicon.png" Link="wwwroot\favicon.png" ContentRoot="$(BrandingDir)" />
+    <Content Include="$(BrandingDir)icon-192.png" Link="wwwroot\icon-192.png" ContentRoot="$(BrandingDir)" />
+  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\App.UI.Shared\App.UI.Shared.csproj" />
     <ProjectReference Include="..\App.Core\App.Core.csproj" />

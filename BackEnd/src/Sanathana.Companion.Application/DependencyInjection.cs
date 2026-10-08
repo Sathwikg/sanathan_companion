@@ -48,6 +48,8 @@ public static class DependencyInjection
         services.AddScoped<IFavoritesService, FavoritesService>();
         services.AddScoped<INotificationService, NotificationService>();
         services.AddScoped<IAdConfigService, AdConfigService>();
+        services.AddScoped<IAuditService, AuditService>();
+        services.AddScoped<IAuditSessionTracker, AuditSessionTracker>();
         return services;
     }
 }

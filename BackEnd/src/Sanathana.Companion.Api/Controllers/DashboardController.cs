@@ -36,7 +36,9 @@ public class DashboardController : ControllerBase
             FullName = fullName,
             SeekerName = string.IsNullOrWhiteSpace(seekerName) ? null : seekerName,
             Role = role,
-            Message = $"🕉️ Namaste, {greetingName}! Welcome to your Sanathana Companion."
+            // No app name: the API does not know it. The UI composes the welcome line from its own
+            // localized template and the name in FrontEnd/Branding.
+            Message = $"🕉️ Namaste, {greetingName}!"
         };
 
         return Ok(dto);

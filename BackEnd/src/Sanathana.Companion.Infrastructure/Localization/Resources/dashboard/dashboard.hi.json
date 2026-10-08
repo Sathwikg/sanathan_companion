@@ -19,5 +19,6 @@
   "dashboard.todaysBhakti": "आज की भक्ति",
   "dashboard.todaysGod": "आज के देवता",
   "dashboard.todaysGoddess": "आज की देवी",
-  "dashboard.viewDetails": "विवरण देखें"
+  "dashboard.viewDetails": "विवरण देखें",
+  "dashboard.welcome": "🕉️ नमस्ते, {0}! {1} में आपका स्वागत है।"
 }

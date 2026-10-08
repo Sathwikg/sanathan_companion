@@ -261,6 +261,293 @@ namespace Sanathana.Companion.Infrastructure.Persistence.Migrations
                         });
                 });
 
+            modelBuilder.Entity("Sanathana.Companion.Domain.Entities.AuditActivityLog", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("EnteredAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("ExitedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("FormName")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
+                    b.Property<string>("IpAddress")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("ModuleCode")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)");
+
+                    b.Property<string>("Platform")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("RoutePath")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<Guid?>("SessionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("TimeSpentSeconds")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid?>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("UsernameOrEmail")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EnteredAtUtc")
+                        .HasDatabaseName("IX_AuditActivityLogs_EnteredAtUtc");
+
+                    b.HasIndex("ModuleCode")
+                        .HasDatabaseName("IX_AuditActivityLogs_ModuleCode");
+
+                    b.HasIndex("SessionId")
+                        .HasDatabaseName("IX_AuditActivityLogs_SessionId");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("IX_AuditActivityLogs_UserId");
+
+                    b.ToTable("AuditActivityLogs", (string)null);
+                });
+
+            modelBuilder.Entity("Sanathana.Companion.Domain.Entities.AuditDataLog", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<string>("ChangedColumns")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<string>("Endpoint")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<string>("EntityId")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<string>("EntityName")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<string>("IpAddress")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("ModuleCode")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)");
+
+                    b.Property<string>("NewValuesJson")
+                        .HasColumnType("text");
+
+                    b.Property<string>("OldValuesJson")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("TimestampUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("UsernameOrEmail")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TimestampUtc")
+                        .HasDatabaseName("IX_AuditDataLogs_TimestampUtc");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("IX_AuditDataLogs_UserId");
+
+                    b.HasIndex("EntityName", "EntityId")
+                        .HasDatabaseName("IX_AuditDataLogs_Entity");
+
+                    b.ToTable("AuditDataLogs", (string)null);
+                });
+
+            modelBuilder.Entity("Sanathana.Companion.Domain.Entities.AuditModuleConfig", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsActivityAuditEnabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsDataAuditEnabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid>("MenuModuleId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ModifiedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime?>("ModifiedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ModuleCode")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MenuModuleId")
+                        .IsUnique()
+                        .HasDatabaseName("UX_AuditModuleConfigs_MenuModuleId");
+
+                    b.HasIndex("ModuleCode")
+                        .HasDatabaseName("IX_AuditModuleConfigs_ModuleCode");
+
+                    b.ToTable("AuditModuleConfigs", (string)null);
+                });
+
+            modelBuilder.Entity("Sanathana.Companion.Domain.Entities.AuditSettings", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("AuditRetentionDays")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("ErrorRetentionDays")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsGlobalAuditEnabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("ModifiedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime?>("ModifiedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("TrackDataModifications")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("TrackErrorLogs")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("TrackPageNavigation")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("TrackUserSessions")
+                        .HasColumnType("boolean");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("AuditSettings", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("91919191-0002-0002-0002-000000000001"),
+                            AuditRetentionDays = 90,
+                            CreatedBy = "system",
+                            CreatedDate = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            ErrorRetentionDays = 30,
+                            IsGlobalAuditEnabled = true,
+                            TrackDataModifications = true,
+                            TrackErrorLogs = true,
+                            TrackPageNavigation = true,
+                            TrackUserSessions = true
+                        });
+                });
+
+            modelBuilder.Entity("Sanathana.Companion.Domain.Entities.AuditUserSession", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int?>("DurationSeconds")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("ExitReason")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("IpAddress")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<DateTime?>("LastHeartbeatUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("LoginTimeUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("LogoutTimeUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Platform")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("UserAgent")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<Guid?>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("UsernameOrEmail")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LoginTimeUtc")
+                        .HasDatabaseName("IX_AuditUserSessions_LoginTimeUtc");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("IX_AuditUserSessions_UserId");
+
+                    b.ToTable("AuditUserSessions", (string)null);
+                });
+
             modelBuilder.Entity("Sanathana.Companion.Domain.Entities.Chant", b =>
                 {
                     b.Property<Guid>("Id")
@@ -667,6 +954,91 @@ namespace Sanathana.Companion.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("UX_EntityTranslations_Lang_Type_Key_Field");
 
                     b.ToTable("EntityTranslations", (string)null);
+                });
+
+            modelBuilder.Entity("Sanathana.Companion.Domain.Entities.ErrorLog", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ExceptionType")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.Property<string>("InnerException")
+                        .HasColumnType("text");
+
+                    b.Property<string>("IpAddress")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<bool>("IsResolved")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<string>("RequestMethod")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("RequestPath")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<DateTime?>("ResolvedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ResolvedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Severity")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)");
+
+                    b.Property<string>("StackTrace")
+                        .HasColumnType("text");
+
+                    b.Property<int?>("StatusCode")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("TimestampUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("UserAgent")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<Guid?>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("UsernameOrEmail")
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IsResolved")
+                        .HasDatabaseName("IX_ErrorLogs_IsResolved");
+
+                    b.HasIndex("Source")
+                        .HasDatabaseName("IX_ErrorLogs_Source");
+
+                    b.HasIndex("TimestampUtc")
+                        .HasDatabaseName("IX_ErrorLogs_TimestampUtc");
+
+                    b.ToTable("ErrorLogs", (string)null);
                 });
 
             modelBuilder.Entity("Sanathana.Companion.Domain.Entities.Feedback", b =>
@@ -1783,6 +2155,22 @@ namespace Sanathana.Companion.Infrastructure.Persistence.Migrations
                             Name = "Language Configs",
                             ParentId = new Guid("99999999-9999-9999-9999-999999999999"),
                             RoutePath = "/language-configs",
+                            ShowInMobile = false
+                        },
+                        new
+                        {
+                            Id = new Guid("91919191-9191-9191-9191-919191919191"),
+                            Code = "auditConfig",
+                            CreatedBy = "system",
+                            CreatedDate = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Configure system audit logs, user activity tracking, and error logging",
+                            DisplayOrder = 8,
+                            Icon = "📋",
+                            IsActive = true,
+                            IsVisibleInMenu = true,
+                            Name = "Audit Config",
+                            ParentId = new Guid("99999999-9999-9999-9999-999999999999"),
+                            RoutePath = "/audit-config",
                             ShowInMobile = false
                         });
                 });
@@ -3275,6 +3663,17 @@ namespace Sanathana.Companion.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("AdFormat");
+
+                    b.Navigation("MenuModule");
+                });
+
+            modelBuilder.Entity("Sanathana.Companion.Domain.Entities.AuditModuleConfig", b =>
+                {
+                    b.HasOne("Sanathana.Companion.Domain.Entities.MenuModule", "MenuModule")
+                        .WithMany()
+                        .HasForeignKey("MenuModuleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("MenuModule");
                 });

@@ -93,7 +93,7 @@
         @* Parenthesised on purpose: Razor reads a bare "v@Config.AppVersion" as an email address
            and emits it verbatim, so the version rendered as the literal text "v@@Config.AppVersion". *@
         <p class="scm-acct-about">
-            @Config.AppName · v@(Config.AppVersion)
+            @Brand.AppName · v@(Config.AppVersion)
         </p>
     </Authorized>
 </AuthorizeView>

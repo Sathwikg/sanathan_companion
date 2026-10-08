@@ -1,0 +1,45 @@
+<Project>
+  <!--
+    The app's name and logo. This file and this folder are the only place either is defined.
+
+    Every surface reads from here at build time:
+      * the web tab title, the loading screen and the favicon (App.Web/index.template.html)
+      * the phone's launcher name, store name, window title and loading screen (App.Mobile)
+      * every logo, title and "App" row inside the UI, through App.Core's Brand class
+      * the Panchangam share card
+
+    To rebrand: edit the values below, replace the image files in this folder (keep their file
+    names, because the Android manifest and the web pages refer to them by name), then rebuild.
+
+    XML rules apply: write & as &amp; and < as &lt;.
+
+    Not in here on purpose: the store identifier com.sanathana.companion (ApplicationId in
+    App.Mobile.csproj). Changing it after a release orphans every installed copy, so a new name
+    does not change it.
+  -->
+  <PropertyGroup>
+    <!-- Shown everywhere the app names itself: launcher, store listing, top bar, login, About. -->
+    <BrandAppName>Sanathan Companion</BrandAppName>
+
+    <!-- The mark in the logo tile (top bar, login, loader, dashboard, share card) when
+         BrandLogoImage is empty. One or two characters. -->
+    <BrandLogoGlyph>ॐ</BrandLogoGlyph>
+
+    <!-- Optional. The file name of an image in this folder (for example logo.png or logo.svg) to
+         show instead of the glyph tile. Square, with a transparent background. Empty = glyph. -->
+    <BrandLogoImage></BrandLogoImage>
+
+    <!-- Phone launcher icon background colour and splash screen background colour. The icon
+         artwork itself is appicon.svg (background) + appiconfg.svg (foreground); the splash
+         artwork is splash.svg. Web favicons are favicon.png and icon-192.png. -->
+    <BrandIconColor>#8D4E19</BrandIconColor>
+    <BrandSplashColor>#FDFBF7</BrandSplashColor>
+  </PropertyGroup>
+
+  <!-- Derived from the above; nothing to edit below this line. -->
+  <PropertyGroup>
+    <BrandingDir>$(MSBuildThisFileDirectory)</BrandingDir>
+    <!-- App.UI.Shared serves the logo image from this folder at this path (see its csproj). -->
+    <BrandLogoImageUrl Condition="'$(BrandLogoImage)' != ''">_content/App.UI.Shared/Branding/$(BrandLogoImage)</BrandLogoImageUrl>
+  </PropertyGroup>
+</Project>

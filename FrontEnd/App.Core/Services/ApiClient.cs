@@ -728,6 +728,48 @@ public class ApiClient : IApiClient
         return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
     }
 
+    // Audit & Error Logging
+    public async Task<AuditConfigResponseModel?> GetAuditConfigAsync()
+        => await _http.GetFromJsonAsync<AuditConfigResponseModel>(ApiRoutes.Audit.Config);
+
+    public async Task<(bool Success, string Error, AuditConfigResponseModel? Saved)> SaveAuditConfigAsync(SaveAuditConfigModel request)
+    {
+        var response = await _http.PutAsJsonAsync(ApiRoutes.Audit.Config, request);
+        if (!response.IsSuccessStatusCode) return (false, await ExtractErrorAsync(response), null);
+        return (true, string.Empty, await response.Content.ReadFromJsonAsync<AuditConfigResponseModel>());
+    }
+
+    public async Task LogActivityAsync(LogActivityRequestModel request)
+    {
+        try { using var _ = await _http.PostAsJsonAsync(ApiRoutes.Audit.Activity, request); }
+        catch { /* fire and forget */ }
+    }
+
+    public async Task LogErrorAsync(LogErrorRequestModel request)
+    {
+        try { using var _ = await _http.PostAsJsonAsync(ApiRoutes.Audit.Errors, request); }
+        catch { /* fire and forget */ }
+    }
+
+    public async Task<AuditPageModel<AuditSessionLogModel>> GetAuditSessionsAsync(AuditLogQuery query)
+        => await _http.GetFromJsonAsync<AuditPageModel<AuditSessionLogModel>>(ApiRoutes.Audit.Sessions(query)) ?? new();
+
+    public async Task<AuditPageModel<AuditActivityLogModel>> GetAuditActivitiesAsync(AuditLogQuery query)
+        => await _http.GetFromJsonAsync<AuditPageModel<AuditActivityLogModel>>(ApiRoutes.Audit.Activities(query)) ?? new();
+
+    public async Task<AuditPageModel<AuditDataLogModel>> GetAuditDataLogsAsync(AuditLogQuery query)
+        => await _http.GetFromJsonAsync<AuditPageModel<AuditDataLogModel>>(ApiRoutes.Audit.DataLogs(query)) ?? new();
+
+    public async Task<AuditPageModel<ErrorLogModel>> GetAuditErrorsAsync(AuditLogQuery query)
+        => await _http.GetFromJsonAsync<AuditPageModel<ErrorLogModel>>(ApiRoutes.Audit.ErrorLogs(query)) ?? new();
+
+    public async Task<(bool Success, string Error, ErrorLogModel? Resolved)> ResolveAuditErrorAsync(Guid id)
+    {
+        var response = await _http.PutAsync(ApiRoutes.Audit.ResolveError(id), null);
+        if (!response.IsSuccessStatusCode) return (false, await ExtractErrorAsync(response), null);
+        return (true, string.Empty, await response.Content.ReadFromJsonAsync<ErrorLogModel>());
+    }
+
     private static async Task<string> ExtractErrorAsync(HttpResponseMessage response)
     {
         try

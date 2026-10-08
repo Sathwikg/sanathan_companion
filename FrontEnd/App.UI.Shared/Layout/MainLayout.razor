@@ -10,8 +10,8 @@
     <header class="sc-topbar">
         <div class="sc-topbar-left">
             <button class="sc-hamburger" @onclick="ToggleSidebar" title="@Loc["nav.toggleMenu", "Toggle Menu"]">☰</button>
-            <OmLogo Size="34" />
-            <span class="sc-brand-text">@Loc["auth.appName", "Sanathan Companion"]</span>
+            <AppLogo Size="34" />
+            <span class="sc-brand-text">@Brand.AppName</span>
         </div>
         @* Below the drawer breakpoint this whole group is hidden and its contents move into the
            drawer instead. Wrapping it onto a second row was the alternative, but that spends ~14%
@@ -77,7 +77,7 @@
         <main class="sc-content">
             @* No @key here: @Body is a RenderFragment owned by the Router, so keying it would not
                re-instantiate the page. The language key lives on AuthorizeRouteView in Routes.razor. *@
-            @Body
+            <AppErrorBoundary>@Body</AppErrorBoundary>
         </main>
     </div>
 

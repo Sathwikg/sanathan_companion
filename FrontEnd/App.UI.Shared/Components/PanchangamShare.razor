@@ -185,7 +185,10 @@
 
         return new
         {
-            appName = Config.AppName,
+            appName = Brand.AppName,
+            logoGlyph = Brand.LogoGlyph,
+            // An app asset, so relative to the page like any other; Config.Absolute would aim it at the API.
+            logoUrl = Brand.LogoImageUrl,
             tagline = Loc["auth.tagline", "Your sacred guide to daily sadhana"],
             title = Loc["panchangam.title", "Panchangam"],
             dateLabel = DateText,

@@ -67,7 +67,6 @@ builder.Services.AddAppCore(new AppConfig
 {
     ApiBaseUrl = apiBaseUrl,
     Platform = platform,
-    AppName = builder.Configuration["AppName"] ?? "Sanathan Companion",
     Environment = builder.Configuration["Environment"] ?? "Production",
     // Empty means no Google button. Docker and Render write it from GOOGLE_CLIENT_ID at start-up.
     GoogleClientId = builder.Configuration["GoogleClientId"]

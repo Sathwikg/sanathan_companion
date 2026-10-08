@@ -12,6 +12,13 @@ public static class MauiProgram
 {
     public static MauiApp CreateMauiApp()
     {
+        // A crash on a native thread ends the process before any HTTP call could finish, so it is
+        // parked in a file and reported by ClientErrorReporter on the next start.
+        AppDomain.CurrentDomain.UnhandledException += (_, e) =>
+        {
+            if (e.ExceptionObject is Exception ex) FileCrashStore.Save(ex);
+        };
+
         var builder = MauiApp.CreateBuilder();
         builder
             .UseMauiApp<App>()
@@ -61,6 +68,9 @@ public static class MauiProgram
         // Singleton: App.xaml.cs pushes window Activated/Deactivated into it, and every component
         // that idles while backgrounded reads the same instance.
         builder.Services.AddSingleton<IAppLifecycle, MauiAppLifecycle>();
+
+        // Replaces the browser's no-op so the crash saved above reaches the server's error log.
+        builder.Services.AddSingleton<ICrashStore, FileCrashStore>();
 
         // Sign in with Google. Android gets the native Credential Manager picker; every other head
         // gets "none": iOS because offering Google there obliges the app to offer Sign in with Apple

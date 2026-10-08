@@ -20,13 +20,13 @@ else if (_loading)
 }
 else if (_model is not null)
 {
-    <section class="sc-hero">
-        <div class="sc-hero-om">ॐ</div>
+    <section class="sc-hero" style="@HeroMarkStyle">
+        <div class="sc-hero-om"><AppLogo Bare="true" /></div>
         <div class="sc-hero-text">
             <p class="sc-hero-kicker">@Greeting</p>
-            <h1 class="sc-hero-title">@_model.Message</h1>
+            <h1 class="sc-hero-title">@Loc.TF("dashboard.welcome", "🕉️ Namaste, {0}! Welcome to your {1}.", GreetingName, Brand.AppName)</h1>
             <div class="sc-hero-meta">
-                <span class="sc-pill"><span class="sc-pill-k">@Loc["dashboard.seeker", "Seeker"]</span>@(string.IsNullOrWhiteSpace(_model.SeekerName) ? _model.FullName : _model.SeekerName)</span>
+                <span class="sc-pill"><span class="sc-pill-k">@Loc["dashboard.seeker", "Seeker"]</span>@GreetingName</span>
                 <span class="sc-pill"><span class="sc-pill-k">@Loc["common.role", "Role"]</span>@_model.Role</span>
             </div>
         </div>
@@ -106,6 +106,16 @@ else
         new("Maa Lakshmi", "goddess_lakshmi.png", "Om Shreem Mahalakshmiyei Namaha"),
         new("Shri Hanuman", "lord_hanuman.png", "Jai Bajrangbali"),
     };
+
+    private string GreetingName => string.IsNullOrWhiteSpace(_model?.SeekerName) ? _model?.FullName ?? string.Empty : _model.SeekerName;
+
+    /// <summary>
+    /// Feeds the logo glyph to the hero's ::after watermark (app.css), which CSS cannot read from
+    /// anywhere else. An image logo leaves the watermark off rather than repeating the old glyph.
+    /// </summary>
+    private static string HeroMarkStyle => Brand.LogoImageUrl is null
+        ? $"--sc-hero-mark:\"{Brand.LogoGlyph.Replace("\\", "\\\\").Replace("\"", "\\\"")}\""
+        : string.Empty;
 
     private string Greeting
     {

@@ -18,10 +18,10 @@
 <div class="sc-shell scm-shell" lang="@LangCode">
     <header class="scm-topbar">
         <div class="scm-topbar-brand">
-            <OmLogo Size="30" />
+            <AppLogo Size="30" />
             <div class="scm-topbar-titles">
                 <span class="scm-topbar-title">@Title</span>
-                <span class="scm-topbar-sub">@Loc["auth.appName", "Sanathan Companion"]</span>
+                <span class="scm-topbar-sub">@Brand.AppName</span>
             </div>
         </div>
 
@@ -59,7 +59,7 @@
     <main class="sc-content scm-content">
         @* No @key here: @Body is a RenderFragment owned by the Router, so keying it would not
            re-instantiate the page. The language key lives on AuthorizeRouteView in Routes.razor. *@
-        @Body
+        <AppErrorBoundary>@Body</AppErrorBoundary>
     </main>
 
     <AuthorizeView>
@@ -98,12 +98,12 @@
     {
         get
         {
-            if (Menus.Menu is not { } menu) return Loc["auth.appName", "Sanathan Companion"];
+            if (Menus.Menu is not { } menu) return Brand.AppName;
 
             var current = Nav.ToBaseRelativePath(Nav.Uri);
             var match = MobileMenu.Leaves(menu).FirstOrDefault(n => MobileMenu.IsActive(n, current));
             return match is null
-                ? Loc["auth.appName", "Sanathan Companion"]
+                ? Brand.AppName
                 : Loc.Entity("MenuModule", match.Id, "Name", match.Name);
         }
     }

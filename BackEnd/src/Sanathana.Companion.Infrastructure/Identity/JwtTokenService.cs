@@ -14,7 +14,7 @@ public class JwtTokenService : IJwtTokenService
 
     public JwtTokenService(IOptions<JwtSettings> options) => _settings = options.Value;
 
-    public (string Token, DateTime ExpiresAtUtc) GenerateToken(User user)
+    public (string Token, DateTime ExpiresAtUtc) GenerateToken(User user, Guid? sessionId = null)
     {
         var expiresAt = DateTime.UtcNow.AddMinutes(_settings.ExpiryMinutes);
         var roleName = user.Role?.RoleName ?? string.Empty;
@@ -29,6 +29,11 @@ public class JwtTokenService : IJwtTokenService
             new("role", roleName),
             new(ClaimTypes.Role, roleName)
         };
+
+        // The session (refresh-token family) this token was minted for. Read by the audit log to
+        // tie page visits to a sign-in; nothing authorizes on it.
+        if (sessionId is { } sid)
+            claims.Add(new Claim(JwtRegisteredClaimNames.Sid, sid.ToString()));
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_settings.Secret));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);

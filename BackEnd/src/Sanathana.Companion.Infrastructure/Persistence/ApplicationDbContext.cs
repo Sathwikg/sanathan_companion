@@ -52,6 +52,12 @@ public class ApplicationDbContext : DbContext
     public DbSet<NotificationConfig> NotificationConfigs => Set<NotificationConfig>();
     public DbSet<UserNotificationSetting> UserNotificationSettings => Set<UserNotificationSetting>();
     public DbSet<UserNotificationPreference> UserNotificationPreferences => Set<UserNotificationPreference>();
+    public DbSet<AuditSettings> AuditSettings => Set<AuditSettings>();
+    public DbSet<AuditModuleConfig> AuditModuleConfigs => Set<AuditModuleConfig>();
+    public DbSet<AuditUserSession> AuditUserSessions => Set<AuditUserSession>();
+    public DbSet<AuditActivityLog> AuditActivityLogs => Set<AuditActivityLog>();
+    public DbSet<AuditDataLog> AuditDataLogs => Set<AuditDataLog>();
+    public DbSet<ErrorLog> ErrorLogs => Set<ErrorLog>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

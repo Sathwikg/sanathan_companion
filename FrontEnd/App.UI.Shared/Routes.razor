@@ -7,6 +7,8 @@
 @inject IAuthService AuthService
 @inject NavigationManager Nav
 @inject ToastService Toast
+@inject NavigationTrackerService NavTracker
+@inject ClientErrorReporter ErrorReporter
 @implements IDisposable
 
 <CascadingAuthenticationState>
@@ -50,6 +52,9 @@
         Loc.OnChanged += Changed;
         SessionExpired.Expired += OnSessionExpired;
         AccessDenied.Denied += OnAccessDenied;
+        NavTracker.Initialize();
+        // A native host may have saved the crash that ended the previous run.
+        _ = ErrorReporter.SendPendingCrashAsync();
     }
 
     private void Changed() => InvokeAsync(StateHasChanged);
@@ -82,5 +87,6 @@
         Loc.OnChanged -= Changed;
         SessionExpired.Expired -= OnSessionExpired;
         AccessDenied.Denied -= OnAccessDenied;
+        NavTracker.Dispose();
     }
 }

@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Privacy Policy — {{Brand:AppName}}</title>
+    <link rel="icon" type="image/png" href="favicon.png" />
+    <link rel="stylesheet" href="_content/App.UI.Shared/theme.css" />
+    <script src="_content/App.UI.Shared/theme.js"></script>
+    <script>if (window.scTheme && typeof scTheme.boot === 'function') { scTheme.boot(); }</script>
+    <style>
+        :root {
+            --policy-max-w: 860px;
+            --policy-border: #EFE8D8;
+            --policy-card-bg: #FFFFFF;
+            --policy-heading-color: #5A2A04;
+        }
+
+        [data-theme="dark"] {
+            --policy-border: #3D2D1E;
+            --policy-card-bg: #1F1710;
+            --policy-heading-color: #F6ECD5;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans", sans-serif;
+            background-color: var(--color-background, #FDFBF7);
+            color: var(--color-text, #3D210A);
+            line-height: 1.68;
+            padding: 0;
+            margin: 0;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .policy-header {
+            background: linear-gradient(135deg, #8D4E19 0%, #5A2A04 100%);
+            color: #FFFFFF;
+            padding: 2.5rem 1.5rem 2rem;
+            text-align: center;
+            position: relative;
+            box-shadow: 0 4px 16px rgba(90, 42, 4, 0.18);
+        }
+
+        .policy-header-brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 0.75rem;
+        }
+
+        .policy-om {
+            font-size: 2.4rem;
+            color: #E4A951;
+            line-height: 1;
+        }
+
+        .policy-app-title {
+            font-family: Georgia, "Noto Serif", serif;
+            font-size: 1.85rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            color: #FFFFFF;
+        }
+
+        .policy-doc-title {
+            font-size: 1.25rem;
+            font-weight: 400;
+            color: #F6ECD5;
+            margin-top: 0.25rem;
+        }
+
+        .policy-nav-actions {
+            margin-top: 1.25rem;
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .policy-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 0.5rem 1.1rem;
+            font-size: 0.88rem;
+            font-weight: 600;
+            border-radius: 9999px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            background: rgba(255, 255, 255, 0.12);
+            color: #FFFFFF;
+            backdrop-filter: blur(6px);
+        }
+
+        .policy-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+            border-color: rgba(255, 255, 255, 0.6);
+            transform: translateY(-1px);
+        }
+
+        .policy-main-container {
+            max-width: var(--policy-max-w);
+            margin: 2rem auto;
+            padding: 0 1.25rem 4rem;
+        }
+
+        .policy-card {
+            background: var(--policy-card-bg);
+            border: 1px solid var(--policy-border);
+            border-radius: 16px;
+            padding: 2.25rem 2rem;
+            box-shadow: 0 4px 20px rgba(61, 33, 10, 0.05);
+        }
+
+        @media (max-width: 640px) {
+            .policy-card {
+                padding: 1.5rem 1.15rem;
+            }
+            .policy-app-title {
+                font-size: 1.5rem;
+            }
+        }
+
+        .policy-meta-box {
+            background: rgba(141, 78, 25, 0.06);
+            border-left: 4px solid #8D4E19;
+            padding: 1rem 1.25rem;
+            border-radius: 0 8px 8px 0;
+            margin-bottom: 2rem;
+            font-size: 0.92rem;
+        }
+
+        .policy-meta-box p {
+            margin: 0.2rem 0;
+        }
+
+        .policy-section {
+            margin-top: 2rem;
+            padding-top: 1.75rem;
+            border-top: 1px solid var(--policy-border);
+        }
+
+        .policy-section:first-of-type {
+            border-top: none;
+            padding-top: 0;
+            margin-top: 0;
+        }
+
+        h2 {
+            font-family: Georgia, "Noto Serif", serif;
+            color: var(--policy-heading-color);
+            font-size: 1.35rem;
+            margin-bottom: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        h3 {
+            font-size: 1.05rem;
+            color: var(--color-primary, #8D4E19);
+            margin: 1.2rem 0 0.5rem;
+        }
+
+        p {
+            margin-bottom: 0.9rem;
+            font-size: 0.96rem;
+        }
+
+        ul {
+            margin: 0.5rem 0 1.2rem 1.4rem;
+            font-size: 0.95rem;
+        }
+
+        li {
+            margin-bottom: 0.45rem;
+        }
+
+        .policy-highlight-badge {
+            display: inline-block;
+            background: #F6ECD5;
+            color: #5A2A04;
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-bottom: 0.5rem;
+            letter-spacing: 0.5px;
+        }
+
+        .policy-table-wrapper {
+            overflow-x: auto;
+            margin: 1rem 0 1.5rem;
+            border: 1px solid var(--policy-border);
+            border-radius: 8px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+            text-align: left;
+        }
+
+        th {
+            background: rgba(141, 78, 25, 0.08);
+            color: var(--policy-heading-color);
+            font-weight: 600;
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--policy-border);
+        }
+
+        td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--policy-border);
+            vertical-align: top;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .policy-placeholder-tag {
+            background-color: #FEF3C7;
+            color: #92400E;
+            padding: 1px 6px;
+            border-radius: 4px;
+            font-family: Consolas, monospace;
+            font-size: 0.88rem;
+            font-weight: 600;
+        }
+
+        [data-theme="dark"] .policy-placeholder-tag {
+            background-color: #452405;
+            color: #FCD34D;
+        }
+
+        .policy-contact-card {
+            background: rgba(141, 78, 25, 0.05);
+            border: 1px solid var(--policy-border);
+            border-radius: 12px;
+            padding: 1.25rem 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .policy-footer {
+            text-align: center;
+            margin-top: 2.5rem;
+            font-size: 0.85rem;
+            color: var(--color-text-muted, #705745);
+        }
+
+        @media print {
+            .policy-header-brand, .policy-doc-title, .policy-card, body {
+                background: #FFFFFF !important;
+                color: #000000 !important;
+            }
+            .policy-nav-actions, .theme-toggle-btn {
+                display: none !important;
+            }
+            .policy-header {
+                background: none !important;
+                color: #000 !important;
+                box-shadow: none !important;
+                border-bottom: 2px solid #000;
+            }
+            .policy-app-title {
+                color: #000 !important;
+            }
+            .policy-card {
+                border: none !important;
+                box-shadow: none !important;
+                padding: 0 !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="policy-header">
+        <div class="policy-header-brand">
+            <span class="policy-om">ॐ</span>
+            <span class="policy-app-title">{{Brand:AppName}}</span>
+        </div>
+        <div class="policy-doc-title">Privacy Policy & Data Transparency</div>
+        <div class="policy-nav-actions">
+            <a href="login" class="policy-btn">← Back to Sign In</a>
+            <button type="button" class="policy-btn" onclick="window.print()">🖨️ Print / Save as PDF</button>
+            <button type="button" class="policy-btn" onclick="toggleTheme()">🌓 Toggle Theme</button>
+        </div>
+    </header>
+
+    <main class="policy-main-container">
+        <article class="policy-card">
+            
+            <div class="policy-meta-box">
+                <p><strong>Application:</strong> {{Brand:AppName}} (All Gods Devotional Platform)</p>
+                <p><strong>Governing Organization:</strong> <span class="policy-placeholder-tag">[SBS Labs / Your Company Legal Name]</span></p>
+                <p><strong>Effective Date:</strong> October 5, 2026</p>
+                <p><strong>Last Updated:</strong> October 5, 2026</p>
+            </div>
+
+            <!-- SECTION 1 -->
+            <section class="policy-section">
+                <h2>1. Introduction & Spiritual Commitment</h2>
+                <p>
+                    Welcome to <strong>{{Brand:AppName}}</strong> ("we," "our," or "the Application"). We are dedicated to providing a serene, sacred, and respectful space for your daily spiritual practice (Sadhana), Panchangam calculations, chants, pujas, and devotional study.
+                </p>
+                <p>
+                    We hold your privacy in sacred trust. This Privacy Policy details our data practices across our mobile applications (Android and iOS) and web services. It explains what information we collect, the precise reasons we require it, how it is safeguarded, and how you maintain total ownership and control over your personal data.
+                </p>
+            </section>
+
+            <!-- SECTION 2 -->
+            <section class="policy-section">
+                <h2>2. Summary of Data Collected</h2>
+                <p>
+                    We practice strict data minimization: we collect only what is necessary to run the features you actively use.
+                </p>
+                
+                <div class="policy-table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Data Type</th>
+                                <th>Purpose</th>
+                                <th>Retention & Storage</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Profile & Account</strong><br>(Name, Email, Mobile, Seeker Name)</td>
+                                <td>Account creation, personalized greetings, spiritual identity, and account recovery.</td>
+                                <td>Encrypted database storage until account deletion is requested.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Password Hash</strong></td>
+                                <td>Account security authentication.</td>
+                                <td>One-way salted cryptographic hash (BCrypt). Plain passwords are never stored.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Google Account ID</strong><br>(OAuth Subject ID)</td>
+                                <td>Seamless one-tap sign-in with Google authentication.</td>
+                                <td>Linked identifier only. We never access your contacts, Google Drive, or personal Google files.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Geographic Location</strong><br>(Coarse / Fine GPS)</td>
+                                <td>Real-time calculation of local Vedic Panchangam (sunrise, sunset, tithi, nakshatra, Rahu Kalam, Yamagandam, Muhurthas).</td>
+                                <td>Processed dynamically on request. We do not track your location in the background or maintain location logs.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Sadhana & Devotion</strong><br>(Japa counts, streaks, puja logs, favorites)</td>
+                                <td>Syncing your personal spiritual journey, daily japa malas, streaks, and temple bookmarks.</td>
+                                <td>Retained under your profile so your devotional progress persists across devices.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>User Feedback & Media</strong><br>(Optional audio chants, deity photos)</td>
+                                <td>User-submitted bug reports, audio chants, or wallpapers chosen by you.</td>
+                                <td>Stored in secure media storage; accessible only for user-initiated features.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Audit & Security Logs</strong><br>(IP address, User-Agent, platform, session timestamps)</td>
+                                <td>Protecting accounts against token hijacking, fraud prevention, and crash diagnosis.</td>
+                                <td>Retained in secure audit logs for operational security.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- SECTION 3 -->
+            <section class="policy-section">
+                <h2>3. Device Permissions & How They Are Used</h2>
+                <p>When you use the mobile application, certain device features may request your permission:</p>
+                <ul>
+                    <li>
+                        <strong>Location (<kbd>ACCESS_FINE_LOCATION</kbd> / <kbd>ACCESS_COARSE_LOCATION</kbd>):</strong>
+                        Requested solely to provide hyper-local sunrise, sunset, and planetary timings for the Vedic Panchangam. You may choose to deny this permission and instead manually pick a region.
+                    </li>
+                    <li>
+                        <strong>Notifications (<kbd>POST_NOTIFICATIONS</kbd>):</strong>
+                        Used to deliver your daily sadhana reminders, prayer alerts, auspicious tithi notifications, and festival announcements. You can turn notifications on or off at any time in app or system settings.
+                    </li>
+                    <li>
+                        <strong>Boot Completed (<kbd>RECEIVE_BOOT_COMPLETED</kbd>):</strong>
+                        Alarms on Android devices reset whenever your device restarts. This permission allows the app to restore your scheduled daily sadhana alarms after your phone reboots.
+                    </li>
+                    <li>
+                        <strong>Camera & Photo Gallery:</strong>
+                        Used solely if you choose to take a photo of a deity or select a wallpaper from your device gallery. We do not inspect other photos in your library.
+                    </li>
+                    <li>
+                        <strong>Microphone:</strong>
+                        Used exclusively if you record chant recitation or stotra audio within the app.
+                    </li>
+                </ul>
+            </section>
+
+            <!-- SECTION 4 -->
+            <section class="policy-section">
+                <h2>4. Advertising & Third-Party Service Providers</h2>
+                <p>
+                    To support the ongoing hosting and development of {{Brand:AppName}}, we may show non-intrusive advertisements:
+                </p>
+                <ul>
+                    <li>
+                        <strong>Google AdMob:</strong> We partner with Google AdMob to display banner, interstitial, native, or rewarded ads. AdMob may process your device's advertising identifier (GAID/IDFA) and cookies in accordance with <a href="https://policies.google.com/technologies/ads" target="_blank" rel="noopener">Google's Advertising Privacy Policies</a>.
+                    </li>
+                    <li>
+                        <strong>Spiritual Sacredness Clause:</strong> Advertisements are strictly prohibited from appearing in sensitive spiritual modules (such as active Japa mala chanting or during sacred puja recitation).
+                    </li>
+                </ul>
+            </section>
+
+            <!-- SECTION 5 -->
+            <section class="policy-section">
+                <h2>5. Data Security & Storage Architecture</h2>
+                <p>We implement multi-layered defenses to ensure your information is safe:</p>
+                <ul>
+                    <li><strong>Transport Encryption:</strong> All client-to-server traffic is encrypted using modern TLS (HTTPS) standards.</li>
+                    <li><strong>Secure Storage on Device:</strong> Mobile credentials and tokens are safeguarded using platform hardware keychains (<kbd>EncryptedSharedPreferences</kbd> on Android and <kbd>Apple Keychain</kbd> on iOS).</li>
+                    <li><strong>No Plain-Text Passwords:</strong> Credentials cannot be read by anyone, including our system administrators.</li>
+                    <li><strong>Token Lifetime & Revocation:</strong> Sessions support instant invalidation upon password reset or logout.</li>
+                </ul>
+            </section>
+
+            <!-- SECTION 6 -->
+            <section class="policy-section">
+                <h2>6. Your Rights, Data Portability & Account Deletion</h2>
+                <p>As a seeker and user of {{Brand:AppName}}, you hold full authority over your data:</p>
+                <ul>
+                    <li><strong>Right to View & Update:</strong> You can edit your profile, mobile number, and spiritual name at any time within your profile screen.</li>
+                    <li><strong>Right to Withdraw Permissions:</strong> You can revoke location, notification, or media permissions via your device settings at any time without losing access to static devotional reading.</li>
+                    <li><strong>Right to Account & Data Deletion:</strong> You have the right to request permanent deletion of your account and all associated devotional streaks, favorites, and profile data. To initiate account deletion, contact our Grievance Desk or submit a request directly through the in-app feedback module.</li>
+                </ul>
+            </section>
+
+            <!-- SECTION 7 -->
+            <section class="policy-section">
+                <h2>7. Children's Privacy</h2>
+                <p>
+                    {{Brand:AppName}} is designed for devotional learning and general audiences. We do not intentionally collect personal information from children under the age of 13. If you become aware that a child has provided us with personal information without parental consent, please contact us immediately and we will promptly remove such records.
+                </p>
+            </section>
+
+            <!-- SECTION 8 -->
+            <section class="policy-section">
+                <h2>8. Updates to This Policy</h2>
+                <p>
+                    We may occasionally update this Privacy Policy to reflect application improvements or legal requirements. When updates occur, the "Last Updated" date at the top of this document will be revised. Any major revisions will be notified via in-app banner or notification.
+                </p>
+            </section>
+
+            <!-- SECTION 9 -->
+            <section class="policy-section">
+                <h2>9. Contact Us & Grievance Redressal</h2>
+                <p>
+                    For questions, comments, data deletion requests, or grievances related to this Privacy Policy, please reach out to our team:
+                </p>
+
+                <div class="policy-contact-card">
+                    <p><strong>Entity Name:</strong> <span class="policy-placeholder-tag">[SBS Labs / Your Company Legal Name]</span></p>
+                    <p><strong>Support & Privacy Email:</strong> <span class="policy-placeholder-tag">[privacy@sanathancompanion.org / your-company-email@domain.com]</span></p>
+                    <p><strong>Grievance Officer:</strong> <span class="policy-placeholder-tag">[Grievance Officer Name / SBS Labs Legal Cell]</span></p>
+                    <p><strong>Mailing Address:</strong> <span class="policy-placeholder-tag">[Your Physical Business Address / City, State, Country, Postal Code]</span></p>
+                    <p><strong>Website:</strong> <span class="policy-placeholder-tag">[https://your-domain.com]</span></p>
+                </div>
+            </section>
+
+            <footer class="policy-footer">
+                <p>© 2026 {{Brand:AppName}}. Dedicated to the eternal dharma and seeker privacy.</p>
+                <p style="margin-top: 0.5rem;"><a href="login" style="color: #8D4E19; font-weight: 600;">Return to Login</a></p>
+            </footer>
+
+        </article>
+    </main>
+
+    <script>
+        function toggleTheme() {
+            var current = document.documentElement.getAttribute('data-theme');
+            var next = current === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            if (window.localStorage) {
+                localStorage.setItem('sc_theme', next);
+            }
+        }
+    </script>
+</body>
+</html>
