@@ -1,0 +1,806 @@
+@page "/audit-config"
+@attribute [Authorize]
+@inherits LocalizedComponentBase
+@inject IApiClient Api
+@inject ToastService Toast
+@using System.Net
+@using System.Text.Encodings.Web
+@using System.Text.Json
+
+<div class="sc-page-head">
+    <div class="sc-page-title">
+        <span class="sc-page-emoji">📋</span>
+        <div>
+            <h1>@Loc["auditConfig.title", "Audit Config"]</h1>
+            <p class="sc-page-sub">@Loc["auditConfig.sub", "Choose what is audited, and review sessions, page visits, data changes and errors"]</p>
+        </div>
+    </div>
+    @if (_model is not null && !_forbidden && _activeTab == TabConfig)
+    {
+        <div class="sc-page-actions">
+            <button class="sc-btn-primary" @onclick="SaveAsync" disabled="@_saving">
+                @if (_saving) { <OmLoader Inline="true" Size="18" Message="@Loc["common.saving", "Saving…"]" /> }
+                else { <span>@Loc["auditConfig.save", "Save Configuration"]</span> }
+            </button>
+        </div>
+    }
+</div>
+
+@if (_loading)
+{
+    <OmLoader FullPage="true" Message="@Loc["common.loading", "Loading…"]" />
+}
+else if (_forbidden)
+{
+    <div class="sc-card sc-empty-state">
+        <div class="sc-empty-om">🔒</div>
+        <p>@Loc["common.adminOnly", "Administrator Access Required"]</p>
+    </div>
+}
+else if (_model is null)
+{
+    <div class="sc-card sc-empty-state">
+        <div class="sc-empty-om">⚠️</div>
+        <p>@Loc["auditConfig.loadFailed", "The audit configuration could not be loaded."]</p>
+    </div>
+}
+else
+{
+    <div class="sc-card" style="padding:0.5rem; margin-bottom:1rem; display:flex; gap:0.5rem; flex-wrap:wrap;">
+        @foreach (var tab in Tabs)
+        {
+            var t = tab;
+            <button class="@(_activeTab == t ? "sc-btn-primary" : "sc-btn-secondary")" @onclick="() => SetTabAsync(t)">@TabLabel(t)</button>
+        }
+    </div>
+
+    @if (_activeTab == TabConfig)
+    {
+        <div class="sc-card sc-prefcard">
+            <div class="sc-section-head" style="margin-bottom:0.6rem">
+                <h2>🛡️ @Loc["auditConfig.masterSettings", "System Master Controls"]</h2>
+                <span class="sc-section-sub">@Loc["auditConfig.masterSub", "Switches that govern the whole audit and diagnostics pipeline"]</span>
+            </div>
+
+            @if (!_model.Settings.IsGlobalAuditEnabled)
+            {
+                <div class="sc-hint" style="margin-bottom:0.6rem">⏸️ @Loc["auditConfig.masterOffHint", "The master switch is off, so sessions, page visits and data changes are not recorded until it is turned back on."]</div>
+            }
+
+            <div class="sc-preflist">
+                <div class="sc-prefrow">
+                    <div>
+                        <strong class="sc-prefrow-label">@Loc["auditConfig.globalAudit", "Master Audit Switch"]</strong>
+                        <div class="sc-hint">@Loc["auditConfig.globalAuditHint", "Pauses or resumes all session, page-visit and data-change auditing. Changes made on this screen are always recorded."]</div>
+                    </div>
+                    <label class="sc-switch">
+                        <input type="checkbox" checked="@_model.Settings.IsGlobalAuditEnabled" @onchange="e => _model.Settings.IsGlobalAuditEnabled = (bool)e.Value!" />
+                        <span class="sc-slider"></span>
+                    </label>
+                </div>
+
+                <div class="sc-prefrow">
+                    <div>
+                        <strong class="sc-prefrow-label">@Loc["auditConfig.trackSessions", "Track User Sessions"]</strong>
+                        <div class="sc-hint">@Loc["auditConfig.trackSessionsHint", "Records sign-in and sign-out times, how each session ended, the IP address and the device platform."]</div>
+                    </div>
+                    <label class="sc-switch">
+                        <input type="checkbox" checked="@_model.Settings.TrackUserSessions" @onchange="e => _model.Settings.TrackUserSessions = (bool)e.Value!" />
+                        <span class="sc-slider"></span>
+                    </label>
+                </div>
+
+                <div class="sc-prefrow">
+                    <div>
+                        <strong class="sc-prefrow-label">@Loc["auditConfig.trackNavigation", "Track Page Visits & Time Spent"]</strong>
+                        <div class="sc-hint">@Loc["auditConfig.trackNavigationHint", "Records which forms users open and how long they stay on each."]</div>
+                    </div>
+                    <label class="sc-switch">
+                        <input type="checkbox" checked="@_model.Settings.TrackPageNavigation" @onchange="e => _model.Settings.TrackPageNavigation = (bool)e.Value!" />
+                        <span class="sc-slider"></span>
+                    </label>
+                </div>
+
+                <div class="sc-prefrow">
+                    <div>
+                        <strong class="sc-prefrow-label">@Loc["auditConfig.trackData", "Track Data Changes"]</strong>
+                        <div class="sc-hint">@Loc["auditConfig.trackDataHint", "Records inserts, updates and deletions with the changed fields and their before and after values."]</div>
+                    </div>
+                    <label class="sc-switch">
+                        <input type="checkbox" checked="@_model.Settings.TrackDataModifications" @onchange="e => _model.Settings.TrackDataModifications = (bool)e.Value!" />
+                        <span class="sc-slider"></span>
+                    </label>
+                </div>
+
+                <div class="sc-prefrow">
+                    <div>
+                        <strong class="sc-prefrow-label">@Loc["auditConfig.trackErrors", "Capture Error Logs"]</strong>
+                        <div class="sc-hint">@Loc["auditConfig.trackErrorsHint", "Captures unhandled server exceptions and app crashes. Stays on even while the master switch is off."]</div>
+                    </div>
+                    <label class="sc-switch">
+                        <input type="checkbox" checked="@_model.Settings.TrackErrorLogs" @onchange="e => _model.Settings.TrackErrorLogs = (bool)e.Value!" />
+                        <span class="sc-slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="sc-detail-grid" style="margin-top:1rem">
+                <div class="sc-field">
+                    <label>@Loc["auditConfig.auditRetention", "Audit Log Retention (Days)"]</label>
+                    <input class="sc-input" type="number" min="7" max="730" @bind="_model.Settings.AuditRetentionDays" />
+                    <div class="sc-hint">@Loc["auditConfig.auditRetentionHint", "Between 7 and 730 days. Older rows are deleted automatically once a day."]</div>
+                </div>
+                <div class="sc-field">
+                    <label>@Loc["auditConfig.errorRetention", "Error Log Retention (Days)"]</label>
+                    <input class="sc-input" type="number" min="7" max="365" @bind="_model.Settings.ErrorRetentionDays" />
+                    <div class="sc-hint">@Loc["auditConfig.errorRetentionHint", "Between 7 and 365 days. Older rows are deleted automatically once a day."]</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="sc-card sc-prefcard">
+            <div class="sc-section-head" style="margin-bottom:0.8rem">
+                <div>
+                    <h2>🧩 @Loc["auditConfig.moduleAudit", "Form-Level Audit Rules"]</h2>
+                    <span class="sc-section-sub">@Loc["auditConfig.moduleSub", "Turn page-visit and data-change auditing on or off for each form"]</span>
+                </div>
+                <div style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
+                    <input class="sc-input" style="max-width:220px;" placeholder="@Loc["auditConfig.searchForms", "Search forms…"]" @bind="_moduleFilter" @bind:event="oninput" />
+                    <button class="sc-btn-secondary" @onclick="() => SetAllModules(true)">@Loc["auditConfig.enableAll", "Enable All"]</button>
+                    <button class="sc-btn-secondary" @onclick="() => SetAllModules(false)">@Loc["auditConfig.disableAll", "Disable All"]</button>
+                </div>
+            </div>
+
+            <div style="overflow-x:auto;">
+                <table class="sc-table">
+                    <thead>
+                        <tr>
+                            <th>@Loc["auditConfig.colForm", "Form"]</th>
+                            <th>@Loc["auditConfig.colCategory", "Category"]</th>
+                            <th style="text-align:center">@Loc["auditConfig.colActivity", "Track Visits & Time"]</th>
+                            <th style="text-align:center">@Loc["auditConfig.colData", "Track Data Changes"]</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var mod in FilteredModules)
+                        {
+                            var m = mod;
+                            <tr>
+                                <td>
+                                    <div style="display:flex; align-items:center; gap:0.5rem">
+                                        <span>@(m.Icon ?? "📄")</span>
+                                        <strong>@m.ModuleName</strong>
+                                        <span class="sc-hint" style="font-size:0.75rem">(@m.ModuleCode)</span>
+                                    </div>
+                                </td>
+                                <td>@(m.ParentName ?? Loc["auditConfig.topLevel", "Top Level"])</td>
+                                <td style="text-align:center">
+                                    <label class="sc-switch">
+                                        <input type="checkbox" checked="@m.IsActivityAuditEnabled" @onchange="e => m.IsActivityAuditEnabled = (bool)e.Value!" />
+                                        <span class="sc-slider"></span>
+                                    </label>
+                                </td>
+                                <td style="text-align:center">
+                                    <label class="sc-switch">
+                                        <input type="checkbox" checked="@m.IsDataAuditEnabled" @onchange="e => m.IsDataAuditEnabled = (bool)e.Value!" />
+                                        <span class="sc-slider"></span>
+                                    </label>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="sc-card">
+            <div class="sc-section-head" style="margin-bottom:0.8rem">
+                <h2>@TabTitle(_activeTab)</h2>
+                <button class="sc-btn-secondary" @onclick="LoadActiveAsync">🔄 @Loc["auditConfig.refresh", "Refresh"]</button>
+            </div>
+
+            @* Filters shared by the four logs; the dropdown changes with the log. *@
+            <div style="display:flex; gap:0.5rem; flex-wrap:wrap; align-items:flex-end; margin-bottom:0.8rem">
+                <div class="sc-field" style="flex:2 1 200px">
+                    <label>@Loc["common.search", "Search"]</label>
+                    <input class="sc-input" placeholder="@Loc["common.typeToSearch", "Type to search…"]" @bind="Q.Search" @onkeydown="OnSearchKeyAsync" />
+                </div>
+                <div class="sc-field" style="flex:1 1 140px">
+                    <label>@Loc["auditConfig.fromUtc", "From (UTC)"]</label>
+                    <input class="sc-input" type="date" @bind="Q.From" />
+                </div>
+                <div class="sc-field" style="flex:1 1 140px">
+                    <label>@Loc["auditConfig.toUtc", "To (UTC)"]</label>
+                    <input class="sc-input" type="date" @bind="Q.To" />
+                </div>
+                @if (_activeTab == TabData)
+                {
+                    <div class="sc-field" style="flex:1 1 140px">
+                        <label>@Loc["auditConfig.colAction", "Action"]</label>
+                        <select class="sc-input" @bind="Q.Action">
+                            <option value="">@Loc["auditConfig.allActions", "All Actions"]</option>
+                            <option value="INSERT">@ActionLabel("INSERT")</option>
+                            <option value="UPDATE">@ActionLabel("UPDATE")</option>
+                            <option value="DELETE">@ActionLabel("DELETE")</option>
+                        </select>
+                    </div>
+                }
+                @if (_activeTab == TabErrors)
+                {
+                    <div class="sc-field" style="flex:1 1 140px">
+                        <label>@Loc["auditConfig.colSource", "Source"]</label>
+                        <select class="sc-input" @bind="Q.Source">
+                            <option value="">@Loc["auditConfig.allSources", "All Sources"]</option>
+                            <option value="BackendApi">@SourceLabel("BackendApi")</option>
+                            <option value="FrontendWeb">@SourceLabel("FrontendWeb")</option>
+                            <option value="FrontendMobile">@SourceLabel("FrontendMobile")</option>
+                        </select>
+                    </div>
+                    <div class="sc-field" style="flex:1 1 140px">
+                        <label>@Loc["common.status", "Status"]</label>
+                        <select class="sc-input" value="@ResolvedFilterValue" @onchange="OnResolvedFilterChanged">
+                            <option value="">@Loc["auditConfig.allStatuses", "All Statuses"]</option>
+                            <option value="open">@Loc["auditConfig.statusOpen", "Open"]</option>
+                            <option value="resolved">@Loc["auditConfig.statusResolved", "Resolved"]</option>
+                        </select>
+                    </div>
+                }
+                <div style="display:flex; gap:0.4rem">
+                    <button class="sc-btn-primary" @onclick="ApplyFiltersAsync">@Loc["common.filter", "Filter"]</button>
+                    <button class="sc-btn-secondary" @onclick="ResetFiltersAsync">@Loc["common.reset", "Reset"]</button>
+                </div>
+            </div>
+
+            @if (_logLoading)
+            {
+                <OmLoader Message="@Loc["common.loading", "Loading…"]" />
+            }
+            else if (_logFailed)
+            {
+                <div class="sc-empty-state"><p>@Loc["auditConfig.logLoadFailed", "The log could not be loaded. Please try again."]</p></div>
+            }
+            else if (_activeTab == TabSessions)
+            {
+                @if (_sessions.Items.Count == 0)
+                {
+                    <div class="sc-empty-state"><p>@Loc["auditConfig.noSessions", "No sessions match these filters."]</p></div>
+                }
+                else
+                {
+                    <div style="overflow-x:auto;">
+                        <table class="sc-table">
+                            <thead>
+                                <tr>
+                                    <th>@Loc["auditConfig.colUser", "User"]</th>
+                                    <th>@Loc["auditConfig.colLogin", "Signed In (UTC)"]</th>
+                                    <th>@Loc["auditConfig.colLogout", "Signed Out (UTC)"]</th>
+                                    <th>@Loc["auditConfig.colLastSeen", "Last Seen (UTC)"]</th>
+                                    <th>@Loc["auditConfig.colDuration", "Duration"]</th>
+                                    <th>@Loc["auditConfig.colExitReason", "Exit Reason"]</th>
+                                    <th>@Loc["auditConfig.colPlatform", "Platform"]</th>
+                                    <th>@Loc["auditConfig.colIp", "IP Address"]</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var s in _sessions.Items)
+                                {
+                                    <tr>
+                                        <td><strong>@(s.UsernameOrEmail ?? s.UserId?.ToString() ?? Loc["auditConfig.anonymous", "Anonymous"])</strong></td>
+                                        <td>@Stamp(s.LoginTimeUtc)</td>
+                                        <td>@(s.LogoutTimeUtc is { } outAt ? Stamp(outAt) : "—")</td>
+                                        <td>@(s.LastHeartbeatUtc is { } seen ? Stamp(seen) : "—")</td>
+                                        <td>@(s.DurationSeconds is { } secs ? Duration(secs) : "—")</td>
+                                        <td>
+                                            @if (s.ExitReason is null)
+                                            {
+                                                <span class="sc-typechip god">@Loc["auditConfig.active", "Active"]</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="sc-typechip">@ExitReasonLabel(s.ExitReason)</span>
+                                            }
+                                        </td>
+                                        <td>@(s.Platform ?? "—")</td>
+                                        <td><code>@(s.IpAddress ?? "—")</code></td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    <Pager Page="_sessions.Page" PageCount="PageCount(_sessions.TotalCount, _sessions.PageSize)" TotalCount="_sessions.TotalCount" PageSize="_sessions.PageSize" OnGoTo="GoToPageAsync" />
+                }
+            }
+            else if (_activeTab == TabActivity)
+            {
+                @if (_activities.Items.Count == 0)
+                {
+                    <div class="sc-empty-state"><p>@Loc["auditConfig.noActivities", "No page visits match these filters."]</p></div>
+                }
+                else
+                {
+                    <div style="overflow-x:auto;">
+                        <table class="sc-table">
+                            <thead>
+                                <tr>
+                                    <th>@Loc["auditConfig.colForm", "Form"]</th>
+                                    <th>@Loc["auditConfig.colUser", "User"]</th>
+                                    <th>@Loc["common.route", "Route"]</th>
+                                    <th>@Loc["auditConfig.colEntered", "Entered (UTC)"]</th>
+                                    <th>@Loc["auditConfig.colTimeSpent", "Time Spent"]</th>
+                                    <th>@Loc["auditConfig.colPlatform", "Platform"]</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var a in _activities.Items)
+                                {
+                                    <tr>
+                                        <td><strong>@(a.FormName ?? a.ModuleCode)</strong></td>
+                                        <td>@(a.UsernameOrEmail ?? Loc["auditConfig.anonymous", "Anonymous"])</td>
+                                        <td><code>@a.RoutePath</code></td>
+                                        <td>@Stamp(a.EnteredAtUtc)</td>
+                                        <td><span class="sc-typechip god">@Duration(a.TimeSpentSeconds)</span></td>
+                                        <td>@(a.Platform ?? "—")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    <Pager Page="_activities.Page" PageCount="PageCount(_activities.TotalCount, _activities.PageSize)" TotalCount="_activities.TotalCount" PageSize="_activities.PageSize" OnGoTo="GoToPageAsync" />
+                }
+            }
+            else if (_activeTab == TabData)
+            {
+                @if (_dataLogs.Items.Count == 0)
+                {
+                    <div class="sc-empty-state"><p>@Loc["auditConfig.noDataLogs", "No data changes match these filters."]</p></div>
+                }
+                else
+                {
+                    <div style="overflow-x:auto;">
+                        <table class="sc-table">
+                            <thead>
+                                <tr>
+                                    <th>@Loc["auditConfig.colTimestamp", "Timestamp (UTC)"]</th>
+                                    <th>@Loc["auditConfig.colAction", "Action"]</th>
+                                    <th>@Loc["auditConfig.colEntity", "Entity"]</th>
+                                    <th>@Loc["auditConfig.colRecordId", "Record ID"]</th>
+                                    <th>@Loc["auditConfig.colChangedFields", "Changed Fields"]</th>
+                                    <th>@Loc["auditConfig.colUser", "User"]</th>
+                                    <th>@Loc["common.actions", "Actions"]</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var d in _dataLogs.Items)
+                                {
+                                    var log = d;
+                                    <tr>
+                                        <td>@Stamp(log.TimestampUtc)</td>
+                                        <td>
+                                            <span class="sc-typechip @(log.Action == "INSERT" ? "god" : log.Action == "DELETE" ? "alert" : "")">@ActionLabel(log.Action)</span>
+                                        </td>
+                                        <td><strong>@log.EntityName</strong></td>
+                                        <td><code>@(log.EntityId ?? "—")</code></td>
+                                        <td style="max-width:260px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="@log.ChangedColumns">@(log.ChangedColumns ?? "—")</td>
+                                        <td>@(log.UsernameOrEmail ?? Loc["auditConfig.system", "System"])</td>
+                                        <td>
+                                            @if (!string.IsNullOrEmpty(log.OldValuesJson) || !string.IsNullOrEmpty(log.NewValuesJson))
+                                            {
+                                                <button class="sc-btn-secondary sc-btn-sm" @onclick="() => _selectedDataLog = log">@Loc["auditConfig.inspectChanges", "Inspect Changes"]</button>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    <Pager Page="_dataLogs.Page" PageCount="PageCount(_dataLogs.TotalCount, _dataLogs.PageSize)" TotalCount="_dataLogs.TotalCount" PageSize="_dataLogs.PageSize" OnGoTo="GoToPageAsync" />
+                }
+            }
+            else if (_activeTab == TabErrors)
+            {
+                @if (_errors.Items.Count == 0)
+                {
+                    <div class="sc-empty-state"><p>@Loc["auditConfig.noErrors", "No errors match these filters."]</p></div>
+                }
+                else
+                {
+                    <div style="overflow-x:auto;">
+                        <table class="sc-table">
+                            <thead>
+                                <tr>
+                                    <th>@Loc["auditConfig.colTimestamp", "Timestamp (UTC)"]</th>
+                                    <th>@Loc["auditConfig.colSource", "Source"]</th>
+                                    <th>@Loc["auditConfig.colHttpStatus", "HTTP Status"]</th>
+                                    <th>@Loc["auditConfig.colException", "Exception"]</th>
+                                    <th>@Loc["auditConfig.colMessage", "Message"]</th>
+                                    <th>@Loc["auditConfig.colPath", "Path"]</th>
+                                    <th>@Loc["common.status", "Status"]</th>
+                                    <th>@Loc["common.actions", "Actions"]</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var e in _errors.Items)
+                                {
+                                    var err = e;
+                                    <tr>
+                                        <td>@Stamp(err.TimestampUtc)</td>
+                                        <td><span class="sc-typechip">@SourceLabel(err.Source)</span></td>
+                                        <td><code>@(err.StatusCode?.ToString() ?? "—")</code></td>
+                                        <td><strong>@ShortType(err.ExceptionType)</strong></td>
+                                        <td style="max-width:250px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="@err.Message">@err.Message</td>
+                                        <td><code>@(err.RequestPath ?? "—")</code></td>
+                                        <td>
+                                            @if (err.IsResolved)
+                                            {
+                                                <span class="sc-typechip god">@Loc["auditConfig.statusResolved", "Resolved"]</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="sc-typechip alert">@Loc["auditConfig.statusOpen", "Open"]</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            <div style="display:flex; gap:0.3rem">
+                                                <button class="sc-btn-secondary sc-btn-sm" @onclick="() => _selectedError = err">@Loc["auditConfig.inspect", "Inspect"]</button>
+                                                @if (!err.IsResolved)
+                                                {
+                                                    <button class="sc-btn-secondary sc-btn-sm" disabled="@(_resolving == err.Id)" @onclick="() => ResolveErrorAsync(err)">@Loc["auditConfig.resolve", "Resolve"]</button>
+                                                }
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    <Pager Page="_errors.Page" PageCount="PageCount(_errors.TotalCount, _errors.PageSize)" TotalCount="_errors.TotalCount" PageSize="_errors.PageSize" OnGoTo="GoToPageAsync" />
+                }
+            }
+        </div>
+    }
+}
+
+<ScModal Visible="@(_selectedDataLog is not null)" Title="@Loc["auditConfig.diffTitle", "Data Change Details"]" OnClose="() => _selectedDataLog = null">
+    @if (_selectedDataLog is { } sel)
+    {
+        <div style="margin-bottom:0.8rem; display:flex; gap:1rem; flex-wrap:wrap">
+            <div><strong>@Loc["auditConfig.colEntity", "Entity"]:</strong> @sel.EntityName</div>
+            <div><strong>@Loc["auditConfig.colAction", "Action"]:</strong> @ActionLabel(sel.Action)</div>
+            <div><strong>@Loc["auditConfig.colRecordId", "Record ID"]:</strong> <code>@sel.EntityId</code></div>
+            <div><strong>@Loc["auditConfig.colUser", "User"]:</strong> @(sel.UsernameOrEmail ?? Loc["auditConfig.system", "System"])</div>
+            @if (!string.IsNullOrEmpty(sel.Endpoint))
+            {
+                <div><strong>@Loc["auditConfig.colEndpoint", "Endpoint"]:</strong> <code>@sel.Endpoint</code></div>
+            }
+        </div>
+        <div class="sc-detail-grid">
+            <div class="sc-field">
+                <label>@Loc["auditConfig.before", "Before"]</label>
+                <textarea class="sc-input" rows="12" readonly style="font-family:monospace; font-size:0.85rem">@(Pretty(sel.OldValuesJson) ?? Loc["common.none", "None"])</textarea>
+            </div>
+            <div class="sc-field">
+                <label>@Loc["auditConfig.after", "After"]</label>
+                <textarea class="sc-input" rows="12" readonly style="font-family:monospace; font-size:0.85rem">@(Pretty(sel.NewValuesJson) ?? Loc["common.none", "None"])</textarea>
+            </div>
+        </div>
+    }
+</ScModal>
+
+<ScModal Visible="@(_selectedError is not null)" Title="@Loc["auditConfig.errorTitle", "Error Details"]" OnClose="() => _selectedError = null">
+    @if (_selectedError is { } err)
+    {
+        <div style="margin-bottom:0.8rem; display:grid; gap:0.3rem">
+            <div><strong>@Loc["auditConfig.colSource", "Source"]:</strong> @SourceLabel(err.Source) · @Stamp(err.TimestampUtc) UTC</div>
+            <div><strong>@Loc["auditConfig.colException", "Exception"]:</strong> <code>@err.ExceptionType</code></div>
+            <div><strong>@Loc["auditConfig.colMessage", "Message"]:</strong> @err.Message</div>
+            <div><strong>@Loc["auditConfig.colPath", "Path"]:</strong> <code>@(err.RequestMethod is null ? err.RequestPath : $"{err.RequestMethod} {err.RequestPath}")</code></div>
+            <div><strong>@Loc["auditConfig.colUser", "User"]:</strong> @(err.UsernameOrEmail ?? Loc["auditConfig.anonymous", "Anonymous"]) · <code>@(err.IpAddress ?? "—")</code></div>
+            @if (err.IsResolved)
+            {
+                <div class="sc-hint">✅ @Loc.TF("auditConfig.resolvedBy", "Resolved by {0} on {1} UTC", err.ResolvedBy ?? "—", err.ResolvedAtUtc is { } at ? Stamp(at) : "—")</div>
+            }
+        </div>
+        <div class="sc-field">
+            <label>@Loc["auditConfig.stackTrace", "Stack Trace"]</label>
+            <textarea class="sc-input" rows="12" readonly style="font-family:monospace; font-size:0.8rem">@(err.StackTrace ?? Loc["auditConfig.noStackTrace", "No stack trace was captured."])</textarea>
+        </div>
+        @if (!string.IsNullOrEmpty(err.InnerException))
+        {
+            <div class="sc-field" style="margin-top:0.5rem">
+                <label>@Loc["auditConfig.innerException", "Inner Exception"]</label>
+                <textarea class="sc-input" rows="4" readonly style="font-family:monospace; font-size:0.8rem">@err.InnerException</textarea>
+            </div>
+        }
+    }
+</ScModal>
+
+@code {
+    private const string TabConfig = "config";
+    private const string TabSessions = "sessions";
+    private const string TabActivity = "activity";
+    private const string TabData = "data";
+    private const string TabErrors = "errors";
+    private static readonly string[] Tabs = { TabConfig, TabSessions, TabActivity, TabData, TabErrors };
+
+    private static readonly JsonSerializerOptions PrettyJson = new()
+    {
+        WriteIndented = true,
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+    };
+
+    private bool _loading = true;
+    private bool _forbidden;
+    private bool _saving;
+    private bool _logLoading;
+    private bool _logFailed;
+    private Guid? _resolving;
+    private string _activeTab = TabConfig;
+    private string _moduleFilter = string.Empty;
+
+    private AuditConfigResponseModel? _model;
+    private AuditPageModel<AuditSessionLogModel> _sessions = new();
+    private AuditPageModel<AuditActivityLogModel> _activities = new();
+    private AuditPageModel<AuditDataLogModel> _dataLogs = new();
+    private AuditPageModel<ErrorLogModel> _errors = new();
+
+    /// <summary>Each log keeps its own filters and page, so switching tabs does not lose your place.</summary>
+    private readonly Dictionary<string, AuditLogQuery> _queries = new()
+    {
+        [TabSessions] = new(),
+        [TabActivity] = new(),
+        [TabData] = new(),
+        [TabErrors] = new()
+    };
+
+    private AuditLogQuery Q => _queries[_activeTab];
+
+    private AuditDataLogModel? _selectedDataLog;
+    private ErrorLogModel? _selectedError;
+
+    private IEnumerable<AuditModuleConfigModel> FilteredModules =>
+        (_model?.Modules ?? Enumerable.Empty<AuditModuleConfigModel>())
+            .Where(m => string.IsNullOrWhiteSpace(_moduleFilter)
+                     || m.ModuleName.Contains(_moduleFilter, StringComparison.OrdinalIgnoreCase)
+                     || m.ModuleCode.Contains(_moduleFilter, StringComparison.OrdinalIgnoreCase));
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        await LoadConfigAsync();
+    }
+
+    private async Task LoadConfigAsync()
+    {
+        _loading = true;
+        try
+        {
+            _model = await Api.GetAuditConfigAsync();
+        }
+        catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.Forbidden)
+        {
+            _forbidden = true;
+        }
+        catch
+        {
+            _model = null;
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task SetTabAsync(string tab)
+    {
+        _activeTab = tab;
+        if (tab != TabConfig) await LoadActiveAsync();
+    }
+
+    private void SetAllModules(bool enabled)
+    {
+        // Only the rows the search is showing, so "Disable All" after filtering does what it looks like.
+        foreach (var m in FilteredModules)
+        {
+            m.IsActivityAuditEnabled = enabled;
+            m.IsDataAuditEnabled = enabled;
+        }
+    }
+
+    private async Task SaveAsync()
+    {
+        if (_model is null || _saving) return;
+
+        _saving = true;
+        try
+        {
+            var request = new SaveAuditConfigModel
+            {
+                Settings = _model.Settings,
+                Modules = _model.Modules.Select(m => new SaveAuditModuleModel
+                {
+                    MenuModuleId = m.MenuModuleId,
+                    IsActivityAuditEnabled = m.IsActivityAuditEnabled,
+                    IsDataAuditEnabled = m.IsDataAuditEnabled
+                }).ToList()
+            };
+
+            var (ok, error, saved) = await Api.SaveAuditConfigAsync(request);
+            if (ok)
+            {
+                if (saved is not null) _model = saved;
+                Toast.Success(Loc["auditConfig.saved", "Audit configuration saved."]);
+            }
+            else
+            {
+                Toast.Error(string.IsNullOrEmpty(error) ? Loc["auditConfig.saveFailed", "The audit configuration could not be saved."] : error);
+            }
+        }
+        catch
+        {
+            Toast.Error(Loc["auditConfig.saveFailed", "The audit configuration could not be saved."]);
+        }
+        finally
+        {
+            _saving = false;
+        }
+    }
+
+    // ------------------------------------------------------------------ the logs
+
+    private async Task LoadActiveAsync()
+    {
+        _logLoading = true;
+        _logFailed = false;
+        StateHasChanged();
+
+        try
+        {
+            var q = Q;
+            switch (_activeTab)
+            {
+                case TabSessions: _sessions = await Api.GetAuditSessionsAsync(q); break;
+                case TabActivity: _activities = await Api.GetAuditActivitiesAsync(q); break;
+                case TabData: _dataLogs = await Api.GetAuditDataLogsAsync(q); break;
+                case TabErrors: _errors = await Api.GetAuditErrorsAsync(q); break;
+            }
+        }
+        catch
+        {
+            _logFailed = true;
+        }
+        finally
+        {
+            _logLoading = false;
+        }
+    }
+
+    private async Task ApplyFiltersAsync()
+    {
+        Q.Page = 1;
+        await LoadActiveAsync();
+    }
+
+    private async Task ResetFiltersAsync()
+    {
+        _queries[_activeTab] = new AuditLogQuery();
+        await LoadActiveAsync();
+    }
+
+    private async Task OnSearchKeyAsync(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter") await ApplyFiltersAsync();
+    }
+
+    private async Task GoToPageAsync(int page)
+    {
+        Q.Page = page;
+        await LoadActiveAsync();
+    }
+
+    private string ResolvedFilterValue => Q.Resolved switch { true => "resolved", false => "open", _ => "" };
+
+    private void OnResolvedFilterChanged(ChangeEventArgs e)
+        => Q.Resolved = (e.Value as string) switch { "resolved" => true, "open" => false, _ => null };
+
+    private async Task ResolveErrorAsync(ErrorLogModel error)
+    {
+        _resolving = error.Id;
+        try
+        {
+            var (ok, message, resolved) = await Api.ResolveAuditErrorAsync(error.Id);
+            if (ok)
+            {
+                error.IsResolved = true;
+                error.ResolvedAtUtc = resolved?.ResolvedAtUtc ?? DateTime.UtcNow;
+                error.ResolvedBy = resolved?.ResolvedBy;
+                Toast.Success(Loc["auditConfig.errorResolved", "Error marked as resolved."]);
+            }
+            else
+            {
+                Toast.Error(message);
+            }
+        }
+        finally
+        {
+            _resolving = null;
+        }
+    }
+
+    // ------------------------------------------------------------------ display helpers
+
+    private static int PageCount(int total, int size) => Math.Max(1, (int)Math.Ceiling(total / (double)Math.Max(1, size)));
+
+    private static string Stamp(DateTime utc) => utc.ToString("yyyy-MM-dd HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture);
+
+    /// <summary>hh:mm:ss, with hours running past 24: language-neutral, so it needs no translation.</summary>
+    private static string Duration(int seconds)
+    {
+        var t = TimeSpan.FromSeconds(Math.Max(0, seconds));
+        return $"{(int)t.TotalHours:00}:{t.Minutes:00}:{t.Seconds:00}";
+    }
+
+    private static string ShortType(string fullName)
+    {
+        var dot = fullName.LastIndexOf('.');
+        return dot >= 0 ? fullName[(dot + 1)..] : fullName;
+    }
+
+    private static string? Pretty(string? json)
+    {
+        if (string.IsNullOrWhiteSpace(json)) return null;
+        try
+        {
+            using var doc = JsonDocument.Parse(json);
+            return JsonSerializer.Serialize(doc.RootElement, PrettyJson);
+        }
+        catch (JsonException)
+        {
+            return json;
+        }
+    }
+
+    private string TabLabel(string tab) => tab switch
+    {
+        TabConfig => "⚙️ " + Loc["auditConfig.tabConfig", "Configuration"],
+        TabSessions => "👥 " + Loc["auditConfig.tabSessions", "Sessions"],
+        TabActivity => "🧭 " + Loc["auditConfig.tabActivity", "Page Visits"],
+        TabData => "💾 " + Loc["auditConfig.tabData", "Data Changes"],
+        _ => "⚠️ " + Loc["auditConfig.tabErrors", "Error Logs"]
+    };
+
+    private string TabTitle(string tab) => tab switch
+    {
+        TabSessions => "👥 " + Loc["auditConfig.sessionsTitle", "User Sessions"],
+        TabActivity => "🧭 " + Loc["auditConfig.activitiesTitle", "Page Visits & Time Spent"],
+        TabData => "💾 " + Loc["auditConfig.dataLogsTitle", "Data Change Audit Trail"],
+        _ => "⚠️ " + Loc["auditConfig.errorLogsTitle", "Server & App Error Logs"]
+    };
+
+    private string ActionLabel(string action) => action switch
+    {
+        "INSERT" => Loc["auditConfig.actionInsert", "Insert"],
+        "UPDATE" => Loc["auditConfig.actionUpdate", "Update"],
+        "DELETE" => Loc["auditConfig.actionDelete", "Delete"],
+        _ => action
+    };
+
+    private string SourceLabel(string source) => source switch
+    {
+        "BackendApi" => Loc["auditConfig.sourceServer", "Server"],
+        "FrontendWeb" => Loc["auditConfig.sourceWeb", "Web App"],
+        "FrontendMobile" => Loc["auditConfig.sourceMobile", "Mobile App"],
+        _ => source
+    };
+
+    private string ExitReasonLabel(string reason) => reason switch
+    {
+        "ExplicitLogout" => Loc["auditConfig.exitSignedOut", "Signed Out"],
+        "SessionExpired" => Loc["auditConfig.exitExpired", "Session Expired"],
+        "PasswordChanged" => Loc["auditConfig.exitPasswordChanged", "Password Changed"],
+        "ReuseDetected" => Loc["auditConfig.exitReuseDetected", "Token Reuse Detected"],
+        "AccountDisabled" => Loc["auditConfig.exitAccountClosed", "Account Closed"],
+        _ => reason
+    };
+}

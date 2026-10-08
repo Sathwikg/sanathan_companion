@@ -15,6 +15,6 @@
   "regions.noun": "क्षेत्र",
   "regions.nounSingular": "क्षेत्र",
   "regions.regionName": "क्षेत्र का नाम",
-  "regions.sub": "सनातन कम्पेनियन के सभी क्षेत्र प्रबंधित करें",
+  "regions.sub": "{0} के सभी क्षेत्र प्रबंधित करें",
   "regions.title": "क्षेत्र मास्टर"
 }

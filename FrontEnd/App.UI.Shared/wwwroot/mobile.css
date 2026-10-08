@@ -1,5 +1,5 @@
 /* ============================================================================
-   Sanathan Companion — mobile skin
+   Mobile skin
 
    Loaded after theme.css and app.css by the MAUI host, and by the web host so
    that flipping Platform to Mobile in wwwroot/appsettings.json gives an accurate
@@ -829,7 +829,7 @@
   box-shadow: var(--shadow-lg), inset 0 1px 0 rgba(255, 255, 255, 0.22);
 }
 
-/* ::after already carries the ॐ watermark, so the rim light goes on ::before. */
+/* ::after already carries the logo watermark, so the rim light goes on ::before. */
 .scm-shell .sc-hero::before {
   content: "";
   position: absolute; inset: 0 0 auto 0; height: 1px;

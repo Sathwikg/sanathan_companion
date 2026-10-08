@@ -563,6 +563,22 @@ public class MenuModuleConfiguration : IEntityTypeConfiguration<MenuModule>
                 ParentId = SeedConstants.ConfigurationModuleId,
                 CreatedBy = "system",
                 CreatedDate = SeedConstants.SeedTimestamp
+            },
+            new MenuModule
+            {
+                Id = SeedConstants.AuditConfigMenuId,
+                Name = "Audit Config",
+                Icon = "📋",
+                Description = "Configure system audit logs, user activity tracking, and error logging",
+                RoutePath = "/audit-config",
+                Code = "auditConfig",
+                DisplayOrder = 8,
+                IsVisibleInMenu = true,
+                ShowInMobile = false,
+                IsActive = true,
+                ParentId = SeedConstants.ConfigurationModuleId,
+                CreatedBy = "system",
+                CreatedDate = SeedConstants.SeedTimestamp
             });
     }
 }

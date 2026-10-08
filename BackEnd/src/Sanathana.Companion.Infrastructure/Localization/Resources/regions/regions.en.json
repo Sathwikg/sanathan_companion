@@ -15,6 +15,6 @@
   "regions.noun": "regions",
   "regions.nounSingular": "region",
   "regions.regionName": "Region Name",
-  "regions.sub": "Manage the regions across Sanathana Companion",
+  "regions.sub": "Manage the regions across {0}",
   "regions.title": "Region Master"
 }

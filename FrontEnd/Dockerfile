@@ -9,6 +9,10 @@ WORKDIR /src
 
 # Only App.Web and its two dependencies are built. App.Mobile is excluded on
 # purpose — it needs the MAUI workloads and produces nothing for the web host.
+# The app's name and logo (Branding/Branding.props), which every project imports through
+# Directory.Build.props — needed before restore, and App.Core fails the build without them.
+COPY Directory.Build.props Directory.Build.targets ./
+COPY Branding/ Branding/
 COPY App.Core/App.Core.csproj           App.Core/
 COPY App.UI.Shared/App.UI.Shared.csproj App.UI.Shared/
 COPY App.Web/App.Web.csproj             App.Web/

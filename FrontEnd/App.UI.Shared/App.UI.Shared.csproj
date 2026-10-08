@@ -16,6 +16,14 @@
     <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.10" />
   </ItemGroup>
 
+  <!-- From FrontEnd/Branding: the static privacy page is stamped with the app's name, and the
+       logo image, when Branding.props names one, is served at _content/App.UI.Shared/Branding/. -->
+  <ItemGroup>
+    <BrandedHtml Include="privacy.template.html" Link="wwwroot\privacy.html" />
+    <Content Include="$(BrandingDir)$(BrandLogoImage)" Link="wwwroot\Branding\$(BrandLogoImage)" ContentRoot="$(BrandingDir)..\"
+             Condition="'$(BrandLogoImage)' != ''" />
+  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\App.Core\App.Core.csproj" />
   </ItemGroup>

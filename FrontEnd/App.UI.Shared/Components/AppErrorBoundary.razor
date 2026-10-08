@@ -1,0 +1,41 @@
+@* Catches a crash inside the page, reports it to the server's error log, and shows a way back
+   instead of Blazor's bare "An unhandled error has occurred" bar. Clears itself on navigation so
+   one broken page does not take every other page down with it. *@
+@inherits ErrorBoundaryBase
+@implements IDisposable
+@inject ClientErrorReporter Reporter
+@inject NavigationManager Nav
+@inject LocalizationState Loc
+
+@if (CurrentException is null)
+{
+    @ChildContent
+}
+else
+{
+    <div class="sc-card sc-empty-state" role="alert">
+        <div class="sc-empty-om">⚠️</div>
+        <h2>@Loc["common.unexpectedErrorTitle", "Something Went Wrong"]</h2>
+        <p>@Loc["common.unexpectedErrorBody", "This screen ran into an unexpected problem. It has been reported to the administrators."]</p>
+        <button class="sc-btn-primary" @onclick="Recover">@Loc["common.tryAgain", "Try Again"]</button>
+    </div>
+}
+
+@code {
+    protected override void OnInitialized() => Nav.LocationChanged += OnLocationChanged;
+
+    protected override Task OnErrorAsync(Exception exception)
+    {
+        Reporter.Report(exception, CurrentRoute(), "Critical");
+        return Task.CompletedTask;
+    }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        if (CurrentException is not null) _ = InvokeAsync(Recover);
+    }
+
+    private string CurrentRoute() => "/" + Nav.ToBaseRelativePath(Nav.Uri).Split('?', '#')[0];
+
+    public void Dispose() => Nav.LocationChanged -= OnLocationChanged;
+}

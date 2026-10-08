@@ -30,8 +30,9 @@ public class UnitOfWork : IUnitOfWork
     public INotificationConfigRepository NotificationConfigs { get; }
     public IUserNotificationRepository UserNotifications { get; }
     public ILocalizationRepository Localization { get; }
+    public IAuditRepository Audit { get; }
 
-    public UnitOfWork(ApplicationDbContext context, IUserRepository users, IRefreshTokenRepository refreshTokens, IAdRepository ads, IRoleRepository roles, IMenuModuleRepository menuModules, IRegionRepository regions, IFestivalRepository festivals, IDayRepository days, IDeityRepository deities, IChantRepository chants, IWallpaperRepository wallpapers, IPujaRepository pujas, IPujaProcessRepository pujaProcess, IChantConfigRepository chantConfigs, ILanguageRepository languages, IPanchangamRepository panchangams, ISadhanaRepository sadhana, IModuleRoleMappingRepository moduleRoleMappings, IIssueTypeRepository issueTypes, IFeedbackRepository feedbacks, IUserFavoriteRepository favorites, INotificationConfigRepository notificationConfigs, IUserNotificationRepository userNotifications, ILocalizationRepository localization)
+    public UnitOfWork(ApplicationDbContext context, IUserRepository users, IRefreshTokenRepository refreshTokens, IAdRepository ads, IRoleRepository roles, IMenuModuleRepository menuModules, IRegionRepository regions, IFestivalRepository festivals, IDayRepository days, IDeityRepository deities, IChantRepository chants, IWallpaperRepository wallpapers, IPujaRepository pujas, IPujaProcessRepository pujaProcess, IChantConfigRepository chantConfigs, ILanguageRepository languages, IPanchangamRepository panchangams, ISadhanaRepository sadhana, IModuleRoleMappingRepository moduleRoleMappings, IIssueTypeRepository issueTypes, IFeedbackRepository feedbacks, IUserFavoriteRepository favorites, INotificationConfigRepository notificationConfigs, IUserNotificationRepository userNotifications, ILocalizationRepository localization, IAuditRepository audit)
     {
         _context = context;
         Users = users;
@@ -58,6 +59,7 @@ public class UnitOfWork : IUnitOfWork
         NotificationConfigs = notificationConfigs;
         UserNotifications = userNotifications;
         Localization = localization;
+        Audit = audit;
     }
 
     public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)

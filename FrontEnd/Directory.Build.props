@@ -1,0 +1,4 @@
+<Project>
+  <!-- The app's name and logo, for every project under FrontEnd. See Branding/Branding.props. -->
+  <Import Project="Branding\Branding.props" />
+</Project>

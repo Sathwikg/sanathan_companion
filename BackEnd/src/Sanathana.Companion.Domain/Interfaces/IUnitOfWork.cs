@@ -27,5 +27,6 @@ public interface IUnitOfWork
     IUserFavoriteRepository Favorites { get; }
     INotificationConfigRepository NotificationConfigs { get; }
     IUserNotificationRepository UserNotifications { get; }
+    IAuditRepository Audit { get; }
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

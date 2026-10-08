@@ -28,8 +28,9 @@
                <MauiXaml Update="MyPage.xaml" Inflator="Runtime" /> (force runtime inflation) -->
         <MauiXamlInflator>SourceGen</MauiXamlInflator>
 
-        <!-- Display name -->
-        <ApplicationTitle>Sanathan Companion</ApplicationTitle>
+        <!-- Display name: launcher, store listing, iOS permission prompts, window title. From
+             FrontEnd/Branding/Branding.props, like every other place the app names itself. -->
+        <ApplicationTitle>$(BrandAppName)</ApplicationTitle>
 
         <!-- App Identifier. Reverse-DNS and stable: changing it after a store release orphans every
              installed copy, so it is deliberately not derived from the assembly name. -->
@@ -54,12 +55,14 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <!-- App Icon. The colour is the theme's divine-saffron primary, so the launcher badge, the
-             splash and the app's own chrome are one palette. -->
-        <MauiIcon Include="Resources\AppIcon\appicon.svg" ForegroundFile="Resources\AppIcon\appiconfg.svg" Color="#8D4E19" />
+        <!-- App icon and splash screen, artwork and colours both from FrontEnd/Branding. The icon's
+             file name becomes its resource name, which AndroidManifest.xml refers to as
+             @mipmap/appicon, so a new icon replaces appicon.svg rather than renaming it. -->
+        <MauiIcon Include="$(BrandingDir)appicon.svg" ForegroundFile="$(BrandingDir)appiconfg.svg" Color="$(BrandIconColor)" />
+        <MauiSplashScreen Include="$(BrandingDir)splash.svg" Color="$(BrandSplashColor)" BaseSize="128,128" />
 
-        <!-- Splash Screen -->
-        <MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#FDFBF7" BaseSize="128,128" />
+        <!-- The pre-boot loading page, stamped with the name and logo (see FrontEnd/Directory.Build.targets). -->
+        <BrandedHtml Include="index.template.html" Link="wwwroot\index.html" />
 
         <!-- Images. The template's dotnet_bot.svg is gone — nothing referenced it, and it was
              shipping inside every APK and IPA. -->

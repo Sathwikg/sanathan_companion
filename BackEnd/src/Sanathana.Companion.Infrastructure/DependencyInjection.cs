@@ -8,6 +8,7 @@ using Sanathana.Companion.Infrastructure.Identity;
 using Sanathana.Companion.Infrastructure.Localization;
 using Sanathana.Companion.Infrastructure.Persistence;
 using Sanathana.Companion.Infrastructure.Persistence.Repositories;
+using Sanathana.Companion.Infrastructure.Audit;
 
 namespace Sanathana.Companion.Infrastructure;
 
@@ -15,8 +16,20 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddDbContext<ApplicationDbContext>(options =>
-            options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
+        // Audit: one queue instance behind two registrations, because the writer needs the concrete
+        // reader while everything else only enqueues.
+        services.AddSingleton<AuditQueue>();
+        services.AddSingleton<IAuditQueue>(sp => sp.GetRequiredService<AuditQueue>());
+        services.AddSingleton<IAuditConfigCache, AuditConfigCache>();
+        services.AddHostedService<AuditBatchProcessor>();
+        services.AddHostedService<AuditMaintenanceService>();
+        services.AddScoped<AuditSaveChangesInterceptor>();
+
+        services.AddDbContext<ApplicationDbContext>((sp, options) =>
+        {
+            options.UseNpgsql(configuration.GetConnectionString("DefaultConnection"));
+            options.AddInterceptors(sp.GetRequiredService<AuditSaveChangesInterceptor>());
+        });
 
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<IUserRepository, UserRepository>();
@@ -46,6 +59,7 @@ public static class DependencyInjection
         services.AddScoped<IUserFavoriteRepository, UserFavoriteRepository>();
         services.AddScoped<INotificationConfigRepository, NotificationConfigRepository>();
         services.AddScoped<IUserNotificationRepository, UserNotificationRepository>();
+        services.AddScoped<IAuditRepository, AuditRepository>();
         services.AddScoped(typeof(IRepository<>), typeof(BaseRepository<>));
 
         services.Configure<JwtSettings>(configuration.GetSection(JwtSettings.SectionName));

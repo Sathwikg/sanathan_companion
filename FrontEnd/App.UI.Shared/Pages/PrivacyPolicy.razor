@@ -1,0 +1,517 @@
+@page "/privacy"
+@page "/privacy-policy"
+@attribute [AllowAnonymous]
+@layout PublicLayout
+@inherits LocalizedComponentBase
+@inject IJSRuntime JS
+@inject NavigationManager Nav
+
+<div class="sc-privacy-container">
+    <div class="sc-privacy-card">
+        
+        <div class="sc-privacy-title-area">
+            <h1 class="sc-privacy-h1">@Loc["privacy.title", "Privacy Policy & Data Transparency"]</h1>
+            <p class="sc-privacy-sub">
+                @Loc.TF("privacy.appSub", "{0} — Dedicated to spiritual growth and seeker privacy", Brand.AppName)
+            </p>
+            <div class="sc-privacy-badge-row">
+                <span class="sc-privacy-badge">🕉️ @Loc["privacy.badgeDharma", "Dharma & Trust"]</span>
+                <span class="sc-privacy-badge">🔒 @Loc["privacy.badgeEncrypted", "End-to-End Secure"]</span>
+                <span class="sc-privacy-badge">🛡️ @Loc["privacy.badgeNoSale", "Zero Data Selling"]</span>
+            </div>
+        </div>
+
+        <div class="sc-privacy-meta-box">
+            <div class="sc-meta-item">
+                <span class="sc-meta-label">Governing Organization:</span>
+                <span class="sc-placeholder-tag">[SBS Labs / Your Company Legal Name]</span>
+            </div>
+            <div class="sc-meta-item">
+                <span class="sc-meta-label">Application:</span>
+                <span>@Brand.AppName (All Gods Devotional Platform)</span>
+            </div>
+            <div class="sc-meta-item">
+                <span class="sc-meta-label">Effective Date:</span>
+                <span>October 5, 2026</span>
+            </div>
+            <div class="sc-meta-item">
+                <span class="sc-meta-label">Last Updated:</span>
+                <span>October 5, 2026</span>
+            </div>
+        </div>
+
+        <div class="sc-privacy-actions-bar">
+            <button type="button" class="sc-btn-ghost sc-btn-sm" @onclick="PrintPolicy">
+                🖨️ @Loc["privacy.print", "Print / Save as PDF"]
+            </button>
+            <a href="privacy.html" target="_blank" class="sc-btn-ghost sc-btn-sm">
+                📄 @Loc["privacy.staticLink", "Open Pure Static HTML"]
+            </a>
+            <AuthorizeView>
+                <Authorized>
+                    <a href="" class="sc-btn-primary sc-btn-sm">
+                        ← @Loc["common.backToDashboard", "Back to Dashboard"]
+                    </a>
+                </Authorized>
+                <NotAuthorized>
+                    <a href="login" class="sc-btn-primary sc-btn-sm">
+                        ← @Loc["auth.signInInstead", "Back to Sign In"]
+                    </a>
+                </NotAuthorized>
+            </AuthorizeView>
+        </div>
+
+        <!-- 1. Introduction -->
+        <section class="sc-privacy-sec">
+            <h2>1. Introduction & Spiritual Commitment</h2>
+            <p>
+                Welcome to <strong>@Brand.AppName</strong> ("we," "our," or "the Application"). We are dedicated to providing a serene, sacred, and respectful space for your daily spiritual practice (Sadhana), Panchangam calculations, chants, pujas, and devotional study.
+            </p>
+            <p>
+                We hold your privacy in sacred trust. This Privacy Policy details our data practices across our mobile applications (Android and iOS) and web services. It explains what information we collect, the precise reasons we require it, how it is safeguarded, and how you maintain total ownership and control over your personal data.
+            </p>
+        </section>
+
+        <!-- 2. Data Collected Summary -->
+        <section class="sc-privacy-sec">
+            <h2>2. Summary of Data Collected</h2>
+            <p>
+                We practice strict data minimization: we collect only what is necessary to run the devotional features you actively use.
+            </p>
+
+            <div class="sc-table-wrap">
+                <table class="sc-privacy-table">
+                    <thead>
+                        <tr>
+                            <th>Data Category</th>
+                            <th>Purpose</th>
+                            <th>Retention & Protection</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <strong>Profile & Identity</strong><br>
+                                <span class="sc-subtext">Full Name, Email, Mobile Number, Seeker Name</span>
+                            </td>
+                            <td>Account creation, personalized greetings, spiritual identity, and password recovery.</td>
+                            <td>Stored in encrypted PostgreSQL database; retained until account deletion is requested.</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <strong>Password Hash</strong>
+                            </td>
+                            <td>Secure account authentication.</td>
+                            <td>Salted one-way hash (BCrypt). Plain passwords are never stored or accessible by administrators.</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <strong>Google Account ID</strong><br>
+                                <span class="sc-subtext">OAuth Subject ID (sub)</span>
+                            </td>
+                            <td>One-tap sign-in with Google OAuth.</td>
+                            <td>Linked token only. We never access your contacts, Google Drive files, or emails.</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <strong>Geographic Location</strong><br>
+                                <span class="sc-subtext">Coarse / Fine GPS coordinates</span>
+                            </td>
+                            <td>Real-time calculation of local Vedic Panchangam (sunrise, sunset, tithi, nakshatra, Rahu Kalam, Yamagandam, Muhurthas).</td>
+                            <td>Processed on-device and on-demand. <strong>We do not track your location in the background or maintain location history.</strong></td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <strong>Sadhana & Devotion</strong><br>
+                                <span class="sc-subtext">Japa counts, streaks, puja logs, favorites</span>
+                            </td>
+                            <td>Preserving your daily sadhana progress, japa malas, streaks, and favorite deities/chants across devices.</td>
+                            <td>Stored securely with your account; exportable or deletable at any time.</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <strong>User Feedback & Media</strong><br>
+                                <span class="sc-subtext">Voluntary chant audio, deity photos</span>
+                            </td>
+                            <td>User-initiated bug reports, recording chant recitations, or custom wallpaper selections.</td>
+                            <td>Stored in secure media storage; used solely for your personal features.</td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <strong>Audit & Security Logs</strong><br>
+                                <span class="sc-subtext">IP address, User-Agent, platform, session timestamps</span>
+                            </td>
+                            <td>Preventing account takeover, detecting token reuse, and diagnosing application crashes.</td>
+                            <td>Stored in isolated system logs for administrative security audits.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- 3. Device Permissions -->
+        <section class="sc-privacy-sec">
+            <h2>3. Device Permissions & How They Are Used</h2>
+            <p>When you use the mobile application, certain hardware features may request your permission:</p>
+            <ul class="sc-privacy-list">
+                <li>
+                    <strong>Location (ACCESS_FINE_LOCATION / ACCESS_COARSE_LOCATION):</strong>
+                    Used exclusively to calculate local Vedic Panchangam astronomical timings for your coordinates. You may deny this permission and select a region manually if preferred.
+                </li>
+                <li>
+                    <strong>Notifications (POST_NOTIFICATIONS):</strong>
+                    Used to deliver your daily sadhana reminders, prayer alerts, auspicious tithi notifications, and festival announcements. You can turn notifications on or off at any time in app or system settings.
+                </li>
+                <li>
+                    <strong>Boot Completed (RECEIVE_BOOT_COMPLETED):</strong>
+                    Alarms on Android devices reset whenever your phone restarts. This permission allows the app to restore your scheduled daily sadhana alarms after your device boots up.
+                </li>
+                <li>
+                    <strong>Camera & Photo Gallery:</strong>
+                    Used solely if you choose to take a photo of a deity or select a wallpaper from your device gallery. We do not access or scan other photos in your library.
+                </li>
+                <li>
+                    <strong>Microphone:</strong>
+                    Used exclusively if you voluntarily record chant recitation or stotra audio within the app.
+                </li>
+            </ul>
+        </section>
+
+        <!-- 4. Advertising & Monetization -->
+        <section class="sc-privacy-sec">
+            <h2>4. Advertising & Third-Party Service Providers</h2>
+            <p>
+                To support server infrastructure, hosting, and continuous development of @Brand.AppName, we may show non-intrusive advertisements:
+            </p>
+            <ul class="sc-privacy-list">
+                <li>
+                    <strong>Google AdMob:</strong> We partner with Google AdMob to display banner, interstitial, native, or rewarded ads. AdMob may process your device's advertising identifier (GAID/IDFA) and cookies in accordance with Google's Advertising Privacy Policies.
+                </li>
+                <li>
+                    <strong>Spiritual Sacredness Clause:</strong> Advertisements are strictly prohibited from appearing in sensitive spiritual modules (such as active Japa mala chanting or during sacred puja recitation).
+                </li>
+            </ul>
+        </section>
+
+        <!-- 5. Security & Storage -->
+        <section class="sc-privacy-sec">
+            <h2>5. Data Security & Storage Architecture</h2>
+            <p>We implement multi-layered defenses to ensure your information is safe:</p>
+            <ul class="sc-privacy-list">
+                <li><strong>Transport Encryption:</strong> All client-to-server traffic is encrypted using modern TLS (HTTPS) standards.</li>
+                <li><strong>Secure Storage on Device:</strong> Mobile credentials and tokens are safeguarded using platform hardware keychains (<kbd>EncryptedSharedPreferences</kbd> on Android and <kbd>Apple Keychain</kbd> on iOS).</li>
+                <li><strong>No Plain-Text Passwords:</strong> Credentials cannot be read by anyone, including our system administrators.</li>
+                <li><strong>Token Lifetime & Revocation:</strong> Sessions support instant invalidation upon password reset or logout.</li>
+            </ul>
+        </section>
+
+        <!-- 6. Seeker Rights & Account Deletion -->
+        <section class="sc-privacy-sec">
+            <h2>6. Your Rights, Data Portability & Account Deletion</h2>
+            <p>As a seeker and user of @Brand.AppName, you hold full authority over your data:</p>
+            <ul class="sc-privacy-list">
+                <li><strong>Right to View & Update:</strong> You can edit your profile, mobile number, and spiritual name at any time within your profile screen.</li>
+                <li><strong>Right to Withdraw Permissions:</strong> You can revoke location, notification, or media permissions via your device settings at any time without losing access to static devotional reading.</li>
+                <li><strong>Right to Account & Data Deletion:</strong> You have the right to request permanent deletion of your account and all associated devotional streaks, favorites, and profile data. To initiate account deletion, contact our Grievance Desk or submit a request directly through the in-app feedback module.</li>
+            </ul>
+        </section>
+
+        <!-- 7. Children's Privacy -->
+        <section class="sc-privacy-sec">
+            <h2>7. Children's Privacy</h2>
+            <p>
+                @Brand.AppName is designed for devotional learning and general audiences. We do not intentionally collect personal information from children under the age of 13. If you become aware that a child has provided us with personal information without parental consent, please contact us immediately and we will promptly remove such records.
+            </p>
+        </section>
+
+        <!-- 8. Updates to Policy -->
+        <section class="sc-privacy-sec">
+            <h2>8. Updates to This Policy</h2>
+            <p>
+                We may occasionally update this Privacy Policy to reflect application improvements or legal requirements. When updates occur, the "Last Updated" date at the top of this document will be revised. Any major revisions will be notified via in-app banner or notification.
+            </p>
+        </section>
+
+        <!-- 9. Contact & Grievance -->
+        <section class="sc-privacy-sec">
+            <h2>9. Contact Us & Grievance Redressal</h2>
+            <p>
+                For questions, comments, data deletion requests, or grievances related to this Privacy Policy, please reach out to our team:
+            </p>
+
+            <div class="sc-contact-box">
+                <div class="sc-contact-row">
+                    <strong>Entity Name:</strong>
+                    <span class="sc-placeholder-tag">[SBS Labs / Your Company Legal Name]</span>
+                </div>
+                <div class="sc-contact-row">
+                    <strong>Support & Privacy Email:</strong>
+                    <span class="sc-placeholder-tag">[privacy@sanathancompanion.org / your-company-email@domain.com]</span>
+                </div>
+                <div class="sc-contact-row">
+                    <strong>Grievance Officer:</strong>
+                    <span class="sc-placeholder-tag">[Grievance Officer Name / SBS Labs Legal Cell]</span>
+                </div>
+                <div class="sc-contact-row">
+                    <strong>Mailing Address:</strong>
+                    <span class="sc-placeholder-tag">[Your Physical Business Address / City, State, Country, Postal Code]</span>
+                </div>
+                <div class="sc-contact-row">
+                    <strong>Website:</strong>
+                    <span class="sc-placeholder-tag">[https://your-domain.com]</span>
+                </div>
+            </div>
+        </section>
+
+        <footer class="sc-privacy-card-footer">
+            <p>© 2026 @Brand.AppName. Dedicated to the eternal dharma and seeker privacy.</p>
+            <div style="margin-top: 0.75rem;">
+                <AuthorizeView>
+                    <Authorized>
+                        <a href="" style="color: var(--color-primary); font-weight: 600;">Back to Dashboard</a>
+                    </Authorized>
+                    <NotAuthorized>
+                        <a href="login" style="color: var(--color-primary); font-weight: 600;">Back to Sign In</a>
+                    </NotAuthorized>
+                </AuthorizeView>
+            </div>
+        </footer>
+
+    </div>
+</div>
+
+<style>
+    .sc-privacy-container {
+        width: 100%;
+    }
+
+    .sc-privacy-card {
+        background: color-mix(in srgb, var(--color-surface) 92%, transparent);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius-lg);
+        padding: 2.5rem 2.25rem;
+        box-shadow: var(--shadow-md);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+    }
+
+    @@media (max-width: 640px) {
+        .sc-privacy-card {
+            padding: 1.5rem 1.1rem;
+        }
+    }
+
+    .sc-privacy-title-area {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .sc-privacy-h1 {
+        font-family: var(--font-heading);
+        font-size: 1.85rem;
+        color: var(--color-on-surface);
+        background: var(--gradient-saffron);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        margin-bottom: 0.4rem;
+    }
+
+    .sc-privacy-sub {
+        font-size: 0.95rem;
+        color: var(--color-secondary);
+        margin-bottom: 1rem;
+    }
+
+    .sc-privacy-badge-row {
+        display: flex;
+        justify-content: center;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    .sc-privacy-badge {
+        font-size: 0.8rem;
+        font-weight: 600;
+        background: var(--color-primary-container);
+        color: var(--color-on-primary-container);
+        padding: 4px 10px;
+        border-radius: 9999px;
+        border: 1px solid rgba(141, 78, 25, 0.15);
+    }
+
+    .sc-privacy-meta-box {
+        background: rgba(141, 78, 25, 0.05);
+        border-left: 4px solid var(--color-primary);
+        padding: 1rem 1.25rem;
+        border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+        margin-bottom: 1.75rem;
+        font-size: 0.92rem;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 0.6rem;
+    }
+
+    .sc-meta-item {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .sc-meta-label {
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        font-weight: 700;
+        color: var(--color-secondary);
+        letter-spacing: 0.5px;
+    }
+
+    .sc-privacy-actions-bar {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: flex-end;
+        padding-bottom: 1.5rem;
+        margin-bottom: 1.75rem;
+        border-bottom: 1px solid var(--color-outline);
+    }
+
+    .sc-privacy-sec {
+        margin-top: 2rem;
+        padding-top: 1.75rem;
+        border-top: 1px solid var(--color-outline);
+    }
+
+    .sc-privacy-sec:first-of-type {
+        border-top: none;
+        padding-top: 0;
+        margin-top: 0;
+    }
+
+    .sc-privacy-sec h2 {
+        font-family: var(--font-heading);
+        font-size: 1.3rem;
+        color: var(--color-primary);
+        margin-bottom: 0.75rem;
+    }
+
+    .sc-privacy-sec p {
+        font-size: 0.96rem;
+        line-height: 1.65;
+        color: var(--color-text);
+        margin-bottom: 0.85rem;
+    }
+
+    .sc-privacy-list {
+        margin: 0.6rem 0 1.2rem 1.4rem;
+        font-size: 0.95rem;
+        line-height: 1.65;
+        color: var(--color-text);
+    }
+
+    .sc-privacy-list li {
+        margin-bottom: 0.5rem;
+    }
+
+    .sc-table-wrap {
+        overflow-x: auto;
+        margin: 1.2rem 0;
+        border: 1px solid var(--color-outline);
+        border-radius: var(--radius-sm);
+    }
+
+    .sc-privacy-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9rem;
+        text-align: left;
+    }
+
+    .sc-privacy-table th {
+        background: rgba(141, 78, 25, 0.08);
+        color: var(--color-on-surface);
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid var(--color-outline);
+        font-weight: 600;
+    }
+
+    .sc-privacy-table td {
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid var(--color-outline);
+        vertical-align: top;
+        color: var(--color-text);
+    }
+
+    .sc-privacy-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .sc-subtext {
+        font-size: 0.8rem;
+        color: var(--color-secondary);
+    }
+
+    .sc-placeholder-tag {
+        background: #FEF3C7;
+        color: #92400E;
+        padding: 2px 7px;
+        border-radius: 4px;
+        font-family: monospace;
+        font-size: 0.88rem;
+        font-weight: 600;
+        display: inline-block;
+        margin-top: 2px;
+    }
+
+    [data-theme="dark"] .sc-placeholder-tag {
+        background: #452405;
+        color: #FCD34D;
+    }
+
+    .sc-contact-box {
+        background: rgba(141, 78, 25, 0.05);
+        border: 1px solid var(--color-outline);
+        border-radius: var(--radius-md);
+        padding: 1.25rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        margin-top: 1rem;
+    }
+
+    .sc-contact-row {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        font-size: 0.92rem;
+    }
+
+    .sc-privacy-card-footer {
+        text-align: center;
+        margin-top: 2.5rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--color-outline);
+        font-size: 0.85rem;
+        color: var(--color-secondary);
+    }
+
+    @@media print {
+        .sc-public-topbar, .sc-privacy-actions-bar {
+            display: none !important;
+        }
+        .sc-privacy-card {
+            border: none !important;
+            box-shadow: none !important;
+            padding: 0 !important;
+            background: none !important;
+        }
+    }
+</style>
+
+@code {
+    private async Task PrintPolicy()
+    {
+        await JS.InvokeVoidAsync("window.print");
+    }
+}

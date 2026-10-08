@@ -77,9 +77,26 @@ ordering, because `AccessRightsCatalog` compares codes **ordinally** — a row s
 
 | Host | File | Notes |
 |---|---|---|
-| Mobile | `FrontEnd/App.Mobile/Resources/Raw/appsettings.json` | API URL per build configuration, app name, timeout. Read once at start-up by `MobileSettings.Load()`. Packaged, so changing it means a rebuild. |
+| Mobile | `FrontEnd/App.Mobile/Resources/Raw/appsettings.json` | API URL per build configuration, timeout. Read once at start-up by `MobileSettings.Load()`. Packaged, so changing it means a rebuild. |
 | Web | `FrontEnd/App.Web/wwwroot/appsettings.json` | API URL and `Platform`. Docker rewrites `ApiBaseUrl` at container start. |
 | Both | `FrontEnd/App.Core/Config/ApiRoutes.cs` | **Every REST path the clients call.** No URL string is spelled out anywhere else. |
+| Both | `FrontEnd/Branding/Branding.props` | **The app's name and logo.** That folder also holds the logo and icon files. See below. |
+
+#### Rebranding
+
+The app's name and logo are set in one place: `FrontEnd/Branding/`. Edit `Branding.props`
+(name, logo glyph, optional logo image, icon and splash colours), replace the image files in
+that folder if the artwork changes (keep the file names), and rebuild. The build carries those
+values to:
+
+- the web tab title, loading screen, favicon and static privacy page (`*.template.html`, stamped
+  by `FrontEnd/Directory.Build.targets`)
+- the phone's launcher and store name, window title, app icon, splash and loading screen
+- every logo and name in the UI (`<AppLogo />` and `Brand.AppName`) and the Panchangam share card
+
+The name is not translated. `BrandTests` fails the build if any frontend file spells it out
+again. Two things stay as they are on purpose: the store identifier `com.sanathana.companion`,
+because changing it after a release orphans installed copies, and the .NET namespaces.
 
 Set `"Platform": "Mobile"` in the *web* `appsettings.json` to render the phone shell in a desktop
 browser's device emulation — the quickest way to review mobile UI without a device.

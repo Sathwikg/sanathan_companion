@@ -1,4 +1,4 @@
-/* Sanathan Companion — shared component styles */
+/* Shared component styles */
 * { box-sizing: border-box; }
 
 html, body {
@@ -15,7 +15,9 @@ h1, h2, h3 { font-family: var(--font-heading); }
 a { color: var(--color-accent); text-decoration: none; }
 a:hover { text-decoration: underline; }
 
-/* Om brand badge */
+/* Brand logo tile (AppLogo). The glyph sits on the saffron tile; an image logo replaces the
+   tile outright, so it drops the tile's fill and glow - img + two classes outranks every
+   ".parent .sc-om" restyle in app.css and mobile.css. */
 .sc-om {
   display: grid;
   place-items: center;
@@ -25,6 +27,11 @@ a:hover { text-decoration: underline; }
   font-family: var(--font-heading);
   line-height: 1;
 }
+img.sc-om.sc-om-img { background: none; box-shadow: none; object-fit: contain; }
+
+/* An image logo inside a tile that sizes its glyph by font-size: the loader ring, the
+   dashboard greetings, the pre-boot loader in index.html. */
+.sc-logo-img { display: block; width: 1em; height: 1em; object-fit: contain; }
 
 .sc-center { padding: 2rem; text-align: center; color: var(--color-secondary); }
 
@@ -465,7 +472,8 @@ body {
   background: var(--gradient-saffron); color: #fff;
   box-shadow: var(--shadow-lg); position: relative; overflow: hidden; margin-bottom: 1.6rem;
 }
-.sc-hero::after { content: "ॐ"; position: absolute; right: 4px; bottom: -34px; font-size: 11rem; font-family: var(--font-heading); color: rgba(255,255,255,0.09); line-height: 1; }
+/* --sc-hero-mark is the brand glyph, set inline by Dashboard.razor. */
+.sc-hero::after { content: var(--sc-hero-mark, ""); position: absolute; right: 4px; bottom: -34px; font-size: 11rem; font-family: var(--font-heading); color: rgba(255,255,255,0.09); line-height: 1; }
 .sc-hero-om { width: 82px; height: 82px; flex-shrink: 0; display: grid; place-items: center; border-radius: 22px; background: rgba(255,255,255,0.16); font-family: var(--font-heading); font-size: 2.6rem; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.25); }
 .sc-hero-text { position: relative; z-index: 1; }
 .sc-hero-kicker { margin: 0; opacity: 0.85; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.12em; }

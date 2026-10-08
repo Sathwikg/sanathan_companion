@@ -243,11 +243,12 @@ else if (_p is not null)
 
         <div class="sc-card sc-prefcard sc-aboutcard">
             <div class="sc-section-head" style="margin-bottom:0.6rem">
-                <h2 class="sc-about-title"><OmLogo Size="24" /> @Loc["profile.about", "About"]</h2>
+                <h2 class="sc-about-title"><AppLogo Size="24" /> @Loc["profile.about", "About"]</h2>
             </div>
             <div class="sc-detail-grid">
-                <div class="sc-detail-item"><span class="sc-detail-label">@Loc["profile.app", "App"]</span><span class="sc-detail-value">@Config.AppName</span></div>
+                <div class="sc-detail-item"><span class="sc-detail-label">@Loc["profile.app", "App"]</span><span class="sc-detail-value">@Brand.AppName</span></div>
                 <div class="sc-detail-item"><span class="sc-detail-label">@Loc["profile.version", "Version"]</span><span class="sc-detail-value">@Config.AppVersion</span></div>
+                <div class="sc-detail-item"><span class="sc-detail-label">@Loc["common.privacy", "Privacy"]</span><span class="sc-detail-value"><a href="privacy" style="color:var(--color-primary);text-decoration:none;font-weight:600;">@Loc["privacy.viewPolicy", "Privacy Policy & Terms"] →</a></span></div>
             </div>
         </div>
     }

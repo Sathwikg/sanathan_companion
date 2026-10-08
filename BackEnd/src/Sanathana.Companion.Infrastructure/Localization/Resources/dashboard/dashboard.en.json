@@ -19,5 +19,6 @@
   "dashboard.todaysBhakti": "Today's Bhakti",
   "dashboard.todaysGod": "Today's God",
   "dashboard.todaysGoddess": "Today's Goddess",
-  "dashboard.viewDetails": "View Details"
+  "dashboard.viewDetails": "View Details",
+  "dashboard.welcome": "🕉️ Namaste, {0}! Welcome to your {1}."
 }
