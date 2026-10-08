@@ -81,7 +81,7 @@ window.scPhoneFrame = (function () {
         var screen = el('div', 'sc-phone-screen');
         var frame = document.createElement('iframe');
         frame.className = 'sc-phone-frame';
-        frame.title = 'Sanathan Companion, phone preview';
+        frame.title = document.title + ', phone preview';
         frame.src = window.location.href;  // same route, query and hash, so deep links survive
 
         screen.appendChild(frame);
