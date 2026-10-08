@@ -1,0 +1,35 @@
+@* The app's logo, from FrontEnd/Branding/Branding.props: the configured image when there is one,
+   otherwise the glyph on the saffron tile. Every logo in the UI is this component, so a rebrand
+   reaches all of them.
+
+   Bare renders the mark alone, with no tile and no size of its own, for places that draw their
+   own tile (the loader ring, the dashboard greetings). An image mark is 1em square there, so it
+   follows the font-size those tiles already set for the glyph. *@
+
+@if (Bare)
+{
+    if (Brand.LogoImageUrl is { } src)
+    {
+        <img class="sc-logo-img" src="@src" alt="" />
+    }
+    else
+    {
+        @Brand.LogoGlyph
+    }
+}
+else if (Brand.LogoImageUrl is { } src)
+{
+    <img class="sc-om sc-om-img" src="@src" alt="" style="width:@(Size)px;height:@(Size)px;" />
+}
+else
+{
+    <div class="sc-om" style="@Style">@Brand.LogoGlyph</div>
+}
+
+@code {
+    [Parameter] public int Size { get; set; } = 56;
+
+    [Parameter] public bool Bare { get; set; }
+
+    private string Style => $"width:{Size}px;height:{Size}px;font-size:{(int)(Size * 0.5)}px;";
+}

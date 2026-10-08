@@ -36,9 +36,6 @@ public class AppConfig
     /// <summary>Which host this is running in — see <see cref="PlatformNames"/>. Drives per-platform menu access rights.</summary>
     public string Platform { get; set; } = PlatformNames.Web;
 
-    /// <summary>Shown in the shell and on the login screen when no translation overrides it.</summary>
-    public string AppName { get; set; } = "Sanathan Companion";
-
     /// <summary>Free-text environment label ("Development", "Production") surfaced in the profile screen's About row.</summary>
     public string Environment { get; set; } = "Production";
 

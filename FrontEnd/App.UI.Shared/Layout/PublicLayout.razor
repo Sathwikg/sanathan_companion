@@ -1,0 +1,105 @@
+@inherits LayoutComponentBase
+@inject LocalizationState Loc
+@inject NavigationManager Nav
+
+<div class="sc-public-shell">
+    <header class="sc-public-topbar">
+        <div class="sc-public-brand" @onclick="GoHome" style="cursor: pointer;">
+            <AppLogo Size="36" />
+            <div class="sc-public-titles">
+                <span class="sc-brand-text">@Brand.AppName</span>
+                <span class="sc-public-subtitle">@Loc["auth.tagline", "Your sacred guide to daily sadhana"]</span>
+            </div>
+        </div>
+        <div class="sc-public-actions">
+            <ThemeToggle />
+            <AuthorizeView>
+                <Authorized>
+                    <a href="" class="sc-btn-primary sc-btn-sm" style="text-decoration:none; display:inline-flex; align-items:center; gap:6px;">
+                        <span>@Loc["nav.dashboard", "Dashboard"]</span>
+                    </a>
+                </Authorized>
+                <NotAuthorized>
+                    <a href="login" class="sc-btn-primary sc-btn-sm" style="text-decoration:none; display:inline-flex; align-items:center; gap:6px;">
+                        <span>@Loc["auth.signIn", "Sign In"]</span>
+                    </a>
+                </NotAuthorized>
+            </AuthorizeView>
+        </div>
+    </header>
+
+    <main class="sc-public-body">
+        <AppErrorBoundary>
+            @Body
+        </AppErrorBoundary>
+    </main>
+</div>
+
+<style>
+    .sc-public-shell {
+        min-height: 100vh;
+        background: var(--pattern-mandala), var(--gradient-hero);
+        background-attachment: fixed;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .sc-public-topbar {
+        height: 60px;
+        padding: 0 1.5rem;
+        background: color-mix(in srgb, var(--color-surface) 90%, transparent);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-bottom: 1px solid var(--glass-border);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        position: sticky;
+        top: 0;
+        z-index: 50;
+    }
+
+    .sc-public-brand {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .sc-public-titles {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.2;
+    }
+
+    .sc-public-subtitle {
+        font-size: 0.75rem;
+        color: var(--color-secondary);
+    }
+
+    .sc-public-actions {
+        display: flex;
+        align-items: center;
+        gap: 0.85rem;
+    }
+
+    .sc-public-body {
+        flex: 1;
+        width: 100%;
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 2rem 1.25rem 4rem;
+    }
+
+    @@media (max-width: 600px) {
+        .sc-public-topbar {
+            padding: 0 1rem;
+        }
+        .sc-public-subtitle {
+            display: none;
+        }
+    }
+</style>
+
+@code {
+    private void GoHome() => Nav.NavigateTo("");
+}

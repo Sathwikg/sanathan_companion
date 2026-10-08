@@ -15,6 +15,6 @@
   "regions.noun": "ప్రాంతాలు",
   "regions.nounSingular": "ప్రాంతం",
   "regions.regionName": "ప్రాంతం పేరు",
-  "regions.sub": "సనాతన కంపానియన్ అంతటా ప్రాంతాలను నిర్వహించండి",
+  "regions.sub": "{0} అంతటా ప్రాంతాలను నిర్వహించండి",
   "regions.title": "ప్రాంత మాస్టర్"
 }

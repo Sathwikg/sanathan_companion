@@ -1,0 +1,56 @@
+<Project>
+  <!--
+    Brand-stamped HTML. A project lists a page as
+
+      <BrandedHtml Include="index.template.html" Link="wwwroot\index.html" />
+
+    and the build writes a copy into obj\ with every {{Brand:...}} token replaced from
+    Branding\Branding.props, then serves that copy at the Link path as if it lived in wwwroot.
+    Link must start with wwwroot\.
+    The page shows before .NET has started, so it cannot ask the Brand class; this is how it
+    still gets the name and logo from the one place.
+
+    Tokens: {{Brand:AppName}}, {{Brand:LogoGlyph}}, {{Brand:LogoMark}} (the glyph, or an <img>
+    of the logo image when one is configured).
+  -->
+  <PropertyGroup>
+    <_BrandLogoMarkHtml Condition="'$(BrandLogoImage)' == ''">$(BrandLogoGlyph)</_BrandLogoMarkHtml>
+    <_BrandLogoMarkHtml Condition="'$(BrandLogoImage)' != ''">&lt;img class="sc-logo-img" src="$(BrandLogoImageUrl)" alt="" /&gt;</_BrandLogoMarkHtml>
+  </PropertyGroup>
+
+  <Target Name="StampBrandedHtml"
+          BeforeTargets="ResolveProjectStaticWebAssets"
+          DependsOnTargets="_StampBrandedHtmlFile"
+          Condition="'@(BrandedHtml)' != ''">
+    <ItemGroup>
+      <Content Include="@(_StampedBrandedHtml)" />
+      <FileWrites Include="@(_StampedBrandedHtml)" />
+    </ItemGroup>
+  </Target>
+
+  <!-- Batched: runs once per BrandedHtml item. -->
+  <Target Name="_StampBrandedHtmlFile" Outputs="%(BrandedHtml.Identity)" Condition="'@(BrandedHtml)' != ''">
+    <PropertyGroup>
+      <_BrandedRoot>$([MSBuild]::NormalizeDirectory($(MSBuildProjectDirectory), $(IntermediateOutputPath), 'branding'))</_BrandedRoot>
+      <_BrandedHtmlOut>$(_BrandedRoot)%(BrandedHtml.Link)</_BrandedHtmlOut>
+      <_BrandedHtmlText>$([System.IO.File]::ReadAllText('%(BrandedHtml.FullPath)'))</_BrandedHtmlText>
+      <_BrandedHtmlText>$(_BrandedHtmlText.Replace('{{Brand:AppName}}', $(BrandAppName)))</_BrandedHtmlText>
+      <_BrandedHtmlText>$(_BrandedHtmlText.Replace('{{Brand:LogoGlyph}}', $(BrandLogoGlyph)))</_BrandedHtmlText>
+      <_BrandedHtmlText>$(_BrandedHtmlText.Replace('{{Brand:LogoMark}}', $(_BrandLogoMarkHtml)))</_BrandedHtmlText>
+    </PropertyGroup>
+
+    <MakeDir Directories="$([System.IO.Path]::GetDirectoryName('$(_BrandedHtmlOut)'))" />
+    <!-- Escape keeps the page one line item: unescaped, every ; in its CSS would split it. -->
+    <WriteLinesToFile File="$(_BrandedHtmlOut)"
+                      Lines="$([MSBuild]::Escape($(_BrandedHtmlText)))"
+                      Overwrite="true"
+                      WriteOnlyWhenDifferent="true" />
+
+    <ItemGroup>
+      <!-- ContentRoot: without it the dev server looks for the file under the project's own
+           wwwroot, where it does not exist. Link is therefore always wwwroot\<path>. -->
+      <_StampedBrandedHtml Include="$(_BrandedHtmlOut)" Link="%(BrandedHtml.Link)"
+                           ContentRoot="$(_BrandedRoot)wwwroot\" />
+    </ItemGroup>
+  </Target>
+</Project>

@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- A template: the build stamps the {{Brand:...}} tokens from FrontEnd/Branding/Branding.props
+         and serves the result as index.html (see FrontEnd/Directory.Build.targets). -->
     <meta charset="utf-8" />
     <!-- viewport-fit=cover hands the notch and home-indicator regions to CSS, which is what every
          env(safe-area-inset-*) rule in mobile.css depends on. It only works because MainPage sets
@@ -8,7 +10,7 @@
          insets all resolve to 0. -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content" />
     <meta name="color-scheme" content="light dark" />
-    <title>Sanathan Companion</title>
+    <title>{{Brand:AppName}}</title>
     <base href="/" />
     <link rel="stylesheet" href="_content/App.UI.Shared/theme.css" />
     <link rel="stylesheet" href="_content/App.UI.Shared/app.css" />
@@ -56,9 +58,9 @@
     <div id="app">
         <div class="om-loader is-full">
             <div class="om-loader-ring" style="width:76px;height:76px;">
-                <span class="om-loader-glyph" style="font-size:38px;">ॐ</span>
+                <span class="om-loader-glyph" style="font-size:38px;">{{Brand:LogoMark}}</span>
             </div>
-            <div class="om-loader-msg">Loading Sanathan Companion…</div>
+            <div class="om-loader-msg">Loading {{Brand:AppName}}…</div>
         </div>
     </div>
 

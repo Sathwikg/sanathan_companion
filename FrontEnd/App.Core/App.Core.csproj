@@ -6,6 +6,21 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <!-- The app's name and logo from FrontEnd/Branding/Branding.props, baked into this assembly so
+       Config/Brand.cs can hand them to every host and screen. -->
+  <ItemGroup>
+    <AssemblyMetadata Include="Brand.AppName" Value="$(BrandAppName)" />
+    <AssemblyMetadata Include="Brand.LogoGlyph" Value="$(BrandLogoGlyph)" />
+    <AssemblyMetadata Include="Brand.LogoImageUrl" Value="$(BrandLogoImageUrl)" />
+  </ItemGroup>
+
+  <!-- Without Branding.props the app would build nameless, and the web host without an index.html.
+       Every frontend references this project, so this one check covers them all - most often it
+       means a Dockerfile copied the projects but not FrontEnd/Directory.Build.props and Branding/. -->
+  <Target Name="RequireBranding" BeforeTargets="BeforeBuild" Condition="'$(BrandAppName)' == ''">
+    <Error Text="FrontEnd/Branding/Branding.props was not imported, so the app has no name. Make sure FrontEnd/Directory.Build.props and FrontEnd/Branding/ are present." />
+  </Target>
+
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="10.0.10" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.10" />

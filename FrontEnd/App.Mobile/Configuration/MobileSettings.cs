@@ -29,7 +29,6 @@ public static class MobileSettings
         {
             ApiBaseUrl = ResolveApiBaseUrl(file),
             Platform = PlatformNames.Mobile,
-            AppName = Coalesce(file?.AppName, "Sanathan Companion"),
             Environment = Coalesce(file?.Environment, DefaultEnvironment),
             AppVersion = AppInfo.Current.VersionString,
             HttpTimeoutSeconds = file?.HttpTimeoutSeconds is int seconds && seconds > 0 ? seconds : 100,
@@ -100,7 +99,6 @@ public static class MobileSettings
     /// <summary>Shape of appsettings.json. Keys prefixed with "//" in the file are documentation and bind to nothing.</summary>
     private sealed class SettingsFile
     {
-        public string? AppName { get; set; }
         public string? Environment { get; set; }
         public string? ApiBaseUrl { get; set; }
         public string? ApiBaseUrlDebug { get; set; }

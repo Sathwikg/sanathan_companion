@@ -1,14 +1,20 @@
 @inherits LayoutComponentBase
+@inject LocalizationState Loc
 
 <div class="sc-auth-shell">
     <div class="sc-auth-card">
         <div class="sc-auth-brand">
-            <OmLogo Size="72" />
-            <h1 class="sc-auth-title">Sanathan Companion</h1>
-            <p class="sc-auth-tag">Your sacred guide to daily sadhana</p>
+            <AppLogo Size="72" />
+            <h1 class="sc-auth-title">@Brand.AppName</h1>
+            <p class="sc-auth-tag">@Loc["auth.tagline", "Your sacred guide to daily sadhana"]</p>
         </div>
         <div class="sc-auth-body">
             <AppErrorBoundary>@Body</AppErrorBoundary>
         </div>
+        <footer class="sc-auth-footer" style="margin-top: 1.5rem; text-align: center; border-top: 1px solid var(--color-outline); padding-top: 0.85rem;">
+            <a href="privacy" style="font-size: 0.82rem; color: var(--color-secondary); text-decoration: none;">
+                🛡️ Privacy Policy & Data Terms
+            </a>
+        </footer>
     </div>
 </div>

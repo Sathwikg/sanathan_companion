@@ -1,3 +1,4 @@
+using App.Core.Config;
 using App.Core.Services;
 using App.Mobile.Services;
 
@@ -16,8 +17,8 @@ public partial class App : Application
 	protected override Window CreateWindow(IActivationState? activationState)
 	{
 		// Shown in the Windows title bar, the Mac menu bar and the task switcher. The stores take
-		// the name from <ApplicationTitle>; this is the one place it also has to be spelled out.
-		var window = new Window(new MainPage()) { Title = "Sanathan Companion" };
+		// the name from <ApplicationTitle>; both come from FrontEnd/Branding/Branding.props.
+		var window = new Window(new MainPage()) { Title = Brand.AppName };
 
 		// Drives IAppLifecycle. Shared components use it to stop periodic work while the app is
 		// backgrounded — a .NET timer keeps ticking even when the WebView behind it is paused.

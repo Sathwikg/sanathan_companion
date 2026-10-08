@@ -33,6 +33,8 @@ const state = { blob: null, fileName: null };
 export async function render(p) {
     await loadFonts();
     const deityImg = p.deity ? await loadImage(p.deity.imageUrl) : null;
+    // The configured logo image (FrontEnd/Branding); null draws p.logoGlyph on the tile instead.
+    const logoImg = await loadImage(p.logoUrl);
 
     const canvas = document.createElement('canvas');
     canvas.width = W;
@@ -42,12 +44,12 @@ export async function render(p) {
     ctx.imageSmoothingQuality = 'high';
 
     drawBackground(ctx, deityImg);
-    const headerBottom = drawHeader(ctx, p, deityImg);
+    const headerBottom = drawHeader(ctx, p, deityImg, logoImg);
     // The footer runs from the ornament (nameY - 218, see drawFooter) down to the app's name; the
     // cards must stop a clear margin above the ornament.
     const footerTop = H - M - 420;
     drawSections(ctx, p.sections || [], headerBottom, footerTop);
-    drawFooter(ctx, p);
+    drawFooter(ctx, p, logoImg);
 
     state.blob = await toBlob(canvas, 'image/jpeg', 0.92);
     state.fileName = p.fileName || 'panchangam.jpg';
@@ -162,23 +164,27 @@ function drawBackground(ctx, deityImg) {
 }
 
 /** Brand row, title, date and place on the left; the deity's portrait on the right. Returns the y below it. */
-function drawHeader(ctx, p, deityImg) {
+function drawHeader(ctx, p, deityImg, logoImg) {
     let y = M + 30;
 
-    // Brand row: the ॐ tile from the top bar, the app's name and its tagline.
+    // Brand row: the logo from the top bar, the app's name and its tagline.
     const tile = 96;
     ctx.save();
-    roundRect(ctx, M, y, tile, tile, 26);
-    const tg = ctx.createLinearGradient(M, y, M + tile, y + tile);
-    tg.addColorStop(0, '#C0631A');
-    tg.addColorStop(1, '#8D4E19');
-    ctx.fillStyle = tg;
-    ctx.fill();
-    ctx.fillStyle = '#fff';
-    ctx.font = font(700, 58, FONT_HEAD);
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('ॐ', M + tile / 2, y + tile / 2 + 4);
+    if (logoImg) {
+        drawContained(ctx, logoImg, M, y, tile, tile);
+    } else {
+        roundRect(ctx, M, y, tile, tile, 26);
+        const tg = ctx.createLinearGradient(M, y, M + tile, y + tile);
+        tg.addColorStop(0, '#C0631A');
+        tg.addColorStop(1, '#8D4E19');
+        ctx.fillStyle = tg;
+        ctx.fill();
+        ctx.fillStyle = '#fff';
+        ctx.font = font(700, 58, FONT_HEAD);
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(p.logoGlyph || '', M + tile / 2, y + tile / 2 + 4);
+    }
     ctx.textAlign = 'left';
     ctx.textBaseline = 'alphabetic';
     ctx.fillStyle = C.primary;
@@ -431,7 +437,7 @@ function layoutTable(ctx, sections, s, drawTop) {
 }
 
 /** Ornament, "Shared by", the seeker's name carved in stone, and the app's name last. */
-function drawFooter(ctx, p) {
+function drawFooter(ctx, p, logoImg) {
     const cx = W / 2;
     const bottom = H - M - 30;
 
@@ -442,7 +448,15 @@ function drawFooter(ctx, p) {
     // App name, smallest, at the very foot.
     ctx.fillStyle = C.primary;
     ctx.font = font(700, 40, FONT_HEAD);
-    ctx.fillText('ॐ  ' + (p.appName || ''), cx, bottom);
+    if (logoImg) {
+        // The image takes the glyph's place, just left of the centred name.
+        const nameW = ctx.measureText(p.appName || '').width;
+        const mark = 48;
+        drawContained(ctx, logoImg, cx - nameW / 2 - mark - 14, bottom - mark + 8, mark, mark);
+        ctx.fillText(p.appName || '', cx, bottom);
+    } else {
+        ctx.fillText((p.logoGlyph ? p.logoGlyph + '  ' : '') + (p.appName || ''), cx, bottom);
+    }
 
     // The name: uppercase and spaced when the alphabet allows, carved with a light edge above and a
     // dark edge below, in bronze.
@@ -619,6 +633,13 @@ async function loadImage(url) {
         // Safe once decoded: the Image keeps its pixels.
         if (objectUrl) setTimeout(() => URL.revokeObjectURL(objectUrl), 0);
     }
+}
+
+/** Draws img inside the box, scaled to fit without cropping and centred. */
+function drawContained(ctx, img, x, y, w, h) {
+    const scale = Math.min(w / img.naturalWidth, h / img.naturalHeight);
+    const dw = img.naturalWidth * scale, dh = img.naturalHeight * scale;
+    ctx.drawImage(img, x + (w - dw) / 2, y + (h - dh) / 2, dw, dh);
 }
 
 function toBlob(canvas, type, quality) {

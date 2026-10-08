@@ -43,6 +43,10 @@ WORKDIR /src
 
 # Only App.Web and its two dependencies are built. App.Mobile is excluded on
 # purpose — it needs the MAUI workloads and produces nothing for the web host.
+# The app's name and logo (FrontEnd/Branding/Branding.props), imported by every frontend project
+# through Directory.Build.props — needed before restore, and App.Core fails the build without them.
+COPY FrontEnd/Directory.Build.props FrontEnd/Directory.Build.targets ./
+COPY FrontEnd/Branding/ Branding/
 COPY FrontEnd/App.Core/App.Core.csproj           App.Core/
 COPY FrontEnd/App.UI.Shared/App.UI.Shared.csproj App.UI.Shared/
 COPY FrontEnd/App.Web/App.Web.csproj             App.Web/

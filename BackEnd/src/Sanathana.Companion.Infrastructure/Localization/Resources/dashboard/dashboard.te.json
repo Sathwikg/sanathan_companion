@@ -19,5 +19,6 @@
   "dashboard.todaysBhakti": "నేటి భక్తి",
   "dashboard.todaysGod": "నేటి దేవుడు",
   "dashboard.todaysGoddess": "నేటి దేవత",
-  "dashboard.viewDetails": "వివరాలు చూడు"
+  "dashboard.viewDetails": "వివరాలు చూడు",
+  "dashboard.welcome": "🕉️ నమస్తే, {0}! {1} మీకు స్వాగతం పలుకుతోంది."
 }
