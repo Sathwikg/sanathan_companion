@@ -27,12 +27,13 @@
 
     <!-- Optional. The file name of an image in this folder (for example logo.png or logo.svg) to
          show instead of the glyph tile. Square, with a transparent background. Empty = glyph. -->
-    <BrandLogoImage></BrandLogoImage>
+    <BrandLogoImage>logo.png</BrandLogoImage>
 
     <!-- Phone launcher icon background colour and splash screen background colour. The icon
-         artwork itself is appicon.svg (background) + appiconfg.svg (foreground); the splash
-         artwork is splash.svg. Web favicons are favicon.png and icon-192.png. -->
-    <BrandIconColor>#8D4E19</BrandIconColor>
+         artwork itself is appicon.svg (background) + appiconfg.png (foreground, full-bleed: the
+         launchers apply their own rounded mask); the splash artwork is splash.png. Web favicons
+         are favicon.png and icon-192.png. -->
+    <BrandIconColor>#7C440E</BrandIconColor>
     <BrandSplashColor>#FDFBF7</BrandSplashColor>
   </PropertyGroup>
 
