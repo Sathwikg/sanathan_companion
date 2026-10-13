@@ -82,7 +82,7 @@ else
     {
         await base.OnInitializedAsync();
         try { _types = await Api.GetActiveIssueTypesAsync(); }
-        catch (Exception ex) { _error = ex.Message; }
+        catch (Exception ex) { _error = Loc.ErrorText(ex); }
         finally { _loading = false; }
     }
 

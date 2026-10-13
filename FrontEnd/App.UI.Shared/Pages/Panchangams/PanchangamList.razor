@@ -224,7 +224,7 @@ else
             _options = await Api.GetPanchangamOptionsAsync();
             ApplyGlobalRegion();
         }
-        catch (Exception ex) { _geoError = ex.Message; }
+        catch (Exception ex) { _geoError = Loc.ErrorText(ex); }
 
         await LoadStoredAsync();
     }
@@ -274,7 +274,7 @@ else
                 _current = null;
             }
         }
-        catch (Exception ex) { _geoError = ex.Message; _current = null; }
+        catch (Exception ex) { _geoError = Loc.ErrorText(ex); _current = null; }
         finally { _loading = false; }
     }
 
@@ -352,7 +352,7 @@ else
                         geo.Latitude.ToString("F2"), geo.Longitude.ToString("F2")));
             }
         }
-        catch (Exception ex) { _geoError = Loc["panchangam.couldNotCompute", "Could not compute for your location."] + " " + ex.Message; _current = null; }
+        catch (Exception ex) { _geoError = Loc["panchangam.couldNotCompute", "Could not compute for your location."] + " " + Loc.ErrorText(ex); _current = null; }
         finally { _locating = false; }
     }
 

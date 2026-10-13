@@ -195,7 +195,7 @@ else
         }
         catch (Exception ex)
         {
-            _error = ex.Message;
+            _error = Loc.ErrorText(ex);
         }
         finally
         {
@@ -225,7 +225,7 @@ else
         }
         catch (Exception ex)
         {
-            _imageError = Loc["deities.imageProcessFailed", "Could not process image."] + " " + ex.Message;
+            _imageError = Loc["deities.imageProcessFailed", "Could not process image."] + " " + Loc.ErrorText(ex);
         }
     }
 

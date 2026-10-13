@@ -29,6 +29,8 @@
   "sadhana.preparing": "உங்கள் சாதனாவைத் தயார் செய்கிறது…",
   "sadhana.recommended": "பரிந்துரைக்கப்பட்டவை",
   "sadhana.recommendedToday": "இன்றைக்குப் பரிந்துரைக்கப்பட்டவை",
+  "sadhana.resetConfirmBody": "இது உங்கள் தற்போதைய மாலையின் {0} ஜபங்களை அழிக்கும். முடிந்த மாலைகள் அப்படியே இருக்கும்.",
+  "sadhana.resetConfirmTitle": "எண்ணிக்கையை மீட்டமைக்கவா?",
   "sadhana.resetCount": "எண்ணிக்கையை மீட்டமை",
   "sadhana.roundsCompleted": "முடிந்த சுற்றுகள்",
   "sadhana.sadhanaLabel": "சாதனா",

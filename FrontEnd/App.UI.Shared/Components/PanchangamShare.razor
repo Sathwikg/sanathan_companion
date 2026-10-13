@@ -96,7 +96,7 @@
         catch (Exception ex)
         {
             _open = false;
-            Toast.Error(Loc["panchangam.shareFailed", "Could not prepare the image."] + " " + ex.Message);
+            Toast.Error(Loc["panchangam.shareFailed", "Could not prepare the image."] + " " + Loc.ErrorText(ex));
         }
         finally
         {
@@ -123,7 +123,7 @@
         }
         catch (Exception ex)
         {
-            Toast.Error(Loc["panchangam.shareFailed", "Could not prepare the image."] + " " + ex.Message);
+            Toast.Error(Loc["panchangam.shareFailed", "Could not prepare the image."] + " " + Loc.ErrorText(ex));
         }
         finally
         {
@@ -141,7 +141,7 @@
         }
         catch (Exception ex)
         {
-            Toast.Error(Loc["panchangam.shareFailed", "Could not prepare the image."] + " " + ex.Message);
+            Toast.Error(Loc["panchangam.shareFailed", "Could not prepare the image."] + " " + Loc.ErrorText(ex));
         }
     }
 

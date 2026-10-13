@@ -1181,7 +1181,7 @@ button.sc-prefrow:disabled:hover { background: var(--color-surface-2); }
 
 /* ---- Japa counter ---- */
 .sc-japa { display: flex; flex-direction: column; align-items: center; gap: 1rem; padding: 0.5rem 0 1rem; }
-.sc-japa-ring { position: relative; width: 240px; height: 240px; border-radius: 50%; display: grid; place-items: center; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; background: radial-gradient(circle at 50% 45%, var(--color-primary-container), var(--color-surface)); border: 3px solid var(--color-primary); box-shadow: 0 8px 30px color-mix(in srgb, var(--color-primary) 22%, transparent); transition: transform .08s ease; }
+.sc-japa-ring { position: relative; width: 240px; height: 240px; border-radius: 50%; display: grid; place-items: center; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; touch-action: manipulation; background: radial-gradient(circle at 50% 45%, var(--color-primary-container), var(--color-surface)); border: 3px solid var(--color-primary); box-shadow: 0 8px 30px color-mix(in srgb, var(--color-primary) 22%, transparent); transition: transform .08s ease; }
 .sc-japa-ring:active { transform: scale(0.97); }
 .sc-japa-ring.flash { animation: sc-japa-flash .5s ease; }
 @keyframes sc-japa-flash { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-gold) 70%, transparent); } 100% { box-shadow: 0 0 0 40px transparent; } }

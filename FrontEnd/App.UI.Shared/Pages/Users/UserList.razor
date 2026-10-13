@@ -274,7 +274,7 @@ else
         _loadingProfile = true;
         _profile = null;
         try { _profile = await Api.GetUserProfileAsync(u.UserId); }
-        catch (Exception ex) { _error = ex.Message; }
+        catch (Exception ex) { _error = Loc.ErrorText(ex); }
         finally { _loadingProfile = false; }
     }
 

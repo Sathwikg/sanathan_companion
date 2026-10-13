@@ -29,6 +29,8 @@
   "sadhana.preparing": "ನಿಮ್ಮ ಸಾಧನೆಯನ್ನು ಸಿದ್ಧಪಡಿಸಲಾಗುತ್ತಿದೆ…",
   "sadhana.recommended": "ಶಿಫಾರಸು",
   "sadhana.recommendedToday": "ಇಂದಿಗೆ ಶಿಫಾರಸು",
+  "sadhana.resetConfirmBody": "ಇದು ನಿಮ್ಮ ಪ್ರಸ್ತುತ ಮಾಲೆಯ {0} ಜಪಗಳನ್ನು ಅಳಿಸುತ್ತದೆ. ಪೂರ್ಣಗೊಂಡ ಮಾಲೆಗಳು ಹಾಗೆಯೇ ಉಳಿಯುತ್ತವೆ.",
+  "sadhana.resetConfirmTitle": "ಎಣಿಕೆ ಮರುಹೊಂದಿಸಬೇಕೆ?",
   "sadhana.resetCount": "ಎಣಿಕೆ ಮರುಹೊಂದಿಸಿ",
   "sadhana.roundsCompleted": "ಪೂರ್ಣಗೊಂಡ ಸುತ್ತುಗಳು",
   "sadhana.sadhanaLabel": "ಸಾಧನೆ",

@@ -25,9 +25,15 @@ public static class DependencyInjection
         services.AddHostedService<AuditMaintenanceService>();
         services.AddScoped<AuditSaveChangesInterceptor>();
 
+        var connectionString = PoolerSafeConnectionString(configuration.GetConnectionString("DefaultConnection"));
         services.AddDbContext<ApplicationDbContext>((sp, options) =>
         {
-            options.UseNpgsql(configuration.GetConnectionString("DefaultConnection"));
+            options.UseNpgsql(connectionString, npgsql => npgsql.EnableRetryOnFailure(
+                maxRetryCount: 4,
+                maxRetryDelay: TimeSpan.FromSeconds(3),
+                // Supavisor answers with XX000 when its session pool is full (EMAXCONNSESSION). The
+                // refusal comes before any statement runs, so retrying it cannot repeat a write.
+                errorCodesToAdd: ["XX000"]));
             options.AddInterceptors(sp.GetRequiredService<AuditSaveChangesInterceptor>());
         });
 
@@ -78,5 +84,33 @@ public static class DependencyInjection
         services.AddScoped<AdminAccountBootstrapper>();
 
         return services;
+    }
+
+    /// <summary>
+    /// Pool limits that fit a Supabase session pooler, applied only where the string sets none.
+    /// </summary>
+    /// <remarks>
+    /// The session pooler admits 15 clients for the whole project, and the web service, the mobile
+    /// service and any local run all draw on those same 15. Npgsql's defaults (up to 100
+    /// connections, each idle one kept for five minutes) let one process hold slots it is not
+    /// using, and the next request anywhere then fails with EMAXCONNSESSION, which seekers saw
+    /// as an intermittent 500 on whatever screen they happened to open. A small pool makes a burst
+    /// queue for a connection instead, and a short idle lifetime hands quiet slots back.
+    /// </remarks>
+    private static string? PoolerSafeConnectionString(string? connectionString)
+    {
+        if (string.IsNullOrWhiteSpace(connectionString)) return connectionString;
+
+        // The generic builder, deliberately: NpgsqlConnectionStringBuilder reports every keyword it
+        // knows as present, so it cannot tell "set to the default" from "not set".
+        var given = new System.Data.Common.DbConnectionStringBuilder { ConnectionString = connectionString };
+        bool Has(params string[] keys) => keys.Any(given.ContainsKey);
+
+        var builder = new Npgsql.NpgsqlConnectionStringBuilder(connectionString);
+        if (!Has("Maximum Pool Size", "Max Pool Size", "MaxPoolSize"))
+            builder.MaxPoolSize = 5;
+        if (!Has("Connection Idle Lifetime", "ConnectionIdleLifetime"))
+            builder.ConnectionIdleLifetime = 30;
+        return builder.ConnectionString;
     }
 }
