@@ -29,6 +29,8 @@
   "sadhana.preparing": "Preparing your sadhana…",
   "sadhana.recommended": "Recommended",
   "sadhana.recommendedToday": "Recommended for Today",
+  "sadhana.resetConfirmBody": "This clears the {0} chants in your current mala. Completed malas are kept.",
+  "sadhana.resetConfirmTitle": "Reset Count?",
   "sadhana.resetCount": "Reset Count",
   "sadhana.roundsCompleted": "Rounds Completed",
   "sadhana.sadhanaLabel": "Sadhana",

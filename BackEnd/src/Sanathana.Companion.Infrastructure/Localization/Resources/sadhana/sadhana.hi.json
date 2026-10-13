@@ -29,6 +29,8 @@
   "sadhana.preparing": "आपकी साधना तैयार हो रही है…",
   "sadhana.recommended": "अनुशंसित",
   "sadhana.recommendedToday": "आज के लिए अनुशंसित",
+  "sadhana.resetConfirmBody": "इससे आपकी वर्तमान माला के {0} जप हट जाएंगे। पूरी हुई मालाएं बनी रहेंगी।",
+  "sadhana.resetConfirmTitle": "गणना रीसेट करें?",
   "sadhana.resetCount": "गणना रीसेट करें",
   "sadhana.roundsCompleted": "पूर्ण चक्र",
   "sadhana.sadhanaLabel": "साधना",

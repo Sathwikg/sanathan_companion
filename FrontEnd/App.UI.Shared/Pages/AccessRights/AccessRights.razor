@@ -170,7 +170,7 @@
         }
         catch (Exception ex)
         {
-            _error = ex.Message;
+            _error = Loc.ErrorText(ex);
         }
     }
 
@@ -193,7 +193,7 @@
         }
         catch (Exception ex)
         {
-            _error = ex.Message;
+            _error = Loc.ErrorText(ex);
             _matrix = null;
         }
         finally

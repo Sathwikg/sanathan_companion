@@ -88,7 +88,7 @@ else if (_today is not null)
         <div class="sc-card sc-filtercard">
             <div class="sc-filter" style="min-width:280px">
                 <label>@Loc["sadhana.searchSavedChants", "Search Saved Chants"]</label>
-                <input class="sc-input sc-input-sm" placeholder="@Loc["sadhana.searchPlaceholder", "Name, deity or category…"]" @bind="_search" @bind:event="oninput" @bind:after="SearchAsync" />
+                <input class="sc-input sc-input-sm" placeholder="@Loc["sadhana.searchPlaceholder", "Name, deity or category…"]" @bind="_search" @bind:event="oninput" @bind:after="OnSearchTypedAsync" />
             </div>
         </div>
         @if (_allChants.Count == 0)
@@ -117,6 +117,12 @@ else if (_today is not null)
 
     private string _todayLabel = "";
 
+    // Typing fires a search per keystroke, and the answers can come back in any order. Without
+    // these, the slower answer for "ka" landed after the one for "kal" and the list showed
+    // chants that did not match what was in the box.
+    private CancellationTokenSource? _searchDebounce;
+    private int _searchVersion;
+
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
@@ -134,7 +140,7 @@ else if (_today is not null)
             if (_today is not null)
                 _todayLabel = $"{_today.Date:dddd, dd MMMM yyyy}";
         }
-        catch (Exception ex) { _error = ex.Message; }
+        catch (Exception ex) { _error = Loc.ErrorText(ex); }
         finally { _loading = false; }
 
         if (_tab == "all") await SearchAsync();
@@ -146,6 +152,7 @@ else if (_today is not null)
     public override void Dispose()
     {
         Region.OnChanged -= OnRegionChanged;
+        _searchDebounce?.Cancel();
         base.Dispose();
     }
 
@@ -155,10 +162,30 @@ else if (_today is not null)
         if (_allChants.Count == 0) await SearchAsync();
     }
 
+    /// <summary>Waits for a pause in typing, so a word sends one search rather than one per letter.</summary>
+    private async Task OnSearchTypedAsync()
+    {
+        _searchDebounce?.Cancel();
+        var debounce = _searchDebounce = new CancellationTokenSource();
+        try { await Task.Delay(300, debounce.Token); }
+        catch (TaskCanceledException) { return; }
+        await SearchAsync();
+    }
+
     private async Task SearchAsync()
     {
-        try { _allChants = await Api.GetSadhanaChantsAsync(_search, Region.SelectedRegionId); }
-        catch (Exception ex) { _error = ex.Message; }
+        var version = ++_searchVersion;
+        try
+        {
+            var rows = await Api.GetSadhanaChantsAsync(_search, Region.SelectedRegionId);
+            // A newer search has gone out since; its answer is the one that matches the box.
+            if (version != _searchVersion) return;
+            _allChants = rows;
+        }
+        catch (Exception ex)
+        {
+            if (version == _searchVersion) _error = Loc.ErrorText(ex);
+        }
     }
 
 }

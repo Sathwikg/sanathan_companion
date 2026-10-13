@@ -583,7 +583,7 @@
             _scopes = shell?.Scopes ?? new();
             _scope = _scopes.FirstOrDefault()?.Namespace ?? string.Empty;
         }
-        catch (Exception ex) { _error = ex.Message; }
+        catch (Exception ex) { _error = Loc.ErrorText(ex); }
         finally { _loading = false; }
 
         if (!string.IsNullOrEmpty(_scope)) await LoadMatrixAsync();
@@ -603,7 +603,7 @@
             _matrix = await Api.GetTranslationMatrixAsync(_scope);
             ResetLabelPage();   // a new scope has its own row set
         }
-        catch (Exception ex) { _error = ex.Message; _matrix = null; }
+        catch (Exception ex) { _error = Loc.ErrorText(ex); _matrix = null; }
         finally { _loading = false; }
     }
 
@@ -613,7 +613,7 @@
         if (_entities is not null) return;
         _loading = true; _error = null;
         try { _entities = await Api.GetEntityMatrixAsync(); }
-        catch (Exception ex) { _error = ex.Message; }
+        catch (Exception ex) { _error = Loc.ErrorText(ex); }
         finally { _loading = false; }
     }
 
@@ -631,7 +631,7 @@
             _dict = await Api.GetDictionaryAsync(_dictCategory, _dictSearch, _dictMissingOnly, _dictPage, 25);
             if (_dict is not null) _dictPage = _dict.Page;
         }
-        catch (Exception ex) { _error = ex.Message; }
+        catch (Exception ex) { _error = Loc.ErrorText(ex); }
         finally { _loading = false; }
     }
 
@@ -711,7 +711,7 @@
     {
         _loading = true; _error = null;
         try { _forms = await Api.GetLanguageFormsAsync(_formLanguageId); }
-        catch (Exception ex) { _error = ex.Message; }
+        catch (Exception ex) { _error = Loc.ErrorText(ex); }
         finally { _loading = false; }
     }
 

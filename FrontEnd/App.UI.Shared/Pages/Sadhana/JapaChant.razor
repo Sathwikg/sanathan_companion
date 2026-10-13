@@ -4,6 +4,7 @@
 @implements IDisposable
 @inject IApiClient Api
 @inject ToastService Toast
+@inject ConfirmService Confirm
 @inject NavigationManager Nav
 @inject AppConfig Config
 @inject FavoritesState Favs
@@ -40,7 +41,9 @@ else if (_chant is null)
 }
 else
 {
-    <div class="sc-card">
+    @* sc-japa-card stays pinned under the top bar on the phone (mobile.css), so the counter and its
+       buttons remain in reach while the seeker scrolls through the chant text below. *@
+    <div class="sc-card sc-japa-card">
         <div class="sc-japa">
             <div class="sc-japa-ring @(_flash ? "flash" : "")" @onclick="Tap">
                 <div style="text-align:center">
@@ -62,7 +65,7 @@ else
             }
 
             <div class="sc-japa-actions">
-                <button class="sc-btn-ghost sc-btn-sm" @onclick="Undo" disabled="@(_total == 0)">− @Loc["sadhana.undo", "Undo"]</button>
+                <button class="sc-btn-ghost sc-btn-sm" @onclick="ResetAsync" disabled="@(_countInMala == 0)">↺ @Loc["sadhana.resetCount", "Reset Count"]</button>
                 <button class="sc-btn-primary sc-btn-sm" @onclick="Tap">🙏 @Loc["sadhana.chantPlusOne", "Chant +1"]</button>
             </div>
         </div>
@@ -112,6 +115,7 @@ else
     private string? _cheer;
 
     private CancellationTokenSource? _saveCts;
+    private readonly SemaphoreSlim _saveLock = new(1, 1);
     private bool _dirty;
 
     private string AudioUrl => Media.Absolute(ApiRoutes.Media.ChantAudio(Id));
@@ -144,7 +148,7 @@ else
                 _countInMala = _chant.TargetCount > 0 ? _total - _malas * _chant.TargetCount : _total;
             }
         }
-        catch (Exception ex) { _error = ex.Message; }
+        catch (Exception ex) { _error = Loc.ErrorText(ex); }
         finally { _loading = false; }
     }
 
@@ -171,12 +175,26 @@ else
         }
     }
 
-    private async Task Undo()
+    /// <summary>
+    /// Clears the mala in progress — the big number on the ring — after a confirmation. Completed
+    /// malas stay: they are already saved, and they are what the streak counts.
+    /// </summary>
+    private async Task ResetAsync()
     {
-        if (_chant is null || _total == 0) return;
-        _total--;
-        if (_countInMala > 0) _countInMala--;
-        else if (_malas > 0) { _malas--; _countInMala = _chant.TargetCount - 1; }
+        if (_chant is null || _countInMala == 0) return;
+
+        var confirmed = await Confirm.ConfirmAsync(
+            Loc["sadhana.resetConfirmTitle", "Reset Count?"],
+            Loc.TF("sadhana.resetConfirmBody", "This clears the {0} chants in your current mala. Completed malas are kept.", _countInMala),
+            Loc["sadhana.resetCount", "Reset Count"],
+            Loc["common.cancel", "Cancel"],
+            ConfirmKind.Warning,
+            "↺");
+        if (!confirmed) return;
+
+        _total -= _countInMala;
+        _countInMala = 0;
+        _cheer = null;
         _dirty = true;
         await SaveNow();
     }
@@ -193,12 +211,17 @@ else
 
     private async Task SaveNow()
     {
-        if (!_dirty && _cheer is null && !_flash) { /* still allow mala saves */ }
         _saveCts?.Cancel();
+        // One save at a time. Two in flight for a chant not yet logged today would both insert
+        // the day's row, and the unique index turns the second into a 500. Each save sends the
+        // latest total, so the one that waited simply carries the newer count.
+        await _saveLock.WaitAsync();
         try
         {
-            var result = await Api.LogSadhanaCountAsync(new LogCountRequest { ChantConfigId = Id, TotalCount = _total });
-            _dirty = false;
+            var sent = _total;
+            var result = await Api.LogSadhanaCountAsync(new LogCountRequest { ChantConfigId = Id, TotalCount = sent });
+            // Taps that landed while the request was out are still unsaved.
+            _dirty = _total != sent;
             if (result is not null)
             {
                 if (result.StreakSecuredToday)
@@ -208,7 +231,8 @@ else
                 StateHasChanged();
             }
         }
-        catch (Exception ex) { _error = Loc["sadhana.couldNotSaveCount", "Could not save your count."] + " " + ex.Message; }
+        catch (Exception ex) { _error = Loc["sadhana.couldNotSaveCount", "Could not save your count."] + " " + Loc.ErrorText(ex); }
+        finally { _saveLock.Release(); }
     }
 
     private async Task ResetFlashAsync()
@@ -224,13 +248,21 @@ else
         Nav.NavigateTo("sadhana");
     }
 
+    private async Task SaveOnLeaveAsync(int total)
+    {
+        await _saveLock.WaitAsync();
+        try { await Api.LogSadhanaCountAsync(new LogCountRequest { ChantConfigId = Id, TotalCount = total }); }
+        catch { /* the page is gone; nowhere left to report it */ }
+        finally { _saveLock.Release(); }
+    }
+
     public override void Dispose()
     {
         Favs.OnChanged -= OnFavChanged;
         _saveCts?.Cancel();
-        // best-effort final save of any un-persisted taps
+        // best-effort final save of any un-persisted taps, queued behind a save still in flight
         if (_dirty)
-            _ = Api.LogSadhanaCountAsync(new LogCountRequest { ChantConfigId = Id, TotalCount = _total });
+            _ = SaveOnLeaveAsync(_total);
         base.Dispose();
     }
 }

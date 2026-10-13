@@ -264,6 +264,32 @@ public class LocalizationState : IUserSessionState
         => string.IsNullOrWhiteSpace(text) ? string.Empty : CultureInfo.InvariantCulture.TextInfo.ToTitleCase(text);
 
     /// <summary>
+    /// What a seeker should read when a call fails. A failed HTTP status becomes a sentence in
+    /// their language; anything else keeps its own message, which the app wrote.
+    /// </summary>
+    /// <remarks>
+    /// The WebAssembly build strips .NET's resource strings, so HttpClient's own text for a failed
+    /// status arrives as "net_http_message_not_success_statuscode_reason, 500, Internal Server
+    /// Error" — a resource key, in English, on a Telugu screen.
+    /// </remarks>
+    public string ErrorText(Exception ex) => ex switch
+    {
+        HttpRequestException { StatusCode: null } =>
+            T("common.networkError", "Could not reach the server. Check your connection and try again."),
+        HttpRequestException { StatusCode: System.Net.HttpStatusCode.Unauthorized or System.Net.HttpStatusCode.Forbidden } =>
+            T("common.accessError", "You do not have access to this. Please sign in again."),
+        HttpRequestException { StatusCode: System.Net.HttpStatusCode.NotFound } =>
+            T("common.notFoundError", "We could not find what you were looking for."),
+        HttpRequestException { StatusCode: System.Net.HttpStatusCode.TooManyRequests } =>
+            T("common.tooManyRequestsError", "Too many requests. Please wait a moment and try again."),
+        HttpRequestException =>
+            T("common.serverError", "Something went wrong on our side. Please try again in a moment."),
+        TaskCanceledException =>
+            T("common.timeoutError", "The server took too long to answer. Please try again."),
+        _ => ex.Message
+    };
+
+    /// <summary>
     /// Translates a value that came from the database (a menu name, deity name…).
     /// Falls back to the stored English original when no translation exists.
     /// </summary>

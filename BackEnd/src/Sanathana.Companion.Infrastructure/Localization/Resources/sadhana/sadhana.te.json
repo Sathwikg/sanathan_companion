@@ -29,6 +29,8 @@
   "sadhana.preparing": "మీ సాధన సిద్ధమవుతోంది…",
   "sadhana.recommended": "సూచించినవి",
   "sadhana.recommendedToday": "ఈ రోజుకి సూచించినవి",
+  "sadhana.resetConfirmBody": "మీ ప్రస్తుత మాలలోని {0} జపాలు తొలగించబడతాయి. పూర్తయిన మాలలు అలాగే ఉంటాయి.",
+  "sadhana.resetConfirmTitle": "లెక్క మళ్లీ మొదలుపెట్టాలా?",
   "sadhana.resetCount": "లెక్క మళ్లీ మొదలు",
   "sadhana.roundsCompleted": "పూర్తయిన ఆవృత్తులు",
   "sadhana.sadhanaLabel": "సాధన",

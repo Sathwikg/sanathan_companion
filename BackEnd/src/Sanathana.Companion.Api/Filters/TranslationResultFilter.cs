@@ -65,8 +65,9 @@ public sealed class TranslationResultFilter : IAsyncResultFilter
         var request = context.HttpContext.Request;
 
         // Only GETs. A write endpoint echoes back what the client sent, and translating that
-        // would corrupt round-trips.
-        if (!HttpMethods.IsGet(request.Method)) return;
+        // would corrupt round-trips. A POST that is really a read says so with [TranslateResponse].
+        if (!HttpMethods.IsGet(request.Method)
+            && !context.ActionDescriptor.EndpointMetadata.OfType<TranslateResponseAttribute>().Any()) return;
 
         if (context.Result is not ObjectResult { Value: { } value }) return;
 

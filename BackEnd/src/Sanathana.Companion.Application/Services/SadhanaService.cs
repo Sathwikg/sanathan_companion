@@ -102,10 +102,17 @@ public class SadhanaService : ISadhanaService
         var deities = await _uow.Deities.ListWithoutImageAsync(cancellationToken);
         var deitiesById = deities.ToDictionary(d => d.Id, d => d);
 
-        var chants = (await _uow.ChantConfigs.GetFilteredAsync(null, null, search, cancellationToken))
-            .Where(c => c.IsActive && RegionFilter.ChantInRegion(c, regionName, deitiesById)).ToList();
         var categories = (await _uow.Chants.GetAllOrderedAsync(cancellationToken)).ToDictionary(c => c.Id, c => c);
         var deityNames = deities.ToDictionary(d => d.Id, d => d.Name);
+
+        // Filtered here rather than in SQL: the search box promises "name, deity or category", and
+        // a chant's deities are a CSV of ids that only resolve to names in memory. The active list
+        // is a few dozen rows.
+        var term = search?.Trim();
+        var chants = (await _uow.ChantConfigs.GetFilteredAsync(null, null, null, cancellationToken))
+            .Where(c => c.IsActive && RegionFilter.ChantInRegion(c, regionName, deitiesById))
+            .Where(c => string.IsNullOrEmpty(term) || MatchesSearch(c, term, deityNames))
+            .ToList();
         var progressByChant = (await _uow.Sadhana.GetLogsForDateAsync(userId, today, cancellationToken))
             .ToDictionary(l => l.ChantConfigId, l => l);
 
@@ -340,6 +347,17 @@ public class SadhanaService : ISadhanaService
 
     private static List<string> ResolveDeityNames(string? csvIds, Dictionary<Guid, string> names)
         => CsvIds.Split(csvIds).Where(names.ContainsKey).Select(id => names[id]).ToList();
+
+    private static bool MatchesSearch(ChantConfig c, string term, Dictionary<Guid, string> deityNames)
+    {
+        bool Has(string? text) => text?.Contains(term, StringComparison.OrdinalIgnoreCase) == true;
+
+        return Has(c.Name)
+            || Has(c.Description)
+            || Has(c.TimeDescription)
+            || Has(c.Chant?.Name)
+            || ResolveDeityNames(c.DeityIds, deityNames).Any(Has);
+    }
 
     private static List<string> SplitNames(string? csv)
         => string.IsNullOrWhiteSpace(csv)
