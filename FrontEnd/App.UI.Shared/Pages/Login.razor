@@ -75,6 +75,16 @@ else
     private bool _linking;
     private string _linkPassword = string.Empty;
 
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        // Reloaded while asking for the password that joins Google to an existing account: pick
+        // the prompt back up rather than starting the Google round trip again.
+        await GoogleState.RestoreAsync();
+        _linking = GoogleState.IsUsable && GoogleState.Outcome == GoogleOutcomes.LinkRequired;
+    }
+
     private async Task HandleLoginAsync()
     {
         _busy = true;
@@ -142,11 +152,11 @@ else
             _error = error;
     }
 
-    private void CancelLink()
+    private async Task CancelLink()
     {
         _linking = false;
         _linkPassword = string.Empty;
         _error = null;
-        GoogleState.Clear();
+        await GoogleState.ClearAsync();
     }
 }

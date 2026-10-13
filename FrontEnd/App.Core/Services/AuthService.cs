@@ -59,7 +59,7 @@ public class AuthService : IAuthService
         switch (data.Outcome)
         {
             case GoogleOutcomes.SignedIn when data.Session is not null:
-                _google.Clear();
+                await _google.ClearAsync();
                 await BeginSessionAsync(data.Session);
                 return (true, data.Outcome, string.Empty);
 
@@ -67,7 +67,7 @@ public class AuthService : IAuthService
             case GoogleOutcomes.LinkRequired:
                 if (string.IsNullOrWhiteSpace(data.Ticket))
                     return (false, data.Outcome, "Google sign-in failed.");
-                _google.Set(data.Ticket, data.TicketExpiresAtUtc, data.Email, data.FullName);
+                await _google.SetAsync(data.Ticket, data.TicketExpiresAtUtc, data.Email, data.FullName, data.Outcome);
                 return (true, data.Outcome, string.Empty);
 
             default:
@@ -77,6 +77,7 @@ public class AuthService : IAuthService
 
     public async Task<(bool Success, string Error)> RegisterWithGoogleAsync(GoogleRegisterRequest request)
     {
+        await _google.RestoreAsync();
         if (!_google.IsUsable)
             return (false, "Your Google sign-in has expired. Please try again.");
 
@@ -85,13 +86,14 @@ public class AuthService : IAuthService
         if (!success || data is null)
             return (false, string.IsNullOrWhiteSpace(error) ? "Registration failed." : error);
 
-        _google.Clear();
+        await _google.ClearAsync();
         await BeginSessionAsync(data);
         return (true, string.Empty);
     }
 
     public async Task<(bool Success, string Error)> LinkGoogleAsync(string password)
     {
+        await _google.RestoreAsync();
         if (!_google.IsUsable)
             return (false, "Your Google sign-in has expired. Please try again.");
 
@@ -100,7 +102,7 @@ public class AuthService : IAuthService
         if (!success || data is null)
             return (false, string.IsNullOrWhiteSpace(error) ? "Could not connect your Google account." : error);
 
-        _google.Clear();
+        await _google.ClearAsync();
         await BeginSessionAsync(data);
         return (true, string.Empty);
     }
@@ -134,7 +136,7 @@ public class AuthService : IAuthService
         // runs as an anonymous caller and gets the anonymous answer.
         await _tokenStore.ClearTokenAsync();
         _refresh.Reset();
-        _google.Clear();
+        await _google.ClearAsync();
         ResetUserState();
         _authProvider.NotifyAuthenticationChanged();
     }

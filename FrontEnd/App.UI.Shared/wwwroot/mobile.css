@@ -1102,6 +1102,61 @@
   max-width: none;
 }
 
+/* ---------------------------------------------------------------- japa counter */
+
+/* The counter stays pinned under the top bar while the chant text scrolls
+   beneath it: a seeker reads and taps at the same time, and scrolling the ring
+   away to read the next line meant scrolling back to count it. Pinned, the
+   desktop's 240px ring would leave a strip of text, so the phone lays the card
+   out sideways — a smaller ring on the left, the tally and buttons beside it.
+   Sticky works because the document scrolls and no ancestor clips overflow. */
+.scm-shell .sc-japa-card {
+  position: sticky;
+  top: calc(var(--scm-topbar-h) + var(--scm-safe-top) + 0.4rem);
+  z-index: 5;
+}
+
+.scm-shell .sc-japa-card .sc-japa {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-areas:
+    "ring malas"
+    "ring cheer"
+    "ring actions";
+  align-items: center;
+  align-content: center;
+  gap: 0.45rem 0.9rem;
+  padding: 0;
+}
+
+.scm-shell .sc-japa-card .sc-japa-ring { grid-area: ring; width: 136px; height: 136px; }
+.scm-shell .sc-japa-card .sc-japa-count { font-size: 2.4rem; }
+.scm-shell .sc-japa-card .sc-japa-of { font-size: 0.85rem; }
+.scm-shell .sc-japa-card .sc-japa-tap { font-size: 0.66rem; margin-top: 0.25rem; }
+
+.scm-shell .sc-japa-card .sc-japa-malas {
+  grid-area: malas;
+  flex-wrap: wrap;
+  gap: 0.2rem 0.4rem;
+  font-size: 0.85rem;
+  line-height: 1.3;
+}
+.scm-shell .sc-japa-card .sc-japa-malas .n { font-size: 1.3rem; }
+
+.scm-shell .sc-japa-card .sc-japa-cheer {
+  grid-area: cheer;
+  padding: 0.35rem 0.6rem;
+  font-size: 0.8rem;
+}
+
+.scm-shell .sc-japa-card .sc-japa-actions {
+  grid-area: actions;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.4rem;
+}
+.scm-shell .sc-japa-card .sc-japa-actions button { white-space: normal; }
+
 /* ---------------------------------------------------------------- very narrow */
 
 /* Below 360px (iPhone SE 1st gen, older budget Androids) five tabs get 62px

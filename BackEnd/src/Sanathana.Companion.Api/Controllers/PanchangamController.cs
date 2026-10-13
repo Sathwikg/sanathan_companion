@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using Sanathana.Companion.Api.Filters;
 using Sanathana.Companion.Application.Common;
 using Sanathana.Companion.Application.Common.Authorization;
 using Sanathana.Companion.Application.DTOs.Panchangams;
@@ -68,6 +69,7 @@ public class PanchangamController : ControllerBase
     /// neighbourhood arrives here in the first place.
     /// </remarks>
     [EnableRateLimiting("compute")]
+    [TranslateResponse]
     [HttpPost("compute")]
     [ProducesResponseType(typeof(PanchangamDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]

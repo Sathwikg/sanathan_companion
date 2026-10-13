@@ -153,6 +153,7 @@ public class TranslationResultFilterTests
         string? queryString = null,
         string? route = null,
         string? optOut = null,
+        bool translateResponse = false,
         CancellationToken abort = default)
     {
         var http = new DefaultHttpContext();
@@ -168,7 +169,10 @@ public class TranslationResultFilterTests
 
         IActionResult result = payload as IActionResult ?? new ObjectResult(payload);
 
-        var action = new ActionContext(http, new RouteData(), new ActionDescriptor());
+        var descriptor = new ActionDescriptor();
+        if (translateResponse) descriptor.EndpointMetadata = [new TranslateResponseAttribute()];
+
+        var action = new ActionContext(http, new RouteData(), descriptor);
         return new ResultExecutingContext(action, new List<IFilterMetadata>(), result, Controller);
     }
 
@@ -249,6 +253,22 @@ public class TranslationResultFilterTests
         AssertUntranslated(row);
         Assert.Empty(catalog.RequestedCodes);   // not even asked: the method check comes first
         Assert.Equal(0, misses.Count);
+    }
+
+    /// <summary>
+    /// A POST that is really a read (the Panchangam compute) opts in with [TranslateResponse] and is
+    /// translated like a GET; without it, the Telugu screen showed the computed day in English.
+    /// </summary>
+    [Fact]
+    public async Task A_post_marked_translate_response_is_translated()
+    {
+        var row = Row();
+        var context = Context(row, method: "POST", language: "te", translateResponse: true);
+
+        await RunAsync(Filter(Catalog(TeluguSnapshot()), new TranslationMissLog()), context);
+
+        Assert.Equal("[preserver]", row.Classification);
+        Assert.Equal("[navami] [upto] 16:37", row.Tithi);
     }
 
     /// <summary>The edit-screen opt-out: load in English so the save writes English back.</summary>

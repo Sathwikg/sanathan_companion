@@ -49,7 +49,7 @@
         </div>
 
         <div class="sc-field">
-            <label>@Loc["auth.seekerName", "Seeker Name"] <span class="sc-optional">(@Loc["common.optional", "optional"])</span></label>
+            <label>@Loc["auth.seekerName", "Seeker Name"] <span class="sc-optional">@Loc["common.optional", "(optional)"]</span></label>
             <InputText @bind-Value="_google.SeekerName" class="sc-input" placeholder="@Loc["auth.seekerNamePlaceholder", "Your spiritual name"]" />
             <ValidationMessage For="() => _google.SeekerName" />
         </div>
@@ -57,7 +57,7 @@
         @if (_regions.Count > 0)
         {
             <div class="sc-field">
-                <label>@Loc["common.region", "Region"] <span class="sc-optional">(@Loc["common.optional", "optional"])</span></label>
+                <label>@Loc["common.region", "Region"] <span class="sc-optional">@Loc["common.optional", "(optional)"]</span></label>
                 <InputSelect @bind-Value="_google.RegionId" class="sc-input">
                     <option value="">@Loc["auth.chooseRegionLater", "— Choose later —"]</option>
                     @foreach (var r in _regions)
@@ -128,7 +128,7 @@ else
             </div>
 
             <div class="sc-field">
-                <label>@Loc["auth.seekerName", "Seeker Name"] <span class="sc-optional">(@Loc["common.optional", "optional"])</span></label>
+                <label>@Loc["auth.seekerName", "Seeker Name"] <span class="sc-optional">@Loc["common.optional", "(optional)"]</span></label>
                 <InputText @bind-Value="_model.SeekerName" class="sc-input" placeholder="@Loc["auth.seekerNamePlaceholder", "Your spiritual name"]" />
                 <ValidationMessage For="() => _model.SeekerName" />
             </div>
@@ -136,7 +136,7 @@ else
             @if (_regions.Count > 0)
             {
                 <div class="sc-field">
-                    <label>@Loc["common.region", "Region"] <span class="sc-optional">(@Loc["common.optional", "optional"])</span></label>
+                    <label>@Loc["common.region", "Region"] <span class="sc-optional">@Loc["common.optional", "(optional)"]</span></label>
                     <InputSelect @bind-Value="_model.RegionId" class="sc-input">
                         <option value="">@Loc["auth.chooseRegionLater", "— Choose later —"]</option>
                         @foreach (var r in _regions)
@@ -184,9 +184,12 @@ else
     {
         await base.OnInitializedAsync();
 
+        // A reload keeps the Google details: the ticket is mirrored to this tab's sessionStorage.
+        await GoogleState.RestoreAsync();
+
         // Decided once, on arrival: a ticket that expires while the form is open is reported by
         // the submit, with a way back to the login page, rather than by the form vanishing.
-        _fromGoogle = GoogleState.IsUsable;
+        _fromGoogle = GoogleState.IsUsable && GoogleState.Outcome != GoogleOutcomes.LinkRequired;
         if (_fromGoogle)
             _google.FullName = GoogleState.FullName ?? string.Empty;
 

@@ -332,7 +332,7 @@ else if (_p is not null)
             _p = await Api.GetMyProfileAsync();
             _regionId = _p?.DefaultRegionId;
         }
-        catch (Exception ex) { _error = Loc["profile.couldNotLoad", "Could not load your profile."] + " " + ex.Message; }
+        catch (Exception ex) { _error = Loc["profile.couldNotLoad", "Could not load your profile."] + " " + Loc.ErrorText(ex); }
         finally { _loading = false; }
     }
 
@@ -427,7 +427,7 @@ else if (_p is not null)
         }
         catch (Exception ex)
         {
-            _passwordError = Loc["profile.passwordChangeFailed", "Your password could not be changed."] + " " + ex.Message;
+            _passwordError = Loc["profile.passwordChangeFailed", "Your password could not be changed."] + " " + Loc.ErrorText(ex);
         }
         finally
         {
@@ -459,7 +459,7 @@ else if (_p is not null)
         }
         catch (Exception ex)
         {
-            Toast.Error(Loc["profile.exportFailed", "Could not prepare your data."] + " " + ex.Message);
+            Toast.Error(Loc["profile.exportFailed", "Could not prepare your data."] + " " + Loc.ErrorText(ex));
         }
         finally
         {
@@ -496,7 +496,7 @@ else if (_p is not null)
         }
         catch (Exception ex)
         {
-            _deleteError = Loc["profile.deleteFailed", "Your account could not be deleted."] + " " + ex.Message;
+            _deleteError = Loc["profile.deleteFailed", "Your account could not be deleted."] + " " + Loc.ErrorText(ex);
         }
         finally
         {
