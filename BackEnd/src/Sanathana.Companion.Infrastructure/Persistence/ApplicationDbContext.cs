@@ -58,6 +58,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<AuditActivityLog> AuditActivityLogs => Set<AuditActivityLog>();
     public DbSet<AuditDataLog> AuditDataLogs => Set<AuditDataLog>();
     public DbSet<ErrorLog> ErrorLogs => Set<ErrorLog>();
+    public DbSet<DeviceToken> DeviceTokens => Set<DeviceToken>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

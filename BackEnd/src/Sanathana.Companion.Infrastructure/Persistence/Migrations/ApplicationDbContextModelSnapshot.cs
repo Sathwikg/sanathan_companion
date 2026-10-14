@@ -905,6 +905,59 @@ namespace Sanathana.Companion.Infrastructure.Persistence.Migrations
                     b.ToTable("Deities", (string)null);
                 });
 
+            modelBuilder.Entity("Sanathana.Companion.Domain.Entities.DeviceToken", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("AppVersion")
+                        .HasColumnType("text");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DeviceModel")
+                        .HasColumnType("text");
+
+                    b.Property<int>("FailureCount")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("LastFailureReason")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("LastUsedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ModifiedBy")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("ModifiedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Platform")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("DeviceTokens");
+                });
+
             modelBuilder.Entity("Sanathana.Companion.Domain.Entities.EntityTranslation", b =>
                 {
                     b.Property<Guid>("Id")
@@ -3717,6 +3770,17 @@ namespace Sanathana.Companion.Infrastructure.Persistence.Migrations
                     b.Navigation("ChantConfig");
 
                     b.Navigation("Language");
+                });
+
+            modelBuilder.Entity("Sanathana.Companion.Domain.Entities.DeviceToken", b =>
+                {
+                    b.HasOne("Sanathana.Companion.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Sanathana.Companion.Domain.Entities.EntityTranslation", b =>

@@ -302,6 +302,31 @@ public static class ApiRoutes
             ("resolved", q.Resolved));
     }
 
+    public static class Hangfire
+    {
+        public const string Root = "hangfire";
+        public const string Stats = "hangfire/stats";
+        public const string RecurringJobs = "hangfire/recurring-jobs";
+        public const string FailedJobs = "hangfire/failed-jobs";
+        public static string TriggerRecurringJob(string jobId) => $"hangfire/recurring-jobs/{jobId}/trigger";
+        public static string RetryFailedJob(string jobId) => $"hangfire/failed-jobs/{jobId}/retry";
+        public static string DeleteFailedJob(string jobId) => $"hangfire/failed-jobs/{jobId}";
+        public const string TriggerCleanup = "hangfire/trigger-cleanup";
+        public const string TriggerDataSync = "hangfire/trigger-data-sync";
+    }
+
+    public static class PushNotifications
+    {
+        public const string Root = "push-notifications";
+        public const string Stats = "push-notifications/stats";
+        public const string CleanupTokens = "push-notifications/cleanup-tokens";
+        public const string DeviceTokens = "push-notifications/device-tokens";
+        public static string DeviceToken(string token) => $"push-notifications/device-tokens/{token}";
+        public const string SendToUsers = "push-notifications/send-to-users";
+        public const string SendToModule = "push-notifications/send-to-module";
+        public const string SendTest = "push-notifications/send-test";
+    }
+
     // ------------------------------------------------------------------ helpers
 
     /// <summary>

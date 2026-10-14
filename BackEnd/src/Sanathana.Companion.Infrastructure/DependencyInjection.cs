@@ -6,9 +6,11 @@ using Sanathana.Companion.Application.Interfaces;
 using Sanathana.Companion.Domain.Interfaces;
 using Sanathana.Companion.Infrastructure.Identity;
 using Sanathana.Companion.Infrastructure.Localization;
+using Sanathana.Companion.Infrastructure.Notifications;
 using Sanathana.Companion.Infrastructure.Persistence;
 using Sanathana.Companion.Infrastructure.Persistence.Repositories;
 using Sanathana.Companion.Infrastructure.Audit;
+using Sanathana.Companion.Infrastructure.BackgroundJobs;
 
 namespace Sanathana.Companion.Infrastructure;
 
@@ -66,6 +68,8 @@ public static class DependencyInjection
         services.AddScoped<INotificationConfigRepository, NotificationConfigRepository>();
         services.AddScoped<IUserNotificationRepository, UserNotificationRepository>();
         services.AddScoped<IAuditRepository, AuditRepository>();
+        services.AddScoped<IDeviceTokenRepository, DeviceTokenRepository>();
+        services.AddScoped<IPushNotificationService, PushNotificationService>();
         services.AddScoped(typeof(IRepository<>), typeof(BaseRepository<>));
 
         services.Configure<JwtSettings>(configuration.GetSection(JwtSettings.SectionName));
@@ -82,6 +86,9 @@ public static class DependencyInjection
         services.AddScoped<IAccountDataReader, AccountDataReader>();
         // Runs once at start-up to open the locked administrator account from configuration.
         services.AddScoped<AdminAccountBootstrapper>();
+
+        // Hangfire background job processing
+        services.AddHangfire(configuration);
 
         return services;
     }

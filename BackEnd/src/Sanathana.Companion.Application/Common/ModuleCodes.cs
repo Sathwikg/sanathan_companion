@@ -54,4 +54,6 @@ public static class ModuleCodes
     public const string LanguageConfigs = "languageConfigs";
     public const string AdConfig = "adConfig";
     public const string AuditConfig = "auditConfig";
+    public const string Hangfire = "hangfire";
+    public const string PushNotifications = "pushNotifications";
 }

@@ -1,0 +1,66 @@
+@page "/push-notifications"
+@attribute [Authorize]
+@inherits LocalizedComponentBase
+@inject IApiClient Api
+@inject ToastService Toast
+
+<div class="sc-page-head">
+    <div class="sc-page-title">
+        <span class="sc-page-emoji">📱</span>
+        <div>
+            <h1>Push Notifications</h1>
+            <p class="sc-page-sub">Configure and send push notifications for mobile devices</p>
+        </div>
+    </div>
+</div>
+
+<AuthorizeView Roles="Admin">
+    <Authorized>
+        <div class="sc-tabs">
+            <button class="sc-tab @(_tab == "config" ? "active" : "")" @onclick='() => _tab = "config"'>
+                ⚙️ Configuration
+            </button>
+            <button class="sc-tab @(_tab == "send" ? "active" : "")" @onclick='() => _tab = "send"'>
+                📤 Send Notification
+            </button>
+            <button class="sc-tab @(_tab == "stats" ? "active" : "")" @onclick='() => _tab = "stats"'>
+                📊 Statistics
+            </button>
+        </div>
+
+        @if (_error is not null)
+        {
+            <div class="sc-alert sc-alert-error">@_error</div>
+        }
+
+        @if (_tab == "config")
+        {
+            <PushNotificationConfigTab />
+        }
+        else if (_tab == "send")
+        {
+            <PushNotificationSendTab />
+        }
+        else if (_tab == "stats")
+        {
+            <PushNotificationStatsTab />
+        }
+    </Authorized>
+    <NotAuthorized>
+        <div class="sc-card sc-empty-state">
+            <div class="sc-empty-om">🔒</div>
+            <h3>Admins Only</h3>
+            <p>Push notification management is restricted to administrators.</p>
+        </div>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    private string _tab = "config";
+    private string? _error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+    }
+}
