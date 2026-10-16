@@ -816,34 +816,43 @@ public class ApiClient : IApiClient
     public async Task<PushNotificationStatsDto?> GetPushNotificationStatsAsync()
         => await _http.GetFromJsonAsync<PushNotificationStatsDto>(ApiRoutes.PushNotifications.Stats);
 
-    public async Task<(bool Success, string Error)> CleanupPushNotificationTokensAsync(int olderThanDays = 30)
+    public async Task<(bool Success, int Deleted, string Error)> CleanupPushNotificationTokensAsync(int olderThanDays = 30)
     {
-        var response = await _http.PostAsJsonAsync(ApiRoutes.PushNotifications.CleanupTokens, new { olderThanDays });
-        return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
+        // The parameter is bound from the query string on the server, not from a body.
+        var response = await _http.PostAsync($"{ApiRoutes.PushNotifications.CleanupTokens}?olderThanDays={olderThanDays}", null);
+        if (!response.IsSuccessStatusCode) return (false, 0, await ExtractErrorAsync(response));
+        var body = await response.Content.ReadFromJsonAsync<CleanupTokensResponse>();
+        return (true, body?.Deleted ?? 0, string.Empty);
     }
+
+    private sealed record CleanupTokensResponse(int Deleted, string? Message);
+
+    public async Task<PushNotificationConfigDto?> GetPushNotificationConfigAsync()
+        => await _http.GetFromJsonAsync<PushNotificationConfigDto>(ApiRoutes.PushNotifications.Config);
 
     public async Task<PushNotificationResult?> SendPushToUsersAsync(SendPushNotificationRequest request)
-    {
-        var response = await _http.PostAsJsonAsync(ApiRoutes.PushNotifications.SendToUsers, request);
-        if (response.IsSuccessStatusCode)
-            return await response.Content.ReadFromJsonAsync<PushNotificationResult>();
-        return null;
-    }
+        => await ReadPushResultAsync(await _http.PostAsJsonAsync(ApiRoutes.PushNotifications.SendToUsers, request));
 
     public async Task<PushNotificationResult?> SendPushToModuleAsync(SendModuleNotificationRequest request)
-    {
-        var response = await _http.PostAsJsonAsync(ApiRoutes.PushNotifications.SendToModule, request);
-        if (response.IsSuccessStatusCode)
-            return await response.Content.ReadFromJsonAsync<PushNotificationResult>();
-        return null;
-    }
+        => await ReadPushResultAsync(await _http.PostAsJsonAsync(ApiRoutes.PushNotifications.SendToModule, request));
 
     public async Task<PushNotificationResult?> SendTestPushNotificationAsync(SendTestNotificationRequest request)
+        => await ReadPushResultAsync(await _http.PostAsJsonAsync(ApiRoutes.PushNotifications.SendTest, request));
+
+    /// <summary>
+    /// The API returns the same PushNotificationResult on 200 (all sent) and on 400 (some failed), so both
+    /// are read; any other refusal (a validation message, a 403) becomes a result carrying its text.
+    /// </summary>
+    private static async Task<PushNotificationResult?> ReadPushResultAsync(HttpResponseMessage response)
     {
-        var response = await _http.PostAsJsonAsync(ApiRoutes.PushNotifications.SendTest, request);
-        if (response.IsSuccessStatusCode)
-            return await response.Content.ReadFromJsonAsync<PushNotificationResult>();
-        return null;
+        var isJson = string.Equals(response.Content.Headers.ContentType?.MediaType, "application/json", StringComparison.OrdinalIgnoreCase);
+        if (isJson && (response.IsSuccessStatusCode || response.StatusCode == HttpStatusCode.BadRequest))
+        {
+            try { return await response.Content.ReadFromJsonAsync<PushNotificationResult>(); }
+            catch (System.Text.Json.JsonException) { /* not the result shape: fall through to the text */ }
+        }
+        if (response.IsSuccessStatusCode) return null;
+        return new PushNotificationResult(false, 0, 0, new List<string> { await ExtractErrorAsync(response) });
     }
 
     private static async Task<string> ExtractErrorAsync(HttpResponseMessage response)

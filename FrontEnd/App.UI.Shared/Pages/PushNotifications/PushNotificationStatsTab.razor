@@ -94,8 +94,13 @@
 
         try
         {
-            var result = await Api.CleanupPushNotificationTokensAsync();
-            Toast.Success($"Cleaned up {result} inactive tokens");
+            var (ok, deleted, error) = await Api.CleanupPushNotificationTokensAsync();
+            if (!ok)
+            {
+                Toast.Error(error);
+                return;
+            }
+            Toast.Success($"Cleaned up {deleted} inactive tokens");
             await RefreshStatsAsync();
         }
         catch (Exception ex)

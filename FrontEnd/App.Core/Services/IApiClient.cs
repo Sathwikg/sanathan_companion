@@ -216,4 +216,24 @@ public interface IApiClient
     Task<AuditPageModel<AuditDataLogModel>> GetAuditDataLogsAsync(AuditLogQuery query);
     Task<AuditPageModel<ErrorLogModel>> GetAuditErrorsAsync(AuditLogQuery query);
     Task<(bool Success, string Error, ErrorLogModel? Resolved)> ResolveAuditErrorAsync(Guid id);
+
+    // Background jobs (admin)
+    Task<HangfireStatsDto?> GetHangfireStatsAsync();
+    Task<List<RecurringJobDto>> GetHangfireRecurringJobsAsync();
+    Task<List<FailedJobDto>> GetHangfireFailedJobsAsync();
+    Task<(bool Success, string Error)> TriggerHangfireRecurringJobAsync(string jobId);
+    Task<(bool Success, string Error)> TriggerHangfireCleanupAsync();
+    Task<(bool Success, string Error)> TriggerHangfireDataSyncAsync();
+    Task<(bool Success, string Error)> RetryHangfireFailedJobAsync(string jobId);
+    Task<(bool Success, string Error)> DeleteHangfireFailedJobAsync(string jobId);
+
+    // Push notifications (admin)
+    Task<PushNotificationStatsDto?> GetPushNotificationStatsAsync();
+    /// <summary>The server's effective push settings, read-only and without secrets.</summary>
+    Task<PushNotificationConfigDto?> GetPushNotificationConfigAsync();
+    /// <summary>Removes device tokens unused for <paramref name="olderThanDays"/>; Deleted is how many went.</summary>
+    Task<(bool Success, int Deleted, string Error)> CleanupPushNotificationTokensAsync(int olderThanDays = 30);
+    Task<PushNotificationResult?> SendPushToUsersAsync(SendPushNotificationRequest request);
+    Task<PushNotificationResult?> SendPushToModuleAsync(SendModuleNotificationRequest request);
+    Task<PushNotificationResult?> SendTestPushNotificationAsync(SendTestNotificationRequest request);
 }

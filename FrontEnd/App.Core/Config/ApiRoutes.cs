@@ -319,6 +319,7 @@ public static class ApiRoutes
     {
         public const string Root = "push-notifications";
         public const string Stats = "push-notifications/stats";
+        public const string Config = "push-notifications/config";
         public const string CleanupTokens = "push-notifications/cleanup-tokens";
         public const string DeviceTokens = "push-notifications/device-tokens";
         public static string DeviceToken(string token) => $"push-notifications/device-tokens/{token}";
