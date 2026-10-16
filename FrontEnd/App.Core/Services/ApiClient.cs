@@ -770,6 +770,82 @@ public class ApiClient : IApiClient
         return (true, string.Empty, await response.Content.ReadFromJsonAsync<ErrorLogModel>());
     }
 
+    // ========== Hangfire ==========
+
+    public async Task<HangfireStatsDto?> GetHangfireStatsAsync()
+        => await _http.GetFromJsonAsync<HangfireStatsDto>(ApiRoutes.Hangfire.Stats);
+
+    public async Task<List<RecurringJobDto>> GetHangfireRecurringJobsAsync()
+        => await _http.GetFromJsonAsync<List<RecurringJobDto>>(ApiRoutes.Hangfire.RecurringJobs) ?? new();
+
+    public async Task<List<FailedJobDto>> GetHangfireFailedJobsAsync()
+        => await _http.GetFromJsonAsync<List<FailedJobDto>>(ApiRoutes.Hangfire.FailedJobs) ?? new();
+
+    public async Task<(bool Success, string Error)> TriggerHangfireRecurringJobAsync(string jobId)
+    {
+        var response = await _http.PostAsync(ApiRoutes.Hangfire.TriggerRecurringJob(jobId), null);
+        return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
+    }
+
+    public async Task<(bool Success, string Error)> TriggerHangfireCleanupAsync()
+    {
+        var response = await _http.PostAsync(ApiRoutes.Hangfire.TriggerCleanup, null);
+        return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
+    }
+
+    public async Task<(bool Success, string Error)> TriggerHangfireDataSyncAsync()
+    {
+        var response = await _http.PostAsync(ApiRoutes.Hangfire.TriggerDataSync, null);
+        return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
+    }
+
+    public async Task<(bool Success, string Error)> RetryHangfireFailedJobAsync(string jobId)
+    {
+        var response = await _http.PostAsync(ApiRoutes.Hangfire.RetryFailedJob(jobId), null);
+        return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
+    }
+
+    public async Task<(bool Success, string Error)> DeleteHangfireFailedJobAsync(string jobId)
+    {
+        var response = await _http.DeleteAsync(ApiRoutes.Hangfire.DeleteFailedJob(jobId));
+        return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
+    }
+
+    // ========== Push Notifications ==========
+
+    public async Task<PushNotificationStatsDto?> GetPushNotificationStatsAsync()
+        => await _http.GetFromJsonAsync<PushNotificationStatsDto>(ApiRoutes.PushNotifications.Stats);
+
+    public async Task<(bool Success, string Error)> CleanupPushNotificationTokensAsync(int olderThanDays = 30)
+    {
+        var response = await _http.PostAsJsonAsync(ApiRoutes.PushNotifications.CleanupTokens, new { olderThanDays });
+        return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
+    }
+
+    public async Task<PushNotificationResult?> SendPushToUsersAsync(SendPushNotificationRequest request)
+    {
+        var response = await _http.PostAsJsonAsync(ApiRoutes.PushNotifications.SendToUsers, request);
+        if (response.IsSuccessStatusCode)
+            return await response.Content.ReadFromJsonAsync<PushNotificationResult>();
+        return null;
+    }
+
+    public async Task<PushNotificationResult?> SendPushToModuleAsync(SendModuleNotificationRequest request)
+    {
+        var response = await _http.PostAsJsonAsync(ApiRoutes.PushNotifications.SendToModule, request);
+        if (response.IsSuccessStatusCode)
+            return await response.Content.ReadFromJsonAsync<PushNotificationResult>();
+        return null;
+    }
+
+    public async Task<PushNotificationResult?> SendTestPushNotificationAsync(SendTestNotificationRequest request)
+    {
+        var response = await _http.PostAsJsonAsync(ApiRoutes.PushNotifications.SendTest, request);
+        if (response.IsSuccessStatusCode)
+            return await response.Content.ReadFromJsonAsync<PushNotificationResult>();
+        return null;
+    }
+
     private static async Task<string> ExtractErrorAsync(HttpResponseMessage response)
     {
         try

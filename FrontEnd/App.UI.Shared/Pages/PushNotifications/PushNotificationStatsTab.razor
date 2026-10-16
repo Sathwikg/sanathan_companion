@@ -1,0 +1,106 @@
+@inherits LocalizedComponentBase
+@inject IApiClient Api
+@inject ToastService Toast
+@inject ConfirmService Confirm
+
+<div class="sc-card">
+    <div class="sc-card-head">
+        <h3>Statistics</h3>
+        <button class="sc-btn-ghost sc-btn-sm" @onclick="RefreshStatsAsync" disabled="@_loading">
+            @(_loading ? "⟳" : "Refresh")
+        </button>
+    </div>
+
+    @if (_loading)
+    {
+        <OmLoader FullPage="true" Message="Loading statistics…" />
+    }
+    else if (_stats is not null)
+    {
+        <div class="sc-stats-grid">
+            <div class="sc-stat-card">
+                <div class="sc-stat-value">@_stats.TotalDevices</div>
+                <div class="sc-stat-label">Total Devices</div>
+            </div>
+            <div class="sc-stat-card">
+                <div class="sc-stat-value">@_stats.ActiveDevices</div>
+                <div class="sc-stat-label">Active Devices</div>
+            </div>
+            <div class="sc-stat-card">
+                <div class="sc-stat-value">@_stats.AndroidDevices</div>
+                <div class="sc-stat-label">Android Devices</div>
+            </div>
+            <div class="sc-stat-card">
+                <div class="sc-stat-value">@_stats.iOSDevices</div>
+                <div class="sc-stat-label">iOS Devices</div>
+            </div>
+            <div class="sc-stat-card">
+                <div class="sc-stat-value">@_stats.NotificationsSentToday</div>
+                <div class="sc-stat-label">Sent Today</div>
+            </div>
+            <div class="sc-stat-card">
+                <div class="sc-stat-value">@_stats.NotificationsFailedToday</div>
+                <div class="sc-stat-label">Failed Today</div>
+            </div>
+        </div>
+
+        <div class="sc-formfoot">
+            <div class="sc-hint">Last updated: @_stats.LastSentAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")</div>
+            <button class="sc-btn-secondary" @onclick="CleanupTokensAsync">
+                Cleanup Inactive Tokens
+            </button>
+        </div>
+    }
+</div>
+
+@code {
+    private bool _loading = true;
+    private PushNotificationStatsDto? _stats;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        await RefreshStatsAsync();
+    }
+
+    private async Task RefreshStatsAsync()
+    {
+        _loading = true;
+        try
+        {
+            _stats = await Api.GetPushNotificationStatsAsync();
+        }
+        catch (Exception ex)
+        {
+            Toast.Error(ex.Message);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task CleanupTokensAsync()
+    {
+        var confirmed = await Confirm.ConfirmAsync(new ConfirmRequest
+        {
+            Title = "Confirm",
+            Message = "This will remove device tokens that haven't been used in 30 days. Continue?",
+            ConfirmText = "Cleanup",
+            Kind = ConfirmKind.Warning
+        });
+
+        if (!confirmed) return;
+
+        try
+        {
+            var result = await Api.CleanupPushNotificationTokensAsync();
+            Toast.Success($"Cleaned up {result} inactive tokens");
+            await RefreshStatsAsync();
+        }
+        catch (Exception ex)
+        {
+            Toast.Error(ex.Message);
+        }
+    }
+}

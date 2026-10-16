@@ -1,0 +1,170 @@
+@inherits LocalizedComponentBase
+@inject IApiClient Api
+@inject ToastService Toast
+
+<div class="sc-card">
+    <h3>FCM (Android) Configuration</h3>
+    
+    <div class="sc-form">
+        <div class="sc-form-row">
+            <label class="sc-label">Enabled</label>
+            <label class="sc-switch">
+                <input type="checkbox" @bind="_fcmConfig.Enabled" />
+                <span class="sc-slider"></span>
+            </label>
+        </div>
+
+        <div class="sc-form-row">
+            <label class="sc-label">Service Account JSON Path</label>
+            <input class="sc-input" placeholder="/path/to/service-account.json or set via env" @bind="_fcmConfig.FcmServiceAccountPath" />
+            <span class="sc-hint">Path to Firebase service account JSON file. Leave empty to use Application Default Credentials.</span>
+        </div>
+
+        <div class="sc-form-row">
+            <label class="sc-label">Project ID</label>
+            <input class="sc-input" placeholder="your-project-id" @bind="_fcmConfig.FcmProjectId" />
+        </div>
+
+        <div class="sc-form-row">
+            <label class="sc-label">Sender ID</label>
+            <input class="sc-input" placeholder="123456789" @bind="_fcmConfig.FcmSenderId" />
+        </div>
+
+        <button class="sc-btn-primary" @onclick="SaveFcmConfigAsync" disabled="@_savingFcm">
+            @(_savingFcm ? "Saving…" : "Save")
+        </button>
+    </div>
+</div>
+
+<div class="sc-card">
+    <h3>APNs (iOS) Configuration</h3>
+    
+    <div class="sc-form">
+        <div class="sc-form-row">
+            <label class="sc-label">Enabled</label>
+            <label class="sc-switch">
+                <input type="checkbox" @bind="_apnsConfig.Enabled" />
+                <span class="sc-slider"></span>
+            </label>
+        </div>
+
+        <div class="sc-form-row">
+            <label class="sc-label">Key ID</label>
+            <input class="sc-input" placeholder="ABC123DEFG" @bind="_apnsConfig.ApnsKeyId" />
+        </div>
+
+        <div class="sc-form-row">
+            <label class="sc-label">Team ID</label>
+            <input class="sc-input" placeholder="TEAM123" @bind="_apnsConfig.ApnsTeamId" />
+        </div>
+
+        <div class="sc-form-row">
+            <label class="sc-label">Bundle ID</label>
+            <input class="sc-input" placeholder="com.sanathana.companion" @bind="_apnsConfig.ApnsBundleId" />
+        </div>
+
+        <div class="sc-form-row">
+            <label class="sc-label">Private Key Path</label>
+            <input class="sc-input" placeholder="/path/to/AuthKey_ABC123DEFG.p8" @bind="_apnsConfig.ApnsPrivateKeyPath" />
+        </div>
+
+        <div class="sc-form-row">
+            <label class="sc-label">Use Sandbox (Development)</label>
+            <label class="sc-switch">
+                <input type="checkbox" @bind="_apnsConfig.ApnsUseSandbox" />
+                <span class="sc-slider"></span>
+            </label>
+        </div>
+
+        <button class="sc-btn-primary" @onclick="SaveApnsConfigAsync" disabled="@_savingApns">
+            @(_savingApns ? "Saving…" : "Save")
+        </button>
+    </div>
+</div>
+
+<div class="sc-card">
+    <h3>General Settings</h3>
+    
+    <div class="sc-form">
+        <div class="sc-form-row">
+            <label class="sc-label">Default Title</label>
+            <input class="sc-input" @bind="_generalConfig.DefaultTitle" />
+        </div>
+
+        <div class="sc-form-row">
+            <label class="sc-label">Default Icon (Android)</label>
+            <input class="sc-input" placeholder="ic_notification" @bind="_generalConfig.DefaultIcon" />
+        </div>
+
+        <div class="sc-form-row">
+            <label class="sc-label">Default Color (Android, hex)</label>
+            <input class="sc-input" placeholder="#FF9933" @bind="_generalConfig.DefaultColor" />
+        </div>
+
+        <div class="sc-form-row">
+            <label class="sc-label">Time to Live (seconds)</label>
+            <input class="sc-input" type="number" @bind="_generalConfig.TimeToLiveSeconds" />
+        </div>
+
+        <div class="sc-form-row">
+            <label class="sc-label">Max Retry Attempts</label>
+            <input class="sc-input" type="number" @bind="_generalConfig.MaxRetryAttempts" />
+        </div>
+
+        <div class="sc-form-row">
+            <label class="sc-label">Batch Size</label>
+            <input class="sc-input" type="number" @bind="_generalConfig.BatchSize" />
+        </div>
+
+        <button class="sc-btn-primary" @onclick="SaveGeneralConfigAsync" disabled="@_savingGeneral">
+            @(_savingGeneral ? "Saving…" : "Save")
+        </button>
+    </div>
+</div>
+
+@code {
+    private PushNotificationConfigDto _fcmConfig = new();
+    private PushNotificationConfigDto _apnsConfig = new();
+    private PushNotificationConfigDto _generalConfig = new();
+    private bool _savingFcm;
+    private bool _savingApns;
+    private bool _savingGeneral;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        _generalConfig = new PushNotificationConfigDto
+        {
+            DefaultTitle = "Sanathana Companion",
+            DefaultIcon = "ic_notification",
+            DefaultColor = "#FF9933",
+            TimeToLiveSeconds = 86400,
+            MaxRetryAttempts = 3,
+            BatchSize = 500
+        };
+    }
+
+    private async Task SaveFcmConfigAsync()
+    {
+        _savingFcm = true;
+        try { Toast.Success("Saved"); }
+        catch (Exception ex) { Toast.Error(ex.Message); }
+        finally { _savingFcm = false; }
+    }
+
+    private async Task SaveApnsConfigAsync()
+    {
+        _savingApns = true;
+        try { Toast.Success("Saved"); }
+        catch (Exception ex) { Toast.Error(ex.Message); }
+        finally { _savingApns = false; }
+    }
+
+    private async Task SaveGeneralConfigAsync()
+    {
+        _savingGeneral = true;
+        try { Toast.Success("Saved"); }
+        catch (Exception ex) { Toast.Error(ex.Message); }
+        finally { _savingGeneral = false; }
+    }
+}

@@ -1,10 +1,22 @@
 {
+  "mobileDashboard.allClear": "सब ठीक है",
+  "mobileDashboard.allMilestones": "हर पड़ाव पूरा हुआ",
+  "mobileDashboard.also": "साथ ही",
+  "mobileDashboard.daysToGo": "{0} बाकी",
   "mobileDashboard.favorites": "पसंदीदा",
   "mobileDashboard.feedback": "प्रतिक्रिया",
+  "mobileDashboard.last7Days": "पिछले 7 दिन",
+  "mobileDashboard.nextPrayer": "अगली प्रार्थना",
+  "mobileDashboard.nextTomorrow": "कल: {0}, {1}",
+  "mobileDashboard.noWindowsLeft": "आज अब कोई अवधि शेष नहीं",
   "mobileDashboard.panchangam": "पंचांग",
   "mobileDashboard.profile": "प्रोफ़ाइल",
   "mobileDashboard.quickActions": "त्वरित कार्य",
   "mobileDashboard.reminders": "अनुस्मारक",
   "mobileDashboard.sadhana": "साधना",
+  "mobileDashboard.startStreakHint": "श्रृंखला शुरू करने के लिए आज एक माला पूरी करें",
+  "mobileDashboard.streakAtRisk": "श्रृंखला खतरे में",
+  "mobileDashboard.toMilestone": "{0} दिन तक",
+  "mobileDashboard.upNext": "अगला",
   "mobileDashboard.wallpapers": "वॉलपेपर"
 }

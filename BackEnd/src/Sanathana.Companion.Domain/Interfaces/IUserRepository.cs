@@ -58,4 +58,10 @@ public interface IUserRepository : IRepository<User>
     /// unit of work; the role is what the token carries.
     /// </remarks>
     Task<User?> GetTrackedByEmailAsync(string email, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets all users who have notification preferences configured, with their role included.
+    /// Used by background jobs for reminder sync.
+    /// </summary>
+    Task<IReadOnlyList<User>> GetUsersWithNotificationPrefsAsync(CancellationToken cancellationToken = default);
 }

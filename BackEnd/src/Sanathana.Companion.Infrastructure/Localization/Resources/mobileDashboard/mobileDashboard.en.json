@@ -1,10 +1,22 @@
 {
+  "mobileDashboard.allClear": "All Clear",
+  "mobileDashboard.allMilestones": "Every milestone reached",
+  "mobileDashboard.also": "Also",
+  "mobileDashboard.daysToGo": "{0} to go",
   "mobileDashboard.favorites": "Favorites",
   "mobileDashboard.feedback": "Feedback",
+  "mobileDashboard.last7Days": "Last 7 Days",
+  "mobileDashboard.nextPrayer": "Next Prayer",
+  "mobileDashboard.nextTomorrow": "Tomorrow: {0}, {1}",
+  "mobileDashboard.noWindowsLeft": "No windows left today",
   "mobileDashboard.panchangam": "Panchangam",
   "mobileDashboard.profile": "Profile",
   "mobileDashboard.quickActions": "Quick Actions",
   "mobileDashboard.reminders": "Reminders",
   "mobileDashboard.sadhana": "Sadhana",
+  "mobileDashboard.startStreakHint": "Complete one mala today to start a streak",
+  "mobileDashboard.streakAtRisk": "Streak at Risk",
+  "mobileDashboard.toMilestone": "To {0} Days",
+  "mobileDashboard.upNext": "Up Next",
   "mobileDashboard.wallpapers": "Wallpapers"
 }

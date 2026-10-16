@@ -1,0 +1,298 @@
+@page "/hangfire"
+@attribute [Authorize]
+@inherits LocalizedComponentBase
+@inject IApiClient Api
+@inject ToastService Toast
+@inject NavigationManager NavigationManager
+
+<div class="sc-page-head">
+    <div class="sc-page-title">
+        <span class="sc-page-emoji">⚙️</span>
+        <div>
+            <h1>Background Jobs (Hangfire)</h1>
+            <p class="sc-page-sub">Monitor and manage recurring background jobs</p>
+        </div>
+    </div>
+</div>
+
+<AuthorizeView Roles="Admin">
+    <Authorized>
+        @if (_error is not null)
+        {
+            <div class="sc-alert sc-alert-error">@_error</div>
+        }
+
+        @if (_loading)
+        {
+            <OmLoader FullPage="true" Message="Loading job status…" />
+        }
+        else if (_stats is not null)
+        {
+            <div class="sc-card sc-filtercard">
+                <div class="sc-stats-grid">
+                    <div class="sc-stat-card @(_stats.Failed > 0 ? "warning" : "")">
+                        <div class="sc-stat-value">@_stats.Failed</div>
+                        <div class="sc-stat-label">Failed</div>
+                    </div>
+                    <div class="sc-stat-card">
+                        <div class="sc-stat-value">@_stats.Succeeded</div>
+                        <div class="sc-stat-label">Succeeded</div>
+                    </div>
+                    <div class="sc-stat-card">
+                        <div class="sc-stat-value">@_stats.Processing</div>
+                        <div class="sc-stat-label">Processing</div>
+                    </div>
+                    <div class="sc-stat-card">
+                        <div class="sc-stat-value">@_stats.Enqueued</div>
+                        <div class="sc-stat-label">Enqueued</div>
+                    </div>
+                    <div class="sc-stat-card">
+                        <div class="sc-stat-value">@_stats.Scheduled</div>
+                        <div class="sc-stat-label">Scheduled</div>
+                    </div>
+                    <div class="sc-stat-card">
+                        <div class="sc-stat-value">@_stats.Recurring</div>
+                        <div class="sc-stat-label">Recurring</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sc-card">
+                <h3>Recurring Jobs</h3>
+                @if (_recurringJobs.Count == 0)
+                {
+                    <div class="sc-empty-state">
+                        <p>No recurring jobs configured</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="sc-tablewrap">
+                        <table class="sc-table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Schedule</th>
+                                    <th>Queue</th>
+                                    <th>Last Run</th>
+                                    <th>Next Run</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var job in _recurringJobs)
+                                {
+                                    <tr>
+                                        <td>@job.Id</td>
+                                        <td>@job.Cron</td>
+                                        <td>@job.Queue</td>
+                                        <td>@FormatDateTime(job.LastExecution)</td>
+                                        <td>@FormatDateTime(job.NextExecution)</td>
+                                        <td>
+                                            <button class="sc-btn-ghost sc-btn-sm" @onclick="@(() => TriggerJob(job.Id))">
+                                                Trigger Now
+                                            </button>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sc-card">
+                <h3>Quick Actions</h3>
+                <div class="sc-btn-group">
+                    <button class="sc-btn-primary" @onclick="TriggerCleanup">
+                        🧹 Trigger Cleanup
+                    </button>
+                    <button class="sc-btn-primary" @onclick="TriggerDataSync">
+                        🔄 Trigger Data Sync
+                    </button>
+                    <button class="sc-btn-ghost" @onclick="OpenDashboard">
+                        📊 Open Hangfire Dashboard
+                    </button>
+                </div>
+            </div>
+
+            @if (_failedJobs.Count > 0)
+            {
+                <div class="sc-card">
+                    <h3>Failed Jobs</h3>
+                    <div class="sc-tablewrap">
+                        <table class="sc-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Job Type</th>
+                                    <th>Method</th>
+                                    <th>Error</th>
+                                    <th>Failed At</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var job in _failedJobs)
+                                {
+                                    <tr>
+                                        <td>@job.Id</td>
+                                        <td>@job.JobType</td>
+                                        <td>@job.Method</td>
+                                        <td class="sc-error-text">@job.ExceptionMessage</td>
+                                        <td>@FormatDateTime(job.FailedAt)</td>
+                                        <td>
+                                            <button class="sc-btn-ghost sc-btn-sm" @onclick="@(() => RetryJob(job.Id))">
+                                                Retry
+                                            </button>
+                                            <button class="sc-btn-ghost sc-btn-sm danger" @onclick="@(() => DeleteJob(job.Id))">
+                                                Delete
+                                            </button>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+        }
+    </Authorized>
+    <NotAuthorized>
+        <div class="sc-card sc-empty-state">
+            <div class="sc-empty-om">🔒</div>
+            <h3>Admins Only</h3>
+            <p>Background job management is restricted to administrators.</p>
+        </div>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    private bool _loading = true;
+    private string? _error;
+    private HangfireStatsDto? _stats;
+    private List<RecurringJobDto> _recurringJobs = new();
+    private List<FailedJobDto> _failedJobs = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        _loading = true;
+        _error = null;
+        try
+        {
+            var statsTask = Api.GetHangfireStatsAsync();
+            var jobsTask = Api.GetHangfireRecurringJobsAsync();
+            var failedTask = Api.GetHangfireFailedJobsAsync();
+
+            await Task.WhenAll(statsTask, jobsTask, failedTask);
+
+            _stats = await statsTask;
+            _recurringJobs = await jobsTask;
+            _failedJobs = await failedTask;
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task TriggerJob(string jobId)
+    {
+        try
+        {
+            await Api.TriggerHangfireRecurringJobAsync(jobId);
+            Toast.Success($"Triggered {jobId}");
+        }
+        catch (Exception ex)
+        {
+            Toast.Error(ex.Message);
+        }
+    }
+
+    private async Task TriggerCleanup()
+    {
+        try
+        {
+            await Api.TriggerHangfireCleanupAsync();
+            Toast.Success("Cleanup job triggered");
+            await LoadAsync();
+        }
+        catch (Exception ex)
+        {
+            Toast.Error(ex.Message);
+        }
+    }
+
+    private async Task TriggerDataSync()
+    {
+        try
+        {
+            await Api.TriggerHangfireDataSyncAsync();
+            Toast.Success("Data sync job triggered");
+            await LoadAsync();
+        }
+        catch (Exception ex)
+        {
+            Toast.Error(ex.Message);
+        }
+    }
+
+    private async Task RetryJob(string jobId)
+    {
+        try
+        {
+            await Api.RetryHangfireFailedJobAsync(jobId);
+            Toast.Success($"Job {jobId} retried");
+            await LoadAsync();
+        }
+        catch (Exception ex)
+        {
+            Toast.Error(ex.Message);
+        }
+    }
+
+    private async Task DeleteJob(string jobId)
+    {
+        var confirmed = await Confirm.ConfirmAsync(new ConfirmRequest
+        {
+            Title = "Confirm",
+            Message = $"Delete failed job {jobId}?",
+            ConfirmText = "Delete",
+            Kind = ConfirmKind.Warning
+        });
+
+        if (!confirmed) return;
+
+        try
+        {
+            await Api.DeleteHangfireFailedJobAsync(jobId);
+            Toast.Success($"Job {jobId} deleted");
+            await LoadAsync();
+        }
+        catch (Exception ex)
+        {
+            Toast.Error(ex.Message);
+        }
+    }
+
+    private void OpenDashboard()
+    {
+        var url = $"{NavigationManager.BaseUri}hangfire";
+        NavigationManager.NavigateTo(url);
+    }
+
+    private string FormatDateTime(DateTime? dt)
+    {
+        if (!dt.HasValue) return "—";
+        return dt.Value.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss");
+    }
+}

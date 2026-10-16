@@ -1,17 +1,25 @@
+using System.Diagnostics.Metrics;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.RateLimiting;
+using Hangfire;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
+using OpenTelemetry.Metrics;
+using Prometheus;
 using Sanathana.Companion.Api.RateLimiting;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Sanathana.Companion.Api.Filters;
+using Sanathana.Companion.Api.HealthChecks;
 using Sanathana.Companion.Api.Middleware;
+using Sanathana.Companion.Api.Monitoring;
 using Sanathana.Companion.Api.Services;
 using Sanathana.Companion.Application;
 using Sanathana.Companion.Application.Common;
@@ -20,6 +28,7 @@ using Sanathana.Companion.Application.Interfaces;
 using Sanathana.Companion.Infrastructure;
 using Sanathana.Companion.Infrastructure.Identity;
 using Sanathana.Companion.Infrastructure.Persistence;
+using Sanathana.Companion.Infrastructure.BackgroundJobs;
 using Serilog;
 using Serilog.Events;
 
@@ -82,6 +91,21 @@ try
     builder.Services.AddScoped<IAuditRequestContext, HttpAuditRequestContext>();
     builder.Services.AddApplication();
     builder.Services.AddInfrastructure(builder.Configuration);
+
+    // Health Checks
+    builder.Services.AddHealthChecks()
+        .AddDbContextCheck<ApplicationDbContext>("database", tags: new[] { "live", "ready" })
+        .AddNpgSql(builder.Configuration.GetConnectionString("DefaultConnection")!, name: "postgresql", tags: new[] { "live", "ready" })
+        .AddCheck<DatabaseHealthCheck>("database-custom", tags: new[] { "ready" })
+        .AddCheck<ConnectionPoolHealthCheck>("connection-pool", tags: new[] { "ready" })
+        .AddCheck<ExternalServicesHealthCheck>("external-services", tags: new[] { "ready" })
+        .AddCheck<MetricsHealthCheck>("metrics", tags: new[] { "live" });
+
+    // Custom metrics
+    builder.Services.AddSingleton(CustomMetrics.Meter);
+
+    // Prometheus Metrics via prometheus-net.AspNetCore (configured in middleware pipeline)
+    // OpenTelemetry AddPrometheusExporter has version conflicts in 1.11.0, using prometheus-net instead
 
     // Sign in with Google is off until an OAuth client id is configured. Warn rather than throw: the
     // password login works without it, and the clients only show the button when they have an id.
@@ -294,6 +318,26 @@ try
 
     var app = builder.Build();
 
+    // Configure Hangfire Dashboard (only if Hangfire was actually configured with a connection string)
+    var hangfireOptions = builder.Configuration.GetSection(HangfireOptions.SectionName).Get<HangfireOptions>();
+    var hangfireEnabled = hangfireOptions != null && hangfireOptions.Enabled && 
+        !string.IsNullOrWhiteSpace(hangfireOptions.StorageConnectionString ?? builder.Configuration.GetConnectionString("DefaultConnection"));
+    
+    if (hangfireEnabled && hangfireOptions != null)
+    {
+        var dashboardPath = hangfireOptions.DashboardPath;
+        var dashboardOptions = new DashboardOptions
+        {
+            Authorization = new[] { new HangfireDashboardAuthorizationFilter(hangfireOptions.DashboardRequireAdmin) },
+            DashboardTitle = "Sanathana Companion - Background Jobs",
+            StatsPollingInterval = 30000
+        };
+        app.UseHangfireDashboard(dashboardPath, dashboardOptions);
+
+        // Configure recurring jobs
+        HangfireConfiguration.ConfigureRecurringJobs(app.Services, hangfireOptions);
+    }
+
     // Apply migrations on startup (adequate for a single-instance deployment).
     using (var scope = app.Services.CreateScope())
     {
@@ -340,6 +384,13 @@ try
     // log and HTTPS redirection all depend on the forwarded values being applied by now.
     app.UseForwardedHeaders();
 
+    // Metrics middleware (before exception handling to catch all requests)
+    app.UseMetrics();
+
+    // Prometheus metrics endpoint
+    app.UseMetricServer("/metrics");
+    app.UseHttpMetrics();
+
     app.UseMiddleware<ExceptionHandlingMiddleware>();
 
     // Baseline security response headers (cheap defense-in-depth on every response).
@@ -370,6 +421,25 @@ try
     // copy-pasted options lambda can put a seeker's coordinates back into the log line.
     app.UseSerilogRequestLogging(o => o.IncludeQueryInRequestPath = false);
     app.UseCors("Default");
+    
+    // Health check endpoints (before auth so they're publicly accessible)
+    app.MapHealthChecks("/health/live", new HealthCheckOptions
+    {
+        Predicate = check => check.Tags.Contains("live"),
+        ResponseWriter = WriteHealthCheckResponse
+    });
+
+    app.MapHealthChecks("/health/ready", new HealthCheckOptions
+    {
+        Predicate = check => check.Tags.Contains("ready"),
+        ResponseWriter = WriteHealthCheckResponse
+    });
+
+    app.MapHealthChecks("/health", new HealthCheckOptions
+    {
+        ResponseWriter = WriteHealthCheckResponse
+    });
+
     app.UseAuthentication();
     // After authentication, deliberately: the compute policy partitions on the signed-in user, and
     // before this the limiter saw an anonymous principal and fell back to the address for
@@ -389,6 +459,27 @@ catch (Exception ex)
 finally
 {
     Log.CloseAndFlush();
+}
+
+/// <summary>Writes a detailed health check response as JSON.</summary>
+static Task WriteHealthCheckResponse(HttpContext context, HealthReport report)
+{
+    context.Response.ContentType = "application/json";
+    var json = new
+    {
+        status = report.Status.ToString(),
+        totalDuration = report.TotalDuration.ToString("c"),
+        checks = report.Entries.Select(e => new
+        {
+            name = e.Key,
+            status = e.Value.Status.ToString(),
+            description = e.Value.Description,
+            duration = e.Value.Duration.ToString("c"),
+            exception = e.Value.Exception?.Message,
+            data = e.Value.Data
+        })
+    };
+    return context.Response.WriteAsJsonAsync(json);
 }
 
 /// <summary>Exposed so integration tests can reference the entry point.</summary>

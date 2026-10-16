@@ -1,24 +1,32 @@
 @* The phone's home screen — a separate form from the desktop Dashboard, not a restyling of it.
 
-   The desktop dashboard opens with a 200px saffron hero and lays its sadhana summary out as a
-   wrapping flex row that collapses to three stacked rows on a 375px screen. That is a lot of
-   scrolling before a seeker reaches anything they can act on, so this page is built the other way
-   round: the greeting is one line, the sadhana summary is one row, then what is special today —
-   the Panchangam, today's bhakti — then what is due now (prayers), the browse strip (chants),
-   and last the quick-action launcher, which the bottom bar and the More sheet already cover.
+   The page is built the other way round from the desktop: the greeting is one line, then the
+   seeker's own streak as the hero beside today's deity, then the one block that is about the day
+   itself (the Panchangam, tinted by what is happening right now), the totals and the sun as small
+   tiles, then today's bhakti, what is due now (prayers), the browse strip (chants), and last the
+   quick-action launcher, which the bottom bar and the More sheet already cover.
 
    Every destination is filtered through MenuState, the same Modules tree the bottom bar is built
    from, so the home screen never offers a seeker a door that opens onto access-denied.
 
    Every top-level block here is a DIRECT child of .scm-content on purpose. That container supplies
    the 12px rhythm via `gap` and the page gutter via `padding`, and mobile.css targets
-   `.scm-content > *`. Wrapping this page in a single root div would silently lose both. *@
+   `.scm-content > *`. Wrapping this page in a single root div would silently lose both — and the
+   glass: the aurora below is also the CSS hook (`.scm-aurora ~ …`) that gives the shared cards
+   their home-only look.
+
+   The aurora is a position:fixed decoration rendered in EVERY state (loading, error, loaded). A
+   fixed child is not a flex item, so it takes no gap and breaks no rhythm. *@
 @page "/mobile-dashboard"
 @attribute [Authorize]
 @inherits LocalizedComponentBase
 @implements IDisposable
 @inject IApiClient Api
 @inject MenuState Menus
+@inject NavigationManager Nav
+@inject IAppLifecycle Lifecycle
+
+<div class="scm-aurora" aria-hidden="true"></div>
 
 @if (_loading)
 {
@@ -26,81 +34,82 @@
 }
 else if (_model is not null)
 {
-    @* One line, not a hero. The logo tile is 40px rather than the desktop's 82px, and the seeker's
-       name carries the identity that the desktop spends a whole <h1> on. *@
-    <section class="scm-greet">
+    @* One line, not a card: the name carries the identity that the desktop spends a whole <h1> on. *@
+    <section class="scm-greet scm-greet--plain">
         <span class="scm-greet-om"><AppLogo Bare="true" /></span>
         <span class="scm-greet-text">
             <span class="scm-greet-kicker">@Greeting</span>
             <span class="scm-greet-name">@DisplayName</span>
         </span>
+        <span class="scm-greet-date">
+            <strong>@ClockText.DayMonth(AppClock.TodayIst)</strong>
+            @if (!string.IsNullOrWhiteSpace(_pchgToday?.RegionName))
+            {
+                <span>@_pchgToday!.RegionName</span>
+            }
+        </span>
     </section>
 
+    @* The streak beside today's deity. The tile is fed by TodayBhakti further down (one request
+       for both); it renders only once that component has reported a deity. *@
     @if (_streak is not null)
     {
-        <div class="sc-section-head">
-            <h2>🙏 @Loc["sadhana.mySadhana", "My Sadhana"]</h2>
-        </div>
-
-        <div class="sc-card scm-sadhana">
-            @* Four cells, one row, always. The streak is the lead cell and reads larger; the other
-               three are equal. A CSS grid rather than a flex row so the cells cannot wrap onto a
-               second line no matter how many digits a long-practising seeker accumulates. *@
-            <div class="scm-sadhana-row">
-                <div class="scm-sadhana-cell scm-sadhana-streak @(_streak.CurrentStreak > 0 ? "" : "cold")">
-                    <span class="scm-sadhana-n">
-                        <span class="scm-sadhana-flame" aria-hidden="true">🔥</span>@_streak.CurrentStreak
-                    </span>
-                    <span class="scm-sadhana-l">@Loc["sadhana.dayStreak", "Day Streak"]</span>
-                </div>
-                <div class="scm-sadhana-cell">
-                    <span class="scm-sadhana-n">@_streak.TotalMalas</span>
-                    <span class="scm-sadhana-l">@Loc["sadhana.totalMalas", "Total Malas"]</span>
-                </div>
-                <div class="scm-sadhana-cell">
-                    <span class="scm-sadhana-n">@_streak.LongestStreak</span>
-                    <span class="scm-sadhana-l">@Loc["sadhana.longest", "Longest"]</span>
-                </div>
-                <div class="scm-sadhana-cell">
-                    <span class="scm-sadhana-n">@_streak.TotalDaysPracticed</span>
-                    <span class="scm-sadhana-l">@Loc["common.days", "Days"]</span>
-                </div>
-            </div>
-
-            <div class="scm-sadhana-foot">
-                <span class="sc-streak-today @(_streak.PracticedToday ? "done" : "pending")">
-                    @(_streak.PracticedToday
-                        ? "✓ " + Loc["sadhana.practicedToday", "Practiced Today"]
-                        : Loc["sadhana.notYetToday", "Not Yet Today"])
-                </span>
-                @* Gated on the menu, not on the streak having loaded. The API grant and the phone
-                   menu are separate switches (a form also needs Show in mobile to reach the
-                   phone), and the link has to follow the one that decides whether the page opens. *@
-                @if (Menus.CanOpen("sadhana"))
-                {
-                    <a href="sadhana" class="scm-sadhana-cta">@Loc["sadhana.continueSadhana", "Continue Sadhana"] →</a>
-                }
-            </div>
+        <div class="scm-home-bento @(_heroDeity is null ? "is-single" : null)">
+            <HomeStreakHero Streak="_streak" CanOpenSadhana='@Menus.CanOpen("sadhana")' />
+            @if (_heroDeity is not null)
+            {
+                <HomeDeityTile Deity="_heroDeity" />
+            }
         </div>
     }
 
-    @* Straight after the seeker's own summary: the one block that is about the day itself. The
-       summary is useful on its own, so it stays for a seeker without the Panchangam form; only
-       the link to the full page goes. *@
-    <PanchangamToday Linked='@Menus.CanOpen("panchangam")' />
+    @* The one block that is about the day itself. Useful on its own, so it stays for a seeker
+       without the Panchangam form; only the link to the full page goes. *@
+    <HomePanchangamCard Linked='@Menus.CanOpen("panchangam")' OnLoaded="PanchangamLoaded" />
 
-    @* Today's deity and its sadhana, after the day's Panchangam. Kept because it is the one block
-       that changes daily and is the reason to open the app at all. The hardcoded five-deity "Daily Darshan" strip from the
-       desktop dashboard is deliberately NOT repeated here — this component shows the same subject
-       with real data, and two deity carousels on one phone screen is one too many. *@
-    <TodayBhakti />
+    @if (_streak is not null)
+    {
+        <div class="scm-tile-row">
+            <div class="scm-glass-soft scm-tile accent"><span class="n">@_streak.TotalMalas</span><span class="l">@Loc["sadhana.totalMalas", "Total Malas"]</span></div>
+            <div class="scm-glass-soft scm-tile"><span class="n">@_streak.LongestStreak</span><span class="l">@Loc["sadhana.longest", "Longest"]</span></div>
+            <div class="scm-glass-soft scm-tile"><span class="n">@_streak.TotalDaysPracticed</span><span class="l">@Loc["common.days", "Days"]</span></div>
+        </div>
+    }
 
-    @* The time-of-day prayers: the one block with a deadline. Three rows, the current one first, and the rest behind "Show all" — the full list
-       is a day's worth, most of it already past or hours away. Gated on Sadhana because every
-       prayer opens sadhana/chant/{id}; without that form each row would be a dead end. *@
+    var nowIst = TimeOnly.FromDateTime(AppClock.NowIst);
+    var nextPrayer = NextPrayer;
+    @if (nextPrayer is not null || _pchgToday is { Sunrise: not null, Sunset: not null })
+    {
+        <div class="scm-tile-row two">
+            @if (nextPrayer is { } p)
+            {
+                <button type="button" class="scm-glass-soft scm-tile scm-tile-btn" @onclick="() => GoToPrayer(p)">
+                    <span class="ic" aria-hidden="true">@PrayerIcon(p.Slot)</span>
+                    <span class="k">@(IsActive(p, nowIst) ? Loc["dashboard.prayerNow", "Now"] : Loc["mobileDashboard.nextPrayer", "Next Prayer"])</span>
+                    <span class="v">@p.Name</span>
+                    <span class="s">@PrayerSub(p)</span>
+                </button>
+            }
+            @if (_pchgToday is { Sunrise: { } rise, Sunset: { } set })
+            {
+                <div class="scm-glass-soft scm-tile scm-tile-sun">
+                    <span><em>🌅 @Loc["panchangam.sunrise", "Sunrise"]</em><b>@ClockText.Time(rise)</b></span>
+                    <span><em>🌇 @Loc["panchangam.sunset", "Sunset"]</em><b>@ClockText.Time(set)</b></span>
+                </div>
+            }
+        </div>
+    }
+
+    @* Today's deity and its sadhana: the one block that changes daily and is the reason to open
+       the app at all. It also feeds the portrait tile above. *@
+    <TodayBhakti OnDeityShown="DeityShown" />
+
+    @* The time-of-day prayers: the one block with a deadline. Three rows, the current one first,
+       the rest behind "Show all". Gated on Sadhana because every prayer opens sadhana/chant/{id};
+       without that form each row would be a dead end. It also feeds the next-prayer tile above. *@
     @if (Menus.CanOpen("sadhana"))
     {
-        <PrayerTimes MaxItems="3" />
+        <PrayerTimes MaxItems="3" OnLoaded="PrayersLoaded" />
     }
 
     @* After the day's blocks, because it is for browsing rather than for today. Same Sadhana gate
@@ -109,14 +118,12 @@ else if (_model is not null)
     {
         <ChantCategories />
     }
+
     @* Last on the page: the bottom bar and the More sheet are the launchers a thumb reaches for,
        so these tiles are a convenience after the day's content rather than the reason to open it.
 
-       Reuses the More sheet's tile system (.scm-quickgrid / .scm-quick / .scm-quick-ic /
-       .scm-quick-label) rather than inventing a second one, so the two launchers in this app stay
-       one design. .scm-home-quick only pins the track count — the sheet's auto-fill would give 3
-       or 4 columns depending on width, and the home screen wants exactly 4, so eight tiles are two
-       even rows.
+       .scm-quickgrid / .scm-quick / .scm-quick-ic / .scm-quick-label are the home's own tile
+       system now (the More sheet no longer renders a quick grid); .scm-home-quick pins four tracks.
 
        Each tile is shown only when the seeker's menu holds its route — the same check the bottom
        bar and the More sheet make, so a tile never leads to access-denied. Profile is the one
@@ -143,7 +150,6 @@ else if (_model is not null)
             }
         </nav>
     }
-
 }
 else
 {
@@ -153,6 +159,9 @@ else
 @code {
     private DashboardModel? _model;
     private SadhanaStreak? _streak;
+    private TodayDeity? _heroDeity;
+    private PanchangamModel? _pchgToday;
+    private List<Prayer> _prayers = new();
     private bool _loading = true;
     private string? _error;
 
@@ -179,6 +188,8 @@ else
         ? _model?.FullName ?? string.Empty
         : _model!.SeekerName!;
 
+    // The greeting follows the device clock on purpose: a seeker abroad still gets their own
+    // "Good Morning", while the Panchangam and the streak follow IST, the clock they are kept in.
     private string Greeting
     {
         get
@@ -187,6 +198,31 @@ else
             return hour < 12 ? Loc["auth.greetingMorning", "Shubh Prabhat · Good Morning"]
                  : hour < 17 ? Loc["auth.greetingAfternoon", "Shubh Dopahar · Good Afternoon"]
                  : Loc["auth.greetingEvening", "Shubh Sandhya · Good Evening"];
+        }
+    }
+
+    /// <summary>
+    /// The server's own rule for "in progress" (inclusive at both ends, a window may wrap past
+    /// midnight), applied to the live IST clock: the IsActiveNow the API sends is true only at the
+    /// moment of that request, and the list is not refetched on resume.
+    /// </summary>
+    private static bool IsActive(Prayer p, TimeOnly now)
+        => p.FromTime is { } f && p.ToTime is { } t && (f <= t ? now >= f && now <= t : now >= f || now <= t);
+
+    /// <summary>
+    /// The prayer in progress, else the next one to start on the IST clock, else the first of the
+    /// day (tomorrow morning's). Null until PrayerTimes has reported its list.
+    /// </summary>
+    private Prayer? NextPrayer
+    {
+        get
+        {
+            if (_prayers.Count == 0) return null;
+            var now = TimeOnly.FromDateTime(AppClock.NowIst);
+            var active = _prayers.FirstOrDefault(p => IsActive(p, now));
+            if (active is not null) return active;
+            var ordered = _prayers.Where(p => p.FromTime is not null).OrderBy(p => p.FromTime).ToList();
+            return ordered.FirstOrDefault(p => p.FromTime > now) ?? ordered.FirstOrDefault();
         }
     }
 
@@ -199,12 +235,15 @@ else
         // phone the layout has already started this load, so the call shares its task; opened
         // under the desktop layout, this is the only thing that loads the menu at all.
         //
-        // Started before the dashboard request and awaited after it, so the two round trips overlap
-        // instead of queueing — but still awaited before the loader goes, so the gated tiles are
-        // in place on the first paint rather than popping in and reflowing the page. EnsureLoadedAsync
-        // never throws (a failed fetch is an empty menu), so the finally still clears the loader.
+        // The menu and the streak are started before the dashboard request and awaited after it,
+        // so the three round trips overlap instead of queueing — but all are awaited before the
+        // loader goes: the gated tiles and the hero are in place on the first paint rather than
+        // popping in and pushing the page down under the seeker's thumb. EnsureLoadedAsync never
+        // throws (a failed fetch is an empty menu), and the streak load swallows its own failures.
         Menus.OnChanged += MenuChanged;
+        Lifecycle.Changed += LifecycleChanged;
         var menu = Menus.EnsureLoadedAsync();
+        var streak = LoadStreakAsync();
 
         try
         {
@@ -217,23 +256,71 @@ else
         finally
         {
             await menu;
+            await streak;
             _loading = false;
         }
+    }
 
-        // Best-effort, exactly as on the desktop dashboard. The streak endpoint names this form as
-        // well as Sadhana, so a seeker granted only the mobile home still gets the card — which is
-        // why its "Continue Sadhana" link is gated on the menu separately above. Do not rely on
-        // this catch to hide anything on a denial: a module 403 is turned into a navigation to
-        // access-denied by ForbiddenHandler before the exception ever reaches here.
+    // Best-effort, exactly as on the desktop dashboard. The streak endpoint names this form as
+    // well as Sadhana, so a seeker granted only the mobile home still gets the hero — which is why
+    // its "Continue Sadhana" link is gated on the menu separately. Do not rely on this catch to
+    // hide anything on a denial: a module 403 is turned into a navigation to access-denied by
+    // ForbiddenHandler before the exception ever reaches here.
+    private async Task LoadStreakAsync()
+    {
         try { _streak = await Api.GetSadhanaStreakAsync(); }
-        catch { /* leave the block hidden */ }
+        catch { /* leave the hero out */ }
+    }
+
+    private Task DeityShown(TodayDeity? deity)
+    {
+        _heroDeity = deity;
+        return InvokeAsync(StateHasChanged);
+    }
+
+    private Task PanchangamLoaded(PanchangamModel? today)
+    {
+        _pchgToday = today;
+        return InvokeAsync(StateHasChanged);
+    }
+
+    private Task PrayersLoaded(PrayersResult? result)
+    {
+        _prayers = result?.Prayers ?? new();
+        return InvokeAsync(StateHasChanged);
+    }
+
+    private void GoToPrayer(Prayer p) => Nav.NavigateTo($"sadhana/chant/{p.ChantConfigId}");
+
+    // Mirrors PrayerTimes: the slot is a server identifier that stays English and drives the icon.
+    private static string PrayerIcon(string slot) => slot switch
+    {
+        "Morning" => "🌅",
+        "Afternoon" => "☀️",
+        "Evening" => "🌆",
+        "Night" => "🌙",
+        "Food" => "🍽️",
+        _ => "🙏"
+    };
+
+    private static string PrayerSub(Prayer p)
+    {
+        var parts = new List<string>();
+        if (p.FromTime is { } f) parts.Add(ClockText.Time(f));
+        if (!string.IsNullOrWhiteSpace(p.TimeDescription)) parts.Add(p.TimeDescription!);
+        return string.Join(" · ", parts);
     }
 
     private void MenuChanged() => _ = InvokeAsync(StateHasChanged);
 
+    // A resume after midnight: the hero re-derives "today" from LastPracticeDate when it renders,
+    // so a re-render is all it needs to stop saying "Practiced Today" for yesterday.
+    private void LifecycleChanged() => _ = InvokeAsync(StateHasChanged);
+
     public override void Dispose()
     {
         Menus.OnChanged -= MenuChanged;
+        Lifecycle.Changed -= LifecycleChanged;
         base.Dispose();
     }
 }
