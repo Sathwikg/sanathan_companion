@@ -2225,6 +2225,54 @@
   .scm-shell:not(:lang(en)):not(:lang(hi)) .scm-aurora ~ .scm-home-quick .scm-quick-ic { width: auto; height: auto; background: none; box-shadow: none; }
 }
 
+/* ---- the home inside the desktop layout (web host, Platform = Web) ----
+   MobileHomeFrame wraps the page in .scm-shell.scm-webhome > .scm-content there. Everything above
+   then applies as on the phone; these rules undo the parts of the shell that belong to a whole app
+   (full height, the bottom bar's clearance, the isolation) and keep it a phone-width column.
+   No stacking context on the frame: modals inside it must stay above the desktop top bar, so the
+   aurora is painted as the frame's background rather than as a fixed layer at z-index -1. */
+.scm-shell.scm-webhome {
+  min-height: 0;
+  display: block;
+  isolation: auto;
+  max-width: 600px;
+  margin-inline: auto;
+  border-radius: 28px;
+  box-shadow: var(--scm-elev-1), inset 0 0 0 1px var(--scm-hairline-soft);
+  background-color: var(--color-background);
+  background-image:
+    radial-gradient(62% 40% at 12% 4%, rgba(228, 169, 81, 0.42) 0%, transparent 70%),
+    radial-gradient(52% 36% at 92% 22%, rgba(212, 114, 34, 0.26) 0%, transparent 70%),
+    radial-gradient(56% 40% at 18% 58%, rgba(224, 122, 140, 0.18) 0%, transparent 70%),
+    radial-gradient(72% 46% at 72% 100%, rgba(120, 70, 160, 0.16) 0%, transparent 70%),
+    var(--pattern-mandala);
+  background-attachment: scroll;
+  background-repeat: no-repeat, no-repeat, no-repeat, no-repeat, repeat;
+}
+:root[data-theme="dark"] .scm-shell.scm-webhome {
+  background-image:
+    radial-gradient(62% 40% at 12% 4%, rgba(243, 159, 90, 0.26) 0%, transparent 70%),
+    radial-gradient(52% 36% at 92% 22%, rgba(228, 169, 81, 0.14) 0%, transparent 70%),
+    radial-gradient(56% 40% at 18% 58%, rgba(200, 90, 120, 0.14) 0%, transparent 70%),
+    radial-gradient(72% 46% at 72% 100%, rgba(120, 70, 160, 0.22) 0%, transparent 70%),
+    var(--pattern-mandala);
+}
+.scm-shell.scm-webhome .scm-aurora { display: none; }
+.scm-shell.scm-webhome > .scm-content {
+  flex: none;
+  padding: var(--scm-gutter);
+}
+/* On a phone-width browser the column is the screen: bleed over the desktop content padding and drop
+   the rounded frame, so it reads exactly like the phone app. */
+@media (max-width: 640px) {
+  .scm-shell.scm-webhome {
+    max-width: none;
+    margin: calc(-1 * clamp(0.75rem, 3vw, 2rem));
+    border-radius: 0;
+    box-shadow: none;
+  }
+}
+
 /* ---- fallbacks, after the rules they cancel ---- */
 @supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
   .scm-shell .scm-glass { background: var(--color-surface); }
