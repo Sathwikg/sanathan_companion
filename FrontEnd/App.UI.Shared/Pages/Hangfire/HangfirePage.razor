@@ -3,7 +3,7 @@
 @inherits LocalizedComponentBase
 @inject IApiClient Api
 @inject ToastService Toast
-@inject NavigationManager NavigationManager
+@inject ConfirmService Confirm
 
 <div class="sc-page-head">
     <div class="sc-page-title">
@@ -26,8 +26,10 @@
         {
             <OmLoader FullPage="true" Message="Loading job status…" />
         }
-        else if (_stats is not null)
+        else
         {
+            @if (_stats is not null)
+            {
             <div class="sc-card sc-filtercard">
                 <div class="sc-stats-grid">
                     <div class="sc-stat-card @(_stats.Failed > 0 ? "warning" : "")">
@@ -56,6 +58,7 @@
                     </div>
                 </div>
             </div>
+            }
 
             <div class="sc-card">
                 <h3>Recurring Jobs</h3>
@@ -98,7 +101,7 @@
                             </tbody>
                         </table>
                     </div>
-                </div>
+                }
             </div>
 
             <div class="sc-card">
@@ -109,9 +112,6 @@
                     </button>
                     <button class="sc-btn-primary" @onclick="TriggerDataSync">
                         🔄 Trigger Data Sync
-                    </button>
-                    <button class="sc-btn-ghost" @onclick="OpenDashboard">
-                        📊 Open Hangfire Dashboard
                     </button>
                 </div>
             </div>
@@ -183,76 +183,50 @@
     {
         _loading = true;
         _error = null;
-        try
-        {
-            var statsTask = Api.GetHangfireStatsAsync();
-            var jobsTask = Api.GetHangfireRecurringJobsAsync();
-            var failedTask = Api.GetHangfireFailedJobsAsync();
-
-            await Task.WhenAll(statsTask, jobsTask, failedTask);
-
-            _stats = await statsTask;
-            _recurringJobs = await jobsTask;
-            _failedJobs = await failedTask;
-        }
-        catch (Exception ex)
-        {
-            _error = ex.Message;
-        }
-        finally
-        {
-            _loading = false;
-        }
+        // Three independent calls: one failing leaves the other two sections on screen.
+        var errors = new List<string>();
+        var stats = TryAsync(Api.GetHangfireStatsAsync, errors);
+        var jobs = TryAsync(Api.GetHangfireRecurringJobsAsync, errors);
+        var failed = TryAsync(Api.GetHangfireFailedJobsAsync, errors);
+        await Task.WhenAll(stats, jobs, failed);
+        _stats = stats.Result;
+        _recurringJobs = jobs.Result ?? new();
+        _failedJobs = failed.Result ?? new();
+        _error = errors.Count == 0 ? null : string.Join(" ", errors.Distinct());
+        _loading = false;
     }
 
-    private async Task TriggerJob(string jobId)
+    private static async Task<T?> TryAsync<T>(Func<Task<T>> call, List<string> errors)
+    {
+        try { return await call(); }
+        catch (Exception ex) { errors.Add(ex.Message); return default; }
+    }
+
+    private Task TriggerJob(string jobId)
+        => RunAsync(() => Api.TriggerHangfireRecurringJobAsync(jobId), $"Triggered {jobId}", reload: false);
+
+    private Task TriggerCleanup()
+        => RunAsync(Api.TriggerHangfireCleanupAsync, "Cleanup job triggered");
+
+    private Task TriggerDataSync()
+        => RunAsync(Api.TriggerHangfireDataSyncAsync, "Data sync job triggered");
+
+    private Task RetryJob(string jobId)
+        => RunAsync(() => Api.RetryHangfireFailedJobAsync(jobId), $"Job {jobId} retried");
+
+    /// <summary>One action: the API's own error text on a refusal, a toast on success, the lists reloaded.</summary>
+    private async Task RunAsync(Func<Task<(bool Success, string Error)>> action, string success, bool reload = true)
     {
         try
         {
-            await Api.TriggerHangfireRecurringJobAsync(jobId);
-            Toast.Success($"Triggered {jobId}");
-        }
-        catch (Exception ex)
-        {
-            Toast.Error(ex.Message);
-        }
-    }
-
-    private async Task TriggerCleanup()
-    {
-        try
-        {
-            await Api.TriggerHangfireCleanupAsync();
-            Toast.Success("Cleanup job triggered");
-            await LoadAsync();
-        }
-        catch (Exception ex)
-        {
-            Toast.Error(ex.Message);
-        }
-    }
-
-    private async Task TriggerDataSync()
-    {
-        try
-        {
-            await Api.TriggerHangfireDataSyncAsync();
-            Toast.Success("Data sync job triggered");
-            await LoadAsync();
-        }
-        catch (Exception ex)
-        {
-            Toast.Error(ex.Message);
-        }
-    }
-
-    private async Task RetryJob(string jobId)
-    {
-        try
-        {
-            await Api.RetryHangfireFailedJobAsync(jobId);
-            Toast.Success($"Job {jobId} retried");
-            await LoadAsync();
+            var (ok, error) = await action();
+            if (!ok)
+            {
+                Toast.Error(error);
+                return;
+            }
+            Toast.Success(success);
+            if (reload) await LoadAsync();
         }
         catch (Exception ex)
         {
@@ -272,22 +246,7 @@
 
         if (!confirmed) return;
 
-        try
-        {
-            await Api.DeleteHangfireFailedJobAsync(jobId);
-            Toast.Success($"Job {jobId} deleted");
-            await LoadAsync();
-        }
-        catch (Exception ex)
-        {
-            Toast.Error(ex.Message);
-        }
-    }
-
-    private void OpenDashboard()
-    {
-        var url = $"{NavigationManager.BaseUri}hangfire";
-        NavigationManager.NavigateTo(url);
+        await RunAsync(() => Api.DeleteHangfireFailedJobAsync(jobId), $"Job {jobId} deleted");
     }
 
     private string FormatDateTime(DateTime? dt)

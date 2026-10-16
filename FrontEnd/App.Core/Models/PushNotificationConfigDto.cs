@@ -1,18 +1,19 @@
 namespace App.Core.Models;
 
 /// <summary>
-/// Push notification configuration DTO.
+/// The server's effective push settings (GET push-notifications/config): read-only, and the two credential
+/// files are reported only as configured-or-not, never by path or content.
 /// </summary>
 public sealed class PushNotificationConfigDto
 {
     public bool Enabled { get; set; }
-    public string? FcmServiceAccountPath { get; set; }
+    public bool FcmConfigured { get; set; }
     public string? FcmProjectId { get; set; }
     public string? FcmSenderId { get; set; }
+    public bool ApnsConfigured { get; set; }
     public string? ApnsKeyId { get; set; }
     public string? ApnsTeamId { get; set; }
     public string? ApnsBundleId { get; set; }
-    public string? ApnsPrivateKeyPath { get; set; }
     public bool ApnsUseSandbox { get; set; } = true;
     public string? DefaultTitle { get; set; }
     public string? DefaultIcon { get; set; }

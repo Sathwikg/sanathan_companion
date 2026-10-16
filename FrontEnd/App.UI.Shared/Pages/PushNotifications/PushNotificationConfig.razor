@@ -28,11 +28,6 @@
             </button>
         </div>
 
-        @if (_error is not null)
-        {
-            <div class="sc-alert sc-alert-error">@_error</div>
-        }
-
         @if (_tab == "config")
         {
             <PushNotificationConfigTab />
@@ -57,10 +52,4 @@
 
 @code {
     private string _tab = "config";
-    private string? _error;
-
-    protected override async Task OnInitializedAsync()
-    {
-        await base.OnInitializedAsync();
-    }
 }

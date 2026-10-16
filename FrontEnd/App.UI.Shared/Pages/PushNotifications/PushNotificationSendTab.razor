@@ -99,17 +99,17 @@
     <div class="sc-form">
         <div class="sc-form-row">
             <label class="sc-label">Test User ID</label>
-            <input class="sc-input" placeholder="your-user-guid" @bind="_testUserId" />
+            <input class="sc-input" placeholder="your-user-guid" @bind="_testUserIdText" />
         </div>
 
         <div class="sc-form-row">
             <label class="sc-label">Title</label>
-            <input class="sc-input" @bind="_testTitle" value="Test Notification" />
+            <input class="sc-input" @bind="_testTitle" />
         </div>
 
         <div class="sc-form-row">
             <label class="sc-label">Body</label>
-            <input class="sc-input" @bind="_testBody" value="This is a test push notification from Sanathana Companion" />
+            <input class="sc-input" @bind="_testBody" />
         </div>
 
         <button class="sc-btn-secondary" @onclick="SendTestAsync" disabled="@_sendingTest">
@@ -129,16 +129,16 @@
     private bool _sendingToModule;
     private bool _sendingTest;
 
-    private Guid _moduleId = Guid.Empty;
+    private Guid? _moduleId;
     private string _moduleTitle = "";
     private string _moduleBody = "";
     private string _moduleImageUrl = "";
     private int? _moduleTargetPlatform;
     private List<MenuModuleModel> _modules = new();
 
-    private Guid _testUserId = Guid.Empty;
+    private string _testUserIdText = "";
     private string _testTitle = "Test Notification";
-    private string _testBody = "This is a test push notification from Sanathana Companion";
+    private string _testBody = $"This is a test push notification from {Brand.AppName}";
 
     protected override async Task OnInitializedAsync()
     {
@@ -166,11 +166,11 @@
             return;
         }
 
-        var userIds = _userIdsText.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-            .Select(s => Guid.TryParse(s, out var g) ? g : (Guid?)null)
-            .Where(g => g.HasValue)
-            .Select(g => g.Value)
-            .ToList();
+        var userIds = new List<Guid>();
+        foreach (var line in _userIdsText.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            if (Guid.TryParse(line, out var id)) userIds.Add(id);
+        }
 
         if (!userIds.Any())
         {
@@ -192,15 +192,13 @@
             }
         }
 
-        var request = new SendPushNotificationRequest
-        {
-            UserIds = userIds,
-            Title = _title,
-            Body = _body,
-            ImageUrl = _imageUrl,
-            Data = data,
-            TargetPlatform = _targetPlatform.HasValue ? (PushPlatform?)_targetPlatform.Value : null
-        };
+        var request = new SendPushNotificationRequest(
+            userIds,
+            _title,
+            _body,
+            Data: data,
+            ImageUrl: string.IsNullOrWhiteSpace(_imageUrl) ? null : _imageUrl,
+            TargetPlatform: _targetPlatform is { } platform ? (PushPlatform)platform : null);
 
         _sendingToUsers = true;
         try
@@ -212,7 +210,7 @@
             }
             else
             {
-                Toast.Error(result?.Errors.FirstOrDefault() ?? "Failed to send notification");
+                Toast.Error(SendFailure(result, "Failed to send notification"));
             }
         }
         catch (Exception ex)
@@ -227,20 +225,18 @@
 
     private async Task SendToModuleAsync()
     {
-        if (_moduleId == Guid.Empty)
+        if (_moduleId is not { } moduleId || moduleId == Guid.Empty)
         {
             Toast.Error("Please select a module");
             return;
         }
 
-        var request = new SendModuleNotificationRequest
-        {
-            MenuModuleId = _moduleId,
-            Title = _moduleTitle,
-            Body = _moduleBody,
-            ImageUrl = _moduleImageUrl,
-            TargetPlatform = _moduleTargetPlatform.HasValue ? (PushPlatform?)_moduleTargetPlatform.Value : null
-        };
+        var request = new SendModuleNotificationRequest(
+            moduleId,
+            _moduleTitle,
+            _moduleBody,
+            ImageUrl: string.IsNullOrWhiteSpace(_moduleImageUrl) ? null : _moduleImageUrl,
+            TargetPlatform: _moduleTargetPlatform is { } platform ? (PushPlatform)platform : null);
 
         _sendingToModule = true;
         try
@@ -252,7 +248,7 @@
             }
             else
             {
-                Toast.Error(result?.Errors.FirstOrDefault() ?? "Failed to send notification");
+                Toast.Error(SendFailure(result, "Failed to send notification"));
             }
         }
         catch (Exception ex)
@@ -265,20 +261,23 @@
         }
     }
 
+    // The API's own account of a refused send: counts first, then its first reason when it gave one.
+    private static string SendFailure(PushNotificationResult? result, string fallback)
+    {
+        if (result is null) return fallback;
+        var counts = $"{result.SentCount} sent, {result.FailedCount} failed";
+        return result.Errors.FirstOrDefault() is { Length: > 0 } reason ? $"{counts}: {reason}" : counts;
+    }
+
     private async Task SendTestAsync()
     {
-        if (_testUserId == Guid.Empty)
+        if (!Guid.TryParse(_testUserIdText.Trim(), out var testUserId) || testUserId == Guid.Empty)
         {
-            Toast.Error("Please enter a test user ID");
+            Toast.Error("Please enter a valid test user ID");
             return;
         }
 
-        var request = new SendTestNotificationRequest
-        {
-            UserId = _testUserId,
-            Title = _testTitle,
-            Body = _testBody
-        };
+        var request = new SendTestNotificationRequest(testUserId, _testTitle, _testBody);
 
         _sendingTest = true;
         try
@@ -290,7 +289,7 @@
             }
             else
             {
-                Toast.Error(result?.Errors.FirstOrDefault() ?? "Failed to send test notification");
+                Toast.Error(SendFailure(result, "Failed to send test notification"));
             }
         }
         catch (Exception ex)

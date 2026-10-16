@@ -4,14 +4,14 @@ namespace App.Core.Models;
 /// Hangfire statistics DTO.
 /// </summary>
 public sealed record HangfireStatsDto(
-    int Enqueued,
-    int Processing,
-    int Succeeded,
-    int Failed,
-    int Deleted,
-    int Scheduled,
-    int Recurring,
-    Dictionary<string, int> Queues
+    long Enqueued,
+    long Processing,
+    long Succeeded,
+    long Failed,
+    long Deleted,
+    long Scheduled,
+    long Recurring,
+    long Queues
 );
 
 /// <summary>
@@ -32,10 +32,10 @@ public sealed record RecurringJobDto(
 /// </summary>
 public sealed record FailedJobDto(
     string Id,
-    string JobType,
-    string Method,
-    string ExceptionType,
-    string ExceptionMessage,
-    DateTime FailedAt,
-    string Queue
+    string? JobType,
+    string? Method,
+    string? ExceptionType,
+    string? ExceptionMessage,
+    DateTime? FailedAt,
+    string? Queue
 );

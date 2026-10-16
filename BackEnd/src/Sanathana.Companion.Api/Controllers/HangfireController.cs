@@ -162,9 +162,12 @@ public sealed class HangfireController : ControllerBase
     [HttpPost("failed-jobs/{jobId}/retry")]
     public IActionResult RetryFailedJob(string jobId)
     {
-        // Use background job client to requeue - simplified approach
-        _backgroundJobClient.Enqueue(() => Console.WriteLine($"Requeued job {jobId}"));
-        return Ok(new { message = $"Job {jobId} requeued (placeholder)" });
+        // The transition the dashboard's Retry button makes: Failed -> Enqueued. False when the id is
+        // unknown or the job has already left the Failed state.
+        var requeued = _backgroundJobClient.ChangeState(jobId, new EnqueuedState(), FailedState.StateName);
+        return requeued
+            ? Ok(new { message = $"Job {jobId} requeued" })
+            : NotFound($"Failed job {jobId} was not found");
     }
 
     /// <summary>
@@ -173,9 +176,11 @@ public sealed class HangfireController : ControllerBase
     [HttpDelete("failed-jobs/{jobId}")]
     public IActionResult DeleteFailedJob(string jobId)
     {
-        // Use background job client - simplified approach
-        _backgroundJobClient.Enqueue(() => Console.WriteLine($"Deleted job {jobId}"));
-        return Ok(new { message = $"Failed job {jobId} deleted (placeholder)" });
+        // Hangfire's delete is a move to the Deleted state; false when the id is unknown.
+        var deleted = _backgroundJobClient.Delete(jobId);
+        return deleted
+            ? Ok(new { message = $"Failed job {jobId} deleted" })
+            : NotFound($"Job {jobId} was not found");
     }
 }
 
