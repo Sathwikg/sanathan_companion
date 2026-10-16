@@ -1,10 +1,22 @@
 {
+  "mobileDashboard.allClear": "ಎಲ್ಲವೂ ಸರಿ",
+  "mobileDashboard.allMilestones": "ಎಲ್ಲಾ ಮೈಲಿಗಲ್ಲುಗಳನ್ನು ತಲುಪಿದ್ದೀರಿ",
+  "mobileDashboard.also": "ಜೊತೆಗೆ",
+  "mobileDashboard.daysToGo": "ಇನ್ನೂ {0}",
   "mobileDashboard.favorites": "ಮೆಚ್ಚಿನವು",
   "mobileDashboard.feedback": "ಪ್ರತಿಕ್ರಿಯೆ",
+  "mobileDashboard.last7Days": "ಕಳೆದ 7 ದಿನಗಳು",
+  "mobileDashboard.nextPrayer": "ಮುಂದಿನ ಪ್ರಾರ್ಥನೆ",
+  "mobileDashboard.nextTomorrow": "ನಾಳೆ: {0}, {1}",
+  "mobileDashboard.noWindowsLeft": "ಇಂದು ಇನ್ನು ಯಾವ ಕಾಲವೂ ಉಳಿದಿಲ್ಲ",
   "mobileDashboard.panchangam": "ಪಂಚಾಂಗ",
   "mobileDashboard.profile": "ಪ್ರೊಫೈಲ್",
   "mobileDashboard.quickActions": "ತ್ವರಿತ ಕ್ರಿಯೆಗಳು",
   "mobileDashboard.reminders": "ಜ್ಞಾಪನೆಗಳು",
   "mobileDashboard.sadhana": "ಸಾಧನೆ",
+  "mobileDashboard.startStreakHint": "ಸರಣಿ ಆರಂಭಿಸಲು ಇಂದು ಒಂದು ಮಾಲೆಯನ್ನು ಪೂರ್ಣಗೊಳಿಸಿ",
+  "mobileDashboard.streakAtRisk": "ಸರಣಿ ಅಪಾಯದಲ್ಲಿದೆ",
+  "mobileDashboard.toMilestone": "{0} ದಿನಗಳಿಗೆ",
+  "mobileDashboard.upNext": "ಮುಂದೆ",
   "mobileDashboard.wallpapers": "ವಾಲ್‌ಪೇಪರ್"
 }

@@ -152,6 +152,13 @@
 </ScModal>
 
 @code {
+    /// <summary>
+    /// The deity on screen right now, raised after each load and each rotation, so the phone home can
+    /// show the portrait in a tile of its own without a second request. The desktop passes nothing.
+    /// Always invoked from the renderer's context: Rotate() runs on a timer thread.
+    /// </summary>
+    [Parameter] public EventCallback<TodayDeity?> OnDeityShown { get; set; }
+
     private const int RotateMs = 6000;
     private const int CardMaxSadhanas = 3;
 
@@ -204,6 +211,7 @@
         }
 
         RestartTimer();
+        await OnDeityShown.InvokeAsync(_deities.Count > 0 ? Current : null);
     }
 
     /// <summary>
@@ -231,13 +239,18 @@
     {
         if (_deities.Count <= 1 || _detail is not null) return; // pause while the modal is open
         _index = (_index + 1) % _deities.Count;
-        InvokeAsync(StateHasChanged);
+        InvokeAsync(async () =>
+        {
+            StateHasChanged();
+            await OnDeityShown.InvokeAsync(Current);
+        });
     }
 
     private void Show(int i)
     {
         _index = i;
         _timer?.Change(RotateMs, RotateMs); // give a manual pick a full dwell
+        _ = OnDeityShown.InvokeAsync(Current);
     }
 
     private void OpenDetails(TodayDeity d) => _detail = d;

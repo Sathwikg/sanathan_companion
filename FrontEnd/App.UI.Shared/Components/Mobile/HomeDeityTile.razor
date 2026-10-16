@@ -1,0 +1,52 @@
+@* The deity portrait beside the streak in the home's bento. Decorative on purpose: Today's Bhakti
+   further down keeps the tap, the details popup and the sadhana list; this tile only shows whose
+   day it is. It is fed by TodayBhakti's OnDeityShown callback, so there is no second request and
+   the two always agree (the callback also fires on each rotation when a festival brings several). *@
+@inherits LocalizedComponentBase
+@inject MediaUrlBuilder Media
+
+@if (Deity is { } d)
+{
+    <div class="scm-deity-tile @(d.HasImage ? null : "is-fallback")" aria-hidden="true">
+        @if (d.HasImage)
+        {
+            <img src="@Media.Absolute(ApiRoutes.Media.DeityImage(d.Id))" alt="" />
+        }
+        else
+        {
+            <span class="scm-deity-tile-glyph">@(IsGoddess(d) ? "🙏" : "🕉️")</span>
+        }
+        <span class="scm-deity-tile-cap">
+            <span class="scm-deity-tile-k">@(IsGoddess(d) ? Loc["dashboard.todaysGoddess", "Today's Goddess"] : Loc["dashboard.todaysGod", "Today's God"])</span>
+            <span class="scm-deity-tile-n">@d.Name</span>
+            @if (!string.IsNullOrWhiteSpace(d.Reason))
+            {
+                <span class="scm-deity-tile-r">@ReasonText(d.Reason)</span>
+            }
+        </span>
+    </div>
+}
+
+@code {
+    [Parameter] public TodayDeity? Deity { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        // The ticket every media URL carries; already fetched by TodayBhakti, so this is a no-op.
+        await Media.EnsureAsync();
+    }
+
+    private static bool IsGoddess(TodayDeity d)
+        => string.Equals(d.DeityType, "Goddess", StringComparison.OrdinalIgnoreCase);
+
+    // Same re-wording TodayBhakti does: the server translates the festival's name in place but
+    // cannot translate the "Festival · " prefix.
+    private string ReasonText(string reason)
+    {
+        const string festivalPrefix = "Festival · ";
+        return reason.StartsWith(festivalPrefix, StringComparison.Ordinal)
+            ? Loc.TF("dashboard.festivalWithName", "Festival · {0}", reason[festivalPrefix.Length..])
+            : reason;
+    }
+}

@@ -75,7 +75,7 @@
     private bool _canShare;
     private string? _preview;
 
-    private string DateText => Date.ToDateTime(TimeOnly.MinValue).ToString("dddd, dd MMMM yyyy");
+    private string DateText => ClockText.LongDate(Date);
     private string FileName => $"panchangam-{Date:yyyy-MM-dd}.jpg";
     private string ShareTitle => Loc["panchangam.shareTitle", "Share Panchangam"];
     private string ShareText => Loc.TF("panchangam.shareText", "Panchangam for {0}", DateText)
@@ -209,7 +209,7 @@
     private List<object> Sections(PanchangamModel d)
     {
         // 24-hour here; Section() turns every clock time in every value into 12-hour in one place.
-        static string? Clock(TimeOnly? t) => t?.ToString("HH:mm");
+        static string? Clock(TimeOnly? t) => t?.ToString("HH:mm", System.Globalization.CultureInfo.InvariantCulture);
         var saka = d.SakaSamvatsaram is null && d.VikramaSamvatsaram is null
             ? null
             : $"{d.SakaSamvatsaram?.ToString() ?? "—"} / {d.VikramaSamvatsaram?.ToString() ?? "—"}";
@@ -247,27 +247,13 @@
     {
         var kept = rows
             .Where(r => !string.IsNullOrWhiteSpace(r.Value))
-            .Select(r => new { label = r.Label, value = To12Hour(r.Value!.Trim()) })
+            .Select(r => new { label = r.Label, value = ClockText.To12Hour(r.Value!.Trim(), " ") })
             .ToList();
         return kept.Count == 0 ? null : new { tone, title, rows = kept };
     }
 
-    /// <summary>A clock time such as 19:14 or 07:27, and nothing that merely contains a colon.</summary>
-    private static readonly System.Text.RegularExpressions.Regex ClockTime =
-        new(@"(?<![\d:])([01]?\d|2[0-3]):([0-5]\d)(?![\d:])", System.Text.RegularExpressions.RegexOptions.Compiled);
-
-    /// <summary>
-    /// Every clock time in a value, 24-hour to 12-hour: "Vidiya upto 19:14" becomes "Vidiya upto
-    /// 7:14 PM", "07:27 – 08:58" becomes "7:27 AM – 8:58 AM". The API sends Tithi, Rahu Kalam and
-    /// the rest as ready-made text, so the times are rewritten inside it. AM/PM stay in English in
-    /// every language, like the rest of the app's dates and times.
-    /// </summary>
-    private static string To12Hour(string value) => ClockTime.Replace(value, m =>
-    {
-        var hour = int.Parse(m.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture);
-        var h12 = hour % 12 == 0 ? 12 : hour % 12;
-        return $"{h12}:{m.Groups[2].Value} {(hour < 12 ? "AM" : "PM")}";
-    });
+    // The 24h-to-12h rewrite lives in App.Core (ClockText) so the phone home shares it; a plain
+    // space here because the picture wraps on whitespace of its own.
 
     public async ValueTask DisposeAsync()
     {
