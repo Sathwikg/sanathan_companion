@@ -16,7 +16,10 @@
    their home-only look.
 
    The aurora is a position:fixed decoration rendered in EVERY state (loading, error, loaded). A
-   fixed child is not a flex item, so it takes no gap and breaks no rhythm. *@
+   fixed child is not a flex item, so it takes no gap and breaks no rhythm.
+
+   MobileHomeFrame adds nothing to the DOM in the phone shell. On the web host, where this route
+   renders inside the desktop layout, it supplies the .scm-shell every home style is scoped under. *@
 @page "/mobile-dashboard"
 @attribute [Authorize]
 @inherits LocalizedComponentBase
@@ -26,6 +29,7 @@
 @inject NavigationManager Nav
 @inject IAppLifecycle Lifecycle
 
+<MobileHomeFrame>
 <div class="scm-aurora" aria-hidden="true"></div>
 
 @if (_loading)
@@ -155,6 +159,7 @@ else
 {
     <div class="sc-alert sc-alert-error">@_error</div>
 }
+</MobileHomeFrame>
 
 @code {
     private DashboardModel? _model;

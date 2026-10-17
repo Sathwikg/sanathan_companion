@@ -1,0 +1,32 @@
+@* The phone home's frame. In the phone shell (MobileLayout) it renders the page's blocks as they are,
+   so each stays a DIRECT child of main.scm-content and keeps that container's gap and gutter. The
+   web host runs with Platform = Web and renders the same route inside the desktop MainLayout, where
+   there is no .scm-shell, and every home style is scoped under .scm-shell. There the blocks get a
+   shell of their own: a phone-width column with the same class names, so it looks the same.
+
+   The web frame must never become a stacking context (no isolation, z-index, transform or filter):
+   the share sheet, the deity popup and the chant sheet render inside it with z-index 1000, and a
+   stacking context here would put the desktop's sticky top bar (z-index 20) above them. That is why
+   the aurora is the frame's own background there instead of a fixed layer at z-index -1. *@
+@inject AppConfig Config
+@inject LocalizationState Loc
+
+@if (Config.IsMobile)
+{
+    @ChildContent
+}
+else
+{
+    <div class="scm-shell scm-webhome" lang="@LangCode">
+        <div class="scm-content">
+            @ChildContent
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    // The Indic caption rules key on :lang() of the shell, exactly as MobileLayout sets it.
+    private string LangCode => string.IsNullOrWhiteSpace(Loc.CurrentCode) ? LocalizationState.BaseCode : Loc.CurrentCode;
+}
