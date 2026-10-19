@@ -1,0 +1,80 @@
+@* The streak as the hero of the phone home: the number with its flame, the last seven days, the
+   status chip, the way into Sadhana and the road to the next milestone. A pure render of the
+   SadhanaStreak the page already loads; everything shown is re-derived from LastPracticeDate on
+   the IST calendar (StreakInsights), so a payload held across midnight never says "Practiced
+   Today" for yesterday. The page re-renders it when the app resumes for the same reason. *@
+@inherits LocalizedComponentBase
+
+@{
+    var today = AppClock.TodayIst;
+    var eff = StreakInsights.Effective(Streak, today);
+    var week = StreakInsights.WeekStrip(Streak, today);
+    var mile = StreakInsights.NextMilestone(eff.CurrentStreak);
+    var state = eff.PracticedToday ? "is-done" : eff.AtRisk ? "is-risk" : "is-cold";
+}
+<section class="scm-streak scm-glass is-compact @state" aria-labelledby="scm-streak-title">
+    <div class="scm-streak-head">
+        <span class="scm-streak-kicker" id="scm-streak-title">🙏 @Loc["sadhana.mySadhana", "My Sadhana"]</span>
+    </div>
+    <div class="scm-streak-main">
+        <div class="scm-streak-count">
+            <div class="scm-streak-big">
+                <span class="scm-streak-flame" aria-hidden="true">🔥</span>
+                <span class="scm-streak-n">@eff.CurrentStreak</span>
+            </div>
+            <span class="scm-streak-l">@Loc["sadhana.dayStreak", "Day Streak"]</span>
+        </div>
+        @* Day-of-month digits rather than weekday initials: the digits read the same in every
+           language and need no keys, and slicing a translated weekday name breaks Indic clusters. *@
+        <ol class="scm-streak-week" aria-label="@Loc["mobileDashboard.last7Days", "Last 7 Days"]">
+            @foreach (var d in week)
+            {
+                <li class="scm-streak-day @(d.Practiced ? "is-on" : "is-off") @(d.IsToday ? "is-today" : null)" title="@ClockText.ShortDate(d.Date)">
+                    <span class="scm-streak-day-dot" aria-hidden="true"></span>
+                    <span class="scm-streak-day-n">@d.Date.Day</span>
+                </li>
+            }
+        </ol>
+    </div>
+    <div class="scm-streak-row">
+        <span class="sc-streak-today @(eff.PracticedToday ? "done" : eff.AtRisk ? "pending risk" : "pending")">
+            @(eff.PracticedToday
+                ? "✓ " + Loc["sadhana.practicedToday", "Practiced Today"]
+                : eff.AtRisk ? Loc["mobileDashboard.streakAtRisk", "Streak at Risk"] : Loc["sadhana.notYetToday", "Not Yet Today"])
+        </span>
+        @* Gated on the menu, not on the streak having loaded: the streak endpoint names the mobile
+           home as well as Sadhana, so a seeker granted only the home still sees the card, and the
+           link must follow the switch that decides whether the page opens. *@
+        @if (CanOpenSadhana)
+        {
+            <a href="sadhana" class="scm-streak-cta">@Loc["sadhana.continueSadhana", "Continue Sadhana"] →</a>
+        }
+    </div>
+    @if (eff.CurrentStreak == 0)
+    {
+        <p class="scm-streak-note">@Loc["mobileDashboard.startStreakHint", "Complete one mala today to start a streak"]</p>
+    }
+    else if (mile.AllReached)
+    {
+        <p class="scm-streak-note">@Loc["mobileDashboard.allMilestones", "Every milestone reached"]</p>
+    }
+    else
+    {
+        <div class="scm-streak-goal">
+            <div class="scm-streak-goal-row">
+                <span class="scm-streak-goal-l">@Loc.TF("mobileDashboard.toMilestone", "To {0} Days", mile.Target)</span>
+                <span class="scm-streak-goal-v">@Loc.TF("mobileDashboard.daysToGo", "{0} to go", mile.Remaining)</span>
+            </div>
+            <div class="scm-streak-bar" role="progressbar" aria-valuemin="@mile.Floor" aria-valuemax="@mile.Target" aria-valuenow="@eff.CurrentStreak">
+                <span class="scm-streak-bar-fill" style="width:@((int)Math.Round(mile.Progress * 100))%"></span>
+            </div>
+        </div>
+    }
+</section>
+
+@code {
+    [Parameter, EditorRequired] public SadhanaStreak Streak { get; set; } = default!;
+
+    /// <summary>Whether the seeker's phone menu holds Sadhana; decides whether the card offers the link.</summary>
+    [Parameter] public bool CanOpenSadhana { get; set; }
+}

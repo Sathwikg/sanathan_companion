@@ -56,6 +56,12 @@
     /// </summary>
     [Parameter] public int? MaxItems { get; set; }
 
+    /// <summary>
+    /// Raised after every load with what the API returned (null when it failed), so the phone home
+    /// can show the next prayer in a tile without a second request. The desktop passes nothing.
+    /// </summary>
+    [Parameter] public EventCallback<PrayersResult?> OnLoaded { get; set; }
+
     private List<Prayer> _prayers = new();
     private bool _loaded;
     private bool _expanded;
@@ -89,9 +95,10 @@
     {
         // A new region is a new list; opening it already expanded would undo the cap.
         _expanded = false;
+        PrayersResult? result = null;
         try
         {
-            var result = await Api.GetPrayersAsync(Region.SelectedRegionId);
+            result = await Api.GetPrayersAsync(Region.SelectedRegionId);
             _prayers = result?.Prayers ?? new();
         }
         catch
@@ -102,6 +109,7 @@
         {
             _loaded = true;
         }
+        await OnLoaded.InvokeAsync(result);
     }
 
     private void OnRegionChanged()
@@ -142,8 +150,9 @@
         if (!string.IsNullOrWhiteSpace(p.TimeDescription)) parts.Add(p.TimeDescription!);
         if (p.FromTime is { } f)
         {
-            var window = f.ToString(TimeFormat);
-            if (p.ToTime is { } t) window += RangeDash + t.ToString(TimeFormat);
+            // Invariant culture: nothing pins one and MAUI follows the OS locale, where "tt" can be Tamil words or a lowercase "pm".
+            var window = f.ToString(TimeFormat, System.Globalization.CultureInfo.InvariantCulture);
+            if (p.ToTime is { } t) window += RangeDash + t.ToString(TimeFormat, System.Globalization.CultureInfo.InvariantCulture);
             parts.Add(window);
         }
         if (p.DeityNames.Count > 0) parts.Add(string.Join(", ", p.DeityNames));

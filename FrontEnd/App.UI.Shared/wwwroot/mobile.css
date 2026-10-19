@@ -1302,109 +1302,6 @@
   line-height: 1.15;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-/* The name's box is ~224px at 320px, and an ordinary two-word name ran ~13px past it. */
-@media (max-width: 359px) {
-  .scm-shell .scm-greet-name { font-size: 0.95rem; }
-}
-
-/* ---- sadhana summary: one row, always ----
-
-   app.css lays this out as nested wrapping flex rows with 1rem/1.2rem gaps and a 260px min-width
-   on .sc-streak, which on a 375px screen breaks into three stacked rows — flame, then stats, then
-   the button — with a gap between each. A four-track grid cannot wrap, so the summary stays one
-   row however many digits the numbers grow to. */
-.scm-shell .scm-sadhana-row {
-  display: grid;
-  grid-template-columns: 1.35fr 1fr 1fr 1fr;
-  /* stretch, not start. The cell separators below are border-left on the cells themselves, so a
-     cell sized to its own content gives a divider sized to that content — and the labels wrap to
-     different line counts per language ("Total malas" is one line in English, two in Telugu), so
-     `start` left the four dividers at four different heights. Stretching equalises them; the
-     content still sits at the top because each cell is a column flexbox. */
-  align-items: stretch;
-  gap: 0.5rem;
-}
-
-.scm-shell .scm-sadhana-cell {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.15rem;
-  min-width: 0;
-  text-align: center;
-}
-
-/* Hairline separators instead of gap, so the four cells read as one instrument. */
-.scm-shell .scm-sadhana-cell + .scm-sadhana-cell {
-  border-left: 1px solid var(--scm-hairline-soft);
-}
-
-.scm-shell .scm-sadhana-n {
-  display: flex;
-  align-items: center;
-  gap: 0.2rem;
-  font-size: 1.3rem;
-  font-weight: 800;
-  line-height: 1.1;
-  color: var(--color-on-surface);
-  font-variant-numeric: tabular-nums;
-}
-
-/* The lead cell carries the streak, so it is the one that gets the accent. */
-.scm-shell .scm-sadhana-streak .scm-sadhana-n {
-  font-size: 1.6rem;
-  color: var(--color-primary);
-}
-.scm-shell .scm-sadhana-streak.cold .scm-sadhana-n { color: var(--color-secondary); }
-.scm-shell .scm-sadhana-flame { font-size: 1.1rem; filter: saturate(1.2); }
-.scm-shell .scm-sadhana-streak.cold .scm-sadhana-flame { filter: grayscale(1); opacity: 0.5; }
-
-/* Wraps to a second line rather than ellipsizing: "Total malas" is two words in English and
-   longer in te/hi/ta/kn, and a truncated label is worse than a tall one. 11px is the floor for
-   an uppercase caption; at 9.6px these were the smallest text in the app. */
-.scm-shell .scm-sadhana-l {
-  font-size: 0.6875rem;
-  line-height: 1.2;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  color: var(--scm-text-muted);
-  overflow-wrap: anywhere;
-}
-
-/* Wraps, so a long translation of either half drops the CTA onto its own line instead of
-   squeezing the status chip — which is nowrap because a pill broken over two lines reads as
-   two pills. margin-left:auto keeps the CTA on the right edge when it does drop. */
-.scm-shell .scm-sadhana-foot {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.4rem 0.375rem;
-  margin-top: 0.7rem;
-  padding-top: 0.45rem;
-  border-top: 1px solid var(--scm-hairline-soft);
-}
-.scm-shell .scm-sadhana-foot .sc-streak-today { white-space: nowrap; font-size: 0.75rem; }
-
-/* A text action, not a full-width button: the row above is the content, and a solid bar here
-   would out-weigh it. But it is a 44px target: the padding makes the hit area and the equal
-   negative margins give that space back, so the text still sits on the card's right text edge
-   and the footer grows by a few pixels rather than by 28. */
-.scm-shell .scm-sadhana-cta {
-  flex: 0 0 auto;
-  display: inline-flex;
-  align-items: center;
-  min-height: 44px;
-  padding: 0 0.5rem;
-  margin: -0.5rem -0.5rem -0.5rem auto;
-  border-radius: var(--scm-r-inner);
-  font-size: 0.78rem;
-  font-weight: 700;
-  color: var(--color-primary);
-  text-decoration: none;
-  white-space: nowrap;
-  transition: background-color 0.12s ease, transform 0.12s ease;
-}
 
 /* ---- quick actions ----
 
@@ -1739,7 +1636,7 @@
 .scm-shell .sc-bhakti-deity:active,
 .scm-shell .sc-bhakti-more:active,
 .scm-shell a.sc-pchg-mini:active,
-.scm-shell .scm-sadhana-cta:active {
+.scm-shell .scm-streak-cta:active {
   background-image: linear-gradient(var(--scm-tint), var(--scm-tint));
   transform: scale(0.985);
 }
@@ -1767,7 +1664,7 @@
   .scm-shell .sc-bhakti-deity:active,
   .scm-shell .sc-bhakti-more:active,
   .scm-shell a.sc-pchg-mini:active,
-  .scm-shell .scm-sadhana-cta:active { transform: none; }
+  .scm-shell .scm-streak-cta:active { transform: none; }
 }
 
 /* ---- colour: the two status tones ----
@@ -1792,7 +1689,16 @@
    floor every other non-caption text gets. */
 .scm-shell:not(:lang(en)) .sc-section-head h2,
 .scm-shell:not(:lang(en)) .scm-greet-kicker,
-.scm-shell:not(:lang(en)) .scm-sadhana-l,
+.scm-shell:not(:lang(en)) .scm-streak-kicker,
+.scm-shell:not(:lang(en)) .scm-streak-l,
+.scm-shell:not(:lang(en)) .scm-streak-goal-l,
+.scm-shell:not(:lang(en)) .scm-pchg-fact .k,
+.scm-shell:not(:lang(en)) .scm-pchg-now-k,
+.scm-shell:not(:lang(en)) .scm-pchg-chip,
+.scm-shell:not(:lang(en)) .scm-tile .l,
+.scm-shell:not(:lang(en)) .scm-tile .k,
+.scm-shell:not(:lang(en)) .scm-tile-sun em,
+.scm-shell:not(:lang(en)) .scm-deity-tile-k,
 .scm-shell:not(:lang(en)) .sc-bhakti-kicker,
 .scm-shell:not(:lang(en)) .sc-pchg-mini-fact .k,
 .scm-shell:not(:lang(en)) .sc-cat-count,
@@ -1881,3 +1787,538 @@
 /* The page heading repeats what the top bar already says, so it earns less room here. */
 .scm-shell .sc-page-emoji { font-size: 1.45rem; }
 .scm-shell .sc-page-title { gap: 0.55rem; }
+
+/* ================================================================ home: glass
+   The phone home's own look, scoped like everything else here. The page renders a position:fixed
+   `.scm-aurora` as the FIRST direct child of .scm-content; that element is both the backdrop the
+   glass blurs and the home-only hook for the shared cards (`.scm-aurora ~ …`), so nothing below
+   touches `.scm-shell .sc-card`: on other phone pages a filter card holds SearchableSelect's fixed
+   click-away layer, which a filtered ancestor would shrink to the card.
+
+   Tokens hold plain rgba. A color-mix() inside a custom property makes every var() of it invalid at
+   computed-value time on iOS < 16.2, which drops the whole property — so the color-mix upgrade
+   lives in @supports, at the token, never as a second declaration.
+
+   Only `.scm-glass` carries a backdrop-filter (the two hero cards). Everything else is translucent
+   without a filter: over the soft aurora a blur adds a compositor layer per card for no visible
+   gain, the cost the card rule at the top of this file warns about. */
+
+:root {
+  --scm-glass: rgba(250, 246, 238, 0.70);
+  --scm-glass-soft: rgba(250, 246, 238, 0.84);
+  --scm-glass-edge: rgba(255, 255, 255, 0.62);
+  --scm-glass-sheen: rgba(255, 255, 255, 0.40);
+  --scm-glass-shadow: 0 14px 34px -18px rgba(61, 33, 10, 0.38), 0 2px 6px -2px rgba(61, 33, 10, 0.10);
+
+  --scm-tone-red: #B3261E;
+  --scm-tone-amber: #A24D18;
+  --scm-tone-green: #2F6A45;
+  --scm-tint-red: rgba(179, 38, 30, 0.12);
+  --scm-tint-amber: rgba(162, 77, 24, 0.13);
+  --scm-tint-green: rgba(47, 106, 69, 0.13);
+  --scm-edge-red: rgba(179, 38, 30, 0.38);
+  --scm-edge-amber: rgba(162, 77, 24, 0.38);
+  --scm-edge-green: rgba(47, 106, 69, 0.38);
+  --scm-ink-red: #7A1B15;
+  --scm-ink-amber: #7A3A12;
+  --scm-ink-green: #245538;
+
+  --scm-gold-glow: rgba(228, 169, 81, 0.55);
+}
+
+/* The dark washes use the DARK inks at 16%: 12% of the light hues is invisible on #2B1D10. */
+:root[data-theme="dark"] {
+  --scm-glass: rgba(43, 29, 16, 0.64);
+  --scm-glass-soft: rgba(43, 29, 16, 0.80);
+  --scm-glass-edge: rgba(255, 255, 255, 0.09);
+  --scm-glass-sheen: rgba(255, 255, 255, 0.07);
+  --scm-glass-shadow: 0 14px 34px -18px rgba(0, 0, 0, 0.7), 0 2px 6px -2px rgba(0, 0, 0, 0.4);
+
+  --scm-tone-red: #F2B8B5;
+  --scm-tone-amber: #F39F5A;
+  --scm-tone-green: #8FC9A3;
+  --scm-tint-red: rgba(242, 184, 181, 0.16);
+  --scm-tint-amber: rgba(243, 159, 90, 0.16);
+  --scm-tint-green: rgba(143, 201, 163, 0.16);
+  --scm-edge-red: rgba(242, 184, 181, 0.42);
+  --scm-edge-amber: rgba(243, 159, 90, 0.42);
+  --scm-edge-green: rgba(143, 201, 163, 0.42);
+  --scm-ink-red: #F2B8B5;
+  --scm-ink-amber: #F3A866;
+  --scm-ink-green: #9BD3AC;
+
+  --scm-gold-glow: rgba(243, 159, 90, 0.45);
+}
+
+@supports (color: color-mix(in srgb, red, blue)) {
+  :root {
+    --scm-glass: color-mix(in srgb, var(--color-surface) 70%, transparent);
+    --scm-glass-soft: color-mix(in srgb, var(--color-surface) 84%, transparent);
+  }
+  :root[data-theme="dark"] {
+    --scm-glass: color-mix(in srgb, var(--color-surface) 64%, transparent);
+    --scm-glass-soft: color-mix(in srgb, var(--color-surface) 80%, transparent);
+  }
+}
+
+/* ---- aurora ----
+   html carries its own background (app.css), so body's opaque gradient is painted as an in-flow
+   block ABOVE any negative-z-index layer of the root stacking context. Isolating the shell makes
+   the aurora's z-index:-1 resolve inside the shell: above body, under every card, bar, sheet and
+   modal, which keep their order. (Only #blazor-error-ui, a root-level z 100, now paints above the
+   shell's modals — acceptable.) Not on .scm-content: the pages' modals would then sit under the
+   bars, which are its siblings. A fixed element rather than a shell background because
+   background-attachment: fixed is ignored by iOS WebKit and repaints on Android, and because
+   :has() would exclude iOS 15.0–15.3. Static: a drifting layer under blurred surfaces is the
+   every-frame repaint the bell comment above removed. */
+.scm-shell { isolation: isolate; }
+
+.scm-shell .scm-aurora {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(62% 40% at 12% 4%, rgba(228, 169, 81, 0.42) 0%, transparent 70%),
+    radial-gradient(52% 36% at 92% 22%, rgba(212, 114, 34, 0.26) 0%, transparent 70%),
+    radial-gradient(56% 40% at 18% 58%, rgba(224, 122, 140, 0.18) 0%, transparent 70%),
+    radial-gradient(72% 46% at 72% 100%, rgba(120, 70, 160, 0.16) 0%, transparent 70%);
+}
+:root[data-theme="dark"] .scm-shell .scm-aurora {
+  background:
+    radial-gradient(62% 40% at 12% 4%, rgba(243, 159, 90, 0.26) 0%, transparent 70%),
+    radial-gradient(52% 36% at 92% 22%, rgba(228, 169, 81, 0.14) 0%, transparent 70%),
+    radial-gradient(56% 40% at 18% 58%, rgba(200, 90, 120, 0.14) 0%, transparent 70%),
+    radial-gradient(72% 46% at 72% 100%, rgba(120, 70, 160, 0.22) 0%, transparent 70%);
+}
+
+/* ---- the glass surfaces ---- */
+.scm-shell .scm-glass {
+  position: relative;
+  border-radius: var(--scm-r-card);
+  background: var(--scm-glass);
+  border: 1px solid var(--scm-glass-edge);
+  box-shadow: var(--scm-glass-shadow), inset 0 1px 0 var(--scm-glass-edge);
+  -webkit-backdrop-filter: var(--scm-blur);
+          backdrop-filter: var(--scm-blur);
+  isolation: isolate;
+  color: var(--color-on-surface);
+}
+.scm-shell .scm-glass::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(135deg, var(--scm-glass-sheen) 0%, transparent 42%);
+  pointer-events: none;
+  z-index: -1;
+}
+.scm-shell .scm-glass-soft {
+  border-radius: var(--scm-r-card);
+  background: var(--scm-glass-soft);
+  border: 1px solid var(--scm-glass-edge);
+  box-shadow: var(--scm-glass-shadow), inset 0 1px 0 var(--scm-glass-edge);
+  color: var(--color-on-surface);
+}
+
+/* ---- greeting: a line, not a card ---- */
+.scm-shell .scm-greet--plain {
+  background: none;
+  box-shadow: none;
+  padding: 0.25rem 0.1rem 0;
+  color: var(--color-on-surface);
+  overflow: visible;
+  gap: 0.6rem;
+}
+.scm-shell .scm-greet--plain .scm-greet-om {
+  width: 44px; height: 44px;
+  border-radius: 14px;
+  background: var(--scm-glass-soft);
+  box-shadow: var(--scm-elev-1), inset 0 0 0 1px var(--scm-glass-edge);
+  font-size: 1.6rem;
+}
+.scm-shell .scm-greet--plain .scm-greet-om .sc-logo-img { width: 32px; height: 32px; }
+/* Beside the date column the kicker's box is ~170px at 360px and "Shubh Prabhat · Good Morning" is 209px,
+   so both lines wrap rather than lose letters; the name scales with the screen (16px at 320, 18px at 360,
+   19.5px at 390, 23.2px from 464) so an ordinary two-word name stays whole and on one line. */
+.scm-shell .scm-greet--plain .scm-greet-kicker { color: var(--scm-text-muted); white-space: normal; }
+.scm-shell .scm-greet--plain .scm-greet-text { flex: 1 1 auto; }
+.scm-shell .scm-greet--plain .scm-greet-name { font-size: clamp(1rem, 5vw, 1.45rem); line-height: 1.1; font-weight: 700; letter-spacing: -0.01em; white-space: normal; }
+.scm-shell .scm-greet-date {
+  margin-left: auto;
+  flex: 0 0 auto;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.1rem;
+  font-size: 0.72rem;
+  color: var(--scm-text-muted);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.scm-shell .scm-greet-date strong { font-size: 0.85rem; color: var(--color-on-surface); font-weight: 700; white-space: nowrap; }
+/* A long region name ellipsizes rather than squeezing the seeker's name out of the line. */
+.scm-shell .scm-greet-date { max-width: 36%; }
+.scm-shell .scm-greet-date > span { max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* ---- the bento: streak hero beside the deity tile ---- */
+.scm-shell .scm-home-bento {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+  gap: var(--scm-gap);
+  align-items: stretch;
+}
+.scm-shell .scm-home-bento.is-single { grid-template-columns: minmax(0, 1fr); }
+@media (max-width: 359px) {
+  .scm-shell .scm-home-bento { grid-template-columns: minmax(0, 1fr); }
+}
+/* The hero's column is ~155px at 360px. Tamil's "Practiced Today" chip alone is 190px and its CTA 180px,
+   so Tamil gets one column below 400px; Telugu, Kannada and Hindi fit beside the deity tile (the chip and
+   the CTA may wrap there, never overflow). */
+@media (max-width: 399px) {
+  .scm-shell:lang(ta) .scm-home-bento { grid-template-columns: minmax(0, 1fr); }
+}
+
+.scm-shell .scm-deity-tile {
+  position: relative;
+  overflow: hidden;
+  min-height: 200px;
+  border-radius: var(--scm-r-card);
+  background: var(--scm-glass-soft);
+  border: 1px solid var(--scm-glass-edge);
+  box-shadow: var(--scm-glass-shadow);
+}
+.scm-shell .scm-deity-tile img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 18%; }
+.scm-shell .scm-deity-tile.is-fallback { background: var(--scm-saffron-deep); display: grid; place-items: center; }
+.scm-shell .scm-deity-tile-glyph { font-size: 3rem; line-height: 1; color: #fff; padding-bottom: 2.5rem; }
+.scm-shell .scm-deity-tile-cap {
+  position: absolute;
+  inset: auto 0 0 0;
+  padding: 1.4rem 0.7rem 0.65rem;
+  background: linear-gradient(transparent, rgba(61, 33, 10, 0.82));
+  color: #fff;
+}
+.scm-shell .scm-deity-tile-k { display: block; font-size: 0.6rem; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.9; font-weight: 700; }
+.scm-shell .scm-deity-tile-n { display: block; font-family: var(--font-heading); font-size: 1.1rem; line-height: 1.15; }
+.scm-shell .scm-deity-tile-r { display: block; font-size: 0.7rem; opacity: 0.9; margin-top: 0.1rem; }
+
+/* ---- streak hero ---- */
+.scm-shell .scm-streak {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: var(--scm-card-pad);
+}
+.scm-shell .scm-streak-head { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+.scm-shell .scm-streak-kicker {
+  font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase;
+  color: var(--scm-text-muted);
+}
+.scm-shell .scm-streak-main { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.55rem; align-items: center; }
+.scm-shell .scm-streak-count { display: flex; flex-direction: column; gap: 0.15rem; min-width: 0; }
+.scm-shell .scm-streak-big { display: flex; align-items: center; gap: 0.3rem; }
+.scm-shell .scm-streak-flame { font-size: 1.7rem; line-height: 1; filter: drop-shadow(0 0 12px var(--scm-gold-glow)) saturate(1.2); }
+/* The number in the body face: Georgia is missing on Android and its old-style digits would change the height. */
+.scm-shell .scm-streak-n {
+  font-size: 2.6rem; font-weight: 800; line-height: 1; letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  background: linear-gradient(135deg, #C0631A 0%, #E4A951 100%);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+:root[data-theme="dark"] .scm-shell .scm-streak-n { background: linear-gradient(135deg, #F39F5A 0%, #FFD28A 100%); -webkit-background-clip: text; background-clip: text; }
+.scm-shell .scm-streak-l {
+  font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase;
+  color: var(--scm-text-muted);
+}
+.scm-shell .scm-streak.is-cold .scm-streak-flame { filter: grayscale(1); opacity: 0.5; }
+.scm-shell .scm-streak.is-cold .scm-streak-n { background: none; color: var(--scm-text-muted); }
+
+.scm-shell .scm-streak-week {
+  display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 0.3rem;
+  list-style: none; margin: 0; padding: 0;
+}
+.scm-shell .scm-streak-day { display: flex; flex-direction: column; align-items: center; gap: 0.3rem; min-width: 0; }
+.scm-shell .scm-streak-day-dot {
+  width: 100%; max-width: 22px; aspect-ratio: 1; border-radius: 999px;
+  background: var(--scm-tint); box-shadow: inset 0 0 0 1px var(--scm-hairline-soft);
+  display: grid; place-items: center; font-size: 0.62rem; font-weight: 800; color: #fff;
+}
+.scm-shell .scm-streak-day.is-on .scm-streak-day-dot {
+  background: var(--gradient-gold);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 3px 8px -3px rgba(212, 114, 34, 0.6);
+}
+.scm-shell .scm-streak-day.is-on .scm-streak-day-dot::after { content: "✓"; }
+.scm-shell .scm-streak-day.is-today .scm-streak-day-dot { box-shadow: 0 0 0 2px var(--color-primary), inset 0 0 0 1px var(--scm-hairline-soft); }
+.scm-shell .scm-streak-day.is-today.is-on .scm-streak-day-dot { box-shadow: 0 0 0 2px var(--color-primary), inset 0 1px 0 rgba(255, 255, 255, 0.4); }
+.scm-shell .scm-streak-day-n { font-size: 0.62rem; font-weight: 600; color: var(--scm-text-muted); font-variant-numeric: tabular-nums; }
+.scm-shell .scm-streak-day.is-today .scm-streak-day-n { color: var(--color-primary); font-weight: 800; }
+
+/* status chip and the way into Sadhana on one row; the row wraps for a long translation */
+.scm-shell .scm-streak-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 0.4rem 0.5rem; }
+.scm-shell .scm-streak .sc-streak-today { font-size: 0.72rem; padding: 0.3rem 0.65rem; white-space: normal; min-width: 0; text-align: center; }
+.scm-shell .scm-streak .sc-streak-today.risk { background: var(--scm-tint-red); color: var(--scm-ink-red); box-shadow: inset 0 0 0 1px var(--scm-edge-red); }
+/* A text action with a 44px target, as the old summary's CTA was: a solid bar would out-weigh the number. */
+.scm-shell .scm-streak-cta {
+  flex: 0 1 auto; min-width: 0;   /* a long translation shrinks and wraps, never pokes out of the card */
+  display: inline-flex; align-items: center;
+  min-height: 44px; padding: 0 0.4rem; margin: -0.5rem -0.4rem -0.5rem auto;
+  border-radius: var(--scm-r-inner);
+  font-size: 0.78rem; font-weight: 700; color: var(--color-primary);
+  text-decoration: none; text-align: end;
+}
+.scm-shell .scm-streak-note { margin: 0; font-size: 0.78rem; line-height: 1.3; color: var(--scm-text-muted); }
+
+.scm-shell .scm-streak-goal { display: flex; flex-direction: column; gap: 0.4rem; }
+.scm-shell .scm-streak-goal-row { display: flex; justify-content: space-between; align-items: baseline; gap: 0.6rem; }
+.scm-shell .scm-streak-goal-l { font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: var(--scm-text-muted); }
+.scm-shell .scm-streak-goal-v { font-size: 0.78rem; color: var(--color-on-surface); font-variant-numeric: tabular-nums; }
+.scm-shell .scm-streak-bar { height: 7px; border-radius: 999px; background: var(--scm-tint); overflow: hidden; }
+.scm-shell .scm-streak-bar-fill { display: block; height: 100%; border-radius: inherit; background: var(--gradient-gold); box-shadow: 0 0 10px var(--scm-gold-glow); }
+
+/* ---- the time-aware Panchangam card ---- */
+.scm-shell .scm-pchg-card {
+  display: flex; flex-direction: column; gap: 0.6rem;
+  padding: var(--scm-card-pad);
+  text-decoration: none;
+  transition: background-color 0.12s ease;
+}
+.scm-shell a.scm-pchg-card:hover { text-decoration: none; }
+/* Tint only on press — a transform on a backdrop-filter surface flickers on iOS; the prayer rows take the same path. */
+.scm-shell a.scm-pchg-card:active { background-image: linear-gradient(var(--scm-tint), var(--scm-tint)); }
+/* Whatever comes last clears the 44px share button pinned to the wrap's corner. */
+.scm-shell .scm-pchg-card > :last-child { margin-right: 3.1rem; }
+
+.scm-shell .scm-pchg-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0 0.55rem; padding-right: 1.5rem; line-height: 1.35; }
+.scm-shell .scm-pchg-title { flex-basis: 100%; font-weight: 700; line-height: 1.3; color: var(--color-primary); }
+.scm-shell .scm-pchg-date, .scm-shell .scm-pchg-region { font-size: 0.78rem; color: var(--scm-text-muted); font-variant-numeric: tabular-nums; }
+.scm-shell .scm-pchg-go { position: absolute; top: var(--scm-card-pad); right: var(--scm-card-pad); font-size: 1.1rem; line-height: 1.3; color: var(--color-primary); }
+
+.scm-shell .scm-pchg-facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.5rem 0.75rem; }
+.scm-shell .scm-pchg-fact { display: flex; flex-direction: column; gap: 0.08rem; min-width: 0; }
+.scm-shell .scm-pchg-fact .k { font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: var(--scm-text-muted); }
+/* A value may wrap; it may never be clipped. */
+.scm-shell .scm-pchg-fact .v { font-size: 0.86rem; font-weight: 600; line-height: 1.3; white-space: normal; overflow-wrap: anywhere; }
+
+.scm-shell .scm-pchg-now {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 0.45rem 0.6rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: var(--scm-r-inner);
+  background: var(--scm-tint);
+  box-shadow: inset 0 0 0 1px var(--scm-hairline-soft);
+}
+.scm-shell .scm-pchg-now-dot { width: 11px; height: 11px; border-radius: 999px; flex-shrink: 0; background: var(--scm-text-muted); box-shadow: 0 0 0 3px var(--scm-tint); }
+.scm-shell .scm-pchg-now-text { display: flex; flex-direction: column; min-width: 0; flex: 1 1 auto; gap: 0.05rem; }
+.scm-shell .scm-pchg-now-k { font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--scm-text-muted); }
+.scm-shell .scm-pchg-now-v { font-size: 1.02rem; font-weight: 800; line-height: 1.2; }
+.scm-shell .scm-pchg-now-s { font-size: 0.8rem; color: var(--scm-text-muted); font-variant-numeric: tabular-nums; }
+.scm-shell .scm-pchg-chip {
+  flex: 0 0 auto; margin-left: auto; align-self: center;
+  padding: 0.2rem 0.55rem; border-radius: 999px;
+  font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+  background: var(--scm-tint); color: var(--color-on-surface); white-space: nowrap;
+  box-shadow: inset 0 0 0 1px var(--scm-hairline-soft);
+}
+.scm-shell .scm-pchg-chip .k { opacity: 0.75; margin-right: 0.25rem; font-weight: 600; }
+
+/* the tiers: a wash as background-image so the glass colour and the press tint stay independent */
+.scm-shell .scm-pchg-card.tone-red { background-image: linear-gradient(var(--scm-tint-red), var(--scm-tint-red)); border-color: var(--scm-edge-red); }
+.scm-shell .scm-pchg-card.tone-amber { background-image: linear-gradient(var(--scm-tint-amber), var(--scm-tint-amber)); border-color: var(--scm-edge-amber); }
+.scm-shell .scm-pchg-card.tone-green { background-image: linear-gradient(var(--scm-tint-green), var(--scm-tint-green)); border-color: var(--scm-edge-green); }
+.scm-shell a.scm-pchg-card.tone-red:active { background-image: linear-gradient(var(--scm-tint), var(--scm-tint)), linear-gradient(var(--scm-tint-red), var(--scm-tint-red)); }
+.scm-shell a.scm-pchg-card.tone-amber:active { background-image: linear-gradient(var(--scm-tint), var(--scm-tint)), linear-gradient(var(--scm-tint-amber), var(--scm-tint-amber)); }
+.scm-shell a.scm-pchg-card.tone-green:active { background-image: linear-gradient(var(--scm-tint), var(--scm-tint)), linear-gradient(var(--scm-tint-green), var(--scm-tint-green)); }
+
+.scm-shell .scm-pchg-card.tone-red .scm-pchg-now { background: var(--scm-tint-red); box-shadow: inset 0 0 0 1px var(--scm-edge-red); }
+.scm-shell .scm-pchg-card.tone-amber .scm-pchg-now { background: var(--scm-tint-amber); box-shadow: inset 0 0 0 1px var(--scm-edge-amber); }
+.scm-shell .scm-pchg-card.tone-green .scm-pchg-now { background: var(--scm-tint-green); box-shadow: inset 0 0 0 1px var(--scm-edge-green); }
+
+.scm-shell .scm-pchg-card.tone-red .scm-pchg-now-dot { background: var(--scm-tone-red); box-shadow: 0 0 0 3px var(--scm-tint-red); }
+.scm-shell .scm-pchg-card.tone-amber .scm-pchg-now-dot { background: var(--scm-tone-amber); box-shadow: 0 0 0 3px var(--scm-tint-amber); }
+.scm-shell .scm-pchg-card.tone-green .scm-pchg-now-dot { background: var(--scm-tone-green); box-shadow: 0 0 0 3px var(--scm-tint-green); }
+
+/* Never colour alone: the label names the window; these only make the name wear its tone. */
+.scm-shell .scm-pchg-card.tone-red .scm-pchg-now-k, .scm-shell .scm-pchg-card.tone-red .scm-pchg-now-v { color: var(--scm-ink-red); }
+.scm-shell .scm-pchg-card.tone-amber .scm-pchg-now-k, .scm-shell .scm-pchg-card.tone-amber .scm-pchg-now-v { color: var(--scm-ink-amber); }
+.scm-shell .scm-pchg-card.tone-green .scm-pchg-now-k, .scm-shell .scm-pchg-card.tone-green .scm-pchg-now-v { color: var(--scm-ink-green); }
+
+.scm-shell .scm-pchg-chip.tone-red { background: var(--scm-tint-red); color: var(--scm-ink-red); box-shadow: inset 0 0 0 1px var(--scm-edge-red); }
+.scm-shell .scm-pchg-chip.tone-amber { background: var(--scm-tint-amber); color: var(--scm-ink-amber); box-shadow: inset 0 0 0 1px var(--scm-edge-amber); }
+.scm-shell .scm-pchg-chip.tone-green { background: var(--scm-tint-green); color: var(--scm-ink-green); box-shadow: inset 0 0 0 1px var(--scm-edge-green); }
+
+/* sunrise-to-sunset bar */
+.scm-shell .scm-pchg-timeline { display: flex; flex-direction: column; gap: 0.3rem; }
+.scm-shell .scm-pchg-track { position: relative; height: 9px; border-radius: 999px; background: var(--scm-tint); box-shadow: inset 0 0 0 1px var(--scm-hairline-soft); }
+.scm-shell .scm-pchg-seg { position: absolute; top: 0; bottom: 0; border-radius: 999px; opacity: 0.9; }
+.scm-shell .scm-pchg-seg.red { background: var(--scm-tone-red); }
+.scm-shell .scm-pchg-seg.amber { background: var(--scm-tone-amber); opacity: 0.6; }
+.scm-shell .scm-pchg-seg.green { background: var(--scm-tone-green); }
+.scm-shell .scm-pchg-nowmark { position: absolute; top: -5px; width: 3px; height: 19px; margin-left: -1.5px; border-radius: 2px; background: var(--color-on-surface); box-shadow: 0 0 0 2px var(--scm-glass); }
+.scm-shell .scm-pchg-nowmark::after { content: ""; position: absolute; left: 50%; top: -5px; width: 7px; height: 7px; margin-left: -3.5px; border-radius: 999px; background: var(--color-on-surface); }
+.scm-shell .scm-pchg-ends { display: flex; justify-content: space-between; font-size: 0.68rem; color: var(--scm-text-muted); font-variant-numeric: tabular-nums; }
+
+/* ---- small tiles: totals, next prayer, sunrise/sunset ---- */
+.scm-shell .scm-tile-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--scm-gap); }
+/* As many equal columns as there are tiles (one or two), without a track count to keep in step. */
+.scm-shell .scm-tile-row.two { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); }
+.scm-shell .scm-tile { padding: 0.75rem 0.7rem; display: flex; flex-direction: column; align-items: flex-start; gap: 0.15rem; min-width: 0; text-align: left; }
+.scm-shell .scm-tile-btn { font: inherit; cursor: pointer; width: 100%; }
+.scm-shell .scm-tile-btn:active { background-image: linear-gradient(var(--scm-tint), var(--scm-tint)); }
+.scm-shell .scm-tile .n { font-size: 1.3rem; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.scm-shell .scm-tile .l { font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--scm-text-muted); overflow-wrap: anywhere; }
+.scm-shell .scm-tile .k { font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.07em; color: var(--scm-text-muted); font-weight: 700; }
+.scm-shell .scm-tile .v { font-size: 0.95rem; font-weight: 700; line-height: 1.25; overflow-wrap: anywhere; }
+.scm-shell .scm-tile .s { font-size: 0.75rem; color: var(--scm-text-muted); font-variant-numeric: tabular-nums; }
+.scm-shell .scm-tile .ic { font-size: 1.3rem; line-height: 1; margin-bottom: 0.2rem; }
+.scm-shell .scm-tile.accent .n { color: var(--color-primary); }
+.scm-shell .scm-tile-sun { flex-direction: row; justify-content: space-between; align-items: center; gap: 0.5rem; }
+.scm-shell .scm-tile-sun span { display: flex; flex-direction: column; gap: 0.05rem; min-width: 0; }
+.scm-shell .scm-tile-sun em { font-style: normal; font-size: 0.62rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--scm-text-muted); }
+.scm-shell .scm-tile-sun b { font-size: 0.9rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
+/* Telugu, Tamil and Kannada captions need the whole width: one tile per line, like the quick tiles. */
+@media (max-width: 439px) {
+  .scm-shell:not(:lang(en)):not(:lang(hi)) .scm-tile-row.two { grid-auto-flow: row; grid-template-columns: minmax(0, 1fr); }
+}
+
+/* ---- the shared cards, richer on the home only (surface properties only: layout, captions and
+   the Indic tracking rules above must keep winning) ---- */
+.scm-shell .scm-aurora ~ .sc-bhakti,
+.scm-shell .scm-aurora ~ .sc-prayergrid {
+  background: var(--scm-glass-soft);
+  border-color: var(--scm-glass-edge);
+  box-shadow: var(--scm-glass-shadow), inset 0 1px 0 var(--scm-glass-edge);
+}
+.scm-shell .scm-aurora ~ .sc-bhakti .sc-bhakti-avatar {
+  box-shadow: 0 0 0 3px rgba(228, 169, 81, 0.6), 0 10px 26px -8px rgba(212, 114, 34, 0.6);
+}
+/* background-color, not the shorthand: the press tint is a background-image set by the :active rules above. */
+.scm-shell .scm-aurora ~ .sc-bhakti .sc-bhakti-chant {
+  background-color: var(--scm-glass-soft);
+  border-color: var(--scm-glass-edge);
+  box-shadow: var(--scm-elev-1);
+}
+.scm-shell .scm-aurora ~ .sc-prayergrid .sc-prayer-ic {
+  width: 42px; height: 42px; display: grid; place-items: center; border-radius: var(--scm-r-inner);
+  background: var(--scm-tint); box-shadow: inset 0 0 0 1px var(--scm-hairline-soft); flex-shrink: 0;
+}
+.scm-shell .scm-aurora ~ .sc-prayergrid .sc-prayer-card.now .sc-prayer-ic { background: rgba(255, 255, 255, 0.16); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25); }
+.scm-shell .scm-aurora ~ .sc-catgrid .sc-cat-card {
+  background: linear-gradient(var(--scm-tint), var(--scm-tint)), var(--scm-glass-soft);
+  border-color: var(--scm-glass-edge);
+  box-shadow: var(--scm-elev-1);
+}
+.scm-shell .scm-aurora ~ .sc-catgrid .sc-cat-card:active { background-image: linear-gradient(var(--scm-tint-strong), var(--scm-tint-strong)); }
+.scm-shell .scm-aurora ~ .scm-home-quick .scm-quick {
+  background: var(--scm-glass-soft);
+  border-color: var(--scm-glass-edge);
+  box-shadow: var(--scm-elev-1), inset 0 1px 0 var(--scm-glass-edge);
+}
+.scm-shell .scm-aurora ~ .scm-home-quick .scm-quick-ic {
+  width: 40px; height: 40px; display: grid; place-items: center; border-radius: var(--scm-r-inner);
+  background: var(--scm-tint); box-shadow: inset 0 0 0 1px var(--scm-hairline-soft);
+}
+/* The two-up row layouts (below 360px, and te/ta/kn below 440px) were budgeted for the bare emoji:
+   with a 40px box "நினைவூட்டல்" no longer fits its tile whole. */
+@media (max-width: 359px) {
+  .scm-shell .scm-aurora ~ .scm-home-quick .scm-quick-ic { width: auto; height: auto; background: none; box-shadow: none; }
+}
+@media (max-width: 439px) {
+  .scm-shell:not(:lang(en)):not(:lang(hi)) .scm-aurora ~ .scm-home-quick .scm-quick-ic { width: auto; height: auto; background: none; box-shadow: none; }
+}
+
+/* ---- streak card colours: the saffron "day" palette (colour only; layout is unchanged) ----
+   White text on a deep saffron-to-bronze gradient, gold check dots, a pale-gold ring on today and
+   translucent white chips. Same in both themes. Selectors carry .scm-streak.scm-glass so they
+   outrank the glass surface, the dark-theme number gradient and the state chips above. */
+.scm-shell .scm-streak.scm-glass {
+  color: #fff;
+  background:
+    radial-gradient(70% 55% at 88% 0%, rgba(255, 226, 160, 0.55) 0%, transparent 60%),
+    radial-gradient(60% 45% at 10% 100%, rgba(255, 255, 255, 0.10) 0%, transparent 60%),
+    linear-gradient(165deg, #D97B22 0%, #B05A1A 48%, #6E3A12 100%);
+  border-color: rgba(255, 255, 255, 0.22);
+}
+.scm-shell .scm-streak.scm-glass .scm-streak-kicker { color: rgba(255, 255, 255, 0.92); }
+.scm-shell .scm-streak.scm-glass .scm-streak-n { background: none; -webkit-text-fill-color: currentColor; color: #fff; }
+.scm-shell .scm-streak.scm-glass.is-cold .scm-streak-n { color: rgba(255, 255, 255, 0.72); }
+.scm-shell .scm-streak.scm-glass .scm-streak-l { color: rgba(255, 255, 255, 0.9); }
+.scm-shell .scm-streak.scm-glass .scm-streak-day-dot { background: rgba(255, 255, 255, 0.18); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.3); color: #5A2A04; }
+.scm-shell .scm-streak.scm-glass .scm-streak-day.is-on .scm-streak-day-dot { background: linear-gradient(135deg, #FFD28A, #E4A951); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5); }
+.scm-shell .scm-streak.scm-glass .scm-streak-day.is-today .scm-streak-day-dot { box-shadow: 0 0 0 2px #FFD28A, inset 0 0 0 1px rgba(255, 255, 255, 0.3); }
+.scm-shell .scm-streak.scm-glass .scm-streak-day.is-today.is-on .scm-streak-day-dot { box-shadow: 0 0 0 2px #FFD28A, inset 0 1px 0 rgba(255, 255, 255, 0.5); }
+.scm-shell .scm-streak.scm-glass .scm-streak-day-n { color: rgba(255, 255, 255, 0.85); }
+.scm-shell .scm-streak.scm-glass .scm-streak-day.is-today .scm-streak-day-n { color: #FFD28A; }
+.scm-shell .scm-streak.scm-glass .sc-streak-today,
+.scm-shell .scm-streak.scm-glass .sc-streak-today.pending,
+.scm-shell .scm-streak.scm-glass .sc-streak-today.risk { background: rgba(255, 255, 255, 0.16); color: #fff; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35); }
+.scm-shell .scm-streak.scm-glass .sc-streak-today.done { background: rgba(255, 255, 255, 0.22); color: #fff; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35); }
+.scm-shell .scm-streak.scm-glass .scm-streak-cta { color: #fff; }
+.scm-shell .scm-streak.scm-glass .scm-streak-cta:active { background-image: linear-gradient(rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.16)); }
+.scm-shell .scm-streak.scm-glass .scm-streak-cta:focus-visible { outline: 2px solid #FFD28A; outline-offset: 2px; }
+.scm-shell .scm-streak.scm-glass .scm-streak-note { color: rgba(255, 255, 255, 0.85); }
+.scm-shell .scm-streak.scm-glass .scm-streak-goal-l { color: rgba(255, 255, 255, 0.8); }
+.scm-shell .scm-streak.scm-glass .scm-streak-goal-v { color: #fff; }
+.scm-shell .scm-streak.scm-glass .scm-streak-bar { background: rgba(255, 255, 255, 0.22); }
+.scm-shell .scm-streak.scm-glass .scm-streak-bar-fill { background: linear-gradient(90deg, #FFD28A, #E4A951); box-shadow: 0 0 8px rgba(255, 210, 138, 0.8); }
+
+/* ---- the home inside the desktop layout (web host, Platform = Web) ----
+   MobileHomeFrame wraps the page in .scm-shell.scm-webhome > .scm-content there. Everything above
+   then applies as on the phone; these rules undo the parts of the shell that belong to a whole app
+   (full height, the bottom bar's clearance, the isolation) and keep it a phone-width column.
+   No stacking context on the frame: modals inside it must stay above the desktop top bar, so the
+   aurora is painted as the frame's background rather than as a fixed layer at z-index -1. */
+.scm-shell.scm-webhome {
+  min-height: 0;
+  display: block;
+  isolation: auto;
+  max-width: 600px;
+  margin-inline: auto;
+  border-radius: 28px;
+  box-shadow: var(--scm-elev-1), inset 0 0 0 1px var(--scm-hairline-soft);
+  background-color: var(--color-background);
+  background-image:
+    radial-gradient(62% 40% at 12% 4%, rgba(228, 169, 81, 0.42) 0%, transparent 70%),
+    radial-gradient(52% 36% at 92% 22%, rgba(212, 114, 34, 0.26) 0%, transparent 70%),
+    radial-gradient(56% 40% at 18% 58%, rgba(224, 122, 140, 0.18) 0%, transparent 70%),
+    radial-gradient(72% 46% at 72% 100%, rgba(120, 70, 160, 0.16) 0%, transparent 70%),
+    var(--pattern-mandala);
+  background-attachment: scroll;
+  background-repeat: no-repeat, no-repeat, no-repeat, no-repeat, repeat;
+}
+:root[data-theme="dark"] .scm-shell.scm-webhome {
+  background-image:
+    radial-gradient(62% 40% at 12% 4%, rgba(243, 159, 90, 0.26) 0%, transparent 70%),
+    radial-gradient(52% 36% at 92% 22%, rgba(228, 169, 81, 0.14) 0%, transparent 70%),
+    radial-gradient(56% 40% at 18% 58%, rgba(200, 90, 120, 0.14) 0%, transparent 70%),
+    radial-gradient(72% 46% at 72% 100%, rgba(120, 70, 160, 0.22) 0%, transparent 70%),
+    var(--pattern-mandala);
+}
+.scm-shell.scm-webhome .scm-aurora { display: none; }
+.scm-shell.scm-webhome > .scm-content {
+  flex: none;
+  padding: var(--scm-gutter);
+}
+/* On a phone-width browser the column is the screen: bleed over the desktop content padding and drop
+   the rounded frame, so it reads exactly like the phone app. */
+@media (max-width: 640px) {
+  .scm-shell.scm-webhome {
+    max-width: none;
+    margin: calc(-1 * clamp(0.75rem, 3vw, 2rem));
+    border-radius: 0;
+    box-shadow: none;
+  }
+}
+
+/* ---- fallbacks, after the rules they cancel ---- */
+@supports not ((-webkit-backdrop-filter: blur(1px)) or (backdrop-filter: blur(1px))) {
+  .scm-shell .scm-glass { background: var(--color-surface); }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .scm-shell .scm-glass, .scm-shell .scm-glass-soft,
+  .scm-shell .scm-aurora ~ .sc-bhakti, .scm-shell .scm-aurora ~ .sc-prayergrid,
+  .scm-shell .scm-aurora ~ .scm-home-quick .scm-quick, .scm-shell .scm-deity-tile {
+    background: var(--color-surface);
+    -webkit-backdrop-filter: none;
+            backdrop-filter: none;
+  }
+  .scm-shell .scm-aurora { display: none; }
+}

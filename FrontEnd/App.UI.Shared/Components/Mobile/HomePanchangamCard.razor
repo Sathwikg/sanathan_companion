@@ -1,0 +1,329 @@
+@* The phone home's Panchangam card: minimal facts, and what is happening right now. During Rahu
+   Kalam the card tints light red; during Yamagandam, Gulika, Durmuhurtham or Varjyam light amber;
+   during Amrutha Kalam or Abhijit Muhurtham light green; otherwise it shows the next window. A
+   second active window appears as a chip. A sunrise-to-sunset bar draws the day's windows with a
+   marker for now.
+
+   "Now" is IST (AppClock), the clock every window is written in and the one the server uses for
+   the Prayers "Now" badge, so the two never disagree on one screen. Three rows are fetched in the
+   one list call PanchangamToday already makes — yesterday's row holds the windows that spill past
+   midnight, tomorrow's holds the first window after today's last one and the end of the running
+   tithi — on the only Panchangam endpoint the mobile home is granted (by-date would 403 and send
+   the seeker to access-denied).
+
+   The card re-renders when something on it changes: a one-shot timer armed at the next window or
+   tithi boundary (or IST midnight, when it refetches), once a minute while the daylight bar and
+   its marker are on screen, and never while the app is in the background (TodayBhakti's gate).
+
+   The share button is a SIBLING of the card, never inside it: a button inside the linked <a> is
+   invalid HTML, and the card carries a backdrop-filter, which would trap the share sheet's fixed
+   backdrop inside it. The wrapper is the positioned box the button pins itself to, and it must
+   never get a filter, transform or z-index of its own. *@
+@inherits LocalizedComponentBase
+@implements IDisposable
+@inject IApiClient Api
+@inject RegionState Region
+@inject IAppLifecycle Lifecycle
+
+@if (_today is not null)
+{
+    <div class="sc-pchg-mini-wrap scm-pchg-wrap">
+        @if (Linked)
+        {
+            <a href="panchangam" class="scm-pchg-card scm-glass @ToneClass">@Body</a>
+        }
+        else
+        {
+            <div class="scm-pchg-card scm-glass @ToneClass">@Body</div>
+        }
+        <PanchangamShare Inline="true" Day="_today" Date="_today.Date" LocationLabel="@(_today.RegionName ?? string.Empty)" />
+    </div>
+}
+
+@code {
+    /// <summary>True (the default) makes the card a link to the Panchangam page; false when the seeker cannot open it.</summary>
+    [Parameter] public bool Linked { get; set; } = true;
+
+    /// <summary>Today's row after each load (null when there is none), for the page's sunrise/sunset tile.</summary>
+    [Parameter] public EventCallback<PanchangamModel?> OnLoaded { get; set; }
+
+    private PanchangamModel? _today;
+    private List<PanchangamModel> _rows = new();
+    private PanchangamSnapshot _snap = PanchangamSnapshot.Empty;
+    private PanchangamSpan? _tithi;
+    private PanchangamSpan? _nakshatram;
+    private DateTime _now;
+    private DateOnly _loadedFor;
+    private System.Threading.Timer? _timer;
+    private int _generation;
+    private bool _disposed;
+    private DateTime? _retryAt;
+    private int _retryMinutes;
+
+    private string ToneClass => _snap.Tone switch
+    {
+        PanchangamTone.Red => "tone-red",
+        PanchangamTone.Amber => "tone-amber",
+        PanchangamTone.Green => "tone-green",
+        _ => string.Empty
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        Region.OnChanged += OnRegionChanged;
+        Lifecycle.Changed += OnLifecycleChanged;
+        await Region.EnsureLoadedAsync();
+        await LoadAsync();
+        Arm();
+    }
+
+    private async Task LoadAsync()
+    {
+        var gen = ++_generation;
+        var today = AppClock.TodayIst;
+        try
+        {
+            // A date range rather than by-date: that endpoint needs a concrete region (the user may
+            // be on "All Regions") and is not granted to the mobile home. No year: it would cut a
+            // range that crosses New Year.
+            var rows = await Api.GetPanchangamsAsync(regionId: Region.SelectedRegionId, from: today.AddDays(-1), to: today.AddDays(1));
+            if (gen != _generation) return;   // a newer load (region change) superseded this one
+
+            // "All Regions" returns one row per region per day; keep the first region of today's
+            // date (the API orders by date then region name) for all three days, never row [0],
+            // which would now be yesterday's.
+            var todayRow = rows.Where(r => r.Date == today).OrderBy(r => r.RegionName, StringComparer.Ordinal).FirstOrDefault();
+            _rows = todayRow is null ? new() : rows.Where(r => r.RegionId == todayRow.RegionId).ToList();
+            _today = todayRow;
+            _loadedFor = today;
+            _retryAt = null;
+            _retryMinutes = 0;
+            Evaluate();
+            await OnLoaded.InvokeAsync(_today);
+        }
+        catch
+        {
+            // Best-effort: a first failure leaves the card hidden, exactly as before; a failed
+            // refetch (midnight, a region change) keeps what is already on screen and is retried
+            // later — never re-armed at the midnight that has already passed — backing off from a
+            // minute to ten, so a thousand phones that crossed midnight while the API was down do
+            // not become the load that brings it down again.
+            _retryMinutes = _retryMinutes == 0 ? 1 : Math.Min(10, _retryMinutes * 2);
+            _retryAt = AppClock.NowIst.AddMinutes(_retryMinutes);
+        }
+    }
+
+    private void Evaluate()
+    {
+        _now = AppClock.NowIst;
+        _snap = PanchangamWindows.Evaluate(_rows, _now);
+        _tithi = PanchangamWindows.Current(_rows, r => r.TithiDetails, _now);
+        _nakshatram = PanchangamWindows.Current(_rows, r => r.NakshatramDetails, _now);
+    }
+
+    /// <summary>
+    /// One-shot, re-armed after every tick at the next instant anything on the card changes:
+    /// drift-free, nothing fires while the app is in the background, and the timer is never
+    /// touched after Dispose.
+    /// </summary>
+    private void Arm()
+    {
+        if (_disposed || _today is null || !Lifecycle.IsActive) return;
+
+        var now = AppClock.NowIst;
+        var midnight = _loadedFor.AddDays(1).ToDateTime(TimeOnly.MinValue);   // IST midnight: refetch
+        DateTime next;
+        if (midnight <= now)
+        {
+            // The refetch is overdue and the last attempt failed. Nothing on screen can change until
+            // it succeeds, so the only thing to wait for is the retry: not the past midnight (that
+            // would be a request every two seconds) and not a boundary of the stale rows.
+            next = _retryAt is { } retry && retry > now ? retry : now.AddMinutes(1);
+        }
+        else
+        {
+            next = midnight;
+            if (_snap.NextChange is { } change && change > now && change < next) next = change;
+            if (_tithi?.End is { } tithiEnd && tithiEnd > now && tithiEnd < next) next = tithiEnd;
+            if (_nakshatram?.End is { } nakEnd && nakEnd > now && nakEnd < next) next = nakEnd;
+            // While the daylight bar is on screen its marker has to keep up with the clock: a tick
+            // a minute, for this one small component, only between sunrise and sunset.
+            if (_today is { Sunrise: { } rise, Sunset: { } set } && set > rise)
+            {
+                var dayStart = _today.Date.ToDateTime(rise);
+                var dayEnd = _today.Date.ToDateTime(set);
+                if (now >= dayStart && now <= dayEnd && next > now.AddMinutes(1)) next = now.AddMinutes(1);
+            }
+        }
+
+        var due = AppClock.Until(now, next) + TimeSpan.FromSeconds(1);
+        _timer ??= new System.Threading.Timer(_ => _ = InvokeAsync(TickAsync), null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+        _timer.Change(due, Timeout.InfiniteTimeSpan);
+    }
+
+    private void Stop() => _timer?.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+
+    private async Task TickAsync()
+    {
+        if (_disposed) return;
+        try
+        {
+            if (AppClock.TodayIst != _loadedFor) await LoadAsync();
+            else Evaluate();
+            StateHasChanged();
+        }
+        catch (ObjectDisposedException) { }
+        catch (InvalidOperationException) { }
+        finally
+        {
+            Arm();
+        }
+    }
+
+    // Resume re-evaluates at once (and refetches if the date moved); backgrounded, nothing ticks.
+    private void OnLifecycleChanged()
+        => _ = InvokeAsync(async () => { if (Lifecycle.IsActive) await TickAsync(); else Stop(); });
+
+    private void OnRegionChanged()
+        => _ = InvokeAsync(async () => { await LoadAsync(); StateHasChanged(); Arm(); });
+
+    public override void Dispose()
+    {
+        _disposed = true;
+        _timer?.Dispose();
+        _timer = null;
+        // The lifecycle service is a singleton: a missed unsubscribe would keep this component alive.
+        Lifecycle.Changed -= OnLifecycleChanged;
+        Region.OnChanged -= OnRegionChanged;
+        base.Dispose();
+    }
+
+    private RenderFragment Body => __builder =>
+    {
+        <span class="scm-pchg-head">
+            <span class="scm-pchg-title">@Loc["dashboard.panchangamTitle", "Today's Panchangam"]</span>
+            <span class="scm-pchg-date">@ClockText.ShortDate(_today!.Date)</span>
+            @if (!string.IsNullOrWhiteSpace(_today.RegionName))
+            {
+                <span class="scm-pchg-region">🗺️ @_today.RegionName</span>
+            }
+            @if (Linked)
+            {
+                <span class="scm-pchg-go" aria-hidden="true">→</span>
+            }
+        </span>
+        @Status
+        @Timeline
+        <span class="scm-pchg-facts">
+            @Fact(Loc["panchangam.tithi", "Tithi"], _tithi?.Text ?? _today.TithiDetails)
+            @Fact(Loc["panchangam.nakshatram", "Nakshatram"], _nakshatram?.Text ?? _today.NakshatramDetails)
+        </span>
+    };
+
+    private RenderFragment Status => __builder =>
+    {
+        // Between midnight and sunrise without yesterday's row nothing can honestly be claimed.
+        if (_snap.Unknown && _snap.Active is null) return;
+
+        <span class="scm-pchg-now" role="status" aria-live="polite">
+            <span class="scm-pchg-now-dot" aria-hidden="true"></span>
+            <span class="scm-pchg-now-text">
+                @if (_snap.Active is { } active)
+                {
+                    <span class="scm-pchg-now-k">@Loc["dashboard.prayerNow", "Now"]</span>
+                    <span class="scm-pchg-now-v">@Label(active.Kind)</span>
+                    <span class="scm-pchg-now-s">@ClockText.Range(active.Start, active.End)</span>
+                }
+                else if (_snap.Next is { } next && next.Start.Date == _now.Date)
+                {
+                    <span class="scm-pchg-now-k">@Loc["mobileDashboard.upNext", "Up Next"]</span>
+                    <span class="scm-pchg-now-v">@Label(next.Kind)</span>
+                    <span class="scm-pchg-now-s">@ClockText.Range(next.Start, next.End)</span>
+                }
+                else
+                {
+                    <span class="scm-pchg-now-k">@Loc["mobileDashboard.allClear", "All Clear"]</span>
+                    <span class="scm-pchg-now-v">@Loc["mobileDashboard.noWindowsLeft", "No windows left today"]</span>
+                    @if (_snap.Next is { } tomorrow)
+                    {
+                        <span class="scm-pchg-now-s">@Loc.TF("mobileDashboard.nextTomorrow", "Tomorrow: {0}, {1}", Label(tomorrow.Kind), ClockText.Range(tomorrow.Start, tomorrow.End))</span>
+                    }
+                }
+            </span>
+            @if (_snap.Active is not null && _snap.Secondary is { } second)
+            {
+                <span class="scm-pchg-chip @ToneOf(second)"><span class="k">@Loc["mobileDashboard.also", "Also"]</span>@Label(second.Kind)</span>
+            }
+        </span>
+    };
+
+    /// <summary>Sunrise to sunset as one bar, today's windows drawn in their tone, a marker at now.</summary>
+    private RenderFragment Timeline => __builder =>
+    {
+        if (_today is not { Sunrise: { } rise, Sunset: { } set } || set <= rise) return;
+
+        var dayStart = _today.Date.ToDateTime(rise);
+        var dayEnd = _today.Date.ToDateTime(set);
+        var total = (dayEnd - dayStart).TotalMinutes;
+
+        <span class="scm-pchg-timeline" aria-hidden="true">
+            <span class="scm-pchg-track">
+                @foreach (var w in PanchangamWindows.AllWindows(new[] { _today }).Where(w => w.End > dayStart && w.Start < dayEnd))
+                {
+                    var left = Math.Max(0, (w.Start - dayStart).TotalMinutes) / total * 100;
+                    var right = Math.Min(total, (w.End - dayStart).TotalMinutes) / total * 100;
+                    <span class="scm-pchg-seg @SegTone(w)" style="left:@Pct(left);width:@Pct(right - left)"></span>
+                }
+                @if (_now >= dayStart && _now <= dayEnd)
+                {
+                    <span class="scm-pchg-nowmark" style="left:@Pct((_now - dayStart).TotalMinutes / total * 100)"></span>
+                }
+            </span>
+            <span class="scm-pchg-ends">
+                <span>🌅 @ClockText.Time(rise)</span>
+                <span>🌇 @ClockText.Time(set)</span>
+            </span>
+        </span>
+    };
+
+    /// <summary>One label/value pair; the value is the server's own text, in 12-hour time, never trimmed by character count (that corrupts Indic scripts).</summary>
+    private RenderFragment? Fact(string label, string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return null;
+        var text = PanchangamWindows.Compact(value);
+        return __builder =>
+        {
+            <span class="scm-pchg-fact" title="@($"{label}: {text}")"><span class="k">@label</span><span class="v">@text</span></span>
+        };
+    }
+
+    // Literal keys, one per window: the key-usage test only sees Loc["…"] literals in .razor files.
+    private string Label(PanchangamWindowKind kind) => kind switch
+    {
+        PanchangamWindowKind.RahuKalam => Loc["panchangam.rahuKalam", "Rahu Kalam"],
+        PanchangamWindowKind.Yamagandam => Loc["panchangam.yamagandam", "Yamagandam"],
+        PanchangamWindowKind.Gulika => Loc["panchangam.gulika", "Gulika"],
+        PanchangamWindowKind.Durmuhurtham => Loc["panchangam.durmuhurtham", "Durmuhurtham"],
+        PanchangamWindowKind.Varjyam => Loc["panchangam.varjyam", "Varjyam"],
+        PanchangamWindowKind.AmruthaKalam => Loc["panchangam.amruthaKalam", "Amrutha Kalam"],
+        _ => Loc["panchangam.abhijitMuhurtham", "Abhijit Muhurtham"]
+    };
+
+    private static string ToneOf(PanchangamWindow w) => w.Tone switch
+    {
+        PanchangamTone.Red => "tone-red",
+        PanchangamTone.Amber => "tone-amber",
+        _ => "tone-green"
+    };
+
+    private static string SegTone(PanchangamWindow w) => w.Tone switch
+    {
+        PanchangamTone.Red => "red",
+        PanchangamTone.Amber => "amber",
+        _ => "green"
+    };
+
+    private static string Pct(double v) => v.ToString("0.0", System.Globalization.CultureInfo.InvariantCulture) + "%";
+}

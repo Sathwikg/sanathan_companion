@@ -1,0 +1,304 @@
+@inherits LocalizedComponentBase
+@inject IApiClient Api
+@inject ToastService Toast
+@inject ConfirmService Confirm
+
+<div class="sc-card">
+    <h3>Send to Specific Users</h3>
+    
+    <div class="sc-form">
+        <div class="sc-form-row">
+            <label class="sc-label">User IDs</label>
+            <textarea class="sc-textarea" rows="3" placeholder="One user ID per line" @bind="_userIdsText" />
+            <span class="sc-hint">Enter user GUIDs, one per line</span>
+        </div>
+
+        <div class="sc-form-row">
+            <label class="sc-label">Title</label>
+            <input class="sc-input" @bind="_title" />
+        </div>
+
+        <div class="sc-form-row">
+            <label class="sc-label">Body</label>
+            <textarea class="sc-textarea" rows="3" @bind="_body" />
+        </div>
+
+        <div class="sc-form-row">
+            <label class="sc-label">Target Platform</label>
+            <select class="sc-input" @bind="_targetPlatform">
+                <option value="">All Platforms</option>
+                <option value="1">Android (FCM)</option>
+                <option value="2">iOS (APNs)</option>
+            </select>
+        </div>
+
+        <div class="sc-form-row">
+            <label class="sc-label">Image URL (optional)</label>
+            <input class="sc-input" @bind="_imageUrl" />
+        </div>
+
+        <div class="sc-form-row">
+            <label class="sc-label">Custom Data (JSON)</label>
+            <textarea class="sc-textarea" rows="4" placeholder='{"key": "value"}' @bind="_customDataJson" />
+        </div>
+
+        <button class="sc-btn-primary" @onclick="SendToUsersAsync" disabled="@_sendingToUsers">
+            @(_sendingToUsers ? "Sending…" : "Send")
+        </button>
+    </div>
+</div>
+
+<div class="sc-card">
+    <h3>Send to Module Subscribers</h3>
+    
+    <div class="sc-form">
+        <div class="sc-form-row">
+            <label class="sc-label">Module</label>
+            <select class="sc-input" @bind="_moduleId">
+                <option value="">Select a module</option>
+                @foreach (var module in _modules)
+                {
+                    <option value="@module.Id">@module.Name</option>
+                }
+            </select>
+        </div>
+
+        <div class="sc-form-row">
+            <label class="sc-label">Title</label>
+            <input class="sc-input" @bind="_moduleTitle" />
+        </div>
+
+        <div class="sc-form-row">
+            <label class="sc-label">Body</label>
+            <textarea class="sc-textarea" rows="3" @bind="_moduleBody" />
+        </div>
+
+        <div class="sc-form-row">
+            <label class="sc-label">Target Platform</label>
+            <select class="sc-input" @bind="_moduleTargetPlatform">
+                <option value="">All Platforms</option>
+                <option value="1">Android (FCM)</option>
+                <option value="2">iOS (APNs)</option>
+            </select>
+        </div>
+
+        <div class="sc-form-row">
+            <label class="sc-label">Image URL (optional)</label>
+            <input class="sc-input" @bind="_moduleImageUrl" />
+        </div>
+
+        <button class="sc-btn-primary" @onclick="SendToModuleAsync" disabled="@_sendingToModule">
+            @(_sendingToModule ? "Sending…" : "Send")
+        </button>
+    </div>
+</div>
+
+<div class="sc-card">
+    <h3>Send Test Notification</h3>
+    
+    <div class="sc-form">
+        <div class="sc-form-row">
+            <label class="sc-label">Test User ID</label>
+            <input class="sc-input" placeholder="your-user-guid" @bind="_testUserIdText" />
+        </div>
+
+        <div class="sc-form-row">
+            <label class="sc-label">Title</label>
+            <input class="sc-input" @bind="_testTitle" />
+        </div>
+
+        <div class="sc-form-row">
+            <label class="sc-label">Body</label>
+            <input class="sc-input" @bind="_testBody" />
+        </div>
+
+        <button class="sc-btn-secondary" @onclick="SendTestAsync" disabled="@_sendingTest">
+            @(_sendingTest ? "Sending…" : "Send Test")
+        </button>
+    </div>
+</div>
+
+@code {
+    private string _userIdsText = "";
+    private string _title = "";
+    private string _body = "";
+    private string _imageUrl = "";
+    private string _customDataJson = "";
+    private int? _targetPlatform;
+    private bool _sendingToUsers;
+    private bool _sendingToModule;
+    private bool _sendingTest;
+
+    private Guid? _moduleId;
+    private string _moduleTitle = "";
+    private string _moduleBody = "";
+    private string _moduleImageUrl = "";
+    private int? _moduleTargetPlatform;
+    private List<MenuModuleModel> _modules = new();
+
+    private string _testUserIdText = "";
+    private string _testTitle = "Test Notification";
+    private string _testBody = $"This is a test push notification from {Brand.AppName}";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        await LoadModulesAsync();
+    }
+
+    private async Task LoadModulesAsync()
+    {
+        try
+        {
+            _modules = await Api.GetModulesAsync() ?? new();
+        }
+        catch (Exception ex)
+        {
+            Toast.Error(ex.Message);
+        }
+    }
+
+    private async Task SendToUsersAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_userIdsText))
+        {
+            Toast.Error("Please enter at least one user ID");
+            return;
+        }
+
+        var userIds = new List<Guid>();
+        foreach (var line in _userIdsText.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            if (Guid.TryParse(line, out var id)) userIds.Add(id);
+        }
+
+        if (!userIds.Any())
+        {
+            Toast.Error("No valid user IDs found");
+            return;
+        }
+
+        Dictionary<string, string>? data = null;
+        if (!string.IsNullOrWhiteSpace(_customDataJson))
+        {
+            try
+            {
+                data = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(_customDataJson);
+            }
+            catch
+            {
+                Toast.Error("Invalid JSON in custom data");
+                return;
+            }
+        }
+
+        var request = new SendPushNotificationRequest(
+            userIds,
+            _title,
+            _body,
+            Data: data,
+            ImageUrl: string.IsNullOrWhiteSpace(_imageUrl) ? null : _imageUrl,
+            TargetPlatform: _targetPlatform is { } platform ? (PushPlatform)platform : null);
+
+        _sendingToUsers = true;
+        try
+        {
+            var result = await Api.SendPushToUsersAsync(request);
+            if (result?.Success == true)
+            {
+                Toast.Success($"Sent to {result.SentCount} users ({result.FailedCount} failed)");
+            }
+            else
+            {
+                Toast.Error(SendFailure(result, "Failed to send notification"));
+            }
+        }
+        catch (Exception ex)
+        {
+            Toast.Error(ex.Message);
+        }
+        finally
+        {
+            _sendingToUsers = false;
+        }
+    }
+
+    private async Task SendToModuleAsync()
+    {
+        if (_moduleId is not { } moduleId || moduleId == Guid.Empty)
+        {
+            Toast.Error("Please select a module");
+            return;
+        }
+
+        var request = new SendModuleNotificationRequest(
+            moduleId,
+            _moduleTitle,
+            _moduleBody,
+            ImageUrl: string.IsNullOrWhiteSpace(_moduleImageUrl) ? null : _moduleImageUrl,
+            TargetPlatform: _moduleTargetPlatform is { } platform ? (PushPlatform)platform : null);
+
+        _sendingToModule = true;
+        try
+        {
+            var result = await Api.SendPushToModuleAsync(request);
+            if (result?.Success == true)
+            {
+                Toast.Success($"Sent to {result.SentCount} users ({result.FailedCount} failed)");
+            }
+            else
+            {
+                Toast.Error(SendFailure(result, "Failed to send notification"));
+            }
+        }
+        catch (Exception ex)
+        {
+            Toast.Error(ex.Message);
+        }
+        finally
+        {
+            _sendingToModule = false;
+        }
+    }
+
+    // The API's own account of a refused send: counts first, then its first reason when it gave one.
+    private static string SendFailure(PushNotificationResult? result, string fallback)
+    {
+        if (result is null) return fallback;
+        var counts = $"{result.SentCount} sent, {result.FailedCount} failed";
+        return result.Errors.FirstOrDefault() is { Length: > 0 } reason ? $"{counts}: {reason}" : counts;
+    }
+
+    private async Task SendTestAsync()
+    {
+        if (!Guid.TryParse(_testUserIdText.Trim(), out var testUserId) || testUserId == Guid.Empty)
+        {
+            Toast.Error("Please enter a valid test user ID");
+            return;
+        }
+
+        var request = new SendTestNotificationRequest(testUserId, _testTitle, _testBody);
+
+        _sendingTest = true;
+        try
+        {
+            var result = await Api.SendTestPushNotificationAsync(request);
+            if (result?.Success == true)
+            {
+                Toast.Success("Test notification sent!");
+            }
+            else
+            {
+                Toast.Error(SendFailure(result, "Failed to send test notification"));
+            }
+        }
+        catch (Exception ex)
+        {
+            Toast.Error(ex.Message);
+        }
+        finally
+        {
+            _sendingTest = false;
+        }
+    }
+}

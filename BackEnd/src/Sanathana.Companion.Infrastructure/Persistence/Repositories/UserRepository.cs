@@ -62,6 +62,13 @@ public class UserRepository : BaseRepository<User>, IUserRepository
             .FirstOrDefaultAsync(u => u.Email == normalised, cancellationToken);
     }
 
+    public async Task<IReadOnlyList<User>> GetUsersWithNotificationPrefsAsync(CancellationToken cancellationToken = default)
+        => await Set.AsNoTracking()
+            .Include(u => u.Role)
+            .Where(u => u.IsActive && Context.UserNotificationSettings.Any(s => s.UserId == u.UserId))
+            .OrderByDescending(u => u.CreatedDate)
+            .ToListAsync(cancellationToken);
+
     public async Task PurgeUserDataAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         // Order matters only for feedback, whose FK is Restrict; the rest would cascade, but doing

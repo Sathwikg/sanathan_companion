@@ -1,10 +1,22 @@
 {
+  "mobileDashboard.allClear": "எல்லாம் சரி",
+  "mobileDashboard.allMilestones": "எல்லா மைல்கற்களையும் அடைந்துவிட்டீர்கள்",
+  "mobileDashboard.also": "மேலும்",
+  "mobileDashboard.daysToGo": "இன்னும் {0}",
   "mobileDashboard.favorites": "பிடித்தவை",
   "mobileDashboard.feedback": "கருத்து",
+  "mobileDashboard.last7Days": "கடந்த 7 நாட்கள்",
+  "mobileDashboard.nextPrayer": "அடுத்த பிரார்த்தனை",
+  "mobileDashboard.nextTomorrow": "நாளை: {0}, {1}",
+  "mobileDashboard.noWindowsLeft": "இன்று இனி நேரங்கள் எதுவும் இல்லை",
   "mobileDashboard.panchangam": "பஞ்சாங்கம்",
   "mobileDashboard.profile": "சுயவிவரம்",
   "mobileDashboard.quickActions": "விரைவு செயல்கள்",
   "mobileDashboard.reminders": "நினைவூட்டல்",
   "mobileDashboard.sadhana": "சாதனா",
+  "mobileDashboard.startStreakHint": "தொடர்ச்சியைத் தொடங்க இன்று ஒரு ஜபமாலையை நிறைவு செய்யுங்கள்",
+  "mobileDashboard.streakAtRisk": "தொடர்ச்சி ஆபத்தில்",
+  "mobileDashboard.toMilestone": "{0} நாட்களுக்கு",
+  "mobileDashboard.upNext": "அடுத்து",
   "mobileDashboard.wallpapers": "வால்பேப்பர்"
 }

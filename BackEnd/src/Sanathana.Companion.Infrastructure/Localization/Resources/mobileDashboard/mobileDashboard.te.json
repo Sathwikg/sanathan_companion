@@ -1,10 +1,22 @@
 {
+  "mobileDashboard.allClear": "అంతా బాగుంది",
+  "mobileDashboard.allMilestones": "ప్రతి మైలురాయినీ చేరుకున్నారు",
+  "mobileDashboard.also": "అలాగే",
+  "mobileDashboard.daysToGo": "ఇంకా {0}",
   "mobileDashboard.favorites": "ఇష్టమైనవి",
   "mobileDashboard.feedback": "అభిప్రాయం",
+  "mobileDashboard.last7Days": "గత 7 రోజులు",
+  "mobileDashboard.nextPrayer": "తదుపరి ప్రార్థన",
+  "mobileDashboard.nextTomorrow": "రేపు: {0}, {1}",
+  "mobileDashboard.noWindowsLeft": "ఈ రోజు ఇక సమయాలు లేవు",
   "mobileDashboard.panchangam": "పంచాంగం",
   "mobileDashboard.profile": "ప్రొఫైల్",
   "mobileDashboard.quickActions": "చర్యలు",
   "mobileDashboard.reminders": "రిమైండర్‌లు",
   "mobileDashboard.sadhana": "సాధన",
+  "mobileDashboard.startStreakHint": "వరుస ప్రారంభించడానికి ఈ రోజు ఒక మాల పూర్తి చేయండి",
+  "mobileDashboard.streakAtRisk": "వరుసకు ముప్పు",
+  "mobileDashboard.toMilestone": "{0} రోజులకు",
+  "mobileDashboard.upNext": "తదుపరి",
   "mobileDashboard.wallpapers": "వాల్‌పేపర్‌లు"
 }

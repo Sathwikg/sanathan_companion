@@ -1,0 +1,82 @@
+@* The server's effective push settings, shown as they are. There is no endpoint to change them: they
+   come from the API's "PushNotifications" configuration section and environment, so this tab must never
+   offer a Save that persists nothing. *@
+@inherits LocalizedComponentBase
+@inject IApiClient Api
+@inject ToastService Toast
+
+@if (_loading)
+{
+    <OmLoader FullPage="true" Message="Loading push settings…" />
+}
+else if (_config is null)
+{
+    <div class="sc-alert sc-alert-error">@(_error ?? "Could not load the push settings.")</div>
+}
+else
+{
+    <div class="sc-alert sc-alert-info">
+        These settings are read from the server's configuration (the "PushNotifications" section of appsettings and the environment). Change them there and restart the API.
+    </div>
+
+    <div class="sc-card">
+        <h3>FCM (Android)</h3>
+        <div class="sc-form">
+            <div class="sc-form-row"><span class="sc-label">Push Enabled</span><span>@YesNo(_config.Enabled)</span></div>
+            <div class="sc-form-row"><span class="sc-label">Service Account</span><span>@(_config.FcmConfigured ? "Configured" : "Not configured")</span></div>
+            <div class="sc-form-row"><span class="sc-label">Project ID</span><span>@Text(_config.FcmProjectId)</span></div>
+            <div class="sc-form-row"><span class="sc-label">Sender ID</span><span>@Text(_config.FcmSenderId)</span></div>
+        </div>
+    </div>
+
+    <div class="sc-card">
+        <h3>APNs (iOS)</h3>
+        <div class="sc-form">
+            <div class="sc-form-row"><span class="sc-label">Credentials</span><span>@(_config.ApnsConfigured ? "Configured" : "Not configured")</span></div>
+            <div class="sc-form-row"><span class="sc-label">Key ID</span><span>@Text(_config.ApnsKeyId)</span></div>
+            <div class="sc-form-row"><span class="sc-label">Team ID</span><span>@Text(_config.ApnsTeamId)</span></div>
+            <div class="sc-form-row"><span class="sc-label">Bundle ID</span><span>@Text(_config.ApnsBundleId)</span></div>
+            <div class="sc-form-row"><span class="sc-label">Environment</span><span>@(_config.ApnsUseSandbox ? "Sandbox (development)" : "Production")</span></div>
+        </div>
+    </div>
+
+    <div class="sc-card">
+        <h3>Defaults</h3>
+        <div class="sc-form">
+            <div class="sc-form-row"><span class="sc-label">Default Title</span><span>@Text(_config.DefaultTitle)</span></div>
+            <div class="sc-form-row"><span class="sc-label">Default Icon (Android)</span><span>@Text(_config.DefaultIcon)</span></div>
+            <div class="sc-form-row"><span class="sc-label">Default Color (Android)</span><span>@Text(_config.DefaultColor)</span></div>
+            <div class="sc-form-row"><span class="sc-label">Time to Live</span><span>@_config.TimeToLiveSeconds s</span></div>
+            <div class="sc-form-row"><span class="sc-label">Max Retry Attempts</span><span>@_config.MaxRetryAttempts</span></div>
+            <div class="sc-form-row"><span class="sc-label">Batch Size</span><span>@_config.BatchSize</span></div>
+        </div>
+    </div>
+}
+
+@code {
+    private PushNotificationConfigDto? _config;
+    private bool _loading = true;
+    private string? _error;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        try
+        {
+            _config = await Api.GetPushNotificationConfigAsync();
+        }
+        catch (Exception ex)
+        {
+            _error = ex.Message;
+            Toast.Error(ex.Message);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private static string YesNo(bool value) => value ? "Yes" : "No";
+
+    private static string Text(string? value) => string.IsNullOrWhiteSpace(value) ? "—" : value;
+}
