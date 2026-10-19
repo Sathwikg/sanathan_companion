@@ -2225,6 +2225,41 @@
   .scm-shell:not(:lang(en)):not(:lang(hi)) .scm-aurora ~ .scm-home-quick .scm-quick-ic { width: auto; height: auto; background: none; box-shadow: none; }
 }
 
+/* ---- streak card colours: the saffron "day" palette (colour only; layout is unchanged) ----
+   White text on a deep saffron-to-bronze gradient, gold check dots, a pale-gold ring on today and
+   translucent white chips. Same in both themes. Selectors carry .scm-streak.scm-glass so they
+   outrank the glass surface, the dark-theme number gradient and the state chips above. */
+.scm-shell .scm-streak.scm-glass {
+  color: #fff;
+  background:
+    radial-gradient(70% 55% at 88% 0%, rgba(255, 226, 160, 0.55) 0%, transparent 60%),
+    radial-gradient(60% 45% at 10% 100%, rgba(255, 255, 255, 0.10) 0%, transparent 60%),
+    linear-gradient(165deg, #D97B22 0%, #B05A1A 48%, #6E3A12 100%);
+  border-color: rgba(255, 255, 255, 0.22);
+}
+.scm-shell .scm-streak.scm-glass .scm-streak-kicker { color: rgba(255, 255, 255, 0.92); }
+.scm-shell .scm-streak.scm-glass .scm-streak-n { background: none; -webkit-text-fill-color: currentColor; color: #fff; }
+.scm-shell .scm-streak.scm-glass.is-cold .scm-streak-n { color: rgba(255, 255, 255, 0.72); }
+.scm-shell .scm-streak.scm-glass .scm-streak-l { color: rgba(255, 255, 255, 0.9); }
+.scm-shell .scm-streak.scm-glass .scm-streak-day-dot { background: rgba(255, 255, 255, 0.18); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.3); color: #5A2A04; }
+.scm-shell .scm-streak.scm-glass .scm-streak-day.is-on .scm-streak-day-dot { background: linear-gradient(135deg, #FFD28A, #E4A951); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5); }
+.scm-shell .scm-streak.scm-glass .scm-streak-day.is-today .scm-streak-day-dot { box-shadow: 0 0 0 2px #FFD28A, inset 0 0 0 1px rgba(255, 255, 255, 0.3); }
+.scm-shell .scm-streak.scm-glass .scm-streak-day.is-today.is-on .scm-streak-day-dot { box-shadow: 0 0 0 2px #FFD28A, inset 0 1px 0 rgba(255, 255, 255, 0.5); }
+.scm-shell .scm-streak.scm-glass .scm-streak-day-n { color: rgba(255, 255, 255, 0.85); }
+.scm-shell .scm-streak.scm-glass .scm-streak-day.is-today .scm-streak-day-n { color: #FFD28A; }
+.scm-shell .scm-streak.scm-glass .sc-streak-today,
+.scm-shell .scm-streak.scm-glass .sc-streak-today.pending,
+.scm-shell .scm-streak.scm-glass .sc-streak-today.risk { background: rgba(255, 255, 255, 0.16); color: #fff; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35); }
+.scm-shell .scm-streak.scm-glass .sc-streak-today.done { background: rgba(255, 255, 255, 0.22); color: #fff; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35); }
+.scm-shell .scm-streak.scm-glass .scm-streak-cta { color: #fff; }
+.scm-shell .scm-streak.scm-glass .scm-streak-cta:active { background-image: linear-gradient(rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.16)); }
+.scm-shell .scm-streak.scm-glass .scm-streak-cta:focus-visible { outline: 2px solid #FFD28A; outline-offset: 2px; }
+.scm-shell .scm-streak.scm-glass .scm-streak-note { color: rgba(255, 255, 255, 0.85); }
+.scm-shell .scm-streak.scm-glass .scm-streak-goal-l { color: rgba(255, 255, 255, 0.8); }
+.scm-shell .scm-streak.scm-glass .scm-streak-goal-v { color: #fff; }
+.scm-shell .scm-streak.scm-glass .scm-streak-bar { background: rgba(255, 255, 255, 0.22); }
+.scm-shell .scm-streak.scm-glass .scm-streak-bar-fill { background: linear-gradient(90deg, #FFD28A, #E4A951); box-shadow: 0 0 8px rgba(255, 210, 138, 0.8); }
+
 /* ---- the home inside the desktop layout (web host, Platform = Web) ----
    MobileHomeFrame wraps the page in .scm-shell.scm-webhome > .scm-content there. Everything above
    then applies as on the phone; these rules undo the parts of the shell that belong to a whole app
