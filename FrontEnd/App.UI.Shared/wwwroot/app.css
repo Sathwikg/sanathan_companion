@@ -4,7 +4,12 @@
 html, body {
   margin: 0;
   padding: 0;
-  overflow-x: hidden;   /* a last-resort guard: wide content must scroll in its own container */
+  /* A last-resort guard: wide content must scroll in its own container. clip, not hidden: hidden
+     makes body a scroll container that never scrolls, and every position: sticky inside it — the
+     top bars, the japa counter — then sticks to that instead of the screen and scrolls away.
+     hidden stays first only for engines without clip (iOS 15), where sticky stays as it was. */
+  overflow-x: hidden;
+  overflow-x: clip;
   min-height: 100%;
   font-family: var(--font-body);
   background: var(--color-background);
@@ -1179,20 +1184,290 @@ button.sc-prefrow:disabled:hover { background: var(--color-surface-2); }
 .sc-chantprog { display: flex; align-items: center; gap: 0.4rem; font-size: 0.76rem; color: var(--color-secondary); }
 .sc-chantprog .done { color: #2F7D4F; font-weight: 700; }
 
-/* ---- Japa counter ---- */
-.sc-japa { display: flex; flex-direction: column; align-items: center; gap: 1rem; padding: 0.5rem 0 1rem; }
-.sc-japa-ring { position: relative; width: 240px; height: 240px; border-radius: 50%; display: grid; place-items: center; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; touch-action: manipulation; background: radial-gradient(circle at 50% 45%, var(--color-primary-container), var(--color-surface)); border: 3px solid var(--color-primary); box-shadow: 0 8px 30px color-mix(in srgb, var(--color-primary) 22%, transparent); transition: transform .08s ease; }
-.sc-japa-ring:active { transform: scale(0.97); }
-.sc-japa-ring.flash { animation: sc-japa-flash .5s ease; }
-@keyframes sc-japa-flash { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-gold) 70%, transparent); } 100% { box-shadow: 0 0 0 40px transparent; } }
-.sc-japa-count { font-size: 3.4rem; font-weight: 800; line-height: 1; color: var(--color-primary); }
-.sc-japa-of { font-size: 1rem; color: var(--color-secondary); margin-top: 0.2rem; }
-.sc-japa-tap { font-size: 0.78rem; color: var(--color-secondary); margin-top: 0.4rem; text-transform: uppercase; letter-spacing: 0.05em; }
-.sc-japa-progress { position: absolute; inset: -3px; border-radius: 50%; }
-.sc-japa-malas { display: flex; align-items: center; gap: 0.5rem; font-size: 1rem; }
-.sc-japa-malas .n { font-size: 1.6rem; font-weight: 800; color: var(--color-gold); }
-.sc-japa-actions { display: flex; gap: 0.6rem; flex-wrap: wrap; justify-content: center; }
-.sc-japa-cheer { padding: 0.5rem 1rem; border-radius: var(--radius-md); background: color-mix(in srgb, #2F7D4F 14%, transparent); color: #2F7D4F; font-weight: 700; text-align: center; }
+/* ---- Japa screen ---- */
+/* While the japa screen is open the whole document is its counter (wwwroot/japa.js adds and
+   removes html.sc-jp-on): no double-tap zoom, no text selection or callout on a tap, no grey
+   flash. Inputs in the settings sheet stay editable. */
+html.sc-jp-on body {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+html.sc-jp-on input, html.sc-jp-on textarea { -webkit-user-select: text; user-select: text; }
+
+/* The space below the text is tappable too, and lets the last lines scroll up to eye level. */
+.sc-jp { display: flex; flex-direction: column; gap: 1rem; padding-bottom: 32vh; }
+
+/* The counter: a slim pill pinned under the top bar. Opaque rather than frosted on purpose —
+   a backdrop blur over scrolling text is re-rendered on every frame of every scroll. The dock
+   carries the pinning, and behind the pill a soft veil that fades in once the page has scrolled,
+   so lines of text never peek out between the top bar and the pill. The veil is driven by the
+   scroll position on the compositor; without that support it simply stays hidden. */
+.sc-jp-dock {
+  position: sticky;
+  top: calc(var(--topbar-h, 56px) + 0.6rem);
+  z-index: 6;
+}
+.sc-jp-dock::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  left: -1.25rem;
+  right: -1.25rem;
+  top: -0.75rem;
+  bottom: -1.1rem;
+  background: linear-gradient(to bottom, var(--color-background) 58%, transparent);
+  opacity: 0;
+  pointer-events: none;
+}
+@supports (animation-timeline: scroll()) {
+  .sc-jp-dock::before { animation: sc-jp-veil linear both; animation-timeline: scroll(root); animation-range: 0 160px; }
+}
+@keyframes sc-jp-veil { to { opacity: 1; } }
+
+.sc-jp-hud {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  width: 100%;
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 0.45rem 0.5rem 0.45rem 0.45rem;
+  border-radius: 999px;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--color-gold) 10%, transparent), transparent 60%),
+    color-mix(in srgb, var(--color-surface) 96%, transparent);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 10px 30px -14px color-mix(in srgb, var(--color-primary) 45%, transparent), var(--shadow-sm);
+  transition: box-shadow .4s ease, border-color .4s ease;
+}
+
+.sc-jp-ring { position: relative; flex: none; width: 60px; height: 60px; display: grid; place-items: center; }
+.sc-jp-ring svg { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); overflow: visible; }
+.sc-jp-ring-track { fill: color-mix(in srgb, var(--color-primary-container) 60%, var(--color-surface)); stroke: color-mix(in srgb, var(--color-gold) 22%, transparent); stroke-width: 5; }
+.sc-jp-ring-arc { fill: none; stroke-width: 5; stroke-linecap: round; transition: stroke-dashoffset .3s cubic-bezier(.3, .7, .4, 1); }
+.sc-jp-count {
+  position: relative;
+  font-family: var(--font-heading);
+  font-size: 1.25rem;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--color-primary);
+  font-variant-numeric: tabular-nums;
+}
+/* One breath per chant: the number lifts, a soft halo leaves the ring. Both transform/opacity
+   only, so the compositor does the work and the text below never repaints. */
+.sc-jp-ring::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid var(--color-gold);
+  opacity: 0;
+  pointer-events: none;
+}
+.sc-jp-ring.is-bump .sc-jp-count { animation: sc-jp-bump .3s ease-out; }
+.sc-jp-ring.is-bump::after { animation: sc-jp-halo .5s ease-out; }
+@keyframes sc-jp-bump { 0% { transform: scale(1); } 35% { transform: scale(1.2); } 100% { transform: scale(1); } }
+@keyframes sc-jp-halo { 0% { transform: scale(1); opacity: .7; } 100% { transform: scale(1.45); opacity: 0; } }
+
+.sc-jp-tally { display: flex; flex-direction: column; flex: 1; min-width: 0; line-height: 1.25; }
+.sc-jp-of { font-size: 1.02rem; font-weight: 700; color: var(--color-on-surface); }
+.sc-jp-meta { font-size: 0.8rem; color: var(--color-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sc-jp-meta b { color: var(--color-accent); font-weight: 800; }
+.sc-jp-dot { margin: 0 0.2rem; opacity: .6; }
+
+.sc-jp-gear {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 1px solid var(--color-outline);
+  background: var(--color-surface);
+  color: var(--color-primary);
+  cursor: pointer;
+  transition: transform .12s ease, border-color .2s ease;
+}
+.sc-jp-gear:hover { border-color: var(--color-primary); }
+.sc-jp-gear:active { transform: scale(.92); }
+.sc-jp-gear svg { width: 22px; height: 22px; }
+
+/* A mala completes: the whole pill lights up gold for the moment before the completion page. */
+.sc-jp.is-complete .sc-jp-hud {
+  border-color: var(--color-gold);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-gold) 40%, transparent), 0 14px 44px -8px color-mix(in srgb, var(--color-gold) 75%, transparent);
+  animation: sc-jp-complete .55s ease-out;
+}
+.sc-jp.is-complete .sc-jp-ring-arc { stroke-dashoffset: 0 !important; }
+@keyframes sc-jp-complete { 0% { transform: scale(1); } 40% { transform: scale(1.035); } 100% { transform: scale(1); } }
+
+.sc-jp-title { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.75rem; }
+.sc-jp-title-text { min-width: 0; }
+.sc-jp-title h1 { margin: 0; font-size: clamp(1.35rem, 4.6vw, 1.9rem); line-height: 1.2; }
+.sc-jp-title .sc-page-sub { margin: 0.25rem 0 0; }
+.sc-jp-title-actions { flex: none; display: flex; align-items: center; gap: 0.5rem; }
+
+.sc-jp-hint {
+  align-self: center;
+  margin: 0;
+  padding: 0.45rem 0.95rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-gold) 12%, transparent);
+  color: var(--color-secondary);
+  font-size: 0.84rem;
+  text-align: center;
+  animation: sc-jp-hint-in .6s ease both;
+}
+@keyframes sc-jp-hint-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+
+/* The words are what the seeker is here for: a size and spacing for reading at arm's length. */
+.sc-jp-text .sc-richtext { font-size: 1.14rem; line-height: 1.95; color: var(--color-on-surface); }
+
+/* The tap's acknowledgement (japa.js): a soft gold light where the finger landed, gone in half a
+   second. Low enough in opacity that a line under it stays readable throughout. */
+.sc-jp-ripples { position: fixed; inset: 0; z-index: 40; pointer-events: none; overflow: hidden; contain: strict; }
+.sc-jp-ripple {
+  position: absolute;
+  width: 150px;
+  height: 150px;
+  margin: -75px 0 0 -75px;
+  border-radius: 50%;
+  background: radial-gradient(circle,
+    color-mix(in srgb, var(--color-gold) 34%, transparent) 0%,
+    color-mix(in srgb, var(--color-gold) 14%, transparent) 42%,
+    transparent 70%);
+  animation: sc-jp-ripple .55s cubic-bezier(.2, .65, .3, 1) forwards;
+}
+@keyframes sc-jp-ripple { from { transform: scale(.2); opacity: 1; } to { transform: scale(1.3); opacity: 0; } }
+
+/* Battery Saver: the counter still moves with every chant, but nothing else does. */
+.sc-jp.is-lite .sc-jp-ring-arc,
+.sc-jp.is-lite .sc-jp-hud { transition: none; }
+.sc-jp.is-lite .sc-jp-hint,
+.sc-jp.is-lite.is-complete .sc-jp-hud { animation: none; }
+
+/* The settings sheet. */
+.sc-jp-settings { display: flex; flex-direction: column; gap: 1rem; }
+.sc-jp-set { display: flex; flex-direction: column; gap: 0.55rem; }
+.sc-jp-set .sc-hint { margin: 0; }
+.sc-jp-set-label { font-weight: 700; color: var(--color-on-surface); }
+.sc-jp-stepper { display: flex; align-items: center; gap: 0.5rem; }
+.sc-jp-stepper button {
+  flex: none;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  border: 1px solid var(--color-outline);
+  background: var(--color-surface);
+  color: var(--color-primary);
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.sc-jp-stepper button:disabled { opacity: .45; cursor: default; }
+.sc-jp-stepper input {
+  flex: 1;
+  min-width: 0;
+  height: 48px;
+  border-radius: 14px;
+  border: 1px solid var(--color-outline);
+  background: var(--color-surface);
+  color: var(--color-on-surface);
+  font-size: 1.45rem;
+  font-weight: 800;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  -moz-appearance: textfield;
+}
+.sc-jp-stepper input:focus { outline: none; border-color: var(--color-primary); box-shadow: 0 0 0 2px var(--color-primary-container); }
+.sc-jp-stepper input::-webkit-outer-spin-button,
+.sc-jp-stepper input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.sc-jp-presets { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.sc-jp-presets .sc-chip { min-width: 3.2rem; font-variant-numeric: tabular-nums; }
+.sc-jp-presets .sc-chip.is-on { background: var(--gradient-gold); color: #fff; }
+.sc-jp-switchrow { flex-direction: row; align-items: center; justify-content: space-between; gap: 1rem; padding-top: 0.95rem; border-top: 1px solid var(--color-outline); }
+.sc-jp-switchrow .sc-hint { margin-top: 0.2rem; }
+.sc-jp-switchrow .sc-switch { flex: none; }
+.sc-jp-auto { color: var(--color-success); }
+.sc-jp-reset { align-self: flex-start; }
+
+/* ---- Mala complete ---- */
+.sc-jpdone { display: flex; flex-direction: column; gap: 1.1rem; width: 100%; max-width: 560px; margin: 0 auto; padding: 0.5rem 0 2rem; text-align: center; }
+.sc-jpdone-hero { display: flex; flex-direction: column; align-items: center; gap: 0.35rem; padding-top: 0.5rem; }
+.sc-jpdone-burst { position: relative; width: 170px; height: 170px; display: grid; place-items: center; margin-bottom: 0.35rem; }
+/* Three rings leave the lotus once and are gone: a celebration, not a screensaver. */
+.sc-jpdone-halo {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid color-mix(in srgb, var(--color-gold) 60%, transparent);
+  opacity: 0;
+  animation: sc-jpdone-halo 1.6s cubic-bezier(.2, .7, .3, 1) forwards;
+}
+.sc-jpdone-halo.h2 { animation-delay: .18s; }
+.sc-jpdone-halo.h3 { animation-delay: .36s; }
+@keyframes sc-jpdone-halo { 0% { transform: scale(.45); opacity: .9; } 100% { transform: scale(1.3); opacity: 0; } }
+.sc-jpdone-lotus {
+  position: relative;
+  width: 128px;
+  height: 128px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  font-size: 4.1rem;
+  line-height: 1;
+  background: radial-gradient(circle at 50% 38%, #FFF9EE, color-mix(in srgb, var(--color-gold) 40%, var(--color-surface)));
+  box-shadow:
+    0 0 0 6px color-mix(in srgb, var(--color-gold) 22%, transparent),
+    0 18px 50px -12px color-mix(in srgb, var(--color-accent) 65%, transparent);
+  animation: sc-jpdone-pop .7s cubic-bezier(.2, 1.4, .4, 1) both;
+}
+@keyframes sc-jpdone-pop { 0% { transform: scale(.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+/* In the dark a cream disc glares; a warm amber glow keeps the moment without the flash. */
+:root[data-theme="dark"] .sc-jpdone-lotus {
+  background: radial-gradient(circle at 50% 38%,
+    color-mix(in srgb, var(--color-gold) 48%, var(--color-surface)),
+    color-mix(in srgb, var(--color-gold) 16%, var(--color-surface)));
+}
+.sc-jpdone-kicker { margin: 0; font-size: 0.8rem; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; color: var(--color-accent); }
+.sc-jpdone-chant { margin: 0; font-size: clamp(1.5rem, 6vw, 2.1rem); line-height: 1.2; color: var(--color-on-surface); }
+.sc-jpdone-sub { margin: 0; font-size: 0.95rem; color: var(--color-secondary); }
+
+.sc-jpdone-streak { display: flex; flex-direction: column; align-items: center; gap: 0.75rem; animation: sc-jpdone-rise .6s .15s ease-out both; }
+.sc-jpdone-flame { display: flex; align-items: baseline; justify-content: center; flex-wrap: wrap; gap: 0.45rem; }
+.sc-jpdone-flame .ic { font-size: 2rem; }
+.sc-jpdone-flame .n { font-family: var(--font-heading); font-size: 3.3rem; font-weight: 800; line-height: 1; color: var(--color-primary); font-variant-numeric: tabular-nums; }
+.sc-jpdone-flame .l { font-size: 0.82rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--color-secondary); }
+.sc-jpdone-secured { margin: 0; padding: 0.35rem 0.95rem; border-radius: 999px; background: color-mix(in srgb, var(--color-success) 14%, transparent); color: var(--color-success); font-size: 0.85rem; font-weight: 700; }
+.sc-jpdone-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.25rem; width: 100%; padding-top: 0.85rem; border-top: 1px solid var(--color-outline); }
+.sc-jpdone-stats div { display: flex; flex-direction: column; gap: 0.15rem; min-width: 0; }
+.sc-jpdone-stats b { font-size: 1.3rem; color: var(--color-primary); font-variant-numeric: tabular-nums; }
+.sc-jpdone-stats span { font-size: 0.72rem; color: var(--color-secondary); overflow-wrap: anywhere; }
+
+.sc-jpdone-actions { display: flex; flex-direction: column; gap: 0.6rem; animation: sc-jpdone-rise .6s .3s ease-out both; }
+.sc-jpdone-share { height: 54px; margin-top: 0; display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; border-radius: 16px; font-size: 1.05rem; }
+.sc-jpdone-again { height: 48px; border-radius: 14px; font-size: 0.98rem; font-weight: 700; color: var(--color-primary); }
+.sc-jpdone-home { padding: 0.6rem; font-weight: 600; color: var(--color-secondary); text-decoration: none; }
+.sc-jpdone-home:hover { color: var(--color-primary); }
+.sc-jpdone-inline { display: inline-flex; margin-top: 0.8rem; text-decoration: none; }
+@keyframes sc-jpdone-rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+
+.sc-jpdone.is-lite .sc-jpdone-halo { display: none; }
+.sc-jpdone.is-lite .sc-jpdone-lotus,
+.sc-jpdone.is-lite .sc-jpdone-streak,
+.sc-jpdone.is-lite .sc-jpdone-actions { animation: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .sc-jp-ripple, .sc-jpdone-halo { display: none; }
+  .sc-jp-ring.is-bump .sc-jp-count, .sc-jp-ring.is-bump::after,
+  .sc-jp.is-complete .sc-jp-hud, .sc-jp-hint,
+  .sc-jpdone-lotus, .sc-jpdone-streak, .sc-jpdone-actions { animation: none; }
+  .sc-jp-ring-arc { transition: none; }
+}
 
 .sc-detail-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.6rem; }
 .sc-detail-head h2 { margin: 0; }
@@ -1407,6 +1682,35 @@ img, svg, video { max-width: 100%; height: auto; }
 /* A button that reads as a link, for actions that must not change the URL. */
 .sc-link-btn { background: none; border: none; padding: 0; color: var(--color-primary); font: inherit; font-size: 0.9rem; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
 .sc-link-btn:disabled { opacity: 0.6; cursor: default; }
+/* "Continue as Guest": the same pill as the Google button, so the ways in read as one set. */
+.sc-btn-guest {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  height: 44px;
+  width: 100%;
+  border: 1px solid var(--color-outline);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-on-surface);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.sc-btn-guest:hover { border-color: var(--color-primary); background: color-mix(in srgb, var(--color-primary) 6%, transparent); }
+.sc-btn-guest:disabled { opacity: 0.6; cursor: default; }
+.sc-guest-hint { margin: 0.5rem 0 0; text-align: center; font-size: 0.8rem; color: var(--color-secondary); }
+/* A guest's Sign In in the top bar: without .sc-btn-primary's top margin it sits on the bar's centre line. */
+.sc-signin-btn { margin-top: 0; white-space: nowrap; }
+/* A guest's stand-in for the streak: the invitation to sign in. */
+.sc-guest-card { display: flex; align-items: center; flex-wrap: wrap; gap: 0.9rem 1rem; margin-bottom: 1.25rem; }
+.sc-guest-card-ic { font-size: 2rem; line-height: 1; }
+.sc-guest-card-text { flex: 1 1 220px; min-width: 0; }
+.sc-guest-card-text h3 { margin: 0 0 0.25rem; font-size: 1.05rem; color: var(--color-on-surface); }
+.sc-guest-card-text p { margin: 0; font-size: 0.9rem; color: var(--color-secondary); }
+.sc-guest-card-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.sc-guest-card-actions a { display: inline-flex; align-items: center; margin-top: 0; text-decoration: none; white-space: nowrap; }
 /* An input with a chip fused to its edge: the verified address on the Google registration form. */
 .sc-input-adorned { display: flex; align-items: stretch; }
 .sc-input-adorned .sc-input { flex: 1 1 auto; min-width: 0; border-radius: var(--radius-md) 0 0 var(--radius-md); }

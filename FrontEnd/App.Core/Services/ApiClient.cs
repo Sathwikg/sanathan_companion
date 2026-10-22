@@ -416,6 +416,14 @@ public class ApiClient : IApiClient
     public async Task<SadhanaStreak?> GetSadhanaStreakAsync()
         => await _http.GetFromJsonAsync<SadhanaStreak>(ApiRoutes.Sadhana.Streak);
 
+    public async Task<(bool Success, SadhanaChantDetail? Chant, string Error)> SaveSadhanaChantSettingsAsync(Guid id, SaveChantSettingsRequest request)
+    {
+        var response = await _http.PutAsJsonAsync(ApiRoutes.Sadhana.ChantSettings(id), request);
+        return response.IsSuccessStatusCode
+            ? (true, await response.Content.ReadFromJsonAsync<SadhanaChantDetail>(), string.Empty)
+            : (false, null, await ExtractErrorAsync(response));
+    }
+
     public async Task<PanchangamOptions> GetPanchangamOptionsAsync()
         => await _http.GetFromJsonAsync<PanchangamOptions>(ApiRoutes.Panchangam.Options) ?? new();
 

@@ -40,6 +40,15 @@ public class MenuStateTests
         }
     }
 
+    /// <summary>Signed out: the favourites and region caches read it to skip a guest's per-user calls.</summary>
+    private sealed class NoTokenStore : ITokenStore
+    {
+        public Task<string?> GetTokenAsync() => Task.FromResult<string?>(null);
+        public Task<string?> GetRefreshTokenAsync() => Task.FromResult<string?>(null);
+        public Task SetTokensAsync(string accessToken, string refreshToken) => Task.CompletedTask;
+        public Task ClearTokenAsync() => Task.CompletedTask;
+    }
+
     private sealed class StubLanguageStore(string? code) : ILanguageStore
     {
         public Task<string?> GetLanguageAsync() => Task.FromResult(code);
@@ -132,6 +141,8 @@ public class MenuStateTests
         services.AddAppCore(new AppConfig());
         services.AddScoped(_ => DispatchProxy.Create<IApiClient, FakeApi>());
         services.AddScoped<ILanguageStore>(_ => new StubLanguageStore("en"));
+        // Every host registers one (see AddAppCore); the per-user caches depend on it.
+        services.AddScoped<ITokenStore, NoTokenStore>();
 
         using var provider = services.BuildServiceProvider();
         using var scope = provider.CreateScope();

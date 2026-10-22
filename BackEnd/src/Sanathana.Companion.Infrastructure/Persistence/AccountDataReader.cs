@@ -81,6 +81,17 @@ public class AccountDataReader : IAccountDataReader
             }).ToList();
         }
 
+        export.ChantSettings = await (
+            from s in _context.UserChantSettings.AsNoTracking().Where(s => s.UserId == userId)
+            join c in _context.ChantConfigs.AsNoTracking() on s.ChantConfigId equals c.Id into cc
+            from c in cc.DefaultIfEmpty()
+            select new MyDataExportDto.ChantSettingExport
+            {
+                Chant = c != null ? c.Name : s.ChantConfigId.ToString(),
+                MalaSize = s.MalaSize,
+                VibrationEnabled = s.VibrationEnabled
+            }).ToListAsync(cancellationToken);
+
         export.Feedback = await (
             from fb in _context.Feedbacks.AsNoTracking().Where(f => f.UserId == userId)
             join type in _context.IssueTypes.AsNoTracking() on fb.IssueTypeId equals type.Id into t

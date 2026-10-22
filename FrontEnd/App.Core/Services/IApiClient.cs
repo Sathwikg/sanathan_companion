@@ -119,6 +119,9 @@ public interface IApiClient
     Task<LogCountResult?> LogSadhanaCountAsync(LogCountRequest request);
     Task<SadhanaStreak?> GetSadhanaStreakAsync();
 
+    /// <summary>Saves the seeker's own mala size and vibration choice; returns the chant as it now stands.</summary>
+    Task<(bool Success, SadhanaChantDetail? Chant, string Error)> SaveSadhanaChantSettingsAsync(Guid id, SaveChantSettingsRequest request);
+
     // Panchangam
     Task<PanchangamOptions> GetPanchangamOptionsAsync();
     Task<List<PanchangamModel>> GetPanchangamsAsync(int? year = null, Guid? regionId = null, DateOnly? from = null, DateOnly? to = null, string? search = null);

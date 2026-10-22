@@ -42,6 +42,8 @@ public static class MauiProgram
         // unauthenticated, while sign-out would leave the previous seeker's JWT in the handler's
         // cache. The same trap is already documented for LanguageContext and SessionExpiredNotifier.
         builder.Services.AddSingleton<ITokenStore, SecureStorageTokenStore>();
+        builder.Services.AddSingleton<IGuestModeStore, PreferencesGuestModeStore>();
+        builder.Services.AddSingleton<IDevicePreferences, PreferencesDevicePreferences>();
         builder.Services.AddScoped<IThemeStore, PreferencesThemeStore>();
         builder.Services.AddScoped<ILanguageStore, PreferencesLanguageStore>();
         // Lets the app start up translated with no network — important on mobile, where the API
@@ -60,6 +62,11 @@ public static class MauiProgram
         // Same override pattern. A WebView's navigator.share is not wired to the system chooser, so
         // the rendered picture goes out through MAUI's Share. See MauiImageShare.
         builder.Services.AddScoped<IImageShare, MauiImageShare>();
+
+        // Same override pattern for the japa screen. A WebView's navigator.vibrate never reaches the
+        // motor, and a browser has no battery-saver signal; MAUI has both. See MauiHaptics.
+        builder.Services.AddSingleton<IHaptics, MauiHaptics>();
+        builder.Services.AddSingleton<IEnergySaver, MauiEnergySaver>();
 
         // Same override pattern. The API models what a seeker wants to be reminded about but has
         // no way to deliver it, so the phone schedules the reminders locally.

@@ -1,8 +1,10 @@
 @* A single chant card — shows category, deities, preview and today's progress.
-   Clicking anywhere opens the chant's japa screen. Shared by the Sadhana page and the dashboard. *@
+   Clicking anywhere opens the chant's japa screen. Shared by the Sadhana page and the dashboard.
+   A guest sees the same card; opening the chant, or the heart, asks them to sign in first. *@
 @implements IDisposable
 @inject NavigationManager Nav
 @inject FavoritesState Favs
+@inject LoginGate Gate
 
 <div class="sc-tile" @onclick="Open" style="cursor:pointer">
     <div class="sc-tile-top">
@@ -51,7 +53,11 @@
 
     private void OnFavChanged() => InvokeAsync(StateHasChanged);
 
-    private async Task ToggleFavAsync() => await Favs.ToggleChantAsync(Chant.Id);
+    private async Task ToggleFavAsync()
+    {
+        if (!await Gate.EnsureSignedInAsync()) return;
+        await Favs.ToggleChantAsync(Chant.Id);
+    }
 
     private void Open() => Nav.NavigateTo($"sadhana/chant/{Chant.Id}");
 

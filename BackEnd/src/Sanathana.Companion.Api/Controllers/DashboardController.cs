@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Sanathana.Companion.Api.Filters;
 using Sanathana.Companion.Application.Common;
 using Sanathana.Companion.Application.Common.Authorization;
 using Sanathana.Companion.Application.DTOs.Dashboard;
@@ -56,6 +57,7 @@ public class DashboardController : ControllerBase
 
     /// <summary>Today's Bhakti: today's deity/deities and the sadhana configured for each,
     /// optionally limited to the caller's selected region.</summary>
+    [GuestAccess]
     [HttpGet("today-bhakti")]
     [ProducesResponseType(typeof(TodayBhaktiDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -64,6 +66,7 @@ public class DashboardController : ControllerBase
 
     /// <summary>Time-configured prayers ranked by relevance to the current time,
     /// optionally limited to the caller's selected region.</summary>
+    [GuestAccess]
     [HttpGet("prayers")]
     [ProducesResponseType(typeof(PrayersDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]

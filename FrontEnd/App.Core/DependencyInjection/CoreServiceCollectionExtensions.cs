@@ -10,7 +10,8 @@ public static class CoreServiceCollectionExtensions
 {
     /// <summary>
     /// Registers the shared client services. Each host must additionally register an
-    /// <see cref="ITokenStore"/> and <see cref="IThemeStore"/> for its platform.
+    /// <see cref="ITokenStore"/>, <see cref="IGuestModeStore"/>, <see cref="IThemeStore"/> and
+    /// <see cref="IDevicePreferences"/> for its platform.
     /// </summary>
     public static IServiceCollection AddAppCore(this IServiceCollection services, AppConfig config)
     {
@@ -39,7 +40,9 @@ public static class CoreServiceCollectionExtensions
         services.AddTransient<PlatformHeaderHandler>();
         services.AddScoped<JwtAuthenticationStateProvider>();
         services.AddScoped<AuthenticationStateProvider>(sp => sp.GetRequiredService<JwtAuthenticationStateProvider>());
-        services.AddAuthorizationCore();
+        // "browse" lets a guest in; plain [Authorize] stays members-only. See GuestSession.
+        services.AddAuthorizationCore(GuestSession.AddPolicies);
+        services.AddScoped<LoginGate>();
 
         services.AddScoped<IAuthService, AuthService>();
         // Carries a Google sign-in ticket from the login page to the page that finishes it. Scoped,
@@ -55,6 +58,11 @@ public static class CoreServiceCollectionExtensions
         // Sharing a picture: the browser does it from JavaScript, so the default has nothing to do;
         // the MAUI host overrides it with the system share sheet. See IImageShare.
         services.AddScoped<IImageShare, BrowserImageShare>();
+        // Same pattern for the japa screen's vibration and the device's battery saver: the browser
+        // handles the first in japa.js and exposes no signal for the second, so both defaults do
+        // nothing and the MAUI host replaces them with the native ones.
+        services.AddSingleton<IHaptics, BrowserHaptics>();
+        services.AddSingleton<IEnergySaver, NoEnergySaver>();
         // Same pattern: a browser cannot schedule a notification that outlives its tab, so the
         // default does nothing and the MAUI host replaces it.
         services.AddScoped<IReminderScheduler, NoOpReminderScheduler>();
@@ -86,6 +94,9 @@ public static class CoreServiceCollectionExtensions
         // the previous one's quick actions and tabs.
         services.AddScoped<MenuState>();
         services.AddScoped<IUserSessionState>(sp => sp.GetRequiredService<MenuState>());
+        // Carries a finished mala from the japa screen to its completion page.
+        services.AddScoped<JapaCompletionState>();
+        services.AddScoped<IUserSessionState>(sp => sp.GetRequiredService<JapaCompletionState>());
         // The media ticket outlives a page but not a session.
         services.AddScoped<MediaUrlBuilder>();
         services.AddScoped<IUserSessionState>(sp => sp.GetRequiredService<MediaUrlBuilder>());

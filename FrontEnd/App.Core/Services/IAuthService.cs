@@ -9,6 +9,12 @@ public interface IAuthService
     Task LogoutAsync();
 
     /// <summary>
+    /// Browse without an account. Remembered on this device until the visitor signs in or out;
+    /// the pages that need an account send them to the login page and back.
+    /// </summary>
+    Task ContinueAsGuestAsync();
+
+    /// <summary>
     /// Presents a Google ID token. On <see cref="Models.GoogleOutcomes.SignedIn"/> the session is
     /// stored; on RegistrationRequired or LinkRequired the ticket is parked in
     /// <see cref="GoogleSignInState"/> for the page that finishes the job.

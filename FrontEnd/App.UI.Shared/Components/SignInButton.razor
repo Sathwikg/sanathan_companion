@@ -1,0 +1,14 @@
+@* The guest's way out of guest mode, in the top bar of both shells. A button rather than a link:
+   the return address is read when it is tapped, because a layout does not re-render on every
+   navigation and an href would still point at the first page the guest opened. *@
+@inherits LocalizedComponentBase
+@inject LoginGate Gate
+@inject NavigationManager Nav
+
+<button type="button" class="@Class" @onclick="SignIn">@Loc["auth.signInInstead", "Sign In"]</button>
+
+@code {
+    [Parameter] public string Class { get; set; } = "sc-btn-primary sc-btn-sm sc-signin-btn";
+
+    private void SignIn() => Nav.NavigateTo(Gate.LoginUrlForHere());
+}

@@ -1,9 +1,10 @@
 @page "/wallpapers-download"
-@attribute [Authorize]
+@attribute [Authorize(Policy = GuestSession.BrowsePolicy)]
 @inherits LocalizedComponentBase
 @inject IApiClient Api
 @inject AppConfig Config
 @inject MediaUrlBuilder Media
+@inject LoginGate Gate
 
 <div class="sc-page-head">
     <div class="sc-page-title">
@@ -77,9 +78,11 @@ else
             @foreach (var w in _wallpapers)
             {
                 @* A plain anchor with `download`, so the browser saves the file itself — no JS,
-                   and it keeps working on mobile where a blob download often does not. *@
+                   and it keeps working on mobile where a blob download often does not. A guest
+                   may look but not save: for them the tap is cancelled and goes to sign in. *@
                 <a class="sc-wp-card sc-wp-download" href="@DownloadUrl(w.Id)" download
-                   title="@Loc["wallpapersDownload.tapToSave", "Tap to download"]">
+                   @onclick="DownloadTappedAsync" @onclick:preventDefault="_isGuest"
+                   title="@(_isGuest ? Loc["auth.signInToDownload", "Sign in to download"] : Loc["wallpapersDownload.tapToSave", "Tap to download"])">
                     <img class="sc-wp-thumb" src="@ImgSrc(w.Id)" alt="@(w.Title ?? _selected.Name)" loading="lazy" />
                     <figcaption>
                         <span class="sc-wp-name">@(string.IsNullOrWhiteSpace(w.Title) ? _selected.Name : w.Title)</span>
@@ -92,6 +95,9 @@ else
 }
 
 @code {
+    [CascadingParameter] private Task<AuthenticationState>? AuthState { get; set; }
+
+    private bool _isGuest;
     private List<WallpaperDeityModel> _deities = new();
     private List<WallpaperModel> _wallpapers = new();
     private WallpaperDeityModel? _selected;
@@ -104,6 +110,9 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        // Decided before the first render: it is what cancels a guest's download tap.
+        _isGuest = !GuestSession.IsMember(AuthState is null ? null : (await AuthState).User);
+
         // The ticket every media URL on this page carries; see MediaUrlBuilder.
         await Media.EnsureAsync();
         await base.OnInitializedAsync();
@@ -123,6 +132,12 @@ else
         try { _wallpapers = await Api.GetWallpapersByDeityAsync(deity.DeityId); }
         catch { _error = Loc["wallpapersDownload.couldNotLoad", "Could not load wallpapers."]; }
         finally { _loading = false; }
+    }
+
+    /// <summary>Lets a seeker's tap download as usual; sends a guest to sign in and back here.</summary>
+    private async Task DownloadTappedAsync()
+    {
+        if (_isGuest) await Gate.EnsureSignedInAsync();
     }
 
     private void BackToDeities()

@@ -1,3 +1,4 @@
+using App.Core.Auth;
 using App.Core.Models;
 
 namespace App.Core.Services;
@@ -8,18 +9,25 @@ namespace App.Core.Services;
 /// <see cref="OnChanged"/> and re-query with <see cref="SelectedRegionId"/>.
 ///
 /// Administrators may view every region at once; seekers always browse exactly one, so a
-/// seeker without a stored default is given the first active region on sign-in.
+/// seeker without a stored default is given the first active region on sign-in. A guest is
+/// treated the same way, except that the choice lives only in this session: they have no profile
+/// to read a default from or save one to.
 /// </summary>
 public class RegionState : IUserSessionState
 {
     private readonly IApiClient _api;
+    private readonly ITokenStore _tokens;
     private Task? _loadTask;
 
     /// <summary>Bumped on every <see cref="Reset"/> so a load started by a previous user
     /// cannot write its results after someone else has signed in.</summary>
     private int _generation;
 
-    public RegionState(IApiClient api) => _api = api;
+    public RegionState(IApiClient api, ITokenStore tokens)
+    {
+        _api = api;
+        _tokens = tokens;
+    }
 
     /// <summary>Active regions the user can choose from.</summary>
     public List<RegionOption> Regions { get; private set; } = new();
@@ -50,20 +58,25 @@ public class RegionState : IUserSessionState
 
         bool allowAll = false;
         Guid? storedDefault = null;
-        try
+        // A guest has no profile: they browse as a seeker with no default.
+        var signedIn = !string.IsNullOrWhiteSpace(await _tokens.GetTokenAsync());
+        if (signedIn)
         {
-            var profile = await _api.GetMyProfileAsync();
-            // Deliberately IsAdmin, not RoleName: this decides who may view every region, and the
-            // role NAME is display text that gets translated.
-            allowAll = profile?.IsAdmin ?? false;
+            try
+            {
+                var profile = await _api.GetMyProfileAsync();
+                // Deliberately IsAdmin, not RoleName: this decides who may view every region, and the
+                // role NAME is display text that gets translated.
+                allowAll = profile?.IsAdmin ?? false;
 
-            // Only honour the default if it is still an active region.
-            if (profile?.DefaultRegionId is { } id && regions.Any(r => r.Id == id))
-                storedDefault = id;
-        }
-        catch
-        {
-            // Treated as a seeker with no default.
+                // Only honour the default if it is still an active region.
+                if (profile?.DefaultRegionId is { } id && regions.Any(r => r.Id == id))
+                    storedDefault = id;
+            }
+            catch
+            {
+                // Treated as a seeker with no default.
+            }
         }
         if (generation != _generation) return;
 
@@ -75,8 +88,11 @@ public class RegionState : IUserSessionState
         if (SelectedRegionId is null && !AllowAllRegions && Regions.Count > 0)
         {
             SelectedRegionId = Regions[0].Id;
-            try { await _api.SetDefaultRegionAsync(SelectedRegionId); } catch { /* view still works */ }
-            if (generation != _generation) return;
+            if (signedIn)
+            {
+                try { await _api.SetDefaultRegionAsync(SelectedRegionId); } catch { /* view still works */ }
+                if (generation != _generation) return;
+            }
         }
 
         OnChanged?.Invoke();

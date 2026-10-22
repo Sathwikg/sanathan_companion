@@ -29,5 +29,13 @@ public interface ISadhanaRepository : IRepository<SadhanaLog>
 
     Task AddStreakAsync(SadhanaStreak streak, CancellationToken cancellationToken = default);
 
+    /// <summary>The seeker's own settings for a chant, tracked for update; null means the defaults.</summary>
+    Task<UserChantSetting?> GetChantSettingAsync(Guid userId, Guid chantConfigId, CancellationToken cancellationToken = default);
+
+    /// <summary>Every chant the seeker has customised, for the lists' "1 mala = N".</summary>
+    Task<IReadOnlyList<UserChantSetting>> GetChantSettingsAsync(Guid userId, CancellationToken cancellationToken = default);
+
+    Task AddChantSettingAsync(UserChantSetting setting, CancellationToken cancellationToken = default);
+
     void UpdateStreak(SadhanaStreak streak);
 }

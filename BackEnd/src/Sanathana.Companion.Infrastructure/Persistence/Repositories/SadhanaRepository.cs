@@ -49,6 +49,17 @@ public class SadhanaRepository : BaseRepository<SadhanaLog>, ISadhanaRepository
     public async Task AddStreakAsync(SadhanaStreak streak, CancellationToken cancellationToken = default)
         => await Context.Set<SadhanaStreak>().AddAsync(streak, cancellationToken);
 
+    public async Task<UserChantSetting?> GetChantSettingAsync(Guid userId, Guid chantConfigId, CancellationToken cancellationToken = default)
+        => await Context.Set<UserChantSetting>()
+            .FirstOrDefaultAsync(x => x.UserId == userId && x.ChantConfigId == chantConfigId, cancellationToken);
+
+    public async Task<IReadOnlyList<UserChantSetting>> GetChantSettingsAsync(Guid userId, CancellationToken cancellationToken = default)
+        => await Context.Set<UserChantSetting>().AsNoTracking()
+            .Where(x => x.UserId == userId).ToListAsync(cancellationToken);
+
+    public async Task AddChantSettingAsync(UserChantSetting setting, CancellationToken cancellationToken = default)
+        => await Context.Set<UserChantSetting>().AddAsync(setting, cancellationToken);
+
     public void UpdateStreak(SadhanaStreak streak)
         => Context.Set<SadhanaStreak>().Update(streak);
 }

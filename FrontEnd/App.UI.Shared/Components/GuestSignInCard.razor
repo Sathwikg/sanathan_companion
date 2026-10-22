@@ -1,0 +1,17 @@
+@* Shown to a guest where a seeker sees their own practice — the streak, the totals. A guest has
+   none to show, so this is the invitation instead, and both buttons come back to this page once
+   the guest has signed in or registered. *@
+@inherits LocalizedComponentBase
+@inject LoginGate Gate
+
+<div class="sc-card sc-guest-card">
+    <span class="sc-guest-card-ic" aria-hidden="true">🙏</span>
+    <div class="sc-guest-card-text">
+        <h3>@Loc["auth.guestCardTitle", "Begin Your Sadhana"]</h3>
+        <p>@Loc["auth.guestCardBody", "Sign in to count your japa, keep a daily streak and save your favorites."]</p>
+    </div>
+    <div class="sc-guest-card-actions">
+        <a class="sc-btn-primary sc-btn-sm" href="@Gate.LoginUrlForHere()">@Loc["auth.signInInstead", "Sign In"]</a>
+        <a class="sc-btn-ghost sc-btn-sm" href="@Gate.RegisterUrlForHere()">@Loc["auth.createAccount", "Create an Account"]</a>
+    </div>
+</div>

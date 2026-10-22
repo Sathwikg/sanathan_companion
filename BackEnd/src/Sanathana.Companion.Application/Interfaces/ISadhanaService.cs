@@ -17,4 +17,10 @@ public interface ISadhanaService
     Task<LogCountResultDto> LogCountAsync(LogCountDto dto, CancellationToken cancellationToken = default);
 
     Task<SadhanaStreakDto> GetStreakAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Saves the seeker's own mala size and vibration choice for a chant and returns the chant as
+    /// the japa screen now shows it. The mala in progress keeps its count.
+    /// </summary>
+    Task<SadhanaChantDetailDto> SaveChantSettingsAsync(Guid chantConfigId, SaveChantSettingsDto dto, CancellationToken cancellationToken = default);
 }

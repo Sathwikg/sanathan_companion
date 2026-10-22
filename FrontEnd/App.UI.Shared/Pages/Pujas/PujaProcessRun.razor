@@ -1,5 +1,5 @@
 @page "/puja-process"
-@attribute [Authorize]
+@attribute [Authorize(Policy = GuestSession.BrowsePolicy)]
 @inherits LocalizedComponentBase
 @inject IApiClient Api
 @inject ToastService Toast

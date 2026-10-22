@@ -140,6 +140,7 @@ public static class ApiRoutes
         public static string Today(Guid? regionId) => Query("sadhana/today", ("regionId", regionId));
         public static string Chants(string? search, Guid? regionId) => Query("sadhana/chants", ("search", search), ("regionId", regionId));
         public static string Chant(Guid id) => $"sadhana/chants/{id}";
+        public static string ChantSettings(Guid id) => $"sadhana/chants/{id}/settings";
     }
 
     public static class Panchangam

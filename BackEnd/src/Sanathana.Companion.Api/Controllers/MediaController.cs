@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Sanathana.Companion.Api.Filters;
 using Sanathana.Companion.Application.Common.Authorization;
 using Sanathana.Companion.Application.Interfaces;
 
@@ -19,8 +20,10 @@ public class MediaController : ControllerBase
     /// <remarks>
     /// Exempt from the module gate: every screen that shows a picture needs this, and which
     /// pictures a role may see is decided by the endpoints themselves, not by holding a ticket.
+    /// A guest gets one too: the deity portraits and wallpapers they may browse are ticketed.
     /// </remarks>
     [ModuleExempt]
+    [GuestAccess]
     [HttpGet("ticket")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public IActionResult GetTicket()
