@@ -71,6 +71,7 @@ secrets.json
 .env
 .env.*
 !.env.example
+!.env.vps.example
 
 # ---- Logs & runtime ----
 *.log

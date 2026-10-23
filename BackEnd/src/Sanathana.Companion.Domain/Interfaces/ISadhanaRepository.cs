@@ -11,6 +11,19 @@ public sealed record SadhanaTotals(
     long TotalJapa,
     int TotalSessions);
 
+/// <summary>One seeker's practice on one day, summed across every chant they counted.</summary>
+public sealed record SadhanaDayTotal(DateOnly Date, int Malas, long Japa, int Chants);
+
+/// <summary>One seeker's lifetime practice of one chant.</summary>
+public sealed record SadhanaChantTotal(
+    Guid ChantConfigId,
+    string ChantName,
+    string? DeityName,
+    int Malas,
+    long Japa,
+    int Days,
+    DateOnly LastDate);
+
 public interface ISadhanaRepository : IRepository<SadhanaLog>
 {
     /// <summary>Community-wide sadhana totals. <paramref name="today"/> should be the local (IST) date.</summary>
@@ -21,6 +34,15 @@ public interface ISadhanaRepository : IRepository<SadhanaLog>
     Task<IReadOnlyList<SadhanaLog>> GetLogsForDateAsync(Guid userId, DateOnly date, CancellationToken cancellationToken = default);
 
     Task<IReadOnlyList<SadhanaLog>> GetHistoryAsync(Guid userId, DateOnly from, DateOnly to, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Every day the seeker counted anything, oldest first, summed in the database. One row per
+    /// day rather than per chant, so a long history stays small.
+    /// </summary>
+    Task<IReadOnlyList<SadhanaDayTotal>> GetDailyTotalsAsync(Guid userId, CancellationToken cancellationToken = default);
+
+    /// <summary>Lifetime totals per chant the seeker has counted, in no particular order.</summary>
+    Task<IReadOnlyList<SadhanaChantTotal>> GetChantTotalsAsync(Guid userId, CancellationToken cancellationToken = default);
 
     Task<SadhanaStreak?> GetStreakAsync(Guid userId, CancellationToken cancellationToken = default);
 

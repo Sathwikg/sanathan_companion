@@ -4,7 +4,7 @@
 @if (Visible)
 {
     <div class="sc-modal-backdrop" @onclick="CloseAsync">
-        <div class="sc-modal sc-modal-form" @onclick:stopPropagation="true" role="dialog" aria-modal="true">
+        <div class="sc-modal sc-modal-form @(Wide ? "sc-modal-wide" : "")" @onclick:stopPropagation="true" role="dialog" aria-modal="true">
             <div class="sc-modal-head">
                 <h3>@Title</h3>
                 <button type="button" class="sc-modal-x" @onclick="CloseAsync" aria-label="Close">×</button>
@@ -21,6 +21,9 @@
     [Parameter] public string Title { get; set; } = "";
     [Parameter] public RenderFragment? ChildContent { get; set; }
     [Parameter] public EventCallback OnClose { get; set; }
+
+    /// <summary>Dashboard width rather than form width. Phones get the same bottom sheet either way.</summary>
+    [Parameter] public bool Wide { get; set; }
 
     private bool _locked;
 

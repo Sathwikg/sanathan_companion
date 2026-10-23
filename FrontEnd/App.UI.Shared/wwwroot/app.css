@@ -1727,3 +1727,103 @@ img, svg, video { max-width: 100%; height: auto; }
   font-weight: 600;
 }
 .sc-verified-chip { color: var(--color-success); background: color-mix(in srgb, var(--color-success) 12%, transparent); }
+
+/* ---- Users → View Profile: one seeker's practice dashboard ---- */
+.sc-modal.sc-modal-form.sc-modal-wide { max-width: 920px; }
+
+.sc-up-head { display: flex; align-items: center; gap: 1rem; }
+.sc-up-avatar { width: 60px; height: 60px; border-radius: 16px; font-size: 1.35rem; font-family: var(--font-heading); color: var(--color-primary); }
+.sc-up-id { min-width: 0; }
+.sc-up-id h2 { margin: 0 0 0.3rem; font-size: 1.35rem; overflow-wrap: anywhere; }
+.sc-up-chips { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 0.5rem; font-size: 0.85rem; }
+.sc-up-contact { display: flex; flex-wrap: wrap; gap: 0.2rem 1.1rem; margin-top: 0.4rem; font-size: 0.85rem; color: var(--color-secondary); overflow-wrap: anywhere; }
+
+/* Status pills: the dot carries the colour, the label stays in text colour so it reads in both themes. */
+.sc-up-pill { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.12rem 0.55rem; border-radius: 999px; font-size: 0.7rem; font-weight: 600; color: var(--color-on-surface); background: color-mix(in srgb, var(--pill, var(--color-secondary)) 14%, transparent); }
+.sc-up-pill::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--pill, var(--color-secondary)); flex-shrink: 0; }
+.sc-up-pill.is-good { --pill: var(--color-success); }
+.sc-up-pill.is-warn { --pill: var(--color-gold); }
+.sc-up-pill.is-bad { --pill: var(--color-error); }
+.sc-up-pill.is-muted { --pill: var(--color-secondary); }
+
+.sc-up-tabs { margin: 1rem 0 1.1rem; overflow-x: auto; scrollbar-width: none; }
+.sc-up-tabs .sc-tab { white-space: nowrap; }
+
+.sc-up-kpis { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.7rem; margin-bottom: 1rem; }
+.sc-up-kpi { display: flex; flex-direction: column; gap: 0.15rem; min-width: 0; padding: 0.75rem 0.85rem; border: 1px solid var(--color-outline); border-radius: var(--radius-md); background: var(--color-surface); }
+.sc-up-kpi-l { font-size: 0.68rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--color-secondary); }
+.sc-up-kpi-n { font-size: 1.45rem; font-weight: 700; line-height: 1.15; color: var(--color-on-surface); }
+.sc-up-kpi-sub { font-size: 0.72rem; color: var(--color-secondary); }
+.sc-up-kpi-sub.is-good { font-weight: 600; color: color-mix(in srgb, var(--color-success) 75%, var(--color-on-surface)); }
+.sc-up-kpi-sub.is-bad { font-weight: 600; color: var(--color-error); }
+
+.sc-up-grid { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(0, 1fr); gap: 1rem; }
+.sc-up-wide { grid-column: 1 / -1; }
+.sc-up-panel { min-width: 0; padding: 0.95rem 1.05rem; border: 1px solid var(--color-outline); border-radius: var(--radius-lg); background: var(--color-surface); }
+.sc-up-panel-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.3rem 0.6rem; margin-bottom: 0.75rem; }
+.sc-up-panel-head h3 { margin: 0; font-size: 0.95rem; color: var(--color-on-surface); }
+.sc-up-panel-sub { font-size: 0.75rem; color: var(--color-secondary); }
+.sc-up-empty { margin: 0.2rem 0; font-size: 0.85rem; }
+.sc-up-more { margin: 0.6rem 0 0; font-size: 0.78rem; color: var(--color-secondary); }
+
+/* Practice calendar. One hue, the primary mixed into the surface: 46/64/82/100% are the steps that
+   keep the lightest at 2:1 against the panel in both themes, so change them together. Level 1 is a
+   day counted without finishing a mala. */
+.sc-up-heat { display: block; width: 100%; max-width: 560px; height: auto; }
+.sc-up-heat-txt { font-size: 9px; font-family: var(--font-body); fill: var(--color-secondary); }
+.sc-up-heat rect { fill: var(--heat); stroke: transparent; stroke-width: 1.5; }
+.sc-up-heat rect:hover { stroke: var(--color-on-surface); }
+.sc-up-heat rect.is-today { stroke: var(--color-on-surface); stroke-width: 1; }
+.sc-up-heat-l0 { --heat: color-mix(in srgb, var(--color-on-surface) 8%, var(--color-surface)); }
+.sc-up-heat-l1 { --heat: color-mix(in srgb, var(--color-primary) 46%, var(--color-surface)); }
+.sc-up-heat-l2 { --heat: color-mix(in srgb, var(--color-primary) 64%, var(--color-surface)); }
+.sc-up-heat-l3 { --heat: color-mix(in srgb, var(--color-primary) 82%, var(--color-surface)); }
+.sc-up-heat-l4 { --heat: var(--color-primary); }
+.sc-up-legend { display: inline-flex; align-items: center; gap: 3px; margin-left: auto; font-size: 0.7rem; color: var(--color-secondary); }
+.sc-up-legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; background: var(--heat); }
+
+.sc-up-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(150px, 100%), 1fr)); gap: 0.6rem 1rem; margin-top: 0.85rem; padding-top: 0.75rem; border-top: 1px solid var(--color-outline); }
+.sc-up-facts > div { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
+.sc-up-facts .k { font-size: 0.68rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--color-secondary); }
+.sc-up-facts .v { font-size: 0.86rem; color: var(--color-on-surface); }
+
+/* Weekday bars: one series, one colour; only the busiest day is labelled, the rest on hover. The
+   chart grows to the height of the calendar beside it rather than leaving a gap under it. */
+.sc-up-weekpanel { display: flex; flex-direction: column; }
+.sc-up-week { flex: 1 1 auto; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
+.sc-up-wcol { display: flex; flex-direction: column; align-items: center; gap: 0.3rem; min-width: 0; }
+.sc-up-wval { min-height: 1em; font-size: 0.72rem; font-weight: 700; line-height: 1; color: var(--color-on-surface); }
+.sc-up-wtrack { flex: 1 1 auto; display: flex; align-items: flex-end; justify-content: center; width: 100%; min-height: 120px; border-bottom: 1px solid var(--color-outline); }
+.sc-up-wbar { width: min(26px, 62%); min-height: 4px; border-radius: 4px 4px 0 0; background: var(--color-accent); }
+.sc-up-wcol:hover .sc-up-wbar { background: color-mix(in srgb, var(--color-accent) 78%, var(--color-on-surface)); }
+.sc-up-wlbl { font-size: 0.7rem; color: var(--color-secondary); }
+
+.sc-up-rank { display: flex; flex-direction: column; gap: 0.7rem; }
+.sc-up-rank-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 0.25rem 0.7rem; }
+.sc-up-rank-text { display: flex; flex-direction: column; min-width: 0; }
+.sc-up-rank-text .nm { font-size: 0.88rem; font-weight: 600; color: var(--color-on-surface); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sc-up-rank-text .sub { font-size: 0.74rem; color: var(--color-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sc-up-rank-val { font-size: 0.8rem; font-weight: 700; color: var(--color-on-surface); white-space: nowrap; }
+.sc-up-rank-track { grid-column: 1 / -1; height: 8px; border-radius: 999px; background: color-mix(in srgb, var(--color-on-surface) 7%, transparent); overflow: hidden; }
+.sc-up-rank-fill { height: 100%; border-radius: 999px; background: var(--color-accent); }
+
+.sc-up-details { margin-bottom: 0; }
+
+.sc-up-timeline-top { outline: none; scroll-margin-top: 1rem; }
+.sc-up-tlsub { margin: 0 0 0.8rem; font-size: 0.85rem; }
+.sc-up-tlerror { margin-bottom: 0.8rem; }
+.sc-up-timeline { gap: 0.7rem; transition: opacity .15s ease; }
+.sc-up-timeline.is-refreshing { opacity: 0.55; pointer-events: none; }
+.sc-up-timeline .sc-day-card { padding: 0.85rem 1rem; }
+
+@media (max-width: 760px) {
+  .sc-up-grid { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 560px) {
+  .sc-up-head { align-items: flex-start; }
+  .sc-up-avatar { width: 48px; height: 48px; border-radius: 13px; font-size: 1.1rem; }
+  .sc-up-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .sc-up-legend { margin-left: 0; width: 100%; }
+  /* The calendar scales down to fit the sheet, so its labels start larger to land near 9px. */
+  .sc-up-heat-txt { font-size: 11px; }
+}

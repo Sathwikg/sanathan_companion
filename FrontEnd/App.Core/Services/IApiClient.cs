@@ -88,6 +88,7 @@ public interface IApiClient
     // Users (admin)
     Task<(bool Ok, List<UserListItem> Users, bool Forbidden, string Error)> GetUsersAsync();
     Task<UserProfile?> GetUserProfileAsync(Guid id);
+    Task<UserSadhanaPage?> GetUserSadhanaAsync(Guid id, int page, int pageSize);
 
     // Signed-in user's own profile
     Task<MyProfile?> GetMyProfileAsync();

@@ -119,6 +119,8 @@ public static class ApiRoutes
     {
         public const string Root = "users";
         public static string ById(Guid id) => $"users/{id}";
+        /// <summary>One page of the user's sadhana history; a page is <paramref name="pageSize"/> practice days.</summary>
+        public static string Sadhana(Guid id, int page, int pageSize) => $"users/{id}/sadhana?page={page}&pageSize={pageSize}";
         /// <summary>Opens or closes an account; closing also ends its live sessions.</summary>
         public static string Status(Guid id) => $"users/{id}/status";
     }

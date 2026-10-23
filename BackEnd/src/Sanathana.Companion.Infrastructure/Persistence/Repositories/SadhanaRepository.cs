@@ -36,6 +36,49 @@ public class SadhanaRepository : BaseRepository<SadhanaLog>, ISadhanaRepository
         => await Set.AsNoTracking().Where(x => x.UserId == userId && x.Date >= from && x.Date <= to)
             .OrderByDescending(x => x.Date).ToListAsync(cancellationToken);
 
+    // Both totals skip rows still at zero: the japa screen's Reset can save a log with nothing
+    // counted, and that is not a day of practice.
+    public async Task<IReadOnlyList<SadhanaDayTotal>> GetDailyTotalsAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        var rows = await Set.AsNoTracking()
+            .Where(x => x.UserId == userId && x.TotalCount > 0)
+            .GroupBy(x => x.Date)
+            .Select(g => new
+            {
+                Date = g.Key,
+                Malas = g.Sum(x => x.MalasCompleted),
+                Japa = g.Sum(x => (long)x.TotalCount),
+                Chants = g.Count()
+            })
+            .OrderBy(x => x.Date)
+            .ToListAsync(cancellationToken);
+
+        return rows.Select(r => new SadhanaDayTotal(r.Date, r.Malas, r.Japa, r.Chants)).ToList();
+    }
+
+    public async Task<IReadOnlyList<SadhanaChantTotal>> GetChantTotalsAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        // Grouped on the chant, not its name: the name is denormalised onto each log, so a chant
+        // renamed mid-history would otherwise split in two. MAX picks one spelling for the label.
+        var rows = await Set.AsNoTracking()
+            .Where(x => x.UserId == userId && x.TotalCount > 0)
+            .GroupBy(x => x.ChantConfigId)
+            .Select(g => new
+            {
+                ChantConfigId = g.Key,
+                ChantName = g.Max(x => x.ChantName),
+                DeityName = g.Max(x => x.DeityName),
+                Malas = g.Sum(x => x.MalasCompleted),
+                Japa = g.Sum(x => (long)x.TotalCount),
+                Days = g.Count(),
+                LastDate = g.Max(x => x.Date)
+            })
+            .ToListAsync(cancellationToken);
+
+        return rows.Select(r => new SadhanaChantTotal(
+            r.ChantConfigId, r.ChantName ?? string.Empty, r.DeityName, r.Malas, r.Japa, r.Days, r.LastDate)).ToList();
+    }
+
     public async Task<SadhanaStreak?> GetStreakAsync(Guid userId, CancellationToken cancellationToken = default)
         => await Context.Set<SadhanaStreak>().FirstOrDefaultAsync(x => x.UserId == userId, cancellationToken);
 

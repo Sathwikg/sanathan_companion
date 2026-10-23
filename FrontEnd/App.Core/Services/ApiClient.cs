@@ -337,6 +337,9 @@ public class ApiClient : IApiClient
     public async Task<UserProfile?> GetUserProfileAsync(Guid id)
         => await _http.GetFromJsonAsync<UserProfile>(ApiRoutes.Users.ById(id));
 
+    public async Task<UserSadhanaPage?> GetUserSadhanaAsync(Guid id, int page, int pageSize)
+        => await _http.GetFromJsonAsync<UserSadhanaPage>(ApiRoutes.Users.Sadhana(id, page, pageSize));
+
     public async Task<MyProfile?> GetMyProfileAsync()
         => await _http.GetFromJsonAsync<MyProfile>(ApiRoutes.Profile.Me);
 

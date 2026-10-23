@@ -44,6 +44,18 @@ public class UsersController : ControllerBase
         return dto is null ? NotFound() : Ok(dto);
     }
 
+    /// <summary>One page of a user's sadhana history, newest day first.</summary>
+    /// <remarks>A page is <paramref name="pageSize"/> days of practice (at most 31), not log rows.</remarks>
+    [HttpGet("{id:guid}/sadhana")]
+    [ProducesResponseType(typeof(UserSadhanaPageDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetSadhana(Guid id, [FromQuery] int page = 1, [FromQuery] int pageSize = 7, CancellationToken cancellationToken = default)
+    {
+        var dto = await _service.GetSadhanaPageAsync(id, page, pageSize, cancellationToken);
+        return dto is null ? NotFound() : Ok(dto);
+    }
+
     /// <summary>Opens or closes an account.</summary>
     /// <remarks>
     /// Closing ends every session that account already holds, rather than waiting for its tokens
