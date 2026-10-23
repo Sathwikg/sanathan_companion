@@ -7,6 +7,13 @@
 
 <h2 class="sc-form-title">@Loc["auth.welcomeBack", "Welcome back, Seeker"]</h2>
 
+@if (Target.Length > 0)
+{
+    @* Sent here by something that needs an account — a guest starting a chant, say. Signing in
+       goes straight back to it. *@
+    <div class="sc-alert sc-alert-info">🔒 @Loc["auth.signInToContinue", "Please sign in to continue. You will come right back to this page."]</div>
+}
+
 @if (_linking)
 {
     @* Google vouched for an address that already has an account here, made with a password. That
@@ -64,10 +71,24 @@ else
     @* Renders nothing on hosts without Google sign-in (see IGoogleSignIn). *@
     <GoogleSignInButton OnIdToken="HandleGoogleAsync" Disabled="_busy" />
 
-    <p class="sc-form-alt">@Loc["auth.newHere", "New here?"] <a href="register">@Loc["auth.createAccount", "Create an Account"]</a></p>
+    <p class="sc-form-alt">@Loc["auth.newHere", "New here?"] <a href="@LoginGate.RegisterUrl(Target)">@Loc["auth.createAccount", "Create an Account"]</a></p>
+
+    <div class="sc-auth-divider" aria-hidden="true"><span>@Loc["auth.or", "or"]</span></div>
+    <button type="button" class="sc-btn-guest" @onclick="ContinueAsGuestAsync" disabled="@_busy">
+        <span aria-hidden="true">👤</span>
+        <span>@Loc["auth.continueAsGuest", "Continue as Guest"]</span>
+    </button>
+    <p class="sc-guest-hint">@Loc["auth.guestHint", "Look around first. You can sign in when you begin your sadhana."]</p>
 }
 
 @code {
+    /// <summary>Where the visitor was going when they were asked to sign in.</summary>
+    [SupplyParameterFromQuery(Name = "returnUrl")] public string? ReturnUrl { get; set; }
+
+    /// <summary>The page to land on after signing in: <see cref="ReturnUrl"/> if it is a path in
+    /// this app, otherwise home. Never the raw query value — see LoginGate.SafeReturnUrl.</summary>
+    private string Target => LoginGate.SafeReturnUrl(ReturnUrl);
+
     private readonly LoginRequest _model = new();
     private string? _error;
     private bool _busy;
@@ -93,9 +114,29 @@ else
         _busy = false;
 
         if (success)
-            Nav.NavigateTo("");
+            Nav.NavigateTo(Target);
         else
             _error = error;
+    }
+
+    /// <summary>
+    /// Browse without an account. Always to the home page, even when a return address is set: that
+    /// address is the thing that needed an account, so going there would only come back here. The
+    /// device's Back still returns a guest who changed their mind to the page they were on.
+    /// </summary>
+    private async Task ContinueAsGuestAsync()
+    {
+        _busy = true;
+        _error = null;
+        try
+        {
+            await AuthService.ContinueAsGuestAsync();
+            Nav.NavigateTo("");
+        }
+        finally
+        {
+            _busy = false;
+        }
     }
 
     /// <summary>
@@ -119,10 +160,10 @@ else
             switch (outcome)
             {
                 case GoogleOutcomes.SignedIn:
-                    Nav.NavigateTo("");
+                    Nav.NavigateTo(Target);
                     break;
                 case GoogleOutcomes.RegistrationRequired:
-                    Nav.NavigateTo("register");
+                    Nav.NavigateTo(LoginGate.RegisterUrl(Target));
                     break;
                 case GoogleOutcomes.LinkRequired:
                     _linking = true;
@@ -147,7 +188,7 @@ else
         _busy = false;
 
         if (success)
-            Nav.NavigateTo("");
+            Nav.NavigateTo(Target);
         else
             _error = error;
     }

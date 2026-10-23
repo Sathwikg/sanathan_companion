@@ -1,5 +1,5 @@
 @page "/sadhana"
-@attribute [Authorize]
+@attribute [Authorize(Policy = GuestSession.BrowsePolicy)]
 @inherits LocalizedComponentBase
 @implements IDisposable
 @inject IApiClient Api
@@ -27,26 +27,36 @@
 else if (_today is not null)
 {
     var s = _today.Streak;
-    <div class="sc-card">
-        <div class="sc-streak">
-            <div class="sc-streak-flame @(s.CurrentStreak > 0 ? "" : "cold")">
-                <span class="ic">🔥</span>
-                <div>
-                    <div class="sc-streak-num">@s.CurrentStreak</div>
-                    <div class="sc-streak-label">@Loc["sadhana.dayStreak", "Day Streak"]</div>
+    @* A guest browses the same chants, but has no practice to show: the card that would hold it
+       asks them to sign in instead. Every chant below opens the japa screen, which needs an
+       account, so tapping one sends a guest to sign in and back to that chant. *@
+    <AuthorizeView>
+        <NotAuthorized>
+            <GuestSignInCard />
+        </NotAuthorized>
+        <Authorized>
+            <div class="sc-card">
+                <div class="sc-streak">
+                    <div class="sc-streak-flame @(s.CurrentStreak > 0 ? "" : "cold")">
+                        <span class="ic">🔥</span>
+                        <div>
+                            <div class="sc-streak-num">@s.CurrentStreak</div>
+                            <div class="sc-streak-label">@Loc["sadhana.dayStreak", "Day Streak"]</div>
+                        </div>
+                    </div>
+                    <span class="sc-streak-today @(s.PracticedToday ? "done" : "pending")">
+                        @(s.PracticedToday ? "✓ " + Loc["sadhana.practicedToday", "Practiced Today"] : Loc["sadhana.notYetToday", "Not Yet Today"])
+                    </span>
+                    <div class="sc-streak-stats">
+                        <div class="sc-streak-stat"><div class="n">@s.LongestStreak</div><div class="l">@Loc["sadhana.longest", "Longest"]</div></div>
+                        <div class="sc-streak-stat"><div class="n">@_today.TodayMalas</div><div class="l">@Loc["sadhana.malasToday", "Malas Today"]</div></div>
+                        <div class="sc-streak-stat"><div class="n">@s.TotalMalas</div><div class="l">@Loc["sadhana.totalMalas", "Total Malas"]</div></div>
+                        <div class="sc-streak-stat"><div class="n">@s.TotalDaysPracticed</div><div class="l">@Loc["common.days", "Days"]</div></div>
+                    </div>
                 </div>
             </div>
-            <span class="sc-streak-today @(s.PracticedToday ? "done" : "pending")">
-                @(s.PracticedToday ? "✓ " + Loc["sadhana.practicedToday", "Practiced Today"] : Loc["sadhana.notYetToday", "Not Yet Today"])
-            </span>
-            <div class="sc-streak-stats">
-                <div class="sc-streak-stat"><div class="n">@s.LongestStreak</div><div class="l">@Loc["sadhana.longest", "Longest"]</div></div>
-                <div class="sc-streak-stat"><div class="n">@_today.TodayMalas</div><div class="l">@Loc["sadhana.malasToday", "Malas Today"]</div></div>
-                <div class="sc-streak-stat"><div class="n">@s.TotalMalas</div><div class="l">@Loc["sadhana.totalMalas", "Total Malas"]</div></div>
-                <div class="sc-streak-stat"><div class="n">@s.TotalDaysPracticed</div><div class="l">@Loc["common.days", "Days"]</div></div>
-            </div>
-        </div>
-    </div>
+        </Authorized>
+    </AuthorizeView>
 
     @if (_today.IsFestivalDay)
     {

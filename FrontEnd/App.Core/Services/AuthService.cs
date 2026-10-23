@@ -12,6 +12,7 @@ public class AuthService : IAuthService
     private readonly SessionExpiredNotifier _sessionExpired;
     private readonly TokenRefreshCoordinator _refresh;
     private readonly GoogleSignInState _google;
+    private readonly IGuestModeStore _guestMode;
 
     public AuthService(
         IApiClient api,
@@ -20,7 +21,8 @@ public class AuthService : IAuthService
         IEnumerable<IUserSessionState> userState,
         SessionExpiredNotifier sessionExpired,
         TokenRefreshCoordinator refresh,
-        GoogleSignInState google)
+        GoogleSignInState google,
+        IGuestModeStore guestMode)
     {
         _api = api;
         _tokenStore = tokenStore;
@@ -29,6 +31,7 @@ public class AuthService : IAuthService
         _sessionExpired = sessionExpired;
         _refresh = refresh;
         _google = google;
+        _guestMode = guestMode;
     }
 
     /// <summary>Drops every per-user cache so one account's data is never shown to the next.</summary>
@@ -107,6 +110,24 @@ public class AuthService : IAuthService
         return (true, string.Empty);
     }
 
+    public async Task ContinueAsGuestAsync()
+    {
+        // A guest is simply a caller with no token, so nothing is asked of the server — unless a
+        // session is still stored here, which is then signed out exactly as LogoutAsync would.
+        // The per-user caches go too: the guest menu and the anonymous language bundle are
+        // different answers from the last seeker's.
+        var refreshToken = await _tokenStore.GetRefreshTokenAsync();
+        if (!string.IsNullOrWhiteSpace(refreshToken))
+            await _api.LogoutAsync(refreshToken);
+
+        await _tokenStore.ClearTokenAsync();
+        await _guestMode.SetGuestAsync(true);
+        _refresh.Reset();
+        await _google.ClearAsync();
+        ResetUserState();
+        _authProvider.NotifyAuthenticationChanged();
+    }
+
     /// <summary>Stores a freshly issued session and wakes the app up as the new user.</summary>
     private async Task BeginSessionAsync(AuthResponse data)
     {
@@ -115,6 +136,8 @@ public class AuthService : IAuthService
         // NotifyAuthenticationChanged, which is what actually re-renders the app, so no stale
         // cache is ever on screen.
         await _tokenStore.SetTokensAsync(data.Token, data.RefreshToken);
+        // A guest who signs in is a guest no more; when this session ends they get the login page.
+        await _guestMode.SetGuestAsync(false);
         _refresh.Reset();
         ResetUserState();
         // Re-arm the expiry latch, or the first 401 of the PREVIOUS session would still be
@@ -135,6 +158,7 @@ public class AuthService : IAuthService
         // Same ordering argument as sign-in: clear the tokens first so a reset-triggered refetch
         // runs as an anonymous caller and gets the anonymous answer.
         await _tokenStore.ClearTokenAsync();
+        await _guestMode.SetGuestAsync(false);
         _refresh.Reset();
         await _google.ClearAsync();
         ResetUserState();

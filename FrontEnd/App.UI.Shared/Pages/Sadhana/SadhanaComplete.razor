@@ -1,0 +1,238 @@
+@page "/sadhana/chant/{Id:guid}/complete"
+@attribute [Authorize]
+@inherits LocalizedComponentBase
+@inject IApiClient Api
+@inject JapaCompletionState Completion
+@inject NavigationManager Nav
+@inject IJSRuntime JS
+@inject IImageShare Share
+@inject ToastService Toast
+@inject IEnergySaver EnergySaver
+@inject IDevicePreferences DevicePrefs
+
+@* Where the japa screen lands when a mala completes: the moment marked, the streak it kept, a way
+   to share it, and the two ways onward — another mala, or home.
+
+   It opens with what the japa screen handed over (JapaCompletionState), so there is nothing to
+   fetch and nothing to wait for. Opened any other way — a reload, a link — it asks the API for the
+   same figures. The entrance animation plays once and stops; nothing on this page keeps running. *@
+
+<div class="sc-jpdone @(Lite ? "is-lite" : null)">
+@if (_loading)
+{
+    <OmLoader FullPage="true" Message="@Loc["sadhana.loadingChant", "Loading chant…"]" />
+}
+else if (_done is null)
+{
+    @if (_error is not null)
+    {
+        <div class="sc-alert sc-alert-error">@_error</div>
+    }
+    <div class="sc-card sc-empty-state">
+        <div class="sc-empty-om">🪷</div>
+        <h3>@Loc["sadhana.chantNotFound", "Chant Not Found"]</h3>
+        <a class="sc-btn-primary sc-btn-sm sc-jpdone-inline" href="">@Loc["sadhana.returnHome", "Return to Home"]</a>
+    </div>
+}
+else
+{
+    <section class="sc-jpdone-hero">
+        <div class="sc-jpdone-burst" aria-hidden="true">
+            <span class="sc-jpdone-halo h1"></span>
+            <span class="sc-jpdone-halo h2"></span>
+            <span class="sc-jpdone-halo h3"></span>
+            <span class="sc-jpdone-lotus">🪷</span>
+        </div>
+        <p class="sc-jpdone-kicker">@Loc["sadhana.malaCompleteTitle", "Mala Complete"]</p>
+        <h1 class="sc-jpdone-chant">@_done.ChantName</h1>
+        <p class="sc-jpdone-sub">@MalaLine</p>
+    </section>
+
+    @if (_done.Streak is { } s)
+    {
+        <section class="sc-card sc-jpdone-streak">
+            <div class="sc-jpdone-flame">
+                <span class="ic" aria-hidden="true">🔥</span>
+                <span class="n">@s.CurrentStreak</span>
+                <span class="l">@Loc["sadhana.dayStreak", "Day Streak"]</span>
+            </div>
+            @if (_done.StreakSecuredToday)
+            {
+                <p class="sc-jpdone-secured">✓ @Loc["sadhana.streakSecuredToday", "Your streak is secured for today."]</p>
+            }
+            <div class="sc-jpdone-stats">
+                <div><b>@_done.CountToday</b><span>@Loc["sadhana.japaToday", "Japa Today"]</span></div>
+                <div><b>@s.TotalMalas</b><span>@Loc["sadhana.totalMalas", "Total Malas"]</span></div>
+                <div><b>@s.LongestStreak</b><span>@Loc["sadhana.longest", "Longest"]</span></div>
+                <div><b>@s.TotalDaysPracticed</b><span>@Loc["common.days", "Days"]</span></div>
+            </div>
+        </section>
+    }
+
+    <section class="sc-jpdone-actions">
+        <button type="button" class="sc-btn-primary sc-jpdone-share" @onclick="ShareAsync" disabled="@_sharing">
+            @if (_sharing)
+            {
+                <OmLoader Inline="true" Size="18" Message="@Loc["sadhana.preparingImage", "Preparing your image…"]" />
+            }
+            else
+            {
+                <span aria-hidden="true">📤</span>
+                <span>@Loc["sadhana.shareMySadhana", "Share My Sadhana"]</span>
+            }
+        </button>
+        <button type="button" class="sc-btn-ghost sc-jpdone-again" @onclick="ChantAgain">
+            <span aria-hidden="true">📿</span> @Loc["sadhana.chantAnotherMala", "Chant Another Mala"]
+        </button>
+        <a class="sc-jpdone-home" href="">
+            <span aria-hidden="true">🏠</span> @Loc["sadhana.returnHome", "Return to Home"]
+        </a>
+    </section>
+}
+</div>
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+
+    [CascadingParameter] private Task<AuthenticationState>? AuthState { get; set; }
+
+    private JapaCompletion? _done;
+    private bool _loading = true;
+    private bool _sharing;
+    private bool _liteChoice;
+    private string? _error;
+    private IJSObjectReference? _module;
+
+    private bool Lite => _liteChoice || EnergySaver.IsOn;
+
+    private string MalaLine => _done is null ? string.Empty
+        : Loc.TF("sadhana.chantsPerMala", "{0} chants in this mala", _done.MalaSize) + " · "
+          + _done.MalasToday + " " + (_done.MalasToday == 1
+              ? Loc["sadhana.malaTodayOne", "mala today"]
+              : Loc["sadhana.malasTodayMany", "malas today"]);
+
+    private string FileName => $"sadhana-{AppClock.TodayIst:yyyy-MM-dd}.jpg";
+    private string ShareTitle => Loc["sadhana.shareTitle", "My Sadhana"];
+
+    private string ShareText => _done?.Streak is { } s
+        ? Loc.TF("sadhana.shareText", "🙏 I completed a mala of {0} today. 🔥 {1}-day streak, {2} malas in all.", _done.ChantName, s.CurrentStreak, s.TotalMalas) + " · " + Brand.AppName
+        : Loc.TF("sadhana.shareTextShort", "🙏 I completed a mala of {0} today.", _done?.ChantName ?? string.Empty) + " · " + Brand.AppName;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        try { _liteChoice = await DevicePrefs.GetFlagAsync(DevicePreferenceKeys.JapaBatterySaver); }
+        catch { /* full animations */ }
+
+        _done = Completion.Take(Id);
+        if (_done is null) await LoadAsync();
+        else if (_done.Streak is null) await LoadStreakAsync();
+
+        _loading = false;
+    }
+
+    /// <summary>Opened directly: the same figures, from the API.</summary>
+    private async Task LoadAsync()
+    {
+        try
+        {
+            var chant = await Api.GetSadhanaChantAsync(Id);
+            if (chant is null) return;
+            SadhanaStreak? streak = null;
+            try { streak = await Api.GetSadhanaStreakAsync(); } catch { /* the page still shows the mala */ }
+            _done = new JapaCompletion(Id, chant.Name, chant.TargetCount, chant.TodayMalas, chant.TodayCount, streak, false);
+        }
+        catch (Exception ex) { _error = Loc.ErrorText(ex); }
+    }
+
+    /// <summary>The save that completed the mala did not get through (offline, say); try once more.</summary>
+    private async Task LoadStreakAsync()
+    {
+        try
+        {
+            var streak = await Api.GetSadhanaStreakAsync();
+            if (streak is not null && _done is not null) _done = _done with { Streak = streak };
+        }
+        catch { /* shown without the streak */ }
+    }
+
+    private void ChantAgain() => Nav.NavigateTo($"sadhana/chant/{Id}", replace: true);
+
+    private async Task ShareAsync()
+    {
+        if (_done is null) return;
+        _sharing = true;
+        try
+        {
+            _module ??= await JS.InvokeAsync<IJSObjectReference>("import", "./_content/App.UI.Shared/sadhanaShare.js");
+            await _module.InvokeVoidAsync("render", await BuildPayloadAsync());
+
+            if (Share.IsNative)
+            {
+                var bytes = await _module.InvokeAsync<byte[]>("getImageBytes");
+                await Share.ShareAsync(bytes, FileName, ShareTitle, ShareText);
+            }
+            else
+            {
+                var result = await _module.InvokeAsync<string>("shareOrDownload", FileName, ShareTitle, ShareText);
+                if (result == "downloaded")
+                    Toast.Success(Loc["sadhana.shareDownloaded", "Your sadhana image has been downloaded."]);
+            }
+        }
+        catch (JSDisconnectedException) { }
+        catch (Exception ex)
+        {
+            Toast.Error(Loc["sadhana.shareFailed", "Could not prepare the image."] + " " + Loc.ErrorText(ex));
+        }
+        finally { _sharing = false; }
+    }
+
+    /// <summary>Everything the picture says, already in the app's language; the script only draws.</summary>
+    private async Task<object> BuildPayloadAsync()
+    {
+        string? userName = null;
+        if (AuthState is not null)
+            userName = (await AuthState).User.FindFirst("fullName")?.Value;   // the claim the account sheet shows
+
+        var s = _done!.Streak;
+        return new
+        {
+            appName = Brand.AppName,
+            logoGlyph = Brand.LogoGlyph,
+            // An app asset, so relative to the page like any other; Config.Absolute would aim it at the API.
+            logoUrl = Brand.LogoImageUrl,
+            tagline = Loc["auth.tagline", "Your sacred guide to daily sadhana"],
+            kicker = Loc["sadhana.malaCompleteTitle", "Mala Complete"],
+            chantName = _done.ChantName,
+            malaLine = MalaLine,
+            streak = s?.CurrentStreak,
+            streakLabel = Loc["sadhana.dayStreak", "Day Streak"],
+            secured = _done.StreakSecuredToday ? Loc["sadhana.streakSecuredToday", "Your streak is secured for today."] : null,
+            stats = s is null
+                ? Array.Empty<object>()
+                : new object[]
+                {
+                    new { value = _done.CountToday, label = Loc["sadhana.japaToday", "Japa Today"] },
+                    new { value = s.TotalMalas, label = Loc["sadhana.totalMalas", "Total Malas"] },
+                    new { value = s.LongestStreak, label = Loc["sadhana.longest", "Longest"] }
+                },
+            dateLabel = ClockText.LongDate(AppClock.TodayIst),
+            sharedByLabel = Loc["panchangam.sharedBy", "Shared by"],
+            userName = string.IsNullOrWhiteSpace(userName) ? null : userName,
+            fileName = FileName
+        };
+    }
+
+    public override void Dispose()
+    {
+        if (_module is not null) _ = DisposeModuleAsync(_module);
+        base.Dispose();
+    }
+
+    private static async Task DisposeModuleAsync(IJSObjectReference module)
+    {
+        try { await module.DisposeAsync(); }
+        catch { /* the page, or the WebView, is already gone */ }
+    }
+}

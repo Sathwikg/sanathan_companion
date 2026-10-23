@@ -21,6 +21,11 @@ namespace Sanathana.Companion.Api.Filters;
 /// is refused, so a controller added tomorrow is closed until somebody maps it. Administrators are
 /// exempt before that check, so a forgotten attribute can never brick administration.
 /// </para>
+/// <para>
+/// Guests are the one anonymous caller it gates. On an endpoint marked [GuestAccess] a token-less
+/// request is checked against the Guest role's row in the same matrix, so what a guest may browse
+/// is an Access Rights decision like any other — and an endpoint nobody marked stays closed to them.
+/// </para>
 /// </remarks>
 public sealed class ModuleAccessFilter : IAsyncAuthorizationFilter
 {
@@ -36,16 +41,26 @@ public sealed class ModuleAccessFilter : IAsyncAuthorizationFilter
     /// </remarks>
     public const string DeniedHeader = "X-Access-Denied";
 
+    /// <summary>The body a guest is refused with; the client sends them to sign in.</summary>
+    public const string GuestDeniedMessage = "Please sign in to continue.";
+
     public async Task OnAuthorizationAsync(AuthorizationFilterContext context)
     {
         var metadata = context.ActionDescriptor.EndpointMetadata;
+        var guestAccess = metadata.OfType<GuestAccessAttribute>().Any();
 
-        // The public endpoints stay public.
-        if (metadata.OfType<IAllowAnonymous>().Any()) return;
+        // The public endpoints stay public. A guest endpoint is "anonymous" only so that [Authorize]
+        // lets a token-less caller reach this filter; it is gated below.
+        if (!guestAccess && metadata.OfType<IAllowAnonymous>().Any()) return;
 
-        // A missing or expired token must stay a 401 from the authorization middleware and never
-        // become a 403 — the client tells an ended session from a refused one by exactly that.
-        if (context.HttpContext.User.Identity?.IsAuthenticated != true) return;
+        if (context.HttpContext.User.Identity?.IsAuthenticated != true)
+        {
+            // A missing or expired token must stay a 401 from the authorization middleware and
+            // never become a 403 — the client tells an ended session from a refused one by exactly
+            // that. Only a guest endpoint lets an anonymous caller get this far.
+            if (guestAccess) await AuthorizeGuestAsync(context, metadata);
+            return;
+        }
 
         // Administrators reach every form; the matrix has never stored a row for them.
         if (context.HttpContext.User.IsInRole(RoleNames.Admin)) return;
@@ -65,23 +80,55 @@ public sealed class ModuleAccessFilter : IAsyncAuthorizationFilter
         Deny(context);
     }
 
+    /// <summary>
+    /// A token-less caller on a [GuestAccess] endpoint: held to the Guest role's grants.
+    /// </summary>
+    private async Task AuthorizeGuestAsync(AuthorizationFilterContext context, IList<object> metadata)
+    {
+        // A request that PRESENTED a credential the server rejected is a session that has ended,
+        // not a guest. Answering it as a guest would hand a signed-in seeker the guest view — no
+        // counts, no streak — and swallow the 401 their client renews the token on.
+        if (!string.IsNullOrEmpty(context.HttpContext.Request.Headers.Authorization))
+        {
+            context.Result = new ChallengeResult();
+            return;
+        }
+
+        // The menu and the media ticket: what every screen a guest may see needs to draw itself.
+        if (metadata.OfType<ModuleExemptAttribute>().Any()) return;
+
+        var required = metadata.OfType<RequiresModuleAttribute>().LastOrDefault();
+        if (required is not null)
+        {
+            var snapshot = await _catalog.GetAsync(context.HttpContext.RequestAborted);
+            if (snapshot.Allows(RoleNames.Guest, required.Codes)) return;
+        }
+
+        // 401, not 403: what a guest lacks is an account, and the remedy is to sign in. It also
+        // keeps the client's access-denied redirect, which is a signed-in page, out of the way.
+        context.Result = JsonError(StatusCodes.Status401Unauthorized, GuestDeniedMessage);
+    }
+
     private static void Deny(AuthorizationFilterContext context)
     {
         context.HttpContext.Response.Headers[DeniedHeader] = "module";
-
-        // The same body shape ExceptionHandlingMiddleware emits, so the client's error extraction
-        // keeps working. A ForbidResult would send an empty body and the seeker would see nothing.
-        // ContentResult rather than ObjectResult so the translation filter does not walk it.
-        context.Result = new ContentResult
-        {
-            StatusCode = StatusCodes.Status403Forbidden,
-            ContentType = "application/json",
-            Content = System.Text.Json.JsonSerializer.Serialize(new
-            {
-                statusCode = StatusCodes.Status403Forbidden,
-                message = "You do not have access to this form.",
-                timestamp = DateTime.UtcNow
-            })
-        };
+        context.Result = JsonError(StatusCodes.Status403Forbidden, "You do not have access to this form.");
     }
+
+    /// <summary>
+    /// The same body shape ExceptionHandlingMiddleware emits, so the client's error extraction
+    /// keeps working. A ForbidResult would send an empty body and the seeker would see nothing.
+    /// ContentResult rather than ObjectResult so the translation filter does not walk it.
+    /// </summary>
+    private static ContentResult JsonError(int statusCode, string message) => new()
+    {
+        StatusCode = statusCode,
+        ContentType = "application/json",
+        Content = System.Text.Json.JsonSerializer.Serialize(new
+        {
+            statusCode,
+            message,
+            timestamp = DateTime.UtcNow
+        })
+    };
 }

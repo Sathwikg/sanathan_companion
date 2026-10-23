@@ -36,9 +36,13 @@ public class LocalizationController : ControllerBase
     /// The entity half is withheld from anonymous callers. Its keys are "EntityType:EntityKey:Field",
     /// and EntityKey is the row's primary key — so an unauthenticated fetch of, say, the Telugu
     /// bundle handed out the GUID of every translated deity, which is exactly what
-    /// <c>deities/{id}/image</c> takes. Nothing on the login screen needs it: every screen that
-    /// renders translated database content sits behind [Authorize], and the client refetches the
-    /// bundle after sign-in.
+    /// <c>deities/{id}/image</c> takes. Nothing on the login screen needs it, and the client
+    /// refetches the bundle after sign-in.
+    /// <para>
+    /// The one exception is the menu's own names. A guest browses with no token, and the client
+    /// labels the menu it was given from these entries — without them a guest reading Telugu saw an
+    /// English bottom bar. A module id opens nothing: it is not an argument any media endpoint takes.
+    /// </para>
     /// </remarks>
     [AllowAnonymous]
     [HttpGet("bundle/{code}")]
@@ -48,10 +52,15 @@ public class LocalizationController : ControllerBase
         var bundle = await _service.GetBundleAsync(code, cancellationToken);
 
         if (User.Identity?.IsAuthenticated != true)
-            bundle.Entities = new Dictionary<string, string>();
+            bundle.Entities = bundle.Entities
+                .Where(e => e.Key.StartsWith(AnonymousEntityPrefix, StringComparison.Ordinal))
+                .ToDictionary(e => e.Key, e => e.Value);
 
         return Ok(bundle);
     }
+
+    /// <summary>The only entity translations an anonymous caller is given; see <see cref="GetBundle"/>.</summary>
+    public const string AnonymousEntityPrefix = "MenuModule:";
 
     // ---------------- admin editing surface ----------------
 

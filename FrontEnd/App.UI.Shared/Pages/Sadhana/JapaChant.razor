@@ -6,76 +6,100 @@
 @inject ToastService Toast
 @inject ConfirmService Confirm
 @inject NavigationManager Nav
-@inject AppConfig Config
 @inject FavoritesState Favs
 @inject MediaUrlBuilder Media
+@inject IJSRuntime JS
+@inject IHaptics Haptics
+@inject IEnergySaver EnergySaver
+@inject IDevicePreferences DevicePrefs
+@inject IAppLifecycle Lifecycle
+@inject JapaCompletionState Completion
 
-<div class="sc-page-head">
-    <div class="sc-page-title">
-        <span class="sc-page-emoji">🪷</span>
-        <div>
-            <h1>@(_chant?.Name ?? Loc["sadhana.sadhanaLabel", "Sadhana"])</h1>
-            <p class="sc-page-sub">@(_chant?.CategoryName)@(_chant is not null && _chant.DeityNames.Count > 0 ? " · " + string.Join(", ", _chant.DeityNames) : "")</p>
-        </div>
-    </div>
-    <div class="sc-page-actions">
-        <button type="button" class="sc-fav lg @(Favs.IsChant(Id) ? "on" : null)"
-                title="@(Favs.IsChant(Id) ? Loc["favorites.removeFromFavorites", "Remove from Favorites"] : Loc["favorites.addToFavorites", "Add to Favorites"])"
-                @onclick="ToggleFavAsync">♥</button>
-        <button class="sc-btn-ghost sc-btn-sm" @onclick="Back">← @Loc["common.back", "Back"]</button>
-    </div>
-</div>
+@* The japa screen. The whole screen is the counter: a tap anywhere — on the words, beside them, on
+   the space below — counts one repetition, so the seeker's eyes never leave the chant. Scrolling,
+   dragging, a long press, and the page's own controls never count; wwwroot/japa.js decides, and
+   draws the tap's ripple itself so counting never re-renders the text being read.
 
-@if (_error is not null)
-{
-    <div class="sc-alert sc-alert-error">@_error</div>
-}
+   The counter is a slim bar pinned at the top. It shows the mala filling and opens the settings;
+   it is deliberately not something to press. On the phone the bottom bar steps aside while this
+   screen is open (MobileLayout), so a thumb near the bottom edge counts instead of navigating. *@
 
+<div class="sc-jp @(Lite ? "is-lite" : null) @(_completing ? "is-complete" : null)">
 @if (_loading)
 {
     <OmLoader FullPage="true" Message="@Loc["sadhana.loadingChant", "Loading chant…"]" />
 }
-else if (_chant is null)
+else if (_chant is null || _counter is null)
 {
+    @if (_error is not null)
+    {
+        <div class="sc-alert sc-alert-error">@_error</div>
+    }
     <div class="sc-card sc-empty-state"><div class="sc-empty-om">🪷</div><h3>@Loc["sadhana.chantNotFound", "Chant Not Found"]</h3></div>
 }
 else
 {
-    @* sc-japa-card stays pinned under the top bar on the phone (mobile.css), so the counter and its
-       buttons remain in reach while the seeker scrolls through the chant text below. *@
-    <div class="sc-card sc-japa-card">
-        <div class="sc-japa">
-            <div class="sc-japa-ring @(_flash ? "flash" : "")" @onclick="Tap">
-                <div style="text-align:center">
-                    <div class="sc-japa-count">@_countInMala</div>
-                    <div class="sc-japa-of">@Loc.TF("sadhana.ofCount", "of {0}", _chant.TargetCount)</div>
-                    <div class="sc-japa-tap">@Loc["sadhana.tapToChant", "Tap to chant"]</div>
-                </div>
-            </div>
+    <div class="sc-jp-dock">
+    <div class="sc-jp-hud">
+        <div class="sc-jp-ring" data-jp-bump>
+            <svg viewBox="0 0 64 64" aria-hidden="true">
+                <defs>
+                    <linearGradient id="sc-jp-arc-grad" x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stop-color="var(--color-gold)" />
+                        <stop offset="100%" stop-color="var(--color-accent)" />
+                    </linearGradient>
+                </defs>
+                <circle class="sc-jp-ring-track" cx="32" cy="32" r="28" />
+                <circle class="sc-jp-ring-arc" cx="32" cy="32" r="28" stroke="url(#sc-jp-arc-grad)"
+                        stroke-dasharray="@RingDash" style="stroke-dashoffset:@ArcOffset" />
+            </svg>
+            <span class="sc-jp-count">@_counter.InMala</span>
+        </div>
+        <div class="sc-jp-tally">
+            <span class="sc-jp-of">@Loc.TF("sadhana.ofCount", "of {0}", _counter.MalaSize)</span>
+            <span class="sc-jp-meta">
+                <b>@_counter.Malas</b> @(_counter.Malas == 1 ? Loc["sadhana.malaTodayOne", "mala today"] : Loc["sadhana.malasTodayMany", "malas today"])
+                <span class="sc-jp-dot" aria-hidden="true">·</span>
+                @Loc.TF("sadhana.totalCount", "{0} total", _counter.Total)
+            </span>
+        </div>
+        <button type="button" class="sc-jp-gear" @onclick="OpenSettings"
+                title="@Loc["sadhana.settingsTitle", "Sadhana Settings"]" aria-label="@Loc["sadhana.settingsTitle", "Sadhana Settings"]">
+            <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <path d="M4 7h9M17 7h3M4 17h3M11 17h9" /><circle cx="15" cy="7" r="2" /><circle cx="9" cy="17" r="2" />
+            </svg>
+        </button>
+    </div>
+    </div>
 
-            <div class="sc-japa-malas">
-                <span class="n">@_malas</span>
-                <span>@(_malas == 1 ? Loc["sadhana.malaTodayOne", "mala today"] : Loc["sadhana.malasTodayMany", "malas today"])</span>
-                <span class="sc-muted">· @Loc.TF("sadhana.totalCount", "{0} total", _total)</span>
-            </div>
-
-            @if (_cheer is not null)
-            {
-                <div class="sc-japa-cheer">@_cheer</div>
-            }
-
-            <div class="sc-japa-actions">
-                <button class="sc-btn-ghost sc-btn-sm" @onclick="ResetAsync" disabled="@(_countInMala == 0)">↺ @Loc["sadhana.resetCount", "Reset Count"]</button>
-                <button class="sc-btn-primary sc-btn-sm" @onclick="Tap">🙏 @Loc["sadhana.chantPlusOne", "Chant +1"]</button>
-            </div>
+    <div class="sc-jp-title">
+        <div class="sc-jp-title-text">
+            <h1>@_chant.Name</h1>
+            <p class="sc-page-sub">@_chant.CategoryName@(_chant.DeityNames.Count > 0 ? " · " + string.Join(", ", _chant.DeityNames) : "")</p>
+        </div>
+        <div class="sc-jp-title-actions">
+            <button type="button" class="sc-fav lg @(Favs.IsChant(_chantId) ? "on" : null)"
+                    title="@(Favs.IsChant(_chantId) ? Loc["favorites.removeFromFavorites", "Remove from Favorites"] : Loc["favorites.addToFavorites", "Add to Favorites"])"
+                    @onclick="ToggleFavAsync">♥</button>
+            <button type="button" class="sc-btn-ghost sc-btn-sm" @onclick="BackAsync">← @Loc["common.back", "Back"]</button>
         </div>
     </div>
+
+    @if (_error is not null)
+    {
+        <div class="sc-alert sc-alert-error">@_error</div>
+    }
+
+    @if (!_tapped)
+    {
+        <p class="sc-jp-hint"><span aria-hidden="true">👆</span> @Loc["sadhana.tapAnywhereHint", "Tap anywhere on the screen to count. Scroll to read."]</p>
+    }
 
     @if (_chant.HasAudio)
     {
         <div class="sc-card">
             <h3 class="sc-detail-label">@Loc["common.audio", "Audio"]</h3>
-            <audio class="sc-audioplayer" controls src="@AudioUrl"></audio>
+            <audio class="sc-audioplayer" controls preload="none" src="@AudioUrl"></audio>
             @if (!string.IsNullOrWhiteSpace(_chant.AudioFileName))
             {
                 <div class="sc-audiometa">@_chant.AudioFileName</div>
@@ -93,49 +117,165 @@ else
 
     @if (!string.IsNullOrWhiteSpace(_chant.ChantText))
     {
-        <div class="sc-card">
+        <div class="sc-card sc-jp-text">
             <h3 class="sc-detail-label">@Loc["sadhana.chantText", "Chant"]</h3>
             @* Server-side sanitized on save, safe to render. *@
             <div class="sc-richtext">@((MarkupString)_chant.ChantText)</div>
         </div>
     }
+
+    <ScModal Visible="_settingsOpen" Title="@Loc["sadhana.settingsTitle", "Sadhana Settings"]" OnClose="CloseSettings">
+        <div class="sc-jp-settings">
+            <section class="sc-jp-set">
+                <label class="sc-jp-set-label" for="sc-jp-size">@Loc["sadhana.malaSizeLabel", "Count for One Mala"]</label>
+                <div class="sc-jp-stepper">
+                    <button type="button" @onclick="() => Step(-1)" disabled="@((DraftSize ?? 0) <= JapaCounter.MinMalaSize)" aria-label="−">−</button>
+                    <input id="sc-jp-size" type="number" inputmode="numeric" min="@JapaCounter.MinMalaSize" max="@JapaCounter.MaxMalaSize"
+                           @bind="_draftSize" @bind:event="oninput" />
+                    <button type="button" @onclick="() => Step(1)" aria-label="+">+</button>
+                </div>
+                <div class="sc-jp-presets">
+                    @foreach (var p in Presets)
+                    {
+                        <button type="button" class="sc-chip @(DraftSize == p ? "is-on" : null)" @onclick="() => Pick(p)">@p</button>
+                    }
+                </div>
+                <p class="sc-hint">
+                    @Loc.TF("sadhana.malaSizeHint", "The usual count for this chant is {0}. You can choose any count from {1}.", _chant.DefaultTargetCount, JapaCounter.MinMalaSize)
+                    @if (DraftSize != _chant.DefaultTargetCount)
+                    {
+                        <button type="button" class="sc-link-btn" @onclick="UseDefault">@Loc.TF("sadhana.useDefault", "Use Default ({0})", _chant.DefaultTargetCount)</button>
+                    }
+                </p>
+            </section>
+
+            <section class="sc-jp-set sc-jp-switchrow">
+                <div>
+                    <span class="sc-jp-set-label">@Loc["sadhana.vibration", "Vibration"]</span>
+                    <p class="sc-hint">@(HapticsAvailable
+                        ? Loc["sadhana.vibrationHint", "A light tap on every count and a long vibration when a mala completes."]
+                        : Loc["sadhana.vibrationUnsupported", "This device cannot vibrate, so this setting has no effect here."])</p>
+                </div>
+                <label class="sc-switch"><input type="checkbox" @bind="_draftVibration" /><span class="sc-slider"></span></label>
+            </section>
+
+            <section class="sc-jp-set sc-jp-switchrow">
+                <div>
+                    <span class="sc-jp-set-label">🔋 @Loc["sadhana.batterySaver", "Battery Saver"]</span>
+                    <p class="sc-hint">@Loc["sadhana.batterySaverHint", "Simpler animations, fewer saves and vibration only when a mala completes."]</p>
+                    @if (EnergySaver.IsOn)
+                    {
+                        <p class="sc-hint sc-jp-auto">@Loc["sadhana.batterySaverAuto", "On automatically while your phone's battery saver is on."]</p>
+                    }
+                </div>
+                <label class="sc-switch"><input type="checkbox" @bind="_draftLite" disabled="@EnergySaver.IsOn" /><span class="sc-slider"></span></label>
+            </section>
+
+            @if (_counter.InMala > 0)
+            {
+                <section class="sc-jp-set">
+                    <button type="button" class="sc-btn-ghost sc-btn-sm sc-jp-reset" @onclick="ResetMalaAsync">↺ @Loc["sadhana.resetCount", "Reset Count"]</button>
+                </section>
+            }
+
+            @if (_settingsError is not null)
+            {
+                <div class="sc-alert sc-alert-error">@_settingsError</div>
+            }
+
+            <div class="sc-modal-actions">
+                <button type="button" class="sc-btn-ghost" @onclick="CloseSettings">@Loc["common.cancel", "Cancel"]</button>
+                <button type="button" class="sc-btn-primary" @onclick="SaveSettingsAsync" disabled="@_savingSettings">
+                    @if (_savingSettings) { <OmLoader Inline="true" Size="18" Message="@Loc["common.saving", "Saving…"]" /> } else { <span>@Loc["common.save", "Save"]</span> }
+                </button>
+            </div>
+        </div>
+    </ScModal>
 }
+</div>
 
 @code {
     [Parameter] public Guid Id { get; set; }
 
+    private const double RingRadius = 28;
+    private static readonly double RingCircumference = 2 * Math.PI * RingRadius;
+    private static readonly int[] Presets = { 11, 21, 27, 54, 108, 1008 };
+
+    /// <summary>Long, short, longer: unmistakable mid-chant, and nothing like a single count's tick.</summary>
+    private static readonly int[] CelebratePattern = { 260, 90, 420 };
+
     private SadhanaChantDetail? _chant;
+    private Guid _chantId;
+    private JapaCounter? _counter;
     private bool _loading = true;
     private string? _error;
 
-    private int _total;        // total repetitions today
-    private int _malas;        // completed malas today
-    private int _countInMala;  // progress within the current mala
-    private bool _flash;
-    private string? _cheer;
+    private bool _vibration = true;
+    /// <summary>The screen's own Battery Saver switch, remembered on this device.</summary>
+    private bool _liteChoice;
+    private bool _canVibrateWeb;
+    private bool _tapped;
+    private bool _completing;
+    private bool _disposed;
 
-    private CancellationTokenSource? _saveCts;
+    private IJSObjectReference? _module;
+    private DotNetObjectReference<JapaChant>? _self;
+    private bool _attaching;
+
+    // The settings sheet works on drafts; nothing changes until Save.
+    private bool _settingsOpen;
+    private string _draftSize = string.Empty;
+    private bool _draftVibration;
+    private bool _draftLite;
+    private bool _savingSettings;
+    private string? _settingsError;
+
+    // Saving. Taps are batched: a save goes out after a pause, or after a ceiling even while the
+    // seeker keeps tapping, and at once when a mala completes, the app goes to the background or
+    // the screen closes. Fewer requests is less radio time, which is most of a phone's battery cost
+    // for an app like this.
     private readonly SemaphoreSlim _saveLock = new(1, 1);
+    private CancellationTokenSource? _saveCts;
     private bool _dirty;
+    private DateTime? _dirtySince;
 
-    private string AudioUrl => Media.Absolute(ApiRoutes.Media.ChantAudio(Id));
+    /// <summary>Lighter in every way while the seeker asked for it or the phone is saving battery.</summary>
+    private bool Lite => _liteChoice || EnergySaver.IsOn;
+
+    private bool HapticsAvailable => Haptics.IsNative || _canVibrateWeb;
+
+    private string AudioUrl => Media.Absolute(ApiRoutes.Media.ChantAudio(_chantId));
+
+    private static string RingDash => RingCircumference.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
+
+    private string ArcOffset => (RingCircumference * (1 - (_counter?.Progress ?? 0)))
+        .ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
+
+    private int? DraftSize => int.TryParse(_draftSize, System.Globalization.NumberStyles.Integer,
+        System.Globalization.CultureInfo.InvariantCulture, out var n) ? n : null;
 
     protected override async Task OnInitializedAsync()
     {
         // The ticket every media URL on this page carries; see MediaUrlBuilder.
         await Media.EnsureAsync();
         await base.OnInitializedAsync();
+
         Favs.OnChanged += OnFavChanged;
+        EnergySaver.Changed += OnEnergySaverChanged;
+        Lifecycle.Changed += OnLifecycleChanged;
+
+        try { _liteChoice = await DevicePrefs.GetFlagAsync(DevicePreferenceKeys.JapaBatterySaver); }
+        catch { /* the default: full animations */ }
+
         await Favs.EnsureLoadedAsync();
-        StateHasChanged();
     }
-
-    private void OnFavChanged() => InvokeAsync(StateHasChanged);
-
-    private async Task ToggleFavAsync() => await Favs.ToggleChantAsync(Id);
 
     protected override async Task OnParametersSetAsync()
     {
+        // Moving straight from one chant to another reuses this component: the previous chant's
+        // unsaved taps belong to the previous chant.
+        if (_counter is not null && _chantId != Id && _dirty) await SaveNowAsync();
+
         _loading = true;
         _error = null;
         try
@@ -143,126 +283,328 @@ else
             _chant = await Api.GetSadhanaChantAsync(Id);
             if (_chant is not null)
             {
-                _total = _chant.TodayCount;
-                _malas = _chant.TodayMalas;
-                _countInMala = _chant.TargetCount > 0 ? _total - _malas * _chant.TargetCount : _total;
+                _chantId = _chant.Id;
+                _counter = new JapaCounter(_chant.TodayCount, _chant.TodayMalas, _chant.CountInMala, _chant.TargetCount);
+                _vibration = _chant.VibrationEnabled;
+                _dirty = false;
+                _dirtySince = null;
             }
         }
         catch (Exception ex) { _error = Loc.ErrorText(ex); }
         finally { _loading = false; }
+
+        await PushOptionsAsync();
     }
 
-    private async Task Tap()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (_chant is null) return;
+        // The tap surface is attached once the chant is on screen, and only once.
+        if (_counter is null || _module is not null || _attaching || _disposed) return;
 
-        _total++;
-        _countInMala++;
-        _cheer = null;
+        _attaching = true;
+        try
+        {
+            _module = await JS.InvokeAsync<IJSObjectReference>("import", "./_content/App.UI.Shared/japa.js");
+            _self = DotNetObjectReference.Create(this);
+            _canVibrateWeb = !Haptics.IsNative && await _module.InvokeAsync<bool>("canVibrate");
+            await _module.InvokeVoidAsync("attach", _self, JsOptions());
+            if (_disposed) await DetachAsync();
+        }
+        catch (JSDisconnectedException) { }
+        catch (Exception ex) { _error = Loc.ErrorText(ex); StateHasChanged(); }
+    }
 
-        if (_chant.TargetCount > 0 && _countInMala >= _chant.TargetCount)
+    private object JsOptions() => new
+    {
+        lite = Lite,
+        // The browser vibrates inside the gesture; a native host vibrates from .NET instead.
+        webVibrate = _vibration && !Lite && _canVibrateWeb,
+        tickMs = 12
+    };
+
+    private async Task PushOptionsAsync()
+    {
+        if (_module is null) return;
+        try { await _module.InvokeVoidAsync("update", JsOptions()); }
+        catch (JSDisconnectedException) { }
+    }
+
+    /// <summary>One repetition, reported by japa.js after it has already drawn the ripple.</summary>
+    [JSInvokable]
+    public Task OnTap() => InvokeAsync(async () =>
+    {
+        if (_counter is null || _completing || _settingsOpen) return;
+
+        _tapped = true;
+        _dirty = true;
+
+        if (_counter.Tap())
         {
-            _malas++;
-            _countInMala = 0;
-            _flash = true;
-            await SaveNow();                 // persist the completed mala immediately
-            _ = ResetFlashAsync();
+            await CompleteMalaAsync();
+            return;
         }
-        else
+
+        if (_vibration && !Lite && Haptics.IsNative) Haptics.Tick();
+        ScheduleSave();
+        StateHasChanged();
+    });
+
+    /// <summary>
+    /// The mala is done: the long vibration (kept even in Battery Saver — it is how the seeker knows
+    /// without looking), the counter glows, the count is saved, and the completion page takes over.
+    /// </summary>
+    private async Task CompleteMalaAsync()
+    {
+        _completing = true;
+
+        if (_vibration)
         {
-            _dirty = true;
-            _ = DebounceSaveAsync();
+            if (Haptics.IsNative) Haptics.Celebrate();
+            else if (_canVibrateWeb && _module is not null)
+            {
+                try { await _module.InvokeAsync<bool>("vibrate", CelebratePattern); }
+                catch (JSDisconnectedException) { }
+            }
         }
+        StateHasChanged();
+
+        // Long enough to see the glow, never longer than the save itself would take anyway.
+        var glow = Task.Delay(Lite ? 0 : 550);
+        var result = await SaveNowAsync();
+        await glow;
+
+        Completion.Set(new JapaCompletion(
+            _chantId, _chant!.Name, _counter!.MalaSize, _counter.Malas, _counter.Total,
+            result?.Streak, result?.StreakSecuredToday ?? false));
+
+        // Replace, so Back from the completion page returns to the list rather than to a japa
+        // screen that has already been left.
+        Nav.NavigateTo($"sadhana/chant/{_chantId}/complete", replace: true);
+    }
+
+    private void ScheduleSave()
+    {
+        var (quiet, ceiling) = Lite
+            ? (TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(30))
+            : (TimeSpan.FromSeconds(1.5), TimeSpan.FromSeconds(15));
+
+        var now = DateTime.UtcNow;
+        _dirtySince ??= now;
+        var untilCeiling = _dirtySince.Value + ceiling - now;
+        var delay = untilCeiling < quiet ? (untilCeiling < TimeSpan.Zero ? TimeSpan.Zero : untilCeiling) : quiet;
+
+        _saveCts?.Cancel();
+        var cts = _saveCts = new CancellationTokenSource();
+        _ = SaveAfterAsync(delay, cts.Token);
+    }
+
+    private async Task SaveAfterAsync(TimeSpan delay, CancellationToken token)
+    {
+        try { await Task.Delay(delay, token); }
+        catch (TaskCanceledException) { return; }
+
+        var hadError = _error is not null;
+        await SaveNowAsync();
+        if (hadError != (_error is not null)) await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task<LogCountResult?> SaveNowAsync()
+    {
+        _saveCts?.Cancel();
+        if (_counter is null) return null;
+
+        // One save at a time. Two in flight for a chant not yet logged today would both insert the
+        // day's row, and the unique index turns the second into a 500. Each save sends the latest
+        // total, so the one that waited simply carries the newer count.
+        await _saveLock.WaitAsync();
+        try
+        {
+            var sent = _counter.Total;
+            var result = await Api.LogSadhanaCountAsync(new LogCountRequest { ChantConfigId = _chantId, TotalCount = sent });
+            if (result is null)
+            {
+                _error = Loc["sadhana.couldNotSaveCount", "Could not save your count."];
+                return null;
+            }
+
+            _error = null;
+            // Taps that landed while the request was out are still unsaved.
+            _dirty = _counter.Total != sent;
+            if (!_dirty) _dirtySince = null;
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _error = Loc["sadhana.couldNotSaveCount", "Could not save your count."] + " " + Loc.ErrorText(ex);
+            return null;
+        }
+        finally { _saveLock.Release(); }
+    }
+
+    private async Task SaveOnLeaveAsync(Guid chantId, int total)
+    {
+        await _saveLock.WaitAsync();
+        try { await Api.LogSadhanaCountAsync(new LogCountRequest { ChantConfigId = chantId, TotalCount = total }); }
+        catch { /* the page is gone; nowhere left to report it */ }
+        finally { _saveLock.Release(); }
+    }
+
+    // ---------------------------------------------------------------- settings
+
+    private void OpenSettings()
+    {
+        if (_counter is null) return;
+        _draftSize = _counter.MalaSize.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        _draftVibration = _vibration;
+        _draftLite = _liteChoice;
+        _settingsError = null;
+        _settingsOpen = true;
+    }
+
+    private void CloseSettings() => _settingsOpen = false;
+
+    private void Step(int delta)
+    {
+        var next = (DraftSize ?? _counter?.MalaSize ?? JapaCounter.MinMalaSize) + delta;
+        _draftSize = Math.Clamp(next, JapaCounter.MinMalaSize, JapaCounter.MaxMalaSize)
+            .ToString(System.Globalization.CultureInfo.InvariantCulture);
+    }
+
+    private void Pick(int size) => _draftSize = size.ToString(System.Globalization.CultureInfo.InvariantCulture);
+
+    private void UseDefault()
+    {
+        if (_chant is not null) Pick(_chant.DefaultTargetCount);
+    }
+
+    private async Task SaveSettingsAsync()
+    {
+        if (_chant is null || _counter is null) return;
+
+        if (DraftSize is not { } size || !JapaCounter.IsValidMalaSize(size))
+        {
+            _settingsError = Loc.TF("sadhana.malaSizeRange", "Enter a count from {0} to {1}.",
+                JapaCounter.MinMalaSize, JapaCounter.MaxMalaSize.ToString("N0", System.Globalization.CultureInfo.InvariantCulture));
+            return;
+        }
+
+        _savingSettings = true;
+        _settingsError = null;
+        try
+        {
+            if (size != _counter.MalaSize || _draftVibration != _vibration)
+            {
+                // The server has to hold today's count before it measures it against a new size.
+                if (_dirty) await SaveNowAsync();
+
+                var (ok, detail, error) = await Api.SaveSadhanaChantSettingsAsync(_chantId, new SaveChantSettingsRequest
+                {
+                    // The configured count is stored as "follow the default", so a later change in
+                    // the Chants master still reaches a seeker who never chose their own.
+                    MalaSize = size == _chant.DefaultTargetCount ? null : size,
+                    VibrationEnabled = _draftVibration
+                });
+                if (!ok || detail is null)
+                {
+                    _settingsError = string.IsNullOrWhiteSpace(error) ? Loc["sadhana.couldNotSaveSettings", "Could not save your settings."] : error;
+                    return;
+                }
+
+                _chant = detail;
+                _vibration = detail.VibrationEnabled;
+                _counter.ChangeMalaSize(detail.TargetCount);
+            }
+
+            if (_draftLite != _liteChoice)
+            {
+                _liteChoice = _draftLite;
+                try { await DevicePrefs.SetFlagAsync(DevicePreferenceKeys.JapaBatterySaver, _liteChoice); }
+                catch { /* applies for this visit even if it cannot be remembered */ }
+            }
+
+            await PushOptionsAsync();
+            _settingsOpen = false;
+            Toast.Success(Loc["sadhana.settingsSaved", "Your sadhana settings are saved."]);
+        }
+        finally { _savingSettings = false; }
     }
 
     /// <summary>
-    /// Clears the mala in progress — the big number on the ring — after a confirmation. Completed
-    /// malas stay: they are already saved, and they are what the streak counts.
+    /// Clears the mala in progress after a confirmation. Completed malas stay: they are already
+    /// saved, and they are what the streak counts.
     /// </summary>
-    private async Task ResetAsync()
+    private async Task ResetMalaAsync()
     {
-        if (_chant is null || _countInMala == 0) return;
+        if (_counter is null || _counter.InMala == 0) return;
+        _settingsOpen = false;
 
         var confirmed = await Confirm.ConfirmAsync(
             Loc["sadhana.resetConfirmTitle", "Reset Count?"],
-            Loc.TF("sadhana.resetConfirmBody", "This clears the {0} chants in your current mala. Completed malas are kept.", _countInMala),
+            Loc.TF("sadhana.resetConfirmBody", "This clears the {0} chants in your current mala. Completed malas are kept.", _counter.InMala),
             Loc["sadhana.resetCount", "Reset Count"],
             Loc["common.cancel", "Cancel"],
             ConfirmKind.Warning,
             "↺");
         if (!confirmed) return;
 
-        _total -= _countInMala;
-        _countInMala = 0;
-        _cheer = null;
+        _counter.ResetCurrentMala();
         _dirty = true;
-        await SaveNow();
+        await SaveNowAsync();
     }
 
-    private async Task DebounceSaveAsync()
-    {
-        _saveCts?.Cancel();
-        _saveCts = new CancellationTokenSource();
-        var token = _saveCts.Token;
-        try { await Task.Delay(1200, token); }
-        catch (TaskCanceledException) { return; }
-        await SaveNow();
-    }
+    // ---------------------------------------------------------------- the rest
 
-    private async Task SaveNow()
-    {
-        _saveCts?.Cancel();
-        // One save at a time. Two in flight for a chant not yet logged today would both insert
-        // the day's row, and the unique index turns the second into a 500. Each save sends the
-        // latest total, so the one that waited simply carries the newer count.
-        await _saveLock.WaitAsync();
-        try
-        {
-            var sent = _total;
-            var result = await Api.LogSadhanaCountAsync(new LogCountRequest { ChantConfigId = Id, TotalCount = sent });
-            // Taps that landed while the request was out are still unsaved.
-            _dirty = _total != sent;
-            if (result is not null)
-            {
-                if (result.StreakSecuredToday)
-                    _cheer = "🔥 " + Loc.TF("sadhana.streakSecured", "Streak secured! You're on a {0}-day streak.", result.Streak.CurrentStreak);
-                else if (result.MalaCompleted)
-                    _cheer = "🌸 " + Loc["sadhana.malaComplete", "Mala complete! Keep going."];
-                StateHasChanged();
-            }
-        }
-        catch (Exception ex) { _error = Loc["sadhana.couldNotSaveCount", "Could not save your count."] + " " + Loc.ErrorText(ex); }
-        finally { _saveLock.Release(); }
-    }
+    private void OnFavChanged() => InvokeAsync(StateHasChanged);
 
-    private async Task ResetFlashAsync()
+    private async Task ToggleFavAsync() => await Favs.ToggleChantAsync(_chantId);
+
+    private void OnEnergySaverChanged() => _ = InvokeAsync(async () =>
     {
-        await Task.Delay(500);
-        _flash = false;
+        await PushOptionsAsync();
         StateHasChanged();
+    });
+
+    /// <summary>A phone may stop a backgrounded app without warning, so the count is saved on the way out.</summary>
+    private void OnLifecycleChanged()
+    {
+        if (!Lifecycle.IsActive && _dirty) _ = InvokeAsync(SaveNowAsync);
     }
 
-    private async Task Back()
+    private async Task BackAsync()
     {
-        if (_dirty) await SaveNow();
+        if (_dirty) await SaveNowAsync();
         Nav.NavigateTo("sadhana");
     }
 
-    private async Task SaveOnLeaveAsync(int total)
+    private async Task DetachAsync()
     {
-        await _saveLock.WaitAsync();
-        try { await Api.LogSadhanaCountAsync(new LogCountRequest { ChantConfigId = Id, TotalCount = total }); }
-        catch { /* the page is gone; nowhere left to report it */ }
-        finally { _saveLock.Release(); }
+        try
+        {
+            if (_module is not null)
+            {
+                await _module.InvokeVoidAsync("detach");
+                await _module.DisposeAsync();
+            }
+        }
+        catch { /* the page, or the whole WebView, is already gone */ }
+        _module = null;
+        _self?.Dispose();
+        _self = null;
     }
 
     public override void Dispose()
     {
+        _disposed = true;
         Favs.OnChanged -= OnFavChanged;
+        EnergySaver.Changed -= OnEnergySaverChanged;
+        Lifecycle.Changed -= OnLifecycleChanged;
         _saveCts?.Cancel();
-        // best-effort final save of any un-persisted taps, queued behind a save still in flight
-        if (_dirty)
-            _ = SaveOnLeaveAsync(_total);
+
+        // Best-effort final save of any un-persisted taps, queued behind a save still in flight.
+        if (_dirty && _counter is not null)
+            _ = SaveOnLeaveAsync(_chantId, _counter.Total);
+
+        _ = DetachAsync();
         base.Dispose();
     }
 }

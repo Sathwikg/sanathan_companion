@@ -22,11 +22,19 @@ public class SadhanaService : ISadhanaService
     }
 
     private Guid UserId => _currentUser.UserId ?? throw new BadRequestException("Could not identify the current user.");
+
+    /// <summary>
+    /// The two lists a guest may browse ask for the caller's own progress as an extra. A guest has
+    /// none, so they get the same chants with nothing logged rather than an error.
+    /// </summary>
+    private async Task<IReadOnlyList<SadhanaLog>> TodayLogsOrNoneAsync(DateOnly today, CancellationToken cancellationToken)
+        => _currentUser.UserId is { } userId
+            ? await _uow.Sadhana.GetLogsForDateAsync(userId, today, cancellationToken)
+            : Array.Empty<SadhanaLog>();
     private static DateOnly Today => DateOnly.FromDateTime(DateTime.UtcNow.AddHours(5.5));   // IST
 
     public async Task<SadhanaTodayDto> GetTodayAsync(Guid? regionId, CancellationToken cancellationToken = default)
     {
-        var userId = UserId;
         var today = Today;
 
         var regionName = await ResolveRegionNameAsync(regionId, cancellationToken);
@@ -40,7 +48,7 @@ public class SadhanaService : ISadhanaService
             .Where(c => c.IsActive).ToList();
         var categories = (await _uow.Chants.GetAllOrderedAsync(cancellationToken)).ToDictionary(c => c.Id, c => c);
 
-        var todayLogs = (await _uow.Sadhana.GetLogsForDateAsync(userId, today, cancellationToken)).ToList();
+        var todayLogs = (await TodayLogsOrNoneAsync(today, cancellationToken)).ToList();
         var progressByChant = todayLogs.ToDictionary(l => l.ChantConfigId, l => l);
 
         var weekday = today.DayOfWeek.ToString();   // "Sunday" .. matches Deity.Days names
@@ -77,7 +85,11 @@ public class SadhanaService : ISadhanaService
             AddRecommendations(recommendations, dayDeities, chants, categories, deityNames, progressByChant, weekday);
         }
 
-        var streak = await _uow.Sadhana.GetStreakAsync(userId, cancellationToken);
+        var streak = _currentUser.UserId is { } userId
+            ? await _uow.Sadhana.GetStreakAsync(userId, cancellationToken)
+            : null;
+
+        await ApplyOwnMalaSizesAsync(recommendations, cancellationToken);
 
         return new SadhanaTodayDto
         {
@@ -95,7 +107,6 @@ public class SadhanaService : ISadhanaService
 
     public async Task<IReadOnlyList<SadhanaChantDto>> GetChantsAsync(string? search, Guid? regionId = null, CancellationToken cancellationToken = default)
     {
-        var userId = UserId;
         var today = Today;
 
         var regionName = await ResolveRegionNameAsync(regionId, cancellationToken);
@@ -113,10 +124,12 @@ public class SadhanaService : ISadhanaService
             .Where(c => c.IsActive && RegionFilter.ChantInRegion(c, regionName, deitiesById))
             .Where(c => string.IsNullOrEmpty(term) || MatchesSearch(c, term, deityNames))
             .ToList();
-        var progressByChant = (await _uow.Sadhana.GetLogsForDateAsync(userId, today, cancellationToken))
+        var progressByChant = (await TodayLogsOrNoneAsync(today, cancellationToken))
             .ToDictionary(l => l.ChantConfigId, l => l);
 
-        return chants.Select(c => ToChantDto(c, categories, deityNames, progressByChant, null)).ToList();
+        var list = chants.Select(c => ToChantDto(c, categories, deityNames, progressByChant, null)).ToList();
+        await ApplyOwnMalaSizesAsync(list, cancellationToken);
+        return list;
     }
 
     public async Task<SadhanaChantDetailDto?> GetChantAsync(Guid chantConfigId, CancellationToken cancellationToken = default)
@@ -131,22 +144,40 @@ public class SadhanaService : ISadhanaService
         var deities = await _uow.Deities.ListWithoutImageAsync(cancellationToken);
         var deityNames = deities.ToDictionary(d => d.Id, d => d.Name);
         var log = await _uow.Sadhana.GetLogAsync(userId, today, chantConfigId, cancellationToken);
+        var setting = await _uow.Sadhana.GetChantSettingAsync(userId, chantConfigId, cancellationToken);
 
-        return new SadhanaChantDetailDto
+        return ToDetailDto(c, categories, deityNames, log, setting);
+    }
+
+    public async Task<SadhanaChantDetailDto> SaveChantSettingsAsync(Guid chantConfigId, SaveChantSettingsDto dto, CancellationToken cancellationToken = default)
+    {
+        var userId = UserId;
+
+        if (dto.MalaSize is { } size && (size < UserChantSetting.MinMalaSize || size > UserChantSetting.MaxMalaSize))
+            throw new BadRequestException(
+                $"A mala must be between {UserChantSetting.MinMalaSize} and {UserChantSetting.MaxMalaSize:N0} chants.");
+
+        var c = await _uow.ChantConfigs.GetDetailAsync(chantConfigId, cancellationToken)
+            ?? throw new NotFoundException($"Chant '{chantConfigId}' was not found.");
+
+        var setting = await _uow.Sadhana.GetChantSettingAsync(userId, chantConfigId, cancellationToken);
+        if (setting is null)
         {
-            Id = c.Id,
-            Name = c.Name,
-            Description = c.Description,
-            CategoryId = c.ChantId,
-            CategoryName = c.Chant?.Name ?? string.Empty,
-            DeityNames = ResolveDeityNames(c.DeityIds, deityNames),
-            ChantText = c.ChantText,
-            HasAudio = c.AudioContentType != null,
-            AudioFileName = c.AudioFileName,
-            TargetCount = TargetCount(c, categories),
-            TodayCount = log?.TotalCount ?? 0,
-            TodayMalas = log?.MalasCompleted ?? 0
-        };
+            setting = new UserChantSetting { Id = Guid.NewGuid(), UserId = userId, ChantConfigId = chantConfigId };
+            await _uow.Sadhana.AddChantSettingAsync(setting, cancellationToken);
+        }
+
+        setting.MalaSize = dto.MalaSize;
+        setting.VibrationEnabled = dto.VibrationEnabled;
+        await _uow.SaveChangesAsync(cancellationToken);
+
+        // Nothing about today's log changes: completed malas stay banked, and the mala in progress
+        // keeps its count and is simply measured against the new size from the next chant on.
+        var categories = (await _uow.Chants.GetAllOrderedAsync(cancellationToken)).ToDictionary(x => x.Id, x => x);
+        var deityNames = (await _uow.Deities.ListWithoutImageAsync(cancellationToken)).ToDictionary(d => d.Id, d => d.Name);
+        var log = await _uow.Sadhana.GetLogAsync(userId, Today, chantConfigId, cancellationToken);
+
+        return ToDetailDto(c, categories, deityNames, log, setting);
     }
 
     public async Task<LogCountResultDto> LogCountAsync(LogCountDto dto, CancellationToken cancellationToken = default)
@@ -160,7 +191,8 @@ public class SadhanaService : ISadhanaService
         var deities = await _uow.Deities.ListWithoutImageAsync(cancellationToken);
         var deityNames = deities.ToDictionary(d => d.Id, d => d.Name);
 
-        var target = TargetCount(chant, categories);
+        var setting = await _uow.Sadhana.GetChantSettingAsync(userId, dto.ChantConfigId, cancellationToken);
+        var target = setting?.MalaSize ?? TargetCount(chant, categories);
         // Clamp to a sane per-day range: floor at 0, cap so a client can't inflate malas/streak
         // with an absurd count (also avoids integer-overflow in the lifetime totals).
         var newTotal = Math.Clamp(dto.TotalCount, 0, 1_000_000);
@@ -186,8 +218,18 @@ public class SadhanaService : ISadhanaService
         }
 
         log!.TargetCount = target;
+
+        // Completed malas are banked: a lower total (the screen's Reset, which clears only the
+        // mala in progress) can pull the count back to where that mala began, never below it.
+        newTotal = Math.Max(newTotal, log.MalaStartCount);
         log.TotalCount = newTotal;
-        log.MalasCompleted = target > 0 ? newTotal / target : 0;
+
+        // Only the mala in progress is measured against the current size, so changing the size
+        // mid-day neither invents malas nor takes back ones already done.
+        var inMala = newTotal - log.MalaStartCount;
+        var gained = target > 0 ? inMala / target : 0;
+        log.MalasCompleted += gained;
+        log.MalaStartCount += gained * target;
 
         // A new log is already tracked as Added; calling Update would flip it to Modified
         // and EF would issue an UPDATE for a row that does not exist yet.
@@ -310,8 +352,52 @@ public class SadhanaService : ISadhanaService
         CategoryName = l.CategoryName,
         TargetCount = l.TargetCount,
         TotalCount = l.TotalCount,
-        MalasCompleted = l.MalasCompleted
+        MalasCompleted = l.MalasCompleted,
+        CountInMala = Math.Max(0, l.TotalCount - l.MalaStartCount)
     };
+
+    private static SadhanaChantDetailDto ToDetailDto(
+        ChantConfig c,
+        Dictionary<Guid, Chant> categories,
+        Dictionary<Guid, string> deityNames,
+        SadhanaLog? log,
+        UserChantSetting? setting)
+    {
+        var defaultTarget = TargetCount(c, categories);
+        return new SadhanaChantDetailDto
+        {
+            Id = c.Id,
+            Name = c.Name,
+            Description = c.Description,
+            CategoryId = c.ChantId,
+            CategoryName = c.Chant?.Name ?? string.Empty,
+            DeityNames = ResolveDeityNames(c.DeityIds, deityNames),
+            ChantText = c.ChantText,
+            HasAudio = c.AudioContentType != null,
+            AudioFileName = c.AudioFileName,
+            TargetCount = setting?.MalaSize ?? defaultTarget,
+            DefaultTargetCount = defaultTarget,
+            CustomTargetCount = setting?.MalaSize,
+            VibrationEnabled = setting?.VibrationEnabled ?? true,
+            TodayCount = log?.TotalCount ?? 0,
+            TodayMalas = log?.MalasCompleted ?? 0,
+            CountInMala = log is null ? 0 : Math.Max(0, log.TotalCount - log.MalaStartCount)
+        };
+    }
+
+    /// <summary>The lists' "1 mala = N" follows the seeker's own size where they have set one.</summary>
+    private async Task ApplyOwnMalaSizesAsync(List<SadhanaChantDto> chants, CancellationToken cancellationToken)
+    {
+        if (_currentUser.UserId is not { } userId || chants.Count == 0) return;
+
+        var sizes = (await _uow.Sadhana.GetChantSettingsAsync(userId, cancellationToken))
+            .Where(s => s.MalaSize is not null)
+            .ToDictionary(s => s.ChantConfigId, s => s.MalaSize!.Value);
+        if (sizes.Count == 0) return;
+
+        foreach (var c in chants)
+            if (sizes.TryGetValue(c.Id, out var size)) c.TargetCount = size;
+    }
 
     private static SadhanaStreakDto ToStreakDto(SadhanaStreak? s, DateOnly today)
     {

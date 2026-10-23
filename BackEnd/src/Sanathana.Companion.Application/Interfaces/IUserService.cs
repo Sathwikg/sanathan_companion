@@ -7,6 +7,12 @@ public interface IUserService
     Task<IReadOnlyList<UserListItemDto>> GetAllAsync(CancellationToken cancellationToken = default);
     Task<UserProfileDto?> GetProfileAsync(Guid userId, CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// One page of a user's sadhana history, a page being <paramref name="pageSize"/> practice
+    /// days, newest first. Null when the user does not exist.
+    /// </summary>
+    Task<UserSadhanaPageDto?> GetSadhanaPageAsync(Guid userId, int page, int pageSize, CancellationToken cancellationToken = default);
+
     /// <summary>The signed-in user's own profile with a per-day sadhana timeline.</summary>
     Task<MyProfileDto?> GetMyProfileAsync(Guid userId, CancellationToken cancellationToken = default);
 

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Sanathana.Companion.Api.Filters;
 using Sanathana.Companion.Application.Common;
 using Sanathana.Companion.Application.Common.Authorization;
 using Sanathana.Companion.Application.DTOs.Sadhana;
@@ -18,6 +19,12 @@ public class SadhanaController : ControllerBase
     public SadhanaController(ISadhanaService service) => _service = service;
 
     /// <summary>Today's recommended chants (day + deity, festival override), sessions and streak.</summary>
+    /// <remarks>
+    /// A guest gets the recommendations with no sessions and an empty streak. Only the browsing is
+    /// open to them: the chant itself (the japa screen), logging a count and the streak are not
+    /// marked [GuestAccess], so starting a sadhana is where a guest is asked to sign in.
+    /// </remarks>
+    [GuestAccess]
     [HttpGet("today")]
     [ProducesResponseType(typeof(SadhanaTodayDto), StatusCodes.Status200OK)]
     public async Task<IActionResult> Today([FromQuery] Guid? regionId, CancellationToken cancellationToken)
@@ -26,6 +33,7 @@ public class SadhanaController : ControllerBase
     /// <summary>All active chants for the search tab, with the user's progress today.
     /// Optionally limited to one region.</summary>
     [RequiresModule(ModuleCodes.Sadhana, ModuleCodes.Dashboard, ModuleCodes.MobileDashboard)]
+    [GuestAccess]
     [HttpGet("chants")]
     [ProducesResponseType(typeof(IReadOnlyList<SadhanaChantDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> Chants([FromQuery] string? search, [FromQuery] Guid? regionId, CancellationToken cancellationToken)
@@ -40,6 +48,17 @@ public class SadhanaController : ControllerBase
         var dto = await _service.GetChantAsync(id, cancellationToken);
         return dto is null ? NotFound() : Ok(dto);
     }
+
+    /// <summary>
+    /// The seeker's own mala size (at least 3; null returns to the configured count) and vibration
+    /// choice for one chant. Returns the chant as the japa screen now shows it.
+    /// </summary>
+    [HttpPut("chants/{id:guid}/settings")]
+    [ProducesResponseType(typeof(SadhanaChantDetailDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> SaveSettings(Guid id, [FromBody] SaveChantSettingsDto dto, CancellationToken cancellationToken)
+        => Ok(await _service.SaveChantSettingsAsync(id, dto, cancellationToken));
 
     /// <summary>Record the japa count for a chant today (absolute total). Updates malas + streak.</summary>
     [HttpPost("log")]

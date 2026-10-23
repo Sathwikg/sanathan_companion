@@ -1,0 +1,68 @@
+# Sanathana Companion - the stack deploy.ps1 runs on the VPS.
+#
+#   browser --> http://<vps>:${WEB_PORT} --> web (nginx) -+- /      static Blazor WebAssembly
+#                                                         +- /api/  --> api (.NET 10) --> Postgres on the VPS
+#
+# Only `web` publishes a host port; the API is reachable only on the internal network,
+# through the /api proxy. The images are built locally and loaded by deploy.ps1, never pulled.
+#
+# No secrets here: every value comes from the .env next to this file on the server, which
+# deploy.ps1 writes from the git-ignored .env.vps (plus IMAGE_TAG and WEB_PORT).
+
+name: sanathana-companion
+
+services:
+  api:
+    image: sanathana-api:${IMAGE_TAG:?IMAGE_TAG is written by deploy.ps1}
+    container_name: sanathana-api
+    restart: unless-stopped
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_HTTP_PORTS: "8080"
+      # nginx is the only caller, so honour its X-Forwarded-* headers (safe: the API is not
+      # published to the host).
+      ASPNETCORE_FORWARDEDHEADERS_ENABLED: "true"
+      ConnectionStrings__DefaultConnection: ${CONNECTION_STRING:?set CONNECTION_STRING in .env.vps}
+      JwtSettings__Secret: ${JWT_SECRET:?set JWT_SECRET in .env.vps}
+      Admin__InitialPassword: ${ADMIN_INITIAL_PASSWORD:-}
+      Google__ClientIds__0: ${GOOGLE_CLIENT_ID:-}
+    expose:
+      - "8080"
+    # Lets the container reach Postgres running on the VPS as host.docker.internal.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      # /api/regions/options is [AllowAnonymous] and queries the database, so a 200 proves the
+      # Postgres connection works, not just that the process is up.
+      test: ["CMD", "curl", "-fsS", "-o", "/dev/null", "http://localhost:8080/api/regions/options"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      # Migrations run at startup - allow for that.
+      start_period: 90s
+    networks: [appnet]
+
+  web:
+    image: sanathana-web:${IMAGE_TAG:?IMAGE_TAG is written by deploy.ps1}
+    container_name: sanathana-web
+    restart: unless-stopped
+    environment:
+      # Relative path => the SPA calls the API on its own origin, through the /api proxy.
+      API_BASE_URL: /api
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+    ports:
+      - "${WEB_PORT:-8081}:80"
+    depends_on:
+      api:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost/index.html"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks: [appnet]
+
+networks:
+  appnet:
+    driver: bridge

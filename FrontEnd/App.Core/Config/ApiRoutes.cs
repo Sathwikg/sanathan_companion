@@ -119,6 +119,8 @@ public static class ApiRoutes
     {
         public const string Root = "users";
         public static string ById(Guid id) => $"users/{id}";
+        /// <summary>One page of the user's sadhana history; a page is <paramref name="pageSize"/> practice days.</summary>
+        public static string Sadhana(Guid id, int page, int pageSize) => $"users/{id}/sadhana?page={page}&pageSize={pageSize}";
         /// <summary>Opens or closes an account; closing also ends its live sessions.</summary>
         public static string Status(Guid id) => $"users/{id}/status";
     }
@@ -140,6 +142,7 @@ public static class ApiRoutes
         public static string Today(Guid? regionId) => Query("sadhana/today", ("regionId", regionId));
         public static string Chants(string? search, Guid? regionId) => Query("sadhana/chants", ("search", search), ("regionId", regionId));
         public static string Chant(Guid id) => $"sadhana/chants/{id}";
+        public static string ChantSettings(Guid id) => $"sadhana/chants/{id}/settings";
     }
 
     public static class Panchangam

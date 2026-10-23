@@ -1,5 +1,5 @@
 @page "/panchangam"
-@attribute [Authorize]
+@attribute [Authorize(Policy = GuestSession.BrowsePolicy)]
 @inherits LocalizedComponentBase
 @implements IDisposable
 @inject IApiClient Api

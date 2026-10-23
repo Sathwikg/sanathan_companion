@@ -51,16 +51,29 @@ public class UserService : IUserService
         return result;
     }
 
+    /// <summary>Weeks in the admin profile's practice calendar: about six months.</summary>
+    private const int ActivityWeeks = 26;
+
+    /// <summary>Rows in the profile's top chants and top deities.</summary>
+    private const int TopListSize = 5;
+
+    /// <summary>A month of days is the most one timeline page may ask for.</summary>
+    private const int MaxTimelinePageSize = 31;
+
     public async Task<UserProfileDto?> GetProfileAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         var u = await _uow.Users.GetWithRoleAsync(userId, cancellationToken);
         if (u is null) return null;
 
         var streak = await _uow.Sadhana.GetStreakAsync(userId, cancellationToken);
+        var days = await _uow.Sadhana.GetDailyTotalsAsync(userId, cancellationToken);
+        var chants = await _uow.Sadhana.GetChantTotalsAsync(userId, cancellationToken);
 
-        var from = DateOnly.FromDateTime(DateTime.UtcNow.AddHours(5.5)).AddDays(-30);
-        var to = DateOnly.FromDateTime(DateTime.UtcNow.AddHours(5.5));
-        var history = await _uow.Sadhana.GetHistoryAsync(userId, from, to, cancellationToken);
+        string? regionName = null;
+        if (u.DefaultRegionId is { } rid)
+            regionName = (await _uow.Regions.GetByIdAsync(rid, cancellationToken))?.Name;
+
+        var today = TodayIst();
 
         return new UserProfileDto
         {
@@ -73,24 +86,120 @@ public class UserService : IUserService
             IsAdmin = string.Equals(u.Role?.RoleName, RoleNames.Admin, StringComparison.OrdinalIgnoreCase),
             RegisteredOn = u.CreatedDate,
             LastUpdatedOn = u.ModifiedDate,
+            IsActive = u.IsActive,
+            DefaultRegionName = regionName,
+            GoogleLinked = u.GoogleSubject is not null,
             CurrentStreak = DisplayStreak(streak),
             LongestStreak = streak?.LongestStreak ?? 0,
             TotalMalas = streak?.TotalMalas ?? 0,
             TotalDaysPracticed = streak?.TotalDaysPracticed ?? 0,
             LastPracticeDate = streak?.LastPracticeDate,
-            RecentSadhana = history
-                .OrderByDescending(h => h.Date).Take(15)
-                .Select(h => new UserSadhanaEntryDto
-                {
-                    Date = h.Date,
-                    ChantName = h.ChantName,
-                    DeityName = h.DeityName,
-                    CategoryName = h.CategoryName,
-                    MalasCompleted = h.MalasCompleted,
-                    TotalCount = h.TotalCount
-                }).ToList()
+            DaysSinceLastPractice = streak?.LastPracticeDate is { } last ? today.DayNumber - last.DayNumber : null,
+            Insights = BuildInsights(days, chants, streak, today, DateOnly.FromDateTime(u.CreatedDate.AddHours(5.5)))
         };
     }
+
+    public async Task<UserSadhanaPageDto?> GetSadhanaPageAsync(Guid userId, int page, int pageSize, CancellationToken cancellationToken = default)
+    {
+        if (!await _uow.Users.AnyAsync(u => u.UserId == userId, cancellationToken)) return null;
+
+        pageSize = Math.Clamp(pageSize, 1, MaxTimelinePageSize);
+
+        // Paged over days rather than log rows, so one busy day is never split across two pages.
+        var days = await _uow.Sadhana.GetDailyTotalsAsync(userId, cancellationToken);
+        var pageCount = Math.Max(1, (days.Count + pageSize - 1) / pageSize);
+        page = Math.Clamp(page, 1, pageCount);
+
+        var slice = days.OrderByDescending(d => d.Date)
+            .Skip((page - 1) * pageSize).Take(pageSize).ToList();
+
+        var items = new List<SadhanaDayDto>();
+        if (slice.Count > 0)
+        {
+            // The page's days are consecutive among the days practised, so the range from its
+            // oldest to its newest holds those days and no others.
+            var logs = await _uow.Sadhana.GetHistoryAsync(userId, slice[^1].Date, slice[0].Date, cancellationToken);
+            items = ToTimeline(logs.Where(l => l.TotalCount > 0));
+        }
+
+        return new UserSadhanaPageDto { Items = items, TotalCount = days.Count, Page = page, PageSize = pageSize };
+    }
+
+    private static UserSadhanaInsightsDto BuildInsights(
+        IReadOnlyList<SadhanaDayTotal> days,
+        IReadOnlyList<SadhanaChantTotal> chants,
+        Domain.Entities.SadhanaStreak? streak,
+        DateOnly today,
+        DateOnly registered)
+    {
+        // A day counts as practised once a mala is complete, the same rule the streak uses.
+        var practised = days.Where(d => d.Malas > 0).ToList();
+
+        // The calendar's columns are Monday-to-Sunday weeks, the last one holding today.
+        var thisMonday = today.AddDays(-MondayIndex(today));
+        var activityFrom = thisMonday.AddDays(-7 * (ActivityWeeks - 1));
+
+        var window = Math.Clamp(today.DayNumber - registered.DayNumber + 1, 1, 30);
+        var windowFrom = today.AddDays(1 - window);
+        var last30From = today.AddDays(-29);
+        var previous30From = today.AddDays(-59);
+
+        var best = practised.OrderByDescending(d => d.Malas).ThenByDescending(d => d.Date).FirstOrDefault();
+
+        var weekdays = Enumerable.Range(0, 7).Select(i => new UserWeekdayStatDto { Day = i }).ToList();
+        foreach (var d in practised)
+        {
+            var w = weekdays[MondayIndex(d.Date)];
+            w.Malas += d.Malas;
+            w.Days++;
+        }
+
+        return new UserSadhanaInsightsDto
+        {
+            Today = today,
+            TotalJapa = days.Sum(d => d.Japa),
+            ChantsPracticed = chants.Count,
+            FirstPracticeDate = days.Count > 0 ? days[0].Date : null,
+            AverageMalasPerDay = streak is { TotalDaysPracticed: > 0 }
+                ? Math.Round(streak.TotalMalas / (double)streak.TotalDaysPracticed, 1)
+                : 0,
+            ActiveDays = practised.Count(d => d.Date >= windowFrom && d.Date <= today),
+            WindowDays = window,
+            MalasLast30Days = days.Where(d => d.Date >= last30From && d.Date <= today).Sum(d => d.Malas),
+            MalasPrevious30Days = days.Where(d => d.Date >= previous30From && d.Date < last30From).Sum(d => d.Malas),
+            BestDayDate = best?.Date,
+            BestDayMalas = best?.Malas ?? 0,
+            ActivityFrom = activityFrom,
+            ActivityWeeks = ActivityWeeks,
+            Activity = days
+                .Where(d => d.Date >= activityFrom && d.Date <= today)
+                .Select(d => new UserActivityDayDto { Date = d.Date, Malas = d.Malas, Japa = d.Japa, Chants = d.Chants })
+                .ToList(),
+            Weekdays = weekdays,
+            TopChants = chants
+                .OrderByDescending(c => c.Malas).ThenByDescending(c => c.Japa).ThenBy(c => c.ChantName)
+                .Take(TopListSize)
+                .Select(c => new UserChantStatDto
+                {
+                    ChantName = c.ChantName,
+                    DeityName = c.DeityName,
+                    Malas = c.Malas,
+                    Japa = c.Japa,
+                    Days = c.Days,
+                    LastDate = c.LastDate
+                }).ToList(),
+            TopDeities = chants
+                .Where(c => !string.IsNullOrWhiteSpace(c.DeityName))
+                .GroupBy(c => c.DeityName!)
+                .Select(g => new UserDeityStatDto { DeityName = g.Key, Malas = g.Sum(c => c.Malas), Japa = g.Sum(c => c.Japa) })
+                .OrderByDescending(d => d.Malas).ThenByDescending(d => d.Japa)
+                .Take(TopListSize)
+                .ToList()
+        };
+    }
+
+    /// <summary>0 for Monday through 6 for Sunday. DayOfWeek starts the week on Sunday.</summary>
+    private static int MondayIndex(DateOnly date) => ((int)date.DayOfWeek + 6) % 7;
 
     public async Task<MyProfileDto?> GetMyProfileAsync(Guid userId, CancellationToken cancellationToken = default)
     {
@@ -103,27 +212,7 @@ public class UserService : IUserService
         var from = today.AddDays(-90);
         var history = await _uow.Sadhana.GetHistoryAsync(userId, from, today, cancellationToken);
 
-        var timeline = history
-            .GroupBy(h => h.Date)
-            .OrderByDescending(g => g.Key)
-            .Select(g => new SadhanaDayDto
-            {
-                Date = g.Key,
-                TotalMalas = g.Sum(x => x.MalasCompleted),
-                TotalCount = g.Sum(x => x.TotalCount),
-                Entries = g
-                    .OrderByDescending(x => x.MalasCompleted)
-                    .ThenBy(x => x.ChantName)
-                    .Select(x => new UserSadhanaEntryDto
-                    {
-                        Date = x.Date,
-                        ChantName = x.ChantName,
-                        DeityName = x.DeityName,
-                        CategoryName = x.CategoryName,
-                        MalasCompleted = x.MalasCompleted,
-                        TotalCount = x.TotalCount
-                    }).ToList()
-            }).ToList();
+        var timeline = ToTimeline(history);
 
         string? regionName = null;
         if (u.DefaultRegionId is { } rid)
@@ -211,6 +300,31 @@ public class UserService : IUserService
         // Tracked, so EF writes only the changed columns; see UpdateDefaultRegionAsync.
         await _uow.SaveChangesAsync(cancellationToken);
     }
+
+    /// <summary>Logs grouped into days, newest first; within a day, most malas first.</summary>
+    private static List<SadhanaDayDto> ToTimeline(IEnumerable<Domain.Entities.SadhanaLog> logs) => logs
+        .GroupBy(h => h.Date)
+        .OrderByDescending(g => g.Key)
+        .Select(g => new SadhanaDayDto
+        {
+            Date = g.Key,
+            TotalMalas = g.Sum(x => x.MalasCompleted),
+            TotalCount = g.Sum(x => x.TotalCount),
+            Entries = g
+                .OrderByDescending(x => x.MalasCompleted)
+                .ThenBy(x => x.ChantName)
+                .Select(x => new UserSadhanaEntryDto
+                {
+                    Date = x.Date,
+                    ChantName = x.ChantName,
+                    DeityName = x.DeityName,
+                    CategoryName = x.CategoryName,
+                    MalasCompleted = x.MalasCompleted,
+                    TotalCount = x.TotalCount
+                }).ToList()
+        }).ToList();
+
+    private static DateOnly TodayIst() => DateOnly.FromDateTime(DateTime.UtcNow.AddHours(5.5));
 
     /// <summary>A streak counts only if the last practice was today or yesterday, else it has lapsed.</summary>
     private static int DisplayStreak(Domain.Entities.SadhanaStreak? s)

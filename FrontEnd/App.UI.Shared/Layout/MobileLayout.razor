@@ -15,7 +15,7 @@
 @* lang lets mobile.css loosen the Latin letter-spacing for Indic scripts, where tracking pulls a
    conjunct's glyphs apart. From the bundle on screen, not the stored preference: a failed
    download leaves the page in English. *@
-<div class="sc-shell scm-shell" lang="@LangCode">
+<div class="sc-shell scm-shell @(Immersive ? "scm-shell--immersive" : null)" lang="@LangCode">
     <header class="scm-topbar">
         <div class="scm-topbar-brand">
             <AppLogo Size="30" />
@@ -39,7 +39,10 @@
                     </button>
                 </Authorized>
                 <NotAuthorized>
+                    @* A guest: no bell (there is nothing of theirs to notify about) and no avatar,
+                       but the one control that turns them into a seeker. *@
                     <ThemeToggle />
+                    <SignInButton Class="sc-btn-primary sc-btn-sm sc-signin-btn scm-signin-btn" />
                 </NotAuthorized>
             </AuthorizeView>
         </div>
@@ -62,11 +65,18 @@
         <AppErrorBoundary>@Body</AppErrorBoundary>
     </main>
 
-    <AuthorizeView>
-        <Authorized>
-            <MobileBottomNav Menu="Menus.Menu" Loading="Menus.Menu is null" OnMore="OpenMore" />
-        </Authorized>
-    </AuthorizeView>
+    @* A guest gets the bar too, built from the Guest role's menu. Tabs that need an account
+       (Favorites, say) are in it on purpose: opening one is how a guest is asked to sign in.
+       Not on the japa screen, where the whole screen counts: a thumb resting near the bottom edge
+       should add a chant, not leave the page. The page's own Back returns from it. *@
+    @if (!Immersive)
+    {
+        <AuthorizeView Policy="@GuestSession.BrowsePolicy">
+            <Authorized>
+                <MobileBottomNav Menu="Menus.Menu" Loading="Menus.Menu is null" OnMore="OpenMore" />
+            </Authorized>
+        </AuthorizeView>
+    }
 
     <MobileSheet Open="_moreOpen" OnClose="CloseSheets" Title="@Loc["nav.allSections", "All Sections"]">
         <MobileMoreSheet Menu="Menus.Menu" OnNavigate="CloseSheets" />
@@ -105,6 +115,17 @@
             return match is null
                 ? Brand.AppName
                 : Loc.Entity("MenuModule", match.Id, "Name", match.Name);
+        }
+    }
+
+    /// <summary>The japa screen (not its completion page) takes the whole screen as its counter.</summary>
+    private bool Immersive
+    {
+        get
+        {
+            var path = Nav.ToBaseRelativePath(Nav.Uri).Split('?', '#')[0].TrimEnd('/');
+            return path.StartsWith("sadhana/chant/", StringComparison.OrdinalIgnoreCase)
+                && !path.EndsWith("/complete", StringComparison.OrdinalIgnoreCase);
         }
     }
 

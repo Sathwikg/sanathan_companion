@@ -23,7 +23,7 @@
                 @_error
                 @if (_expired)
                 {
-                    <span> <a href="login">@Loc["auth.signInInstead", "Sign In"]</a></span>
+                    <span> <a href="@LoginGate.LoginUrl(Target)">@Loc["auth.signInInstead", "Sign In"]</a></span>
                 }
             </div>
         }
@@ -87,7 +87,7 @@
         </button>
     </EditForm>
 
-    <p class="sc-form-alt"><a href="login">@Loc["common.cancel", "Cancel"]</a></p>
+    <p class="sc-form-alt"><a href="@LoginGate.LoginUrl(Target)">@Loc["common.cancel", "Cancel"]</a></p>
 }
 else
 {
@@ -96,7 +96,7 @@ else
     @if (_success)
     {
         <div class="sc-alert sc-alert-success">
-            🕉️ @Loc["auth.registrationSuccess", "Registration successful!"] @Loc["auth.youMayNow", "You may now"] <a href="login">@Loc["auth.signInInstead", "Sign In"]</a>.
+            🕉️ @Loc["auth.registrationSuccess", "Registration successful!"] @Loc["auth.youMayNow", "You may now"] <a href="@LoginGate.LoginUrl(Target)">@Loc["auth.signInInstead", "Sign In"]</a>.
         </div>
     }
     else
@@ -166,11 +166,17 @@ else
             </button>
         </EditForm>
 
-        <p class="sc-form-alt">@Loc["auth.alreadyHaveAccount", "Already a seeker?"] <a href="login">@Loc["auth.signInInstead", "Sign In"]</a></p>
+        <p class="sc-form-alt">@Loc["auth.alreadyHaveAccount", "Already a seeker?"] <a href="@LoginGate.LoginUrl(Target)">@Loc["auth.signInInstead", "Sign In"]</a></p>
     }
 }
 
 @code {
+    /// <summary>Where the visitor was going when they were asked to sign in; carried through so a
+    /// new account still ends on that page. See LoginGate.SafeReturnUrl.</summary>
+    [SupplyParameterFromQuery(Name = "returnUrl")] public string? ReturnUrl { get; set; }
+
+    private string Target => LoginGate.SafeReturnUrl(ReturnUrl);
+
     private readonly RegisterRequest _model = new();
     private readonly GoogleRegisterRequest _google = new();
     private List<RegionOption> _regions = new();
@@ -223,7 +229,7 @@ else
         if (success)
         {
             // Signed in by the API as part of registering: no second trip through the login page.
-            Nav.NavigateTo("");
+            Nav.NavigateTo(Target);
             return;
         }
 
