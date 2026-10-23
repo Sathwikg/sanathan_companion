@@ -17,7 +17,8 @@
            drawer instead. Wrapping it onto a second row was the alternative, but that spends ~14%
            of a phone screen on chrome; relocating is the adaptive answer. *@
         <div class="sc-topbar-right">
-            <AuthorizeView>
+            @* A guest browses region-specific content too, so the picker is theirs as well. *@
+            <AuthorizeView Policy="@GuestSession.BrowsePolicy">
                 <Authorized>
                     <RegionSelector />
                 </Authorized>
@@ -36,6 +37,9 @@
                     </NavLink>
                     <button class="sc-btn-ghost sc-btn-sm" @onclick="LogoutAsync">@Loc["common.logout", "Logout"]</button>
                 </Authorized>
+                <NotAuthorized>
+                    <SignInButton />
+                </NotAuthorized>
             </AuthorizeView>
         </div>
     </header>
@@ -53,7 +57,7 @@
 
             @* The topbar controls, relocated. Hidden above the breakpoint, where the bar has room. *@
             <div class="sc-drawer-tools">
-                <AuthorizeView>
+                <AuthorizeView Policy="@GuestSession.BrowsePolicy">
                     <Authorized>
                         <RegionSelector />
                     </Authorized>
@@ -69,6 +73,9 @@
                             </NavLink>
                             <button class="sc-btn-ghost sc-btn-sm" @onclick="LogoutAsync">@Loc["common.logout", "Logout"]</button>
                         </Authorized>
+                        <NotAuthorized>
+                            <SignInButton />
+                        </NotAuthorized>
                     </AuthorizeView>
                 </div>
             </div>

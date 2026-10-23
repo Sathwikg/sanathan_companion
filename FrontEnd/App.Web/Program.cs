@@ -1,6 +1,7 @@
 using App.Core.Auth;
 using App.Core.Config;
 using App.Core.DependencyInjection;
+using App.Core.Services;
 using App.Web.Auth;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
@@ -20,6 +21,8 @@ if (!Uri.IsWellFormedUriString(apiBaseUrl, UriKind.Absolute))
 
 // Web token/theme storage = browser localStorage.
 builder.Services.AddScoped<ITokenStore, LocalStorageTokenStore>();
+builder.Services.AddScoped<IGuestModeStore, LocalStorageGuestModeStore>();
+builder.Services.AddScoped<IDevicePreferences, LocalStorageDevicePreferences>();
 builder.Services.AddScoped<IThemeStore, LocalStorageThemeStore>();
 builder.Services.AddScoped<ILanguageStore, LocalStorageLanguageStore>();
 builder.Services.AddScoped<ILocalizationCache, LocalStorageLocalizationCache>();

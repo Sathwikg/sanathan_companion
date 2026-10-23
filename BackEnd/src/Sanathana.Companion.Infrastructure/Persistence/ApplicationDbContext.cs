@@ -46,6 +46,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<Panchangam> Panchangams => Set<Panchangam>();
     public DbSet<SadhanaLog> SadhanaLogs => Set<SadhanaLog>();
     public DbSet<SadhanaStreak> SadhanaStreaks => Set<SadhanaStreak>();
+    public DbSet<UserChantSetting> UserChantSettings => Set<UserChantSetting>();
     public DbSet<IssueType> IssueTypes => Set<IssueType>();
     public DbSet<Feedback> Feedbacks => Set<Feedback>();
     public DbSet<UserFavorite> UserFavorites => Set<UserFavorite>();

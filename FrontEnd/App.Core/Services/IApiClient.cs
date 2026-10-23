@@ -88,6 +88,7 @@ public interface IApiClient
     // Users (admin)
     Task<(bool Ok, List<UserListItem> Users, bool Forbidden, string Error)> GetUsersAsync();
     Task<UserProfile?> GetUserProfileAsync(Guid id);
+    Task<UserSadhanaPage?> GetUserSadhanaAsync(Guid id, int page, int pageSize);
 
     // Signed-in user's own profile
     Task<MyProfile?> GetMyProfileAsync();
@@ -118,6 +119,9 @@ public interface IApiClient
     Task<SadhanaChantDetail?> GetSadhanaChantAsync(Guid id);
     Task<LogCountResult?> LogSadhanaCountAsync(LogCountRequest request);
     Task<SadhanaStreak?> GetSadhanaStreakAsync();
+
+    /// <summary>Saves the seeker's own mala size and vibration choice; returns the chant as it now stands.</summary>
+    Task<(bool Success, SadhanaChantDetail? Chant, string Error)> SaveSadhanaChantSettingsAsync(Guid id, SaveChantSettingsRequest request);
 
     // Panchangam
     Task<PanchangamOptions> GetPanchangamOptionsAsync();

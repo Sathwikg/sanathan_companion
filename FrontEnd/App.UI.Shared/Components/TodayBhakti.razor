@@ -7,6 +7,7 @@
 @inject NavigationManager Nav
 @inject AppConfig Config
 @inject FavoritesState Favs
+@inject LoginGate Gate
 @inject RegionState Region
 @inject MediaUrlBuilder Media
 
@@ -110,7 +111,7 @@
                 <button type="button" class="sc-fav lg @(Favs.IsDeity(_detail.Id) ? "on" : null)"
                         style="margin-left:auto"
                         title="@(Favs.IsDeity(_detail.Id) ? Loc["favorites.removeFromFavorites", "Remove from Favorites"] : Loc["favorites.addToFavorites", "Add to Favorites"])"
-                        @onclick="() => Favs.ToggleDeityAsync(_detail.Id)">♥</button>
+                        @onclick="() => ToggleDeityFavAsync(_detail.Id)">♥</button>
             </div>
 
             @if (!string.IsNullOrWhiteSpace(_detail.WelcomeNote))
@@ -256,7 +257,16 @@
     private void OpenDetails(TodayDeity d) => _detail = d;
     private void CloseDetails() => _detail = null;
 
+    // A guest is sent to the japa screen like anyone else; the router asks them to sign in there
+    // and brings them back to this chant afterwards.
     private void GoToSadhana(TodaySadhana s) => Nav.NavigateTo($"sadhana/chant/{s.ChantConfigId}");
+
+    // Favourites belong to an account, so a guest is asked to sign in first.
+    private async Task ToggleDeityFavAsync(Guid deityId)
+    {
+        if (!await Gate.EnsureSignedInAsync()) return;
+        await Favs.ToggleDeityAsync(deityId);
+    }
 
     private string ImgSrc(Guid id) => Media.Absolute(ApiRoutes.Media.DeityImage(id));
 

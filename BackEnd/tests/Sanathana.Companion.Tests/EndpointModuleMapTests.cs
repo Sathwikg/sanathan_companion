@@ -113,6 +113,56 @@ public class EndpointModuleMapTests
             "ProfileController.SetDefaultRegion"
         }, exempt);
     }
+
+    [Fact]
+    public void The_guest_set_is_small_and_deliberate()
+    {
+        // [GuestAccess] is how a visitor with no account gets past [Authorize]. Each of these reads
+        // shared content; none reads or writes anything that belongs to a person. Starting a chant
+        // (SadhanaController.Chant), counting it (Log) and the streak are deliberately absent:
+        // reaching for them is what asks a guest to sign in.
+        var guest = Actions()
+            .Where(a => a.Action.GetCustomAttribute<Sanathana.Companion.Api.Filters.GuestAccessAttribute>() is not null
+                     || a.Controller.GetCustomAttribute<Sanathana.Companion.Api.Filters.GuestAccessAttribute>() is not null)
+            .Select(a => $"{a.Controller.Name}.{a.Action.Name}")
+            .OrderBy(n => n, StringComparer.Ordinal)
+            .ToList();
+
+        Assert.Equal(new[]
+        {
+            "DashboardController.Prayers",
+            "DashboardController.TodayBhakti",
+            "MediaController.GetTicket",
+            "MenuModulesController.GetMenu",
+            "PanchangamController.Compute",
+            "PanchangamController.GetAll",
+            "PanchangamController.GetByDate",
+            "PanchangamController.GetById",
+            "PanchangamController.GetOptions",
+            "PujaProcessController.GetFestivals",
+            "PujaProcessController.GetProcess",
+            "PujaProcessController.GetPujas",
+            "SadhanaController.Chants",
+            "SadhanaController.Today",
+            "WallpapersController.GetByDeity",
+            "WallpapersController.GetById",
+            "WallpapersController.GetDeities"
+        }, guest);
+    }
+
+    [Fact]
+    public void A_guest_endpoint_is_never_also_plainly_public()
+    {
+        // [AllowAnonymous] beside [GuestAccess] would make the module filter return before it
+        // checks the Guest role's grants, opening the endpoint to everyone regardless of the matrix.
+        var both = Actions()
+            .Where(a => a.Action.GetCustomAttribute<Sanathana.Companion.Api.Filters.GuestAccessAttribute>() is not null
+                     && a.Action.GetCustomAttribute<AllowAnonymousAttribute>() is not null)
+            .Select(a => $"{a.Controller.Name}.{a.Action.Name}")
+            .ToList();
+
+        Assert.Empty(both);
+    }
 }
 
 internal static class MethodInfoExtensions

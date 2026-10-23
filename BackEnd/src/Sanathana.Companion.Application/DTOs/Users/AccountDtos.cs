@@ -17,6 +17,7 @@ public class MyDataExportDto
     public AccountExport Account { get; set; } = new();
     public List<SadhanaEntryExport> Sadhana { get; set; } = new();
     public List<FavoriteExport> Favorites { get; set; } = new();
+    public List<ChantSettingExport> ChantSettings { get; set; } = new();
     public List<FeedbackExport> Feedback { get; set; } = new();
     public NotificationExport Notifications { get; set; } = new();
 
@@ -43,6 +44,14 @@ public class MyDataExportDto
     {
         public string Type { get; set; } = string.Empty;
         public string Name { get; set; } = string.Empty;
+    }
+
+    /// <summary>A chant the seeker set their own mala size or vibration for.</summary>
+    public class ChantSettingExport
+    {
+        public string Chant { get; set; } = string.Empty;
+        public int? MalaSize { get; set; }
+        public bool VibrationEnabled { get; set; }
     }
 
     public class FeedbackExport

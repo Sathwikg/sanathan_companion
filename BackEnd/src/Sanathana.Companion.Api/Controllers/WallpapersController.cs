@@ -23,13 +23,19 @@ public class WallpapersController : ControllerBase
     /// Deities for the picker. <paramref name="onlyWithWallpapers"/> is what the download screen
     /// uses, so a seeker is never offered a deity with an empty gallery.
     /// </summary>
+    /// <remarks>
+    /// The three gallery reads are open to a guest: browsing is the taster. Saving one is not —
+    /// the download screen asks a guest to sign in before it hands over the file.
+    /// </remarks>
     [RequiresModule(ModuleCodes.Wallpapers, ModuleCodes.WallpapersDownload)]
+    [GuestAccess]
     [HttpGet("deities")]
     [ProducesResponseType(typeof(IReadOnlyList<WallpaperDeityDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetDeities([FromQuery] bool onlyWithWallpapers = false, CancellationToken cancellationToken = default)
         => Ok(await _service.GetDeitiesAsync(onlyWithWallpapers, cancellationToken));
 
     [RequiresModule(ModuleCodes.Wallpapers, ModuleCodes.WallpapersDownload)]
+    [GuestAccess]
     [HttpGet("deity/{deityId:guid}")]
     [ProducesResponseType(typeof(IReadOnlyList<WallpaperDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -37,6 +43,7 @@ public class WallpapersController : ControllerBase
         => Ok(await _service.GetByDeityAsync(deityId, activeOnly, cancellationToken));
 
     [RequiresModule(ModuleCodes.Wallpapers, ModuleCodes.WallpapersDownload)]
+    [GuestAccess]
     [HttpGet("{id:guid}")]
     [ProducesResponseType(typeof(WallpaperDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

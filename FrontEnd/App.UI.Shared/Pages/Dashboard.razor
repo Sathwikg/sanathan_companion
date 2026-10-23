@@ -1,5 +1,5 @@
 @page "/"
-@attribute [Authorize]
+@attribute [Authorize(Policy = GuestSession.BrowsePolicy)]
 @inherits LocalizedComponentBase
 @inject IApiClient Api
 @inject AppConfig Config
@@ -27,12 +27,19 @@ else if (_model is not null)
             <h1 class="sc-hero-title">@Loc.TF("dashboard.welcome", "🕉️ Namaste, {0}! Welcome to your {1}.", GreetingName, Brand.AppName)</h1>
             <div class="sc-hero-meta">
                 <span class="sc-pill"><span class="sc-pill-k">@Loc["dashboard.seeker", "Seeker"]</span>@GreetingName</span>
-                <span class="sc-pill"><span class="sc-pill-k">@Loc["common.role", "Role"]</span>@_model.Role</span>
+                @if (!_isGuest)
+                {
+                    <span class="sc-pill"><span class="sc-pill-k">@Loc["common.role", "Role"]</span>@_model.Role</span>
+                }
             </div>
         </div>
     </section>
 
-    @if (_streak is not null)
+    @if (_isGuest)
+    {
+        <GuestSignInCard />
+    }
+    else if (_streak is not null)
     {
         <div class="sc-section-head">
             <h2>🙏 @Loc["sadhana.mySadhana", "My Sadhana"]</h2>
@@ -91,10 +98,13 @@ else
 }
 
 @code {
+    [CascadingParameter] private Task<AuthenticationState>? AuthState { get; set; }
+
     private DashboardModel? _model;
     private SadhanaStreak? _streak;
     private bool _loading = true;
     private string? _error;
+    private bool _isGuest;
 
     private sealed record Deity(string Name, string File, string Mantra);
 
@@ -137,6 +147,16 @@ else
         if (Config.IsMobile)
         {
             Nav.NavigateTo("mobile-dashboard", replace: true);
+            return;
+        }
+
+        // A guest has no account to greet or streak to show: the greeting is built here and the
+        // streak widget becomes the invitation to sign in. The day's blocks below load as usual.
+        _isGuest = GuestSession.IsGuest(AuthState is null ? null : (await AuthState).User);
+        if (_isGuest)
+        {
+            _model = new DashboardModel { FullName = Loc["auth.guestName", "Guest"] };
+            _loading = false;
             return;
         }
 

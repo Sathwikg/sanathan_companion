@@ -30,6 +30,10 @@
          RECEIVE_BOOT_COMPLETED is what lets BootReminderReceiver hear about it. -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
+    <!-- The japa screen ticks on every count and vibrates long when a mala completes. A normal
+         permission: granted at install, never prompted. -->
+    <uses-permission android:name="android.permission.VIBRATE" />
+
     <!-- The Panchangam screen computes sunrise and the day's timings for wherever the seeker is.
          Coarse is enough for that, and is the weaker prompt; fine is optional and declared so a
          seeker who grants it gets a better fix. -->

@@ -129,9 +129,11 @@ public class RoleService : IRoleService
         };
     }
 
+    // Guest is keyed by name too: the module filter looks it up for every token-less request.
     private static bool IsSystemRole(string roleName)
         => string.Equals(roleName, RoleNames.Admin, StringComparison.OrdinalIgnoreCase)
-        || string.Equals(roleName, RoleNames.Sanathan, StringComparison.OrdinalIgnoreCase);
+        || string.Equals(roleName, RoleNames.Sanathan, StringComparison.OrdinalIgnoreCase)
+        || string.Equals(roleName, RoleNames.Guest, StringComparison.OrdinalIgnoreCase);
 
     private static string? Clean(string? v) => string.IsNullOrWhiteSpace(v) ? null : v.Trim();
 }

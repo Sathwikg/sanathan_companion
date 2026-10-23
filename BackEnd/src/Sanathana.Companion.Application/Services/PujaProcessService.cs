@@ -187,7 +187,7 @@ public class PujaProcessService : IPujaProcessService
     // ------------------------------------------------------------ user runtime
 
     public async Task<IReadOnlyList<ProcessFestivalDto>> GetFestivalsAsync(
-        Guid userId, CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default)
     {
         var pujas = await _uow.Pujas.GetAllWithLinksAsync(cancellationToken);
         var stepCounts = await _uow.PujaProcess.GetStepCountsAsync(cancellationToken);
@@ -230,7 +230,7 @@ public class PujaProcessService : IPujaProcessService
     }
 
     public async Task<IReadOnlyList<ProcessPujaSummaryDto>> GetPujasAsync(
-        Guid userId, Guid? festivalId, CancellationToken cancellationToken = default)
+        Guid? festivalId, CancellationToken cancellationToken = default)
     {
         var pujas = await _uow.Pujas.GetAllWithLinksAsync(cancellationToken);
         var stepCounts = await _uow.PujaProcess.GetStepCountsAsync(cancellationToken);

@@ -24,6 +24,7 @@ public class PanchangamController : ControllerBase
     /// </summary>
     /// <remarks>Returns an envelope, not a bare array — the response used to be unbounded.</remarks>
     [RequiresModule(ModuleCodes.Panchangam, ModuleCodes.Dashboard, ModuleCodes.MobileDashboard)]
+    [GuestAccess]
     [HttpGet]
     [ProducesResponseType(typeof(PanchangamPageDto), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll(
@@ -38,6 +39,7 @@ public class PanchangamController : ControllerBase
         => Ok(await _service.GetAllAsync(year, regionId, from, to, search, page, pageSize, cancellationToken));
 
     /// <summary>Years for which stored data exists, plus the selectable regions.</summary>
+    [GuestAccess]
     [HttpGet("options")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetOptions(CancellationToken cancellationToken)
@@ -48,6 +50,7 @@ public class PanchangamController : ControllerBase
         });
 
     /// <summary>The stored row for a specific date + region.</summary>
+    [GuestAccess]
     [HttpGet("by-date")]
     [ProducesResponseType(typeof(PanchangamDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -70,6 +73,7 @@ public class PanchangamController : ControllerBase
     /// </remarks>
     [EnableRateLimiting("compute")]
     [TranslateResponse]
+    [GuestAccess]
     [HttpPost("compute")]
     [ProducesResponseType(typeof(PanchangamDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -79,6 +83,7 @@ public class PanchangamController : ControllerBase
         return Ok(await _service.ComputeAtLocationAsync(d, dto.Latitude, dto.Longitude, dto.Place, cancellationToken));
     }
 
+    [GuestAccess]
     [HttpGet("{id:guid}")]
     [ProducesResponseType(typeof(PanchangamDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

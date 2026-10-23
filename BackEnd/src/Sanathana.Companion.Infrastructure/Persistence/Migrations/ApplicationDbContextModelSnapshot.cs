@@ -2894,6 +2894,9 @@ namespace Sanathana.Companion.Infrastructure.Persistence.Migrations
                         .HasMaxLength(150)
                         .HasColumnType("character varying(150)");
 
+                    b.Property<int>("MalaStartCount")
+                        .HasColumnType("integer");
+
                     b.Property<int>("MalasCompleted")
                         .HasColumnType("integer");
 
@@ -3521,6 +3524,46 @@ namespace Sanathana.Companion.Infrastructure.Persistence.Migrations
                             RoleId = 1,
                             TokensValidFromUtc = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
                         });
+                });
+
+            modelBuilder.Entity("Sanathana.Companion.Domain.Entities.UserChantSetting", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ChantConfigId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("MalaSize")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("ModifiedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime?>("ModifiedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("VibrationEnabled")
+                        .HasColumnType("boolean");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "ChantConfigId")
+                        .IsUnique()
+                        .HasDatabaseName("UX_UserChantSettings_User_Chant");
+
+                    b.ToTable("UserChantSettings", (string)null);
                 });
 
             modelBuilder.Entity("Sanathana.Companion.Domain.Entities.UserFavorite", b =>

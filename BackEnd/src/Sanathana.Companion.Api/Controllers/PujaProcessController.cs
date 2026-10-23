@@ -15,15 +15,8 @@ namespace Sanathana.Companion.Api.Controllers;
 public class PujaProcessController : ControllerBase
 {
     private readonly IPujaProcessService _service;
-    private readonly ICurrentUserService _currentUser;
 
-    public PujaProcessController(IPujaProcessService service, ICurrentUserService currentUser)
-    {
-        _service = service;
-        _currentUser = currentUser;
-    }
-
-    private Guid RequireUserId() => _currentUser.UserId ?? throw new UnauthorizedAccessException();
+    public PujaProcessController(IPujaProcessService service) => _service = service;
 
     // ---- admin configuration ----
 
@@ -48,27 +41,31 @@ public class PujaProcessController : ControllerBase
     }
 
     // ---- user runtime ----
+    // Read-only and the same for everyone, so a guest may follow a puja too.
 
     /// <summary>Festivals with a configured puja; exactly one is flagged as current.</summary>
+    [GuestAccess]
     [HttpGet("festivals")]
     [ProducesResponseType(typeof(IReadOnlyList<ProcessFestivalDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetFestivals(CancellationToken cancellationToken)
-        => Ok(await _service.GetFestivalsAsync(RequireUserId(), cancellationToken));
+        => Ok(await _service.GetFestivalsAsync(cancellationToken));
 
     /// <summary>
     /// Every puja with a configured process. <c>festivalId</c> filters the list; omitting it
     /// returns all of them, including pujas that are not tied to a festival.
     /// </summary>
+    [GuestAccess]
     [HttpGet("pujas")]
     [ProducesResponseType(typeof(IReadOnlyList<ProcessPujaSummaryDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetPujas([FromQuery] Guid? festivalId, CancellationToken cancellationToken)
-        => Ok(await _service.GetPujasAsync(RequireUserId(), festivalId, cancellationToken));
+        => Ok(await _service.GetPujasAsync(festivalId, cancellationToken));
 
     /// <summary>
     /// The process itself. Step wording is authored per language, so it is resolved here from the
     /// caller's chosen language rather than by the translation filter, which only knows the
     /// shared dictionary.
     /// </summary>
+    [GuestAccess]
     [HttpGet("puja/{pujaId:guid}")]
     [ProducesResponseType(typeof(PujaProcessViewDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

@@ -171,6 +171,13 @@ docker compose logs -f api     # follow API logs
 docker compose down            # stop
 ```
 
+## Deploy to the VPS
+
+`deploy.ps1` builds the stack on a Windows PC and runs it on the VPS at
+`http://187.127.169.147:8081`, against PostgreSQL on that server (port 5443). First-time setup,
+the deploy command, rollback and troubleshooting are in
+[deploy/vps/README.md](deploy/vps/README.md).
+
 ## Seeded data
 - Roles: **Admin**, **Sanathan**.
 - New registrations are automatically assigned the **Sanathan** role.

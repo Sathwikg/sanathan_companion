@@ -29,9 +29,29 @@ public class SadhanaChantDetail
     public string ChantText { get; set; } = string.Empty;
     public bool HasAudio { get; set; }
     public string? AudioFileName { get; set; }
+
+    /// <summary>Repetitions in this seeker's mala: their own size when set, else the configured one.</summary>
     public int TargetCount { get; set; }
+
+    /// <summary>The count the Chants master configures for this chant (108 when it sets none).</summary>
+    public int DefaultTargetCount { get; set; }
+
+    /// <summary>The seeker's own mala size for this chant; null follows the default.</summary>
+    public int? CustomTargetCount { get; set; }
+
+    public bool VibrationEnabled { get; set; } = true;
     public int TodayCount { get; set; }
     public int TodayMalas { get; set; }
+
+    /// <summary>Repetitions so far in the mala in progress.</summary>
+    public int CountInMala { get; set; }
+}
+
+/// <summary>The seeker's own settings for one chant. A null mala size returns to the default.</summary>
+public class SaveChantSettingsRequest
+{
+    public int? MalaSize { get; set; }
+    public bool VibrationEnabled { get; set; } = true;
 }
 
 public class SadhanaStreak
@@ -53,6 +73,7 @@ public class SadhanaSession
     public int TargetCount { get; set; }
     public int TotalCount { get; set; }
     public int MalasCompleted { get; set; }
+    public int CountInMala { get; set; }
 }
 
 public class SadhanaToday

@@ -1,3 +1,5 @@
+using App.Core.Auth;
+
 namespace App.Core.Services;
 
 /// <summary>App-wide cache of the current user's favorite ids so heart toggles across the app
@@ -5,6 +7,7 @@ namespace App.Core.Services;
 public class FavoritesState : IUserSessionState
 {
     private readonly IApiClient _api;
+    private readonly ITokenStore _tokens;
     private readonly HashSet<Guid> _chants = new();
     private readonly HashSet<Guid> _deities = new();
     private Task? _loadTask;
@@ -13,7 +16,11 @@ public class FavoritesState : IUserSessionState
     /// cannot write its results after someone else has signed in.</summary>
     private int _generation;
 
-    public FavoritesState(IApiClient api) => _api = api;
+    public FavoritesState(IApiClient api, ITokenStore tokens)
+    {
+        _api = api;
+        _tokens = tokens;
+    }
 
     /// <summary>Raised whenever a favorite is toggled, so subscribed components can re-render.</summary>
     public event Action? OnChanged;
@@ -26,6 +33,9 @@ public class FavoritesState : IUserSessionState
         var generation = _generation;
         try
         {
+            // A guest has no favourites to load; every heart starts empty and asks them to sign in.
+            if (string.IsNullOrWhiteSpace(await _tokens.GetTokenAsync())) return;
+
             var ids = await _api.GetFavoriteIdsAsync();
             if (generation != _generation) return;   // another user signed in mid-flight
 

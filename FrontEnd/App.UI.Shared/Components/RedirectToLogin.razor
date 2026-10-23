@@ -1,5 +1,26 @@
+@* Rendered by the router when a page refuses the caller. A guest or a signed-out visitor goes to
+   the login page carrying the address they tried to open, and lands back on it after signing in —
+   tapping a chant as a guest ends on that chant's japa screen, not on the home page.
+
+   A SIGNED-IN seeker refused by a role-gated page goes to access-denied instead. Sending them to
+   sign in with a return address would loop: they would sign in, come straight back here, and be
+   refused again. *@
 @inject NavigationManager Nav
 
 @code {
-    protected override void OnInitialized() => Nav.NavigateTo("login");
+    [CascadingParameter] private Task<AuthenticationState>? AuthState { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var user = AuthState is null ? null : (await AuthState).User;
+        if (GuestSession.IsMember(user))
+        {
+            Nav.NavigateTo("access-denied", replace: true);
+            return;
+        }
+
+        // replace: so Back from the login page returns to where the guest was, not to the page
+        // that just refused them (which would bounce them straight back to login).
+        Nav.NavigateTo(LoginGate.LoginUrl(Nav.ToBaseRelativePath(Nav.Uri)), replace: true);
+    }
 }

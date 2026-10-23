@@ -1,0 +1,517 @@
+@* The Users master's View Profile: who the seeker is, a dashboard of their practice, and their
+   day-by-day history paged on the server. Loads itself each time it opens. *@
+@using System.Globalization
+@inherits LocalizedComponentBase
+@inject IApiClient Api
+
+<ScModal Visible="Visible" Wide="true" Title="@Loc["users.profileTitle", "User Profile"]" OnClose="OnClose">
+    @if (_loading)
+    {
+        <OmLoader Inline="true" Size="26" Message="@Loc["common.loading", "Loading…"]" />
+    }
+    else if (_error is not null)
+    {
+        <div class="sc-alert sc-alert-error">@_error</div>
+    }
+    else if (_p is not null)
+    {
+        var p = _p;
+        var i = p.Insights;
+        var engagement = Engagement(p.DaysSinceLastPractice);
+
+        <div class="sc-up-head">
+            <div class="sc-avatar sc-up-avatar"><span>@Initials(p.FullName)</span></div>
+            <div class="sc-up-id">
+                <h2>@p.FullName</h2>
+                <div class="sc-up-chips">
+                    @if (!string.IsNullOrWhiteSpace(p.SeekerName))
+                    {
+                        <span class="sc-muted">🕉️ @p.SeekerName</span>
+                    }
+                    <span class="sc-typechip @(p.IsAdmin ? "god" : "goddess")">@p.RoleName</span>
+                    <span class="sc-up-pill @(p.IsActive ? "is-good" : "is-muted")">@(p.IsActive ? Loc["users.open", "Open"] : Loc["users.closed", "Closed"])</span>
+                    <span class="sc-up-pill @engagement.Css" title="@LastPracticeAgo(p.DaysSinceLastPractice)">@engagement.Label</span>
+                </div>
+                <div class="sc-up-contact">
+                    <span>✉️ @p.Email</span>
+                    <span>📱 @p.MobileNumber</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="sc-tabs sc-up-tabs" role="tablist">
+            <button type="button" role="tab" aria-selected="@(_tab == Tab.Overview ? "true" : "false")" class="sc-tab @(_tab == Tab.Overview ? "active" : "")" @onclick="() => _tab = Tab.Overview">📊 @Loc["users.tabOverview", "Overview"]</button>
+            <button type="button" role="tab" aria-selected="@(_tab == Tab.Timeline ? "true" : "false")" class="sc-tab @(_tab == Tab.Timeline ? "active" : "")" @onclick="ShowTimelineAsync">📅 @Loc["users.tabTimeline", "Sadhana Timeline"]</button>
+        </div>
+
+        @if (_tab == Tab.Overview)
+        {
+            var trend = Trend(i);
+            var consistency = i.WindowDays == 0 ? 0 : (int)Math.Round(i.ActiveDays * 100.0 / i.WindowDays);
+
+            <div class="sc-up-kpis">
+                @Kpi("🔥", Loc["users.currentStreak", "Current Streak"], p.CurrentStreak.ToString("N0"), Loc.TF("users.longestSub", "Longest: {0}", p.LongestStreak))
+                @Kpi("📿", Loc["users.totalMalas", "Total Malas"], p.TotalMalas.ToString("N0"), Loc.TF("users.avgPerDay", "{0} per day on average", i.AverageMalasPerDay.ToString("0.#")))
+                @Kpi("🔢", Loc["users.totalJapa", "Total Japa"], i.TotalJapa.ToString("N0"), Loc.TF("users.acrossChants", "Across {0} chants", i.ChantsPracticed))
+                @Kpi("📅", Loc["users.daysPracticed", "Days Practiced"], p.TotalDaysPracticed.ToString("N0"), i.FirstPracticeDate is { } first ? Loc.TF("users.sinceDate", "Since {0}", first.ToString("dd MMM yyyy")) : null)
+                @Kpi("🎯", Loc["users.consistency", "Consistency"], $"{consistency}%", Loc.TF("users.activeDaysOf", "{0} of {1} days", i.ActiveDays, i.WindowDays))
+                @Kpi("📈", Loc["users.malasLast30", "Malas, Last 30 Days"], i.MalasLast30Days.ToString("N0"), trend.Text, trend.Css)
+            </div>
+
+            <div class="sc-up-grid">
+                <section class="sc-up-panel">
+                    <div class="sc-up-panel-head">
+                        <h3>@Loc["users.calendarTitle", "Practice Calendar"]</h3>
+                        <span class="sc-up-panel-sub">@Loc.TF("users.calendarSub", "Last {0} Weeks", i.ActivityWeeks)</span>
+                        <span class="sc-up-legend" aria-hidden="true">
+                            @Loc["users.less", "Less"]
+                            @for (var level = 0; level <= 4; level++)
+                            {
+                                <i class="sc-up-heat-l@(level)" title="@(level == 1 ? Loc["users.heatCountOnly", "Counted, no full mala"] : null)"></i>
+                            }
+                            @Loc["users.more", "More"]
+                        </span>
+                    </div>
+
+                    <svg class="sc-up-heat" viewBox="0 0 @HeatWidth(i) @HeatHeight" role="img"
+                         aria-label="@Loc.TF("users.calendarAria", "{0} practice days in the last {1} weeks", i.Activity.Count(a => a.Malas > 0), i.ActivityWeeks)">
+                        @* Each SVG <text> sits in a <g>: first thing in a Razor code block, it would be read as Razor's own text tag. *@
+                        @foreach (var (x, label) in MonthLabels(i))
+                        {
+                            <g><text x="@x" y="10" class="sc-up-heat-txt">@label</text></g>
+                        }
+                        @foreach (var row in new[] { 0, 2, 4 })
+                        {
+                            <g><text x="0" y="@(TopPad + row * Step + 9)" class="sc-up-heat-txt">@DayName(row, "ddd")</text></g>
+                        }
+                        @for (var w = 0; w < i.ActivityWeeks; w++)
+                        {
+                            for (var d = 0; d < 7; d++)
+                            {
+                                var date = i.ActivityFrom.AddDays(w * 7 + d);
+                                if (date > i.Today) break;
+                                _activity.TryGetValue(date, out var day);
+                                <rect x="@(LeftPad + w * Step)" y="@(TopPad + d * Step)" width="@Cell" height="@Cell" rx="2"
+                                      class="sc-up-heat-l@(HeatLevel(day)) @(date == i.Today ? "is-today" : "")">
+                                    <title>@HeatTip(date, day)</title>
+                                </rect>
+                            }
+                        }
+                    </svg>
+
+                    <div class="sc-up-facts">
+                        <div>
+                            <span class="k">@Loc["users.bestDay", "Best Day"]</span>
+                            <span class="v">@(i.BestDayDate is { } best ? $"{best.ToString("dd MMM yyyy")} · {MalasText(i.BestDayMalas)}" : "—")</span>
+                        </div>
+                        <div>
+                            <span class="k">@Loc["users.mostPracticedOn", "Most Practiced On"]</span>
+                            <span class="v">@(TopWeekday(i) is { } top ? DayName(top.Day, "dddd") : "—")</span>
+                        </div>
+                        <div>
+                            <span class="k">@Loc["users.lastPractice", "Last Practice"]</span>
+                            <span class="v">@(p.LastPracticeDate?.ToString("dd MMM yyyy") ?? "—")@if (p.DaysSinceLastPractice is not null) {<span class="sc-muted"> · @LastPracticeAgo(p.DaysSinceLastPractice)</span>}</span>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="sc-up-panel sc-up-weekpanel">
+                    <div class="sc-up-panel-head">
+                        <h3>@Loc["users.byWeekday", "By Weekday"]</h3>
+                    </div>
+                    @{
+                        var maxWeekday = i.Weekdays.Count == 0 ? 0 : i.Weekdays.Max(x => x.Malas);
+                    }
+                    <div class="sc-up-week">
+                        @foreach (var wd in i.Weekdays)
+                        {
+                            var height = maxWeekday == 0 ? 0 : wd.Malas * 100.0 / maxWeekday;
+                            <div class="sc-up-wcol" title="@Loc.TF("users.weekdayTip", "{0}: {1} over {2}", DayName(wd.Day, "dddd"), MalasText(wd.Malas), DaysText(wd.Days))">
+                                <span class="sc-up-wval">@(wd.Malas > 0 && wd.Malas == maxWeekday ? wd.Malas.ToString("N0") : "")</span>
+                                <div class="sc-up-wtrack">
+                                    @if (wd.Malas > 0)
+                                    {
+                                        <div class="sc-up-wbar" style="height:@Pct(height)%"></div>
+                                    }
+                                </div>
+                                <span class="sc-up-wlbl">@DayName(wd.Day, "ddd")</span>
+                            </div>
+                        }
+                    </div>
+                </section>
+
+                <section class="sc-up-panel">
+                    <div class="sc-up-panel-head">
+                        <h3>@Loc["users.topChants", "Top Chants"]</h3>
+                    </div>
+                    @if (i.TopChants.Count == 0)
+                    {
+                        <p class="sc-muted sc-up-empty">@Loc["users.nothingYet", "Nothing counted yet."]</p>
+                    }
+                    else
+                    {
+                        var byJapa = i.TopChants.Max(c => c.Malas) == 0;
+                        var maxChant = Math.Max(1, byJapa ? i.TopChants.Max(c => c.Japa) : i.TopChants.Max(c => c.Malas));
+                        <div class="sc-up-rank">
+                            @foreach (var c in i.TopChants)
+                            {
+                                <div class="sc-up-rank-row" title="@($"{c.ChantName} · {MalasText(c.Malas)} · {JapaText(c.Japa)}")">
+                                    <div class="sc-up-rank-text">
+                                        <span class="nm">@c.ChantName</span>
+                                        <span class="sub">@(c.DeityName ?? "—") · @DaysText(c.Days)</span>
+                                    </div>
+                                    <span class="sc-up-rank-val">@MalasText(c.Malas)</span>
+                                    <div class="sc-up-rank-track"><div class="sc-up-rank-fill" style="width:@Pct((byJapa ? c.Japa : c.Malas) * 100.0 / maxChant)%"></div></div>
+                                </div>
+                            }
+                        </div>
+                        @if (i.ChantsPracticed > i.TopChants.Count)
+                        {
+                            <p class="sc-up-more">@Loc.TF("users.moreChants", "+{0} more", i.ChantsPracticed - i.TopChants.Count)</p>
+                        }
+                    }
+                </section>
+
+                <section class="sc-up-panel">
+                    <div class="sc-up-panel-head">
+                        <h3>@Loc["users.topDeities", "Top Deities"]</h3>
+                    </div>
+                    @if (i.TopDeities.Count == 0)
+                    {
+                        <p class="sc-muted sc-up-empty">@Loc["users.nothingYet", "Nothing counted yet."]</p>
+                    }
+                    else
+                    {
+                        var byJapa = i.TopDeities.Max(x => x.Malas) == 0;
+                        var maxDeity = Math.Max(1, byJapa ? i.TopDeities.Max(x => x.Japa) : i.TopDeities.Max(x => x.Malas));
+                        <div class="sc-up-rank">
+                            @foreach (var dt in i.TopDeities)
+                            {
+                                <div class="sc-up-rank-row">
+                                    <div class="sc-up-rank-text">
+                                        <span class="nm">@dt.DeityName</span>
+                                        <span class="sub">@JapaText(dt.Japa)</span>
+                                    </div>
+                                    <span class="sc-up-rank-val">@MalasText(dt.Malas)</span>
+                                    <div class="sc-up-rank-track"><div class="sc-up-rank-fill" style="width:@Pct((byJapa ? dt.Japa : dt.Malas) * 100.0 / maxDeity)%"></div></div>
+                                </div>
+                            }
+                        </div>
+                    }
+                </section>
+
+                <section class="sc-up-panel sc-up-wide">
+                    <div class="sc-up-panel-head">
+                        <h3>@Loc["users.account", "Account"]</h3>
+                    </div>
+                    <div class="sc-detail-grid sc-up-details">
+                        <div class="sc-detail-item"><span class="sc-detail-label">@Loc["users.registered", "Registered"]</span><span class="sc-detail-value">@p.RegisteredOn.ToLocalTime().ToString("dd MMM yyyy, HH:mm")</span></div>
+                        <div class="sc-detail-item"><span class="sc-detail-label">@Loc["users.lastUpdated", "Last Updated"]</span><span class="sc-detail-value">@(p.LastUpdatedOn?.ToLocalTime().ToString("dd MMM yyyy, HH:mm") ?? "—")</span></div>
+                        <div class="sc-detail-item"><span class="sc-detail-label">@Loc["common.region", "Region"]</span><span class="sc-detail-value">@(p.DefaultRegionName ?? "—")</span></div>
+                        <div class="sc-detail-item"><span class="sc-detail-label">@Loc["users.googleAccount", "Google Account"]</span><span class="sc-detail-value">@(p.GoogleLinked ? Loc["users.linked", "Linked"] : Loc["users.notLinked", "Not Linked"])</span></div>
+                    </div>
+                </section>
+            </div>
+        }
+        else
+        {
+            <div class="sc-up-timeline-top" tabindex="-1" @ref="_timelineTop"></div>
+
+            @* A failed page keeps the last good one and its pager below the error, so it can be retried. *@
+            @if (_timelineError is not null)
+            {
+                <div class="sc-alert sc-alert-error sc-up-tlerror">@_timelineError</div>
+            }
+
+            @if (_timeline is null)
+            {
+                @if (_timelineError is null)
+                {
+                    <OmLoader Inline="true" Size="26" Message="@Loc["common.loading", "Loading…"]" />
+                }
+            }
+            else if (_timeline.TotalCount == 0)
+            {
+                <p class="sc-muted sc-up-empty">@Loc["users.noSadhana", "No sadhana practised yet."]</p>
+            }
+            else
+            {
+                <p class="sc-muted sc-up-tlsub">@Loc.TF("users.timelineSub", "{0} practice days, newest first", _timeline.TotalCount.ToString("N0"))</p>
+
+                @* The previous page stays on screen, dimmed, while the next one loads: no jump. *@
+                <div class="sc-timeline sc-up-timeline @(_timelineLoading ? "is-refreshing" : "")" aria-busy="@(_timelineLoading ? "true" : "false")">
+                    @foreach (var day in _timeline.Items)
+                    {
+                        <div class="sc-up-panel sc-day-card">
+                            <div class="sc-day-head">
+                                <div class="sc-tile-date">
+                                    <span class="sc-tile-day">@day.Date.ToString("dd")</span>
+                                    <span class="sc-tile-mon">@day.Date.ToString("MMM")</span>
+                                </div>
+                                <div class="sc-day-meta">
+                                    <strong>@day.Date.ToString("dddd, dd MMM yyyy")</strong>
+                                    <span class="sc-muted">🧮 @MalasText(day.TotalMalas) · @ChantsText(day.Entries.Count) · @Loc.TF("users.totalCount", "{0} total count", day.TotalCount.ToString("N0"))</span>
+                                </div>
+                            </div>
+                            <div class="sc-day-entries">
+                                @foreach (var e in day.Entries)
+                                {
+                                    <div class="sc-day-entry">
+                                        <span class="sc-day-chant">📿 @e.ChantName</span>
+                                        <span class="sc-day-sub">@(string.IsNullOrWhiteSpace(e.DeityName) ? e.CategoryName : e.DeityName)</span>
+                                        <span class="sc-day-val">@MalasText(e.MalasCompleted) · @e.TotalCount.ToString("N0")</span>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <Pager Page="_timeline.Page" PageCount="TimelinePageCount" TotalCount="_timeline.TotalCount" PageSize="_timeline.PageSize" OnGoTo="LoadTimelinePageAsync" />
+            }
+        }
+    }
+</ScModal>
+
+@code {
+    [Parameter] public bool Visible { get; set; }
+    [Parameter] public Guid? UserId { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+
+    private enum Tab { Overview, Timeline }
+
+    /// <summary>A week of practice days per page.</summary>
+    private const int TimelinePageSize = 7;
+
+    // Calendar geometry, in SVG user units. The SVG scales to its panel; these fix the proportions.
+    private const int Cell = 11;
+    private const int Step = Cell + 3;
+    private const int LeftPad = 28;
+    private const int TopPad = 16;
+    private const int HeatHeight = TopPad + 7 * Step - 3;
+
+    /// <summary>A known Monday, so a 0-based Monday index can be turned into a day name.</summary>
+    private static readonly DateOnly AMonday = new(2024, 1, 1);
+
+    private Tab _tab = Tab.Overview;
+    private bool _loading;
+    private string? _error;
+    private UserProfile? _p;
+    private Dictionary<DateOnly, UserActivityDay> _activity = new();
+    private int _maxDayMalas;
+
+    private UserSadhanaPage? _timeline;
+    private bool _timelineLoading;
+    private string? _timelineError;
+    private ElementReference _timelineTop;
+    private bool _focusTimelineTop;
+
+    private bool _wasVisible;
+    private Guid? _loadedFor;
+
+    private int TimelinePageCount => _timeline is null || _timeline.PageSize == 0
+        ? 1
+        : Math.Max(1, (int)Math.Ceiling(_timeline.TotalCount / (double)_timeline.PageSize));
+
+    protected override async Task OnParametersSetAsync()
+    {
+        // Load on every opening, not only for a new user: an administrator reopening a profile
+        // expects today's numbers.
+        var opening = Visible && (!_wasVisible || UserId != _loadedFor);
+        _wasVisible = Visible;
+        if (!opening || UserId is not { } id) return;
+
+        _loadedFor = id;
+        await LoadAsync(id);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        // A new page is rendered where the old one ended, at the bottom of a long list; move focus
+        // (and so the scroll) back to its top, which also tells a screen reader the page changed.
+        if (!_focusTimelineTop) return;
+        _focusTimelineTop = false;
+        try { await _timelineTop.FocusAsync(); }
+        catch (InvalidOperationException) { }
+    }
+
+    private async Task LoadAsync(Guid id)
+    {
+        _tab = Tab.Overview;
+        _p = null;
+        _error = null;
+        _timeline = null;
+        _timelineError = null;
+        _loading = true;
+
+        try
+        {
+            var profile = await Api.GetUserProfileAsync(id);
+            // A quick second click on another user must not be overwritten by the first reply.
+            if (_loadedFor != id) return;
+
+            if (profile is null)
+            {
+                _error = Loc["users.profileFailed", "The profile could not be loaded."];
+                return;
+            }
+
+            _p = profile;
+            _activity = profile.Insights.Activity.ToDictionary(a => a.Date);
+            _maxDayMalas = profile.Insights.Activity.Count == 0 ? 0 : profile.Insights.Activity.Max(a => a.Malas);
+        }
+        catch (Exception ex)
+        {
+            if (_loadedFor == id) _error = Loc.ErrorText(ex);
+        }
+        finally
+        {
+            if (_loadedFor == id) _loading = false;
+        }
+    }
+
+    private async Task ShowTimelineAsync()
+    {
+        _tab = Tab.Timeline;
+        if (_timeline is null && !_timelineLoading) await LoadTimelinePageAsync(1);
+    }
+
+    private async Task LoadTimelinePageAsync(int page)
+    {
+        if (_loadedFor is not { } id) return;
+
+        var paging = _timeline is not null;
+        _timelineLoading = true;
+        _timelineError = null;
+
+        try
+        {
+            var result = await Api.GetUserSadhanaAsync(id, page, TimelinePageSize);
+            if (_loadedFor != id) return;
+            _timeline = result ?? new UserSadhanaPage { Page = 1, PageSize = TimelinePageSize };
+            _focusTimelineTop = paging;
+        }
+        catch (Exception ex)
+        {
+            if (_loadedFor == id) _timelineError = Loc["users.timelineFailed", "The sadhana timeline could not be loaded."] + " " + Loc.ErrorText(ex);
+        }
+        finally
+        {
+            if (_loadedFor == id) _timelineLoading = false;
+        }
+    }
+
+    private RenderFragment Kpi(string icon, string label, string value, string? sub, string? subCss = null) =>
+        @<div class="sc-up-kpi">
+            <span class="sc-up-kpi-l"><span aria-hidden="true">@icon</span> @label</span>
+            <span class="sc-up-kpi-n">@value</span>
+            @if (!string.IsNullOrEmpty(sub))
+            {
+                <span class="sc-up-kpi-sub @subCss">@sub</span>
+            }
+        </div>;
+
+    /// <summary>
+    /// Where the seeker stands, judged on the last day they completed a mala. "Active" means the
+    /// streak is still alive (today or yesterday), matching how the streak itself lapses.
+    /// </summary>
+    private (string Label, string Css) Engagement(int? daysSince) => daysSince switch
+    {
+        null => (Loc["users.engNotStarted", "Not Started"], "is-muted"),
+        <= 1 => (Loc["users.engActive", "Active"], "is-good"),
+        <= 7 => (Loc["users.engAtRisk", "At Risk"], "is-warn"),
+        <= 30 => (Loc["users.engLapsed", "Lapsed"], "is-bad"),
+        _ => (Loc["users.engDormant", "Dormant"], "is-muted")
+    };
+
+    private string LastPracticeAgo(int? daysSince) => daysSince switch
+    {
+        null => Loc["users.neverPracticed", "Has not completed a mala yet"],
+        0 => Loc["users.practicedToday", "Practiced today"],
+        1 => Loc["users.practicedYesterday", "Practiced yesterday"],
+        _ => Loc.TF("users.practicedDaysAgo", "Last practiced {0} days ago", daysSince)
+    };
+
+    private (string Text, string? Css) Trend(UserSadhanaInsights i)
+    {
+        if (i.MalasPrevious30Days == 0)
+            return i.MalasLast30Days == 0
+                ? (Loc["users.trendNone", "No malas in the last 60 days"], null)
+                : (Loc["users.trendNew", "None in the 30 days before"], "is-good");
+
+        var change = (int)Math.Round((i.MalasLast30Days - i.MalasPrevious30Days) * 100.0 / i.MalasPrevious30Days);
+        return change switch
+        {
+            > 0 => (Loc.TF("users.trendUp", "▲ {0}% vs previous 30 days", change), "is-good"),
+            < 0 => (Loc.TF("users.trendDown", "▼ {0}% vs previous 30 days", -change), "is-bad"),
+            _ => (Loc["users.trendSame", "Same as previous 30 days"], null)
+        };
+    }
+
+    private static UserWeekdayStat? TopWeekday(UserSadhanaInsights i) =>
+        i.Weekdays.Where(w => w.Malas > 0).OrderByDescending(w => w.Malas).ThenByDescending(w => w.Days).FirstOrDefault();
+
+    // ---- calendar ----
+
+    private static int HeatWidth(UserSadhanaInsights i) => LeftPad + i.ActivityWeeks * Step - 3;
+
+    /// <summary>
+    /// 0 none, 1 counted without finishing a mala, 2–4 malas relative to this seeker's own best
+    /// day. Relative, so a steady one-mala-a-day seeker still reads as a full calendar.
+    /// </summary>
+    private int HeatLevel(UserActivityDay? day)
+    {
+        if (day is null) return 0;
+        if (day.Malas == 0 || _maxDayMalas == 0) return 1;
+        return Math.Clamp(1 + (int)Math.Ceiling(3.0 * day.Malas / _maxDayMalas), 2, 4);
+    }
+
+    private string HeatTip(DateOnly date, UserActivityDay? day) =>
+        $"{date.ToString("ddd, dd MMM yyyy")} — " + (day is null
+            ? Loc["users.heatNone", "No practice"]
+            : $"{MalasText(day.Malas)} · {JapaText(day.Japa)}");
+
+    /// <summary>A month name over the first week column of each month, dropping a cramped first label.</summary>
+    private static List<(int X, string Label)> MonthLabels(UserSadhanaInsights i)
+    {
+        var labels = new List<(int Week, string Label)>();
+        for (var w = 0; w < i.ActivityWeeks; w++)
+        {
+            var monday = i.ActivityFrom.AddDays(w * 7);
+            if (w == 0 || monday.Month != monday.AddDays(-7).Month)
+                labels.Add((w, monday.ToString("MMM")));
+        }
+        if (labels.Count > 1 && labels[1].Week - labels[0].Week < 3) labels.RemoveAt(0);
+        return labels.Select(l => (LeftPad + l.Week * Step, l.Label)).ToList();
+    }
+
+    private static string DayName(int mondayIndex, string format) => AMonday.AddDays(mondayIndex).ToString(format);
+
+    /// <summary>CSS lengths need a dot whatever the UI culture's decimal separator is.</summary>
+    private static string Pct(double value) => Math.Clamp(value, 0, 100).ToString("0.#", CultureInfo.InvariantCulture);
+
+    // ---- counted phrases ----
+
+    private string MalasText(int n) => n == 1
+        ? Loc.TF("users.malaCountOne", "{0} mala", n)
+        : Loc.TF("users.malasCount", "{0} malas", n.ToString("N0"));
+
+    private string DaysText(int n) => n == 1
+        ? Loc.TF("users.dayCountOne", "{0} day", n)
+        : Loc.TF("users.dayCountMany", "{0} days", n.ToString("N0"));
+
+    private string ChantsText(int n) => n == 1
+        ? Loc.TF("users.chantCountOne", "{0} chant", n)
+        : Loc.TF("users.chantCountMany", "{0} chants", n.ToString("N0"));
+
+    private string JapaText(long n) => Loc.TF("users.japaCount", "{0} japa", n.ToString("N0"));
+
+    private static string Initials(string name)
+    {
+        var parts = name.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length == 0) return "?";
+        return parts.Length == 1
+            ? parts[0][..1].ToUpper()
+            : (parts[0][..1] + parts[^1][..1]).ToUpper();
+    }
+}

@@ -17,7 +17,7 @@ public class SadhanaChantDto
     public string? TextPreview { get; set; }
     public bool HasAudio { get; set; }
 
-    /// <summary>Repetitions that make one mala.</summary>
+    /// <summary>Repetitions that make one mala — the seeker's own size when they have set one.</summary>
     public int TargetCount { get; set; }
 
     /// <summary>Why this chant is recommended today (e.g. "Tuesday · Hanuman" or "Diwali · Lakshmi").</summary>
@@ -47,9 +47,30 @@ public class SadhanaChantDetailDto
     public bool HasAudio { get; set; }
     public string? AudioFileName { get; set; }
 
+    /// <summary>Repetitions in this seeker's mala: <see cref="CustomTargetCount"/> when set, else <see cref="DefaultTargetCount"/>.</summary>
     public int TargetCount { get; set; }
+
+    /// <summary>What the Chants master configures for this chant's category (108 when it sets none).</summary>
+    public int DefaultTargetCount { get; set; }
+
+    /// <summary>The seeker's own mala size for this chant; null follows the default.</summary>
+    public int? CustomTargetCount { get; set; }
+
+    /// <summary>Vibrate on each count and at each completed mala. On unless the seeker turned it off.</summary>
+    public bool VibrationEnabled { get; set; } = true;
+
     public int TodayCount { get; set; }
     public int TodayMalas { get; set; }
+
+    /// <summary>Repetitions so far in the mala in progress.</summary>
+    public int CountInMala { get; set; }
+}
+
+/// <summary>The seeker's own settings for one chant. Null <see cref="MalaSize"/> returns to the default.</summary>
+public class SaveChantSettingsDto
+{
+    public int? MalaSize { get; set; }
+    public bool VibrationEnabled { get; set; } = true;
 }
 
 public class SadhanaStreakDto
@@ -74,6 +95,9 @@ public class SadhanaSessionDto
     public int TargetCount { get; set; }
     public int TotalCount { get; set; }
     public int MalasCompleted { get; set; }
+
+    /// <summary>Repetitions so far in the mala in progress.</summary>
+    public int CountInMala { get; set; }
 }
 
 public class SadhanaTodayDto

@@ -21,7 +21,7 @@
    MobileHomeFrame adds nothing to the DOM in the phone shell. On the web host, where this route
    renders inside the desktop layout, it supplies the .scm-shell every home style is scoped under. *@
 @page "/mobile-dashboard"
-@attribute [Authorize]
+@attribute [Authorize(Policy = GuestSession.BrowsePolicy)]
 @inherits LocalizedComponentBase
 @implements IDisposable
 @inject IApiClient Api
@@ -55,8 +55,14 @@ else if (_model is not null)
     </section>
 
     @* The streak beside today's deity. The tile is fed by TodayBhakti further down (one request
-       for both); it renders only once that component has reported a deity. *@
-    @if (_streak is not null)
+       for both); it renders only once that component has reported a deity. A guest has no streak,
+       so the hero's place goes to the invitation to sign in; the deity still follows in Today's
+       Bhakti below. *@
+    @if (_isGuest)
+    {
+        <GuestSignInCard />
+    }
+    else if (_streak is not null)
     {
         <div class="scm-home-bento @(_heroDeity is null ? "is-single" : null)">
             <HomeStreakHero Streak="_streak" CanOpenSadhana='@Menus.CanOpen("sadhana")' />
@@ -162,6 +168,9 @@ else
 </MobileHomeFrame>
 
 @code {
+    [CascadingParameter] private Task<AuthenticationState>? AuthState { get; set; }
+
+    private bool _isGuest;
     private DashboardModel? _model;
     private SadhanaStreak? _streak;
     private TodayDeity? _heroDeity;
@@ -248,6 +257,18 @@ else
         Menus.OnChanged += MenuChanged;
         Lifecycle.Changed += LifecycleChanged;
         var menu = Menus.EnsureLoadedAsync();
+
+        // A guest: the greeting is built here, and there is no streak to fetch. The menu still
+        // matters — it is the Guest role's, and it gates the day's blocks and the quick actions.
+        _isGuest = GuestSession.IsGuest(AuthState is null ? null : (await AuthState).User);
+        if (_isGuest)
+        {
+            _model = new DashboardModel { FullName = Loc["auth.guestName", "Guest"] };
+            await menu;
+            _loading = false;
+            return;
+        }
+
         var streak = LoadStreakAsync();
 
         try

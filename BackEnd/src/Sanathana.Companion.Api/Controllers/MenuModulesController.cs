@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Sanathana.Companion.Api.Filters;
 using Sanathana.Companion.Application.Common;
 using Sanathana.Companion.Application.Common.Authorization;
 using Sanathana.Companion.Application.DTOs.Menu;
@@ -33,12 +34,16 @@ public class MenuModulesController : ControllerBase
         => Ok(await _service.GetTreeAsync(cancellationToken));
 
     /// <summary>Active + visible tree for the navigation sidebar, filtered by the caller's role and platform.</summary>
+    /// <remarks>A guest has no token and so no role claim; they get the Guest role's menu.</remarks>
     [ModuleExempt]
+    [GuestAccess]
     [HttpGet("menu")]
     [ProducesResponseType(typeof(List<MenuTreeNodeDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetMenu([FromQuery] string? platform, CancellationToken cancellationToken)
     {
-        var roleName = User.FindFirst(ClaimTypes.Role)?.Value;
+        var roleName = User.Identity?.IsAuthenticated == true
+            ? User.FindFirst(ClaimTypes.Role)?.Value
+            : RoleNames.Guest;
         return Ok(await _service.GetMenuAsync(platform, roleName, cancellationToken));
     }
 
