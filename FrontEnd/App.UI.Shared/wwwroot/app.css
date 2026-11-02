@@ -1327,6 +1327,13 @@ html.sc-jp-on input, html.sc-jp-on textarea { -webkit-user-select: text; user-se
 /* The words are what the seeker is here for: a size and spacing for reading at arm's length. */
 .sc-jp-text .sc-richtext { font-size: 1.14rem; line-height: 1.95; color: var(--color-on-surface); }
 
+/* One tab per language the chant was written in; they scroll sideways on a narrow phone rather
+   than wrap, so the row reads as a row. Indic scripts sit a little taller than Latin, hence the
+   looser line height on the tab. */
+.sc-jp-langs { margin: 0 0 0.9rem; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+.sc-jp-langs::-webkit-scrollbar { display: none; }
+.sc-jp-langs .sc-tab { white-space: nowrap; line-height: 1.5; flex: none; }
+
 /* The tap's acknowledgement (japa.js): a soft gold light where the finger landed, gone in half a
    second. Low enough in opacity that a line under it stays readable throughout. */
 .sc-jp-ripples { position: fixed; inset: 0; z-index: 40; pointer-events: none; overflow: hidden; contain: strict; }

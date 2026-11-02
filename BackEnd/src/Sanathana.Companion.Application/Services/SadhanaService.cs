@@ -146,8 +146,50 @@ public class SadhanaService : ISadhanaService
         var log = await _uow.Sadhana.GetLogAsync(userId, today, chantConfigId, cancellationToken);
         var setting = await _uow.Sadhana.GetChantSettingAsync(userId, chantConfigId, cancellationToken);
 
-        return ToDetailDto(c, categories, deityNames, log, setting);
+        var dto = ToDetailDto(c, categories, deityNames, log, setting);
+        dto.LanguageTexts = await LanguageTextsAsync(c, cancellationToken);
+        return dto;
     }
+
+    /// <summary>
+    /// The chant in each active language it has text for, in the Languages master's order. The
+    /// English text lives in the main editor too, so when no English row was written the main text
+    /// stands in for it — the seeker still gets an English tab beside the other scripts.
+    /// </summary>
+    private async Task<List<SadhanaChantLanguageTextDto>> LanguageTextsAsync(ChantConfig c, CancellationToken cancellationToken)
+    {
+        var rows = await _uow.ChantConfigs.GetLanguageTextsAsync(c.Id, cancellationToken);
+        if (rows.Count == 0) return new List<SadhanaChantLanguageTextDto>();
+
+        var textByLanguage = rows
+            .Where(r => !string.IsNullOrWhiteSpace(r.Text))
+            .GroupBy(r => r.LanguageId)
+            .ToDictionary(g => g.Key, g => g.First().Text);
+
+        var languages = (await _uow.Languages.GetAllOrderedAsync(cancellationToken)).Where(l => l.IsActive).ToList();
+        var result = new List<SadhanaChantLanguageTextDto>();
+        foreach (var language in languages)
+        {
+            var text = textByLanguage.GetValueOrDefault(language.Id);
+            if (string.IsNullOrWhiteSpace(text) && IsEnglish(language) && !string.IsNullOrWhiteSpace(c.ChantText))
+                text = c.ChantText;
+            if (string.IsNullOrWhiteSpace(text)) continue;
+
+            result.Add(new SadhanaChantLanguageTextDto
+            {
+                LanguageId = language.Id,
+                LanguageName = language.Name,
+                NativeName = language.NativeName,
+                Code = language.Code,
+                Text = text
+            });
+        }
+        return result;
+    }
+
+    private static bool IsEnglish(Language l)
+        => string.Equals(l.Code?.Trim(), "en", StringComparison.OrdinalIgnoreCase)
+           || string.Equals(l.Name?.Trim(), "English", StringComparison.OrdinalIgnoreCase);
 
     public async Task<SadhanaChantDetailDto> SaveChantSettingsAsync(Guid chantConfigId, SaveChantSettingsDto dto, CancellationToken cancellationToken = default)
     {
