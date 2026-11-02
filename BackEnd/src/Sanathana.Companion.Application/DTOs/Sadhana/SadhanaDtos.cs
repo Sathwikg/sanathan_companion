@@ -41,8 +41,15 @@ public class SadhanaChantDetailDto
     [Translatable(Category = "deity")]
     public List<string> DeityNames { get; set; } = new();
 
-    /// <summary>Sanitized HTML chant body.</summary>
+    /// <summary>Sanitized HTML chant body, as written in the Chants Config form's main editor. Shown only when no <see cref="LanguageTexts"/> exist.</summary>
     public string ChantText { get; set; } = string.Empty;
+
+    /// <summary>
+    /// The chant in every language it was configured in, in the Languages master's order. The japa
+    /// screen offers all of them whatever UI language the seeker chose: the words of a chant are read
+    /// in the script one prays in, not the one the menus are in.
+    /// </summary>
+    public List<SadhanaChantLanguageTextDto> LanguageTexts { get; set; } = new();
 
     public bool HasAudio { get; set; }
     public string? AudioFileName { get; set; }
@@ -64,6 +71,20 @@ public class SadhanaChantDetailDto
 
     /// <summary>Repetitions so far in the mala in progress.</summary>
     public int CountInMala { get; set; }
+}
+
+/// <summary>One language's version of a chant, for the japa screen's language tabs.</summary>
+public class SadhanaChantLanguageTextDto
+{
+    public Guid LanguageId { get; set; }
+    /// <summary>The language's English name, e.g. "Telugu".</summary>
+    public string LanguageName { get; set; } = string.Empty;
+    /// <summary>The language's name in its own script, e.g. "తెలుగు" — what the tab shows.</summary>
+    public string? NativeName { get; set; }
+    /// <summary>ISO 639 code, e.g. "te"; lets the screen open on the seeker's own UI language.</summary>
+    public string? Code { get; set; }
+    /// <summary>Sanitized HTML.</summary>
+    public string Text { get; set; } = string.Empty;
 }
 
 /// <summary>The seeker's own settings for one chant. Null <see cref="MalaSize"/> returns to the default.</summary>

@@ -26,7 +26,12 @@ public class SadhanaChantDetail
     public Guid CategoryId { get; set; }
     public string CategoryName { get; set; } = string.Empty;
     public List<string> DeityNames { get; set; } = new();
+    /// <summary>The main editor's chant body; the screen shows it only when no language texts exist.</summary>
     public string ChantText { get; set; } = string.Empty;
+
+    /// <summary>The chant in each language it was configured in, every one offered whatever the UI language.</summary>
+    public List<SadhanaChantLanguageText> LanguageTexts { get; set; } = new();
+
     public bool HasAudio { get; set; }
     public string? AudioFileName { get; set; }
 
@@ -45,6 +50,18 @@ public class SadhanaChantDetail
 
     /// <summary>Repetitions so far in the mala in progress.</summary>
     public int CountInMala { get; set; }
+}
+
+/// <summary>One language's version of a chant, for the japa screen's language tabs.</summary>
+public class SadhanaChantLanguageText
+{
+    public Guid LanguageId { get; set; }
+    public string LanguageName { get; set; } = string.Empty;
+    /// <summary>The language's name in its own script — what the tab shows.</summary>
+    public string? NativeName { get; set; }
+    /// <summary>ISO 639 code, e.g. "te".</summary>
+    public string? Code { get; set; }
+    public string Text { get; set; } = string.Empty;
 }
 
 /// <summary>The seeker's own settings for one chant. A null mala size returns to the default.</summary>
