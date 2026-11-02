@@ -115,7 +115,32 @@ else
         </div>
     }
 
-    @if (!string.IsNullOrWhiteSpace(_chant.ChantText))
+    @if (_chant.LanguageTexts.Count > 0)
+    {
+        @* The chant in every language it was written in, all offered whatever UI language the seeker
+           chose: one reads a chant in the script one prays in. The tab for the UI language opens
+           first; a tab the seeker picks stays picked. Tabs are buttons, so japa.js never counts a tap
+           on them. *@
+        var active = ActiveLanguageText;
+        <div class="sc-card sc-jp-text">
+            <h3 class="sc-detail-label">@Loc["sadhana.chantText", "Chant"]</h3>
+            <div class="sc-tabs sc-jp-langs" role="tablist" aria-label="@Loc["sadhana.chantLanguages", "Chant Languages"]">
+                @foreach (var lt in _chant.LanguageTexts)
+                {
+                    <button type="button" role="tab" lang="@lt.Code"
+                            class="sc-tab @(lt.LanguageId == active.LanguageId ? "active" : null)"
+                            aria-selected="@(lt.LanguageId == active.LanguageId ? "true" : "false")"
+                            title="@lt.LanguageName"
+                            @onclick="() => PickLanguage(lt.LanguageId)">
+                        @(string.IsNullOrWhiteSpace(lt.NativeName) ? lt.LanguageName : lt.NativeName)
+                    </button>
+                }
+            </div>
+            @* Server-side sanitized on save, safe to render. *@
+            <div class="sc-richtext" lang="@active.Code" @key="active.LanguageId">@((MarkupString)active.Text)</div>
+        </div>
+    }
+    else if (!string.IsNullOrWhiteSpace(_chant.ChantText))
     {
         <div class="sc-card sc-jp-text">
             <h3 class="sc-detail-label">@Loc["sadhana.chantText", "Chant"]</h3>
@@ -246,6 +271,26 @@ else
 
     private string AudioUrl => Media.Absolute(ApiRoutes.Media.ChantAudio(_chantId));
 
+    /// <summary>The language tab the seeker picked on this chant; null follows the UI language.</summary>
+    private Guid? _pickedLanguageId;
+
+    /// <summary>
+    /// The language whose text is open: the seeker's pick, else the UI language when the chant has
+    /// it, else the first language offered. Every tab stays visible either way.
+    /// </summary>
+    private SadhanaChantLanguageText ActiveLanguageText
+    {
+        get
+        {
+            var texts = _chant!.LanguageTexts;
+            if (_pickedLanguageId is { } picked && texts.FirstOrDefault(t => t.LanguageId == picked) is { } chosen) return chosen;
+            return texts.FirstOrDefault(t => string.Equals(t.Code?.Trim(), Loc.CurrentCode, StringComparison.OrdinalIgnoreCase))
+                ?? texts[0];
+        }
+    }
+
+    private void PickLanguage(Guid languageId) => _pickedLanguageId = languageId;
+
     private static string RingDash => RingCircumference.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
 
     private string ArcOffset => (RingCircumference * (1 - (_counter?.Progress ?? 0)))
@@ -283,6 +328,7 @@ else
             _chant = await Api.GetSadhanaChantAsync(Id);
             if (_chant is not null)
             {
+                if (_chantId != _chant.Id) _pickedLanguageId = null;
                 _chantId = _chant.Id;
                 _counter = new JapaCounter(_chant.TodayCount, _chant.TodayMalas, _chant.CountInMala, _chant.TargetCount);
                 _vibration = _chant.VibrationEnabled;
