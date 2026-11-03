@@ -55,10 +55,7 @@ else
                                     @onclick="() => RemoveChantAsync(c)" @onclick:stopPropagation="true">♥</button>
                         </div>
                         <h3 class="sc-tile-title">@c.Name</h3>
-                        @if (c.DeityNames.Count > 0)
-                        {
-                            <div class="sc-chiprow">@foreach (var d in c.DeityNames) { <span class="sc-minichip">@d</span> }</div>
-                        }
+                        <ChipRow Items="c.DeityNames" Max="4" />
                         <div class="sc-tile-foot">
                             <span class="sc-chantprog">@(c.HasAudio ? "🔊 " + Loc["favorites.audioTag", "Audio"] : "")</span>
                             <button class="sc-btn-primary sc-btn-sm" @onclick="() => OpenChant(c)" @onclick:stopPropagation="true">@Loc["favorites.chantCta", "Chant"] →</button>

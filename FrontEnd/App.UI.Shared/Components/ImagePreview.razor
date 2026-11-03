@@ -1,0 +1,35 @@
+@inherits LocalizedComponentBase
+
+@* A full-size look at one picture over the page: tap the backdrop or the cross to leave. Src is
+   null while the picture is still being fetched, so a preview can open at once and fill in. *@
+
+@if (Visible)
+{
+    <div class="sc-lightbox" role="dialog" aria-modal="true" aria-label="@Caption" @onclick="Close">
+        <button type="button" class="sc-lightbox-x" aria-label="@Loc["common.close", "Close"]" @onclick="Close" @onclick:stopPropagation="true">×</button>
+        <figure class="sc-lightbox-fig" @onclick:stopPropagation="true">
+            @if (string.IsNullOrEmpty(Src))
+            {
+                <div class="sc-lightbox-loading"><OmLoader Inline="true" Size="40" Message="@LoadingText" /></div>
+            }
+            else
+            {
+                <img src="@Src" alt="@Caption" />
+            }
+            @if (!string.IsNullOrEmpty(Caption))
+            {
+                <figcaption>@Caption</figcaption>
+            }
+        </figure>
+    </div>
+}
+
+@code {
+    [Parameter] public bool Visible { get; set; }
+    [Parameter] public string? Src { get; set; }
+    [Parameter] public string? Caption { get; set; }
+    [Parameter] public string? LoadingText { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+
+    private Task Close() => OnClose.InvokeAsync();
+}
