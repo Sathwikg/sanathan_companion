@@ -1,0 +1,145 @@
+@page "/deities/{Id:guid}"
+@attribute [Authorize]
+@inherits LocalizedComponentBase
+@inject IApiClient Api
+@inject NavigationManager Nav
+
+@* The deity's read-only page. The photo is the point: the admin sees the image exactly as it was
+   uploaded and stored, published or not — the single-deity GET carries it as a data URI, so this
+   page never depends on the public image endpoint, which serves published rows only. *@
+
+<div class="sc-page-head">
+    <div class="sc-page-title">
+        <span class="sc-page-emoji">🛕</span>
+        <div>
+            <h1>@(_model?.Name ?? Loc["deities.viewDeity", "View Deity"])</h1>
+            <p class="sc-page-sub">@Loc["deities.sub", "Gods & Goddesses master"]</p>
+        </div>
+    </div>
+    <div class="sc-page-actions">
+        <button class="sc-btn-ghost sc-btn-sm" @onclick="BackToList">← @Loc["common.backToList", "Back to List"]</button>
+        @if (_model is not null)
+        {
+            <button class="sc-btn-primary sc-btn-sm" @onclick='() => Nav.NavigateTo($"deities/{Id}/edit")'>✏️ @Loc["common.edit", "Edit"]</button>
+        }
+    </div>
+</div>
+
+@if (_error is not null)
+{
+    <div class="sc-alert sc-alert-error">@_error</div>
+}
+
+@if (_loading)
+{
+    <OmLoader FullPage="true" Message="@Loc["deities.loadingOne", "Loading deity…"]" />
+}
+else if (_model is null)
+{
+    <div class="sc-card sc-empty-state">
+        <div class="sc-empty-om">🛕</div>
+        <h3>@Loc["deities.notFound", "Deity Not Found"]</h3>
+        <p>@Loc["deities.notFoundBody", "It may have been deleted."]</p>
+        <button class="sc-btn-primary sc-btn-sm" @onclick="BackToList">@Loc["common.backToList", "Back to List"]</button>
+    </div>
+}
+else
+{
+    <div class="sc-card">
+        <div class="sc-deity-view">
+            <div class="sc-deity-view-photo">
+                <span class="sc-detail-label">@Loc["deities.photo", "Photo"]</span>
+                @if (!string.IsNullOrEmpty(_model.ImageDataUrl))
+                {
+                    <img class="sc-deity-view-img" src="@_model.ImageDataUrl" alt="@_model.Name" />
+                }
+                else
+                {
+                    <div class="sc-deity-view-img sc-deity-view-none">
+                        <span aria-hidden="true">🛕</span>
+                        <small>@Loc["deities.noPhoto", "No photo uploaded"]</small>
+                    </div>
+                }
+            </div>
+
+            <div class="sc-deity-view-fields">
+                <div class="sc-detail-grid">
+                    <div class="sc-detail-item">
+                        <span class="sc-detail-label">@Loc["deities.godOrGoddess", "God / Goddess"]</span>
+                        <span class="sc-detail-value"><span class="sc-typechip @(_model.DeityType == "Goddess" ? "goddess" : "god")">@_model.DeityType</span></span>
+                    </div>
+                    <div class="sc-detail-item">
+                        <span class="sc-detail-label">@Loc["common.status", "Status"]</span>
+                        <span class="sc-detail-value"><span class="sc-badge @(_model.IsActive ? "on" : "off")">@(_model.IsActive ? Loc["common.active", "Active"] : Loc["common.inactive", "Inactive"])</span></span>
+                    </div>
+                </div>
+
+                <div class="sc-detail-item">
+                    <span class="sc-detail-label">@Loc["common.regions", "Regions"]</span>
+                    <span class="sc-detail-value">@Chips(_model.Regions)</span>
+                </div>
+                <div class="sc-detail-item">
+                    <span class="sc-detail-label">@Loc["common.days", "Days"]</span>
+                    <span class="sc-detail-value">@Chips(_model.Days)</span>
+                </div>
+                <div class="sc-detail-item">
+                    <span class="sc-detail-label">@Loc["deities.festivals", "Festivals"]</span>
+                    <span class="sc-detail-value">@Chips(_model.Festivals)</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="sc-detail-section">
+            <h3>@Loc["common.description", "Description"]</h3>
+            <p>@(string.IsNullOrWhiteSpace(_model.Description) ? Loc["common.noDescription", "No description"] : _model.Description)</p>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(_model.WelcomeNote))
+        {
+            <div class="sc-detail-section">
+                <h3>@Loc["deities.welcomeNote", "Welcome Note"]</h3>
+                <p>@_model.WelcomeNote</p>
+            </div>
+        }
+    </div>
+}
+
+@code {
+    [Parameter] public Guid Id { get; set; }
+
+    private DeityModel? _model;
+    private bool _loading = true;
+    private string? _error;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _loading = true;
+        _error = null;
+        try
+        {
+            _model = await Api.GetDeityAsync(Id);
+        }
+        catch (Exception ex)
+        {
+            _error = Loc.ErrorText(ex);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private void BackToList() => Nav.NavigateTo("deities");
+
+    private RenderFragment Chips(List<string> items) => __builder =>
+    {
+        if (items.Count == 0)
+        {
+            <span class="sc-muted">—</span>
+        }
+        else
+        {
+            <div class="sc-chiprow">@foreach (var item in items) { <span class="sc-minichip">@item</span> }</div>
+        }
+    };
+}

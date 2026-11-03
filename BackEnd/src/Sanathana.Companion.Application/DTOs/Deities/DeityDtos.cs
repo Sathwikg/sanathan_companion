@@ -8,6 +8,14 @@ public class DeityDto
     public string? WelcomeNote { get; set; }
     public string DeityType { get; set; } = "God";
     public bool HasImage { get; set; }
+
+    /// <summary>
+    /// The stored image as a data URI ("data:image/webp;base64,…"). Filled only by the single-deity
+    /// GET, never by the list: the admin's view page shows exactly what was uploaded, published or
+    /// not, while the public image endpoint serves published rows only.
+    /// </summary>
+    public string? ImageDataUrl { get; set; }
+
     public List<string> Regions { get; set; } = new();
     public List<string> Festivals { get; set; } = new();
     public List<string> Days { get; set; } = new();

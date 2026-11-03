@@ -29,7 +29,12 @@ public class DeityService : IDeityService
     public async Task<DeityDto?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var d = await _uow.Deities.GetByIdAsync(id, cancellationToken);
-        return d is null ? null : ToDto(d);
+        if (d is null) return null;
+
+        var dto = ToDto(d);
+        if (d.ImageData is { Length: > 0 } bytes && d.ImageContentType is { Length: > 0 } type)
+            dto.ImageDataUrl = $"data:{type};base64,{Convert.ToBase64String(bytes)}";
+        return dto;
     }
 
     public Task<(byte[]? Data, string? ContentType)> GetImageAsync(Guid id, bool includeInactive = false, CancellationToken cancellationToken = default)
