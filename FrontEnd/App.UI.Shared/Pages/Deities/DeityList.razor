@@ -94,7 +94,8 @@ else if (_view == "grid")
                 }
                 <div class="sc-tile-foot">
                     <button class="sc-chip @(d.IsActive ? "chip-warn" : "chip-ok")" @onclick="() => ConfirmToggle(d)">@(d.IsActive ? Loc["common.deactivate", "Deactivate"] : Loc["common.activate", "Activate"])</button>
-                    <button class="sc-btn-ghost sc-btn-sm" @onclick="@(() => Nav.NavigateTo($"deities/{d.Id}/edit"))">@Loc["common.edit", "Edit"]</button>
+                    <button class="sc-btn-ghost sc-btn-sm" @onclick="() => View(d)">@Loc["common.view", "View"]</button>
+                    <button class="sc-btn-ghost sc-btn-sm" @onclick="() => Edit(d)">@Loc["common.edit", "Edit"]</button>
                 </div>
             </div>
         }
@@ -128,7 +129,10 @@ else
                             </label>
                             <span class="sc-status @(d.IsActive ? "on" : "off")">@(d.IsActive ? Loc["common.active", "Active"] : Loc["common.inactive", "Inactive"])</span>
                         </td>
-                        <td><button class="sc-btn-ghost sc-btn-sm" @onclick="@(() => Nav.NavigateTo($"deities/{d.Id}/edit"))">@Loc["common.edit", "Edit"]</button></td>
+                        <td class="sc-rowactions">
+                            <button class="sc-btn-ghost sc-btn-sm" @onclick="() => View(d)">@Loc["common.view", "View"]</button>
+                            <button class="sc-btn-ghost sc-btn-sm" @onclick="() => Edit(d)">@Loc["common.edit", "Edit"]</button>
+                        </td>
                     </tr>
                 }
             </tbody>
@@ -153,6 +157,9 @@ else
     private IEnumerable<DeityModel> Paged => _filtered.Skip((_page - 1) * PageSize).Take(PageSize);
 
     private string ImgSrc(DeityModel d) => Media.Absolute(ApiRoutes.Media.DeityImage(d.Id));
+
+    private void View(DeityModel d) => Nav.NavigateTo($"deities/{d.Id}");
+    private void Edit(DeityModel d) => Nav.NavigateTo($"deities/{d.Id}/edit");
 
     protected override async Task OnInitializedAsync()
     {

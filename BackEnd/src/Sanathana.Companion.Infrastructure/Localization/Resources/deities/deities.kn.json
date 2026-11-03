@@ -17,10 +17,16 @@
   "deities.imageHint": "ವೆಬ್‌ಪಿ ರೂಪಕ್ಕೆ ಸಂಕುಚಿಸಲಾಗಿದೆ · ದತ್ತಸಂಚಯದಲ್ಲಿ ಸಂಗ್ರಹಿಸಲಾಗಿದೆ",
   "deities.imageProcessFailed": "ಚಿತ್ರವನ್ನು ಸಂಸ್ಕರಿಸಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ.",
   "deities.loadingList": "ದೇವತೆಗಳನ್ನು ಲೋಡ್ ಮಾಡಲಾಗುತ್ತಿದೆ…",
+  "deities.loadingOne": "ದೇವತೆಯನ್ನು ಲೋಡ್ ಮಾಡಲಾಗುತ್ತಿದೆ…",
+  "deities.noPhoto": "ಯಾವುದೇ ಫೋಟೋ ಅಪ್‌ಲೋಡ್ ಮಾಡಿಲ್ಲ",
   "deities.noneMatchFilters": "ಆಯ್ಕೆ ಮಾಡಿದ ಶೋಧಕಗಳಿಗೆ ಯಾವುದೇ ದೇವತೆಗಳು ಹೊಂದಿಕೆಯಾಗುತ್ತಿಲ್ಲ.",
+  "deities.notFound": "ದೇವತೆ ಕಂಡುಬಂದಿಲ್ಲ",
+  "deities.notFoundBody": "ಇದನ್ನು ಅಳಿಸಿರಬಹುದು.",
   "deities.noun": "ದೇವತೆಗಳು",
   "deities.nounSingular": "ದೇವತೆ",
+  "deities.photo": "ಫೋಟೋ",
   "deities.sub": "ದೇವರುಗಳು ಮತ್ತು ದೇವಿಯರ ಮಾಸ್ಟರ್",
   "deities.title": "ದೇವತೆಗಳು",
+  "deities.viewDeity": "ದೇವತೆಯನ್ನು ವೀಕ್ಷಿಸಿ",
   "deities.welcomeNote": "ಸ್ವಾಗತ ಸಂದೇಶ"
 }

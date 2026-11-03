@@ -17,10 +17,16 @@
   "deities.imageHint": "Compressed to WebP · stored in the DB",
   "deities.imageProcessFailed": "Could not process image.",
   "deities.loadingList": "Loading deities…",
+  "deities.loadingOne": "Loading deity…",
+  "deities.noPhoto": "No photo uploaded",
   "deities.noneMatchFilters": "No deities match the selected filters.",
+  "deities.notFound": "Deity Not Found",
+  "deities.notFoundBody": "It may have been deleted.",
   "deities.noun": "deities",
   "deities.nounSingular": "deity",
+  "deities.photo": "Photo",
   "deities.sub": "Gods & Goddesses master",
   "deities.title": "Deities",
+  "deities.viewDeity": "View Deity",
   "deities.welcomeNote": "Welcome Note"
 }

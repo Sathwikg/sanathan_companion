@@ -41,11 +41,12 @@ else
                         {
                             <img src="@_previewUrl" alt="preview" />
                         }
-                        @* IsActive too: the image endpoint serves published rows only, so the
-                           preview of something just deactivated would be a broken image. *@
-                        else if (IsEdit && _hasExistingImage && !_model.RemoveImage && _model.IsActive)
+                        @* The stored image comes back with the deity as a data URI, so it previews
+                           whether or not the deity is published. The media URL is only a fallback
+                           (and serves published rows only), hence the IsActive guard on it. *@
+                        else if (IsEdit && _hasExistingImage && !_model.RemoveImage && (_existingImageDataUrl is not null || _model.IsActive))
                         {
-                            <img src="@ExistingImageUrl" alt="@_model.Name" />
+                            <img src="@(_existingImageDataUrl ?? ExistingImageUrl)" alt="@_model.Name" />
                         }
                         else
                         {
@@ -149,6 +150,7 @@ else
     private bool _loading = true;
     private bool _busy;
     private bool _hasExistingImage;
+    private string? _existingImageDataUrl;
     private string? _previewUrl;
     private string? _error;
     private string? _formError;
@@ -190,6 +192,7 @@ else
                     _selFestivals = d.Festivals.ToHashSet();
                     _selDays = d.Days.ToHashSet();
                     _hasExistingImage = d.HasImage;
+                    _existingImageDataUrl = d.ImageDataUrl;
                 }
             }
         }

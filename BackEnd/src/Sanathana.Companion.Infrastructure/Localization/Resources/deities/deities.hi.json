@@ -17,10 +17,16 @@
   "deities.imageHint": "वेबपी में संपीड़ित · डेटाबेस में संग्रहीत",
   "deities.imageProcessFailed": "छवि संसाधित नहीं की जा सकी।",
   "deities.loadingList": "देवी-देवता लोड हो रहे हैं…",
+  "deities.loadingOne": "देवता लोड हो रहे हैं…",
+  "deities.noPhoto": "कोई फ़ोटो अपलोड नहीं की गई",
   "deities.noneMatchFilters": "चुने गए फ़िल्टर से कोई देवी-देवता मेल नहीं खाते।",
+  "deities.notFound": "देवता नहीं मिले",
+  "deities.notFoundBody": "इसे हटा दिया गया हो सकता है।",
   "deities.noun": "देवी-देवता",
   "deities.nounSingular": "देवता",
+  "deities.photo": "फ़ोटो",
   "deities.sub": "देवी-देवता मास्टर",
   "deities.title": "देवी-देवता",
+  "deities.viewDeity": "देवता देखें",
   "deities.welcomeNote": "स्वागत संदेश"
 }

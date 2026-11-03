@@ -17,10 +17,16 @@
   "deities.imageHint": "WebP ஆகச் சுருக்கப்பட்டுத் தரவுத்தளத்தில் சேமிக்கப்படும்",
   "deities.imageProcessFailed": "படத்தைச் செயலாக்க முடியவில்லை.",
   "deities.loadingList": "தெய்வங்களை ஏற்றுகிறது…",
+  "deities.loadingOne": "தெய்வம் ஏற்றப்படுகிறது…",
+  "deities.noPhoto": "புகைப்படம் பதிவேற்றப்படவில்லை",
   "deities.noneMatchFilters": "தேர்ந்தெடுத்த வடிகட்டிகளுக்குப் பொருந்தும் தெய்வங்கள் எதுவும் இல்லை.",
+  "deities.notFound": "தெய்வம் கிடைக்கவில்லை",
+  "deities.notFoundBody": "இது நீக்கப்பட்டிருக்கலாம்.",
   "deities.noun": "தெய்வங்கள்",
   "deities.nounSingular": "தெய்வம்",
+  "deities.photo": "புகைப்படம்",
   "deities.sub": "கடவுளர் மற்றும் தேவியர் முதன்மைத் தரவு",
   "deities.title": "தெய்வங்கள்",
+  "deities.viewDeity": "தெய்வத்தைப் பார்க்க",
   "deities.welcomeNote": "வரவேற்புக் குறிப்பு"
 }
