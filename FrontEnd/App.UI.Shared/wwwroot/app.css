@@ -900,6 +900,15 @@ button.sc-prefrow:disabled:hover { background: var(--color-surface-2); }
 /* ---- Avatars ---- */
 .sc-avatar-lg { width: 120px; height: 120px; border-radius: 20px; overflow: hidden; display: grid; place-items: center; background: var(--color-primary-container); border: 1px solid var(--glass-border); }
 .sc-avatar-lg img { width: 100%; height: 100%; object-fit: cover; }
+
+/* The deity's view page: the photo large beside the facts, stacking above them on a phone. The
+   frame keeps the avatar's rounded square so the preview matches how the tiles crop it. */
+.sc-deity-view { display: flex; flex-wrap: wrap; gap: 1.5rem; align-items: flex-start; }
+.sc-deity-view-photo { display: flex; flex-direction: column; gap: 0.4rem; flex: 0 0 auto; width: min(100%, 260px); }
+.sc-deity-view-fields { flex: 1 1 260px; min-width: 0; display: flex; flex-direction: column; gap: 0.9rem; }
+.sc-deity-view-img { width: 100%; aspect-ratio: 1; border-radius: 20px; object-fit: cover; display: block; background: var(--color-primary-container); border: 1px solid var(--glass-border); }
+.sc-deity-view-none { display: grid; place-items: center; align-content: center; gap: 0.35rem; color: var(--color-secondary); font-size: 2.6rem; }
+.sc-deity-view-none small { font-size: 0.82rem; }
 .sc-avatar-ph { font-size: 3rem; opacity: 0.6; }
 .sc-avatar { width: 46px; height: 46px; border-radius: 12px; overflow: hidden; display: grid; place-items: center; background: var(--color-primary-container); font-size: 1.3rem; flex-shrink: 0; }
 .sc-avatar img { width: 100%; height: 100%; object-fit: cover; }

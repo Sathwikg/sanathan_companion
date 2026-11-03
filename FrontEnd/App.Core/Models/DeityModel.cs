@@ -10,6 +10,10 @@ public class DeityModel
     public string? WelcomeNote { get; set; }
     public string DeityType { get; set; } = "God";
     public bool HasImage { get; set; }
+
+    /// <summary>The stored image as a data URI; only the single-deity GET fills it.</summary>
+    public string? ImageDataUrl { get; set; }
+
     public List<string> Regions { get; set; } = new();
     public List<string> Festivals { get; set; } = new();
     public List<string> Days { get; set; } = new();
