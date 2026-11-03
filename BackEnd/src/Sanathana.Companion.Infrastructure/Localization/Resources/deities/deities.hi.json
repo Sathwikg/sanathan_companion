@@ -18,6 +18,7 @@
   "deities.imageProcessFailed": "छवि संसाधित नहीं की जा सकी।",
   "deities.loadingList": "देवी-देवता लोड हो रहे हैं…",
   "deities.loadingOne": "देवता लोड हो रहे हैं…",
+  "deities.loadingPhoto": "फ़ोटो लोड हो रही है…",
   "deities.noPhoto": "कोई फ़ोटो अपलोड नहीं की गई",
   "deities.noneMatchFilters": "चुने गए फ़िल्टर से कोई देवी-देवता मेल नहीं खाते।",
   "deities.notFound": "देवता नहीं मिले",
@@ -28,5 +29,6 @@
   "deities.sub": "देवी-देवता मास्टर",
   "deities.title": "देवी-देवता",
   "deities.viewDeity": "देवता देखें",
+  "deities.viewPhoto": "फ़ोटो देखें",
   "deities.welcomeNote": "स्वागत संदेश"
 }

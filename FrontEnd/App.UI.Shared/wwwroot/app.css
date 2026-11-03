@@ -799,6 +799,15 @@ button.sc-prefrow:disabled:hover { background: var(--color-surface-2); }
 .sc-toast-close { background: none; border: none; cursor: pointer; color: var(--color-secondary); font-size: 1.1rem; line-height: 1; }
 
 @keyframes sc-fade { from { opacity: 0; } to { opacity: 1; } }
+
+/* ImagePreview: one picture over the page, as large as the screen allows. */
+.sc-lightbox { position: fixed; inset: 0; z-index: 1000; background: rgba(30,20,11,0.78); backdrop-filter: blur(6px); display: grid; place-items: center; padding: 1.5rem; animation: sc-fade .18s ease; cursor: zoom-out; }
+.sc-lightbox-x { position: absolute; top: 1rem; right: 1rem; width: 44px; height: 44px; border-radius: 50%; border: none; background: rgba(255,255,255,0.16); color: #fff; font-size: 1.7rem; line-height: 1; cursor: pointer; }
+.sc-lightbox-x:hover { background: rgba(255,255,255,0.3); }
+.sc-lightbox-fig { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 0.7rem; max-width: 100%; cursor: default; }
+.sc-lightbox-fig img { display: block; max-width: min(92vw, 640px); max-height: 78dvh; border-radius: 20px; border: 1px solid rgba(255,255,255,0.18); background: var(--color-surface); box-shadow: var(--shadow-lg); animation: sc-pop .22s cubic-bezier(.2,.9,.3,1.3); }
+.sc-lightbox-fig figcaption { color: #fff; font-family: var(--font-heading); font-size: 1.15rem; text-shadow: 0 1px 6px rgba(0,0,0,0.5); }
+.sc-lightbox-loading { width: min(92vw, 320px); aspect-ratio: 1; display: grid; place-items: center; border-radius: 20px; background: rgba(255,255,255,0.08); color: #fff; }
 @keyframes sc-pop { from { opacity: 0; transform: scale(.9) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
 @keyframes sc-slidein { from { opacity: 0; transform: translateX(30px); } to { opacity: 1; transform: translateX(0); } }
 
@@ -913,6 +922,15 @@ button.sc-prefrow:disabled:hover { background: var(--color-surface-2); }
 .sc-avatar { width: 46px; height: 46px; border-radius: 12px; overflow: hidden; display: grid; place-items: center; background: var(--color-primary-container); font-size: 1.3rem; flex-shrink: 0; }
 .sc-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .sc-avatar-sm { width: 38px; height: 38px; border-radius: 10px; font-size: 1.1rem; }
+/* The deity card's photo: big enough to recognise the murti, and a button that opens it full size. */
+.sc-avatar-md { width: 88px; height: 88px; border-radius: 18px; font-size: 2.2rem; border: 1px solid var(--glass-border); }
+.sc-avatar-btn { padding: 0; cursor: pointer; font-family: inherit; color: inherit; transition: box-shadow .18s ease; }
+.sc-avatar-btn img { transition: transform .25s ease; }
+.sc-avatar-btn:not(:disabled):hover { box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-gold) 45%, transparent); }
+.sc-avatar-btn:not(:disabled):hover img { transform: scale(1.06); }
+.sc-avatar-btn:disabled { cursor: default; }
+.sc-deity-tile .sc-tile-top { align-items: flex-start; }
+.sc-deity-tile .sc-tile-desc { display: -webkit-box; -webkit-line-clamp: 3; line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 
 /* ---- Deity chips ---- */
 .sc-typechip { font-size: 0.68rem; font-weight: 600; padding: 0.1rem 0.5rem; border-radius: 999px; vertical-align: middle; }
@@ -921,6 +939,11 @@ button.sc-prefrow:disabled:hover { background: var(--color-surface-2); }
 .sc-chiprow { display: flex; flex-wrap: wrap; gap: 0.3rem; }
 .sc-minichip { font-size: 0.68rem; padding: 0.12rem 0.5rem; border-radius: 999px; background: var(--color-primary-container); color: var(--color-on-primary-container); }
 .sc-minichip.day { background: color-mix(in srgb, var(--color-gold) 22%, transparent); color: var(--color-on-surface); }
+/* ChipRow: the "+N more" chip is a real button so it can open the rest; styled as a chip so the
+   row still reads as one. "All Regions" stands for a list that is the whole master. */
+.sc-chip-more { border: 1px dashed color-mix(in srgb, var(--color-primary) 45%, transparent); background: transparent; color: var(--color-primary); font-weight: 600; cursor: pointer; font-family: inherit; line-height: inherit; }
+.sc-chip-more:hover { background: color-mix(in srgb, var(--color-primary) 10%, transparent); }
+.sc-chip-all { background: color-mix(in srgb, var(--color-gold) 26%, transparent); color: var(--color-on-surface); font-weight: 600; }
 
 /* ---- Share (PanchangamShare): floating button, preview sheet, and the carved-name font ---- */
 /* Cinzel (SIL OFL, fonts/Cinzel-OFL.txt) is only ever drawn on the share canvas, and a browser does

@@ -1,0 +1,56 @@
+@inherits LocalizedComponentBase
+
+@* A row of name chips that stays a row. A deity mapped to every state, a language spoken in a
+   dozen regions: shown in full, the chips swamp the card and push its buttons out of sight. So
+   the first few show and a "+N more" chip opens the rest; when the list is the whole master
+   (AllCount) a single "All …" chip says so instead of listing it. Hovering either shows the
+   complete list as a tooltip. *@
+
+@if (Items.Count > 0)
+{
+    var collapsedToAll = AllCount > 0 && Items.Count >= AllCount && !string.IsNullOrEmpty(AllLabel);
+    var hidden = Math.Max(0, Items.Count - Max);
+    var shown = _expanded || hidden == 0 ? Items : Items.Take(Max);
+    var everything = string.Join(", ", Items);
+
+    <div class="sc-chiprow @Class">
+        @if (collapsedToAll)
+        {
+            <span class="sc-minichip sc-chip-all @ChipClass" title="@everything">@AllLabel</span>
+        }
+        else
+        {
+            @foreach (var item in shown)
+            {
+                <span class="sc-minichip @ChipClass" title="@item">@item</span>
+            }
+            @if (hidden > 0)
+            {
+                <button type="button" class="sc-minichip sc-chip-more" title="@everything"
+                        aria-expanded="@(_expanded ? "true" : "false")"
+                        @onclick="() => _expanded = !_expanded" @onclick:stopPropagation="true">
+                    @(_expanded ? Loc["common.showLess", "Show Less"] : Loc.TF("common.moreCount", "+{0} more", hidden))
+                </button>
+            }
+        }
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<string> Items { get; set; } = Array.Empty<string>();
+
+    /// <summary>Chips shown before the rest fold behind "+N more".</summary>
+    [Parameter] public int Max { get; set; } = 4;
+
+    /// <summary>Extra classes on each chip, e.g. "day".</summary>
+    [Parameter] public string? ChipClass { get; set; }
+
+    /// <summary>Extra classes on the row.</summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>The master's size; when every entry is mapped, one chip reading <see cref="AllLabel"/> stands for the list.</summary>
+    [Parameter] public int AllCount { get; set; }
+    [Parameter] public string? AllLabel { get; set; }
+
+    private bool _expanded;
+}

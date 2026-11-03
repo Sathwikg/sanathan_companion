@@ -76,7 +76,7 @@ else if (_view == "region")
                     }
                     else
                     {
-                        <div class="sc-chiprow">@foreach (var l in r.Languages) { <span class="sc-minichip">@l</span> }</div>
+                        <ChipRow Items="r.Languages" Max="6" />
                     }
                 </div>
             }
@@ -116,10 +116,7 @@ else if (_view == "grid")
                     <p class="sc-native">@l.NativeName</p>
                 }
                 <p class="sc-tile-desc">@(string.IsNullOrWhiteSpace(l.Description) ? Loc["common.noDescription", "No description"] : l.Description)</p>
-                @if (l.RegionNames.Count > 0)
-                {
-                    <div class="sc-chiprow">@foreach (var r in l.RegionNames) { <span class="sc-minichip">@r</span> }</div>
-                }
+                <ChipRow Items="l.RegionNames" Max="3" />
                 <div class="sc-tile-foot">
                     <button class="sc-chip @(l.IsActive ? "chip-warn" : "chip-ok")" @onclick="() => ConfirmToggle(l)">
                         @(l.IsActive ? Loc["common.deactivate", "Deactivate"] : Loc["common.activate", "Activate"])
@@ -165,7 +162,7 @@ else
                             }
                             else
                             {
-                                <div class="sc-chiprow">@foreach (var r in l.RegionNames) { <span class="sc-minichip">@r</span> }</div>
+                                <ChipRow Items="l.RegionNames" Max="3" />
                             }
                         </td>
                         <td>

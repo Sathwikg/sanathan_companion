@@ -64,10 +64,7 @@ else if (_view == "grid")
                 </div>
                 <h3 class="sc-tile-title">@f.Name</h3>
                 <p class="sc-tile-desc">@(string.IsNullOrWhiteSpace(f.Description) ? Loc["common.noDescription", "No description"] : f.Description)</p>
-                @if (f.RegionNames.Count > 0)
-                {
-                    <div class="sc-chiprow">@foreach (var r in f.RegionNames) { <span class="sc-minichip">@r</span> }</div>
-                }
+                <ChipRow Items="f.RegionNames" Max="3" />
                 <div class="sc-tile-foot">
                     <button class="sc-chip @(f.IsActive ? "chip-warn" : "chip-ok")" @onclick="() => ConfirmToggle(f)">
                         @(f.IsActive ? Loc["common.deactivate", "Deactivate"] : Loc["common.activate", "Activate"])

@@ -54,10 +54,7 @@ else if (_view == "grid")
                 <p class="sc-tile-desc">@(string.IsNullOrWhiteSpace(r.Description) ? Loc["common.noDescription", "No description"] : r.Description)</p>
 
                 <div class="sc-tile-meta">🗣️ @r.LanguageNames.Count @(r.LanguageNames.Count == 1 ? Loc["regions.languageSingular", "language"] : Loc["regions.languagePlural", "languages"])</div>
-                @if (r.LanguageNames.Count > 0)
-                {
-                    <div class="sc-chiprow">@foreach (var l in r.LanguageNames) { <span class="sc-minichip">@l</span> }</div>
-                }
+                <ChipRow Items="r.LanguageNames" Max="6" />
 
                 <div class="sc-tile-foot">
                     <button class="sc-chip @(r.IsActive ? "chip-warn" : "chip-ok")" @onclick="() => ConfirmToggle(r)">
@@ -96,7 +93,7 @@ else
                             }
                             else
                             {
-                                <div class="sc-chiprow">@foreach (var l in r.LanguageNames) { <span class="sc-minichip">@l</span> }</div>
+                                <ChipRow Items="r.LanguageNames" Max="4" />
                             }
                         </td>
                         <td>

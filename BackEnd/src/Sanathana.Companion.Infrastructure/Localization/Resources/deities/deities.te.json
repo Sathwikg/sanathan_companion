@@ -18,6 +18,7 @@
   "deities.imageProcessFailed": "చిత్రాన్ని ప్రాసెస్ చేయలేకపోయాం.",
   "deities.loadingList": "దేవతల జాబితా లోడ్ అవుతోంది…",
   "deities.loadingOne": "దేవతను లోడ్ చేస్తోంది…",
+  "deities.loadingPhoto": "ఫోటో లోడ్ అవుతోంది…",
   "deities.noPhoto": "ఫోటో అప్‌లోడ్ చేయలేదు",
   "deities.noneMatchFilters": "ఎంచుకున్న వడపోతలకు సరిపోయే దేవతలు లేరు.",
   "deities.notFound": "దేవత కనబడలేదు",
@@ -28,5 +29,6 @@
   "deities.sub": "దేవీదేవతల మాస్టర్",
   "deities.title": "దేవతలు",
   "deities.viewDeity": "దేవతను చూడండి",
+  "deities.viewPhoto": "ఫోటో చూడండి",
   "deities.welcomeNote": "స్వాగత సందేశం"
 }
