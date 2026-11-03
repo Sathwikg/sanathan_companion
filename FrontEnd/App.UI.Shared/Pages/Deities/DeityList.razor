@@ -71,27 +71,24 @@ else if (_view == "grid")
     <div class="sc-cardgrid">
         @foreach (var d in Paged)
         {
-            <div class="sc-tile @(d.IsActive ? "" : "is-inactive")">
+            <div class="sc-tile sc-deity-tile @(d.IsActive ? "" : "is-inactive")">
                 <div class="sc-tile-top">
-                    <div class="sc-avatar">
-                        @* IsActive as well as HasImage: the image endpoint serves published rows only, so a
-                           deactivated deity has to fall through to the placeholder. *@
+                    @* The photo is the card's face: large, and a tap opens it full size (OpenPhoto
+                       fetches the stored image, so that works for an unpublished deity too). The
+                       card's own <img> needs IsActive as well as HasImage: the image endpoint serves
+                       published rows only, so a deactivated deity shows the placeholder here. *@
+                    <button type="button" class="sc-avatar sc-avatar-md sc-avatar-btn" disabled="@(!d.HasImage)"
+                            title="@(d.HasImage ? Loc["deities.viewPhoto", "View Photo"] : null)" @onclick="() => OpenPhoto(d)">
                         @if (d.HasImage && d.IsActive) { <img src="@ImgSrc(d)" alt="@d.Name" /> } else { <span>🛕</span> }
-                    </div>
+                    </button>
                     <span class="sc-badge @(d.IsActive ? "on" : "off")">@(d.IsActive ? Loc["common.active", "Active"] : Loc["common.inactive", "Inactive"])</span>
                 </div>
                 <h3 class="sc-tile-title">@d.Name <span class="sc-typechip @(d.DeityType == "Goddess" ? "goddess" : "god")">@d.DeityType</span></h3>
                 <p class="sc-tile-desc">@(string.IsNullOrWhiteSpace(d.Description) ? Loc["common.noDescription", "No description"] : d.Description)</p>
-                @if (d.Regions.Count > 0)
-                {
-                    <div class="sc-chiprow">@foreach (var r in d.Regions) { <span class="sc-minichip">@r</span> }</div>
-                }
-                @if (d.Days.Count > 0)
-                {
-                    @* Shortened with CSS, not by slicing: dn[..3] cuts UTF-16 units and would split
-                       a Telugu/Tamil grapheme once day names are translated. *@
-                    <div class="sc-chiprow">@foreach (var dn in d.Days) { <span class="sc-minichip day sc-daychip" title="@dn">@dn</span> }</div>
-                }
+                <ChipRow Items="d.Regions" Max="3" AllCount="_options.Regions.Count" AllLabel="@Loc["deities.allRegions", "All Regions"]" />
+                @* Shortened with CSS, not by slicing: dn[..3] cuts UTF-16 units and would split
+                   a Telugu/Tamil grapheme once day names are translated. *@
+                <ChipRow Items="d.Days" Max="7" ChipClass="day sc-daychip" />
                 <div class="sc-tile-foot">
                     <button class="sc-chip @(d.IsActive ? "chip-warn" : "chip-ok")" @onclick="() => ConfirmToggle(d)">@(d.IsActive ? Loc["common.deactivate", "Deactivate"] : Loc["common.activate", "Activate"])</button>
                     <button class="sc-btn-ghost sc-btn-sm" @onclick="() => View(d)">@Loc["common.view", "View"]</button>
@@ -120,8 +117,8 @@ else
                         </td>
                         <td><strong>@d.Name</strong></td>
                         <td><span class="sc-typechip @(d.DeityType == "Goddess" ? "goddess" : "god")">@d.DeityType</span></td>
-                        <td class="sc-muted">@string.Join(", ", d.Regions)</td>
-                        <td class="sc-muted">@string.Join(", ", d.Days)</td>
+                        <td><ChipRow Items="d.Regions" Max="3" AllCount="_options.Regions.Count" AllLabel="@Loc["deities.allRegions", "All Regions"]" /></td>
+                        <td><ChipRow Items="d.Days" Max="3" ChipClass="day sc-daychip" /></td>
                         <td>
                             <label class="sc-switch">
                                 <input type="checkbox" checked="@d.IsActive" @onclick="() => ConfirmToggle(d)" @onclick:preventDefault />
@@ -141,6 +138,9 @@ else
     <Pager Page="_page" PageCount="PageCount" TotalCount="_filtered.Count" PageSize="PageSize" OnGoTo="GoTo" />
 }
 
+<ImagePreview Visible="_photoOpen" Src="@_photoSrc" Caption="@_photoName"
+              LoadingText="@Loc["deities.loadingPhoto", "Loading photo…"]" OnClose="ClosePhoto" />
+
 @code {
     private string _view = "grid";
     private List<DeityModel> _all = new();
@@ -159,6 +159,43 @@ else
     private string ImgSrc(DeityModel d) => Media.Absolute(ApiRoutes.Media.DeityImage(d.Id));
 
     private void View(DeityModel d) => Nav.NavigateTo($"deities/{d.Id}");
+
+    // The full-size photo preview. The list carries no image bytes, so the stored picture is
+    // fetched when asked for: the single-deity GET returns it as a data URI whether or not the
+    // deity is published, which the public image URL would refuse.
+    private bool _photoOpen;
+    private string? _photoSrc;
+    private string? _photoName;
+
+    private async Task OpenPhoto(DeityModel d)
+    {
+        if (!d.HasImage) return;
+        _photoOpen = true;
+        _photoSrc = null;
+        _photoName = d.Name;
+        try
+        {
+            var detail = await Api.GetDeityAsync(d.Id);
+            if (!_photoOpen || _photoName != d.Name) return;   // closed, or another card opened meanwhile
+            _photoSrc = detail?.ImageDataUrl;
+            if (_photoSrc is null)
+            {
+                _photoOpen = false;
+                Toast.Error(Loc["deities.noPhoto", "No photo uploaded"]);
+            }
+        }
+        catch (Exception ex)
+        {
+            _photoOpen = false;
+            Toast.Error(Loc.ErrorText(ex));
+        }
+    }
+
+    private void ClosePhoto()
+    {
+        _photoOpen = false;
+        _photoSrc = null;
+    }
     private void Edit(DeityModel d) => Nav.NavigateTo($"deities/{d.Id}/edit");
 
     protected override async Task OnInitializedAsync()

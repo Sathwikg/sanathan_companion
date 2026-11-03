@@ -18,6 +18,7 @@
   "deities.imageProcessFailed": "ಚಿತ್ರವನ್ನು ಸಂಸ್ಕರಿಸಲು ಸಾಧ್ಯವಾಗಲಿಲ್ಲ.",
   "deities.loadingList": "ದೇವತೆಗಳನ್ನು ಲೋಡ್ ಮಾಡಲಾಗುತ್ತಿದೆ…",
   "deities.loadingOne": "ದೇವತೆಯನ್ನು ಲೋಡ್ ಮಾಡಲಾಗುತ್ತಿದೆ…",
+  "deities.loadingPhoto": "ಫೋಟೋ ಲೋಡ್ ಆಗುತ್ತಿದೆ…",
   "deities.noPhoto": "ಯಾವುದೇ ಫೋಟೋ ಅಪ್‌ಲೋಡ್ ಮಾಡಿಲ್ಲ",
   "deities.noneMatchFilters": "ಆಯ್ಕೆ ಮಾಡಿದ ಶೋಧಕಗಳಿಗೆ ಯಾವುದೇ ದೇವತೆಗಳು ಹೊಂದಿಕೆಯಾಗುತ್ತಿಲ್ಲ.",
   "deities.notFound": "ದೇವತೆ ಕಂಡುಬಂದಿಲ್ಲ",
@@ -28,5 +29,6 @@
   "deities.sub": "ದೇವರುಗಳು ಮತ್ತು ದೇವಿಯರ ಮಾಸ್ಟರ್",
   "deities.title": "ದೇವತೆಗಳು",
   "deities.viewDeity": "ದೇವತೆಯನ್ನು ವೀಕ್ಷಿಸಿ",
+  "deities.viewPhoto": "ಫೋಟೋ ವೀಕ್ಷಿಸಿ",
   "deities.welcomeNote": "ಸ್ವಾಗತ ಸಂದೇಶ"
 }

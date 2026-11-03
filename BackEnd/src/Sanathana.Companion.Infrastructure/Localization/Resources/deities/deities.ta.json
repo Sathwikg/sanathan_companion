@@ -18,6 +18,7 @@
   "deities.imageProcessFailed": "படத்தைச் செயலாக்க முடியவில்லை.",
   "deities.loadingList": "தெய்வங்களை ஏற்றுகிறது…",
   "deities.loadingOne": "தெய்வம் ஏற்றப்படுகிறது…",
+  "deities.loadingPhoto": "புகைப்படம் ஏற்றப்படுகிறது…",
   "deities.noPhoto": "புகைப்படம் பதிவேற்றப்படவில்லை",
   "deities.noneMatchFilters": "தேர்ந்தெடுத்த வடிகட்டிகளுக்குப் பொருந்தும் தெய்வங்கள் எதுவும் இல்லை.",
   "deities.notFound": "தெய்வம் கிடைக்கவில்லை",
@@ -28,5 +29,6 @@
   "deities.sub": "கடவுளர் மற்றும் தேவியர் முதன்மைத் தரவு",
   "deities.title": "தெய்வங்கள்",
   "deities.viewDeity": "தெய்வத்தைப் பார்க்க",
+  "deities.viewPhoto": "புகைப்படத்தைப் பார்க்க",
   "deities.welcomeNote": "வரவேற்புக் குறிப்பு"
 }

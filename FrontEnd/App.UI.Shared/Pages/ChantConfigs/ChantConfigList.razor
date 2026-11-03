@@ -84,10 +84,7 @@ else if (_view == "grid")
                     <p class="sc-tile-preview">@c.TextPreview</p>
                 }
 
-                @if (c.DeityNames.Count > 0)
-                {
-                    <div class="sc-chiprow">@foreach (var d in c.DeityNames) { <span class="sc-minichip">@d</span> }</div>
-                }
+                <ChipRow Items="c.DeityNames" Max="4" />
 
                 <div class="sc-tile-meta">
                     @if (c.FromTime is not null || c.ToTime is not null)
@@ -153,7 +150,7 @@ else
                             }
                             else
                             {
-                                <div class="sc-chiprow">@foreach (var d in c.DeityNames) { <span class="sc-minichip">@d</span> }</div>
+                                <ChipRow Items="c.DeityNames" Max="3" />
                             }
                         </td>
                         <td>

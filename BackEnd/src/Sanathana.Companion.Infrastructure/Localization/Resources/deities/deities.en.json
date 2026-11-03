@@ -18,6 +18,7 @@
   "deities.imageProcessFailed": "Could not process image.",
   "deities.loadingList": "Loading deities…",
   "deities.loadingOne": "Loading deity…",
+  "deities.loadingPhoto": "Loading photo…",
   "deities.noPhoto": "No photo uploaded",
   "deities.noneMatchFilters": "No deities match the selected filters.",
   "deities.notFound": "Deity Not Found",
@@ -28,5 +29,6 @@
   "deities.sub": "Gods & Goddesses master",
   "deities.title": "Deities",
   "deities.viewDeity": "View Deity",
+  "deities.viewPhoto": "View Photo",
   "deities.welcomeNote": "Welcome Note"
 }
