@@ -114,6 +114,11 @@ public sealed class ObjectGraphTranslator
         {
             // 3. Phrase substitution, for values that embed terms among times and numbers.
             result = _snapshot.MatcherFor(p.Attr.Category).Translate(value);
+
+            // 3b. Word order. Swapping "upto" for "వరకు" leaves the English order, which reads
+            // backwards in every language the app ships; the postposition belongs after the time.
+            if (PanchangamPhrasing.AppliesTo(p.Attr.Category))
+                result = PanchangamPhrasing.Postpose(result, _snapshot);
         }
         else
         {
