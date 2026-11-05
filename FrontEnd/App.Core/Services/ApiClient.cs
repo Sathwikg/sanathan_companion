@@ -427,6 +427,34 @@ public class ApiClient : IApiClient
             : (false, null, await ExtractErrorAsync(response));
     }
 
+    public async Task<CalendarMonth?> GetCalendarMonthAsync(int year, int month, Guid? regionId)
+        => await _http.GetFromJsonAsync<CalendarMonth>(ApiRoutes.Calendar.Month(year, month, regionId));
+
+    public async Task<List<CalendarEventModel>> GetCalendarEventsAsync(DateOnly from, DateOnly to)
+        => await _http.GetFromJsonAsync<List<CalendarEventModel>>(ApiRoutes.Calendar.EventsBetween(from, to)) ?? new();
+
+    public async Task<(bool Success, CalendarEventModel? Event, string Error)> CreateCalendarEventAsync(SaveCalendarEventRequest request)
+    {
+        var response = await _http.PostAsJsonAsync(ApiRoutes.Calendar.Events, request);
+        return response.IsSuccessStatusCode
+            ? (true, await response.Content.ReadFromJsonAsync<CalendarEventModel>(), string.Empty)
+            : (false, null, await ExtractErrorAsync(response));
+    }
+
+    public async Task<(bool Success, CalendarEventModel? Event, string Error)> UpdateCalendarEventAsync(Guid id, SaveCalendarEventRequest request)
+    {
+        var response = await _http.PutAsJsonAsync(ApiRoutes.Calendar.Event(id), request);
+        return response.IsSuccessStatusCode
+            ? (true, await response.Content.ReadFromJsonAsync<CalendarEventModel>(), string.Empty)
+            : (false, null, await ExtractErrorAsync(response));
+    }
+
+    public async Task<(bool Success, string Error)> DeleteCalendarEventAsync(Guid id)
+    {
+        var response = await _http.DeleteAsync(ApiRoutes.Calendar.Event(id));
+        return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
+    }
+
     public async Task<PanchangamOptions> GetPanchangamOptionsAsync()
         => await _http.GetFromJsonAsync<PanchangamOptions>(ApiRoutes.Panchangam.Options) ?? new();
 

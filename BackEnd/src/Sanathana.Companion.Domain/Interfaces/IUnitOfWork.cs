@@ -19,6 +19,7 @@ public interface IUnitOfWork
     IChantConfigRepository ChantConfigs { get; }
     ILanguageRepository Languages { get; }
     IPanchangamRepository Panchangams { get; }
+    ICalendarEventRepository CalendarEvents { get; }
     ISadhanaRepository Sadhana { get; }
     IModuleRoleMappingRepository ModuleRoleMappings { get; }
     ILocalizationRepository Localization { get; }

@@ -166,6 +166,16 @@ public static class ApiRoutes
         public const string Compute = "panchangam/compute";
     }
 
+    public static class Calendar
+    {
+        public static string Month(int year, int month, Guid? regionId)
+            => Query("calendar/month", ("year", year), ("month", month), ("regionId", regionId));
+
+        public const string Events = "calendar/events";
+        public static string EventsBetween(DateOnly from, DateOnly to) => Query("calendar/events", ("from", from), ("to", to));
+        public static string Event(Guid id) => $"calendar/events/{id}";
+    }
+
     public static class Languages
     {
         public const string Root = "languages";

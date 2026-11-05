@@ -45,6 +45,7 @@ public static class SeedConstants
     public static readonly Guid AdConfigMenuId = new("90909090-9090-9090-9090-909090909090");
     public static readonly Guid AuditConfigMenuId = new("91919191-9191-9191-9191-919191919191");
     public static readonly Guid MobileDashboardMenuId = new("a1a1a1a1-a1a1-a1a1-a1a1-a1a1a1a1a1a1");
+    public static readonly Guid CalendarMenuId = new("ca1e0da8-0000-0000-0000-000000000001");
 
     // The six ad formats the Google Mobile Ads SDK serves. Fixed ids so the placement rows that
     // reference them survive a reseed.
@@ -78,6 +79,7 @@ public static class SeedConstants
     public static readonly Guid SanathanWallpapersAccessId = new("a0000000-0000-0000-0000-000000000007");
     public static readonly Guid SanathanPujaProcessAccessId = new("a0000000-0000-0000-0000-000000000008");
     public static readonly Guid SanathanMobileDashboardAccessId = new("a0000000-0000-0000-0000-000000000009");
+    public static readonly Guid SanathanCalendarAccessId = new("a0000000-0000-0000-0000-000000000010");
 
     /// <summary>
     /// The seeded administrator's password hash: a well-formed BCrypt hash of a random value that

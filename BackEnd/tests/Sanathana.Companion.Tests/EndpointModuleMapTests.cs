@@ -130,6 +130,7 @@ public class EndpointModuleMapTests
 
         Assert.Equal(new[]
         {
+            "CalendarController.GetMonth",
             "DashboardController.Prayers",
             "DashboardController.TodayBhakti",
             "MediaController.GetTicket",

@@ -44,6 +44,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<TranslationTermText> TranslationTermTexts => Set<TranslationTermText>();
     public DbSet<TranslationSource> TranslationSources => Set<TranslationSource>();
     public DbSet<Panchangam> Panchangams => Set<Panchangam>();
+    public DbSet<CalendarEvent> CalendarEvents => Set<CalendarEvent>();
     public DbSet<SadhanaLog> SadhanaLogs => Set<SadhanaLog>();
     public DbSet<SadhanaStreak> SadhanaStreaks => Set<SadhanaStreak>();
     public DbSet<UserChantSetting> UserChantSettings => Set<UserChantSetting>();

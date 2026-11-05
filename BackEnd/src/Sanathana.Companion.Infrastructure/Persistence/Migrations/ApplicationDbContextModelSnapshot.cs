@@ -548,6 +548,59 @@ namespace Sanathana.Companion.Infrastructure.Persistence.Migrations
                     b.ToTable("AuditUserSessions", (string)null);
                 });
 
+            modelBuilder.Entity("Sanathana.Companion.Domain.Entities.CalendarEvent", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<string>("ModifiedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime?>("ModifiedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<bool>("RepeatYearly")
+                        .HasColumnType("boolean");
+
+                    b.Property<TimeOnly?>("Time")
+                        .HasColumnType("time without time zone");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "Date")
+                        .HasDatabaseName("IX_CalendarEvents_User_Date");
+
+                    b.ToTable("CalendarEvents", (string)null);
+                });
+
             modelBuilder.Entity("Sanathana.Companion.Domain.Entities.Chant", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1934,6 +1987,22 @@ namespace Sanathana.Companion.Infrastructure.Persistence.Migrations
                         },
                         new
                         {
+                            Id = new Guid("ca1e0da8-0000-0000-0000-000000000001"),
+                            Code = "calendar",
+                            CreatedBy = "system",
+                            CreatedDate = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Month calendar: tithis, moon, festivals and deities by region, with your own marks",
+                            DisplayOrder = 2,
+                            Icon = "📅",
+                            IsActive = true,
+                            IsVisibleInMenu = true,
+                            Name = "Calendar",
+                            ParentId = new Guid("dddddddd-dddd-dddd-dddd-dddddddddddd"),
+                            RoutePath = "/calendar",
+                            ShowInMobile = true
+                        },
+                        new
+                        {
                             Id = new Guid("dddddddd-dddd-dddd-dddd-dddddddddddd"),
                             CreatedBy = "system",
                             CreatedDate = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
@@ -2349,6 +2418,16 @@ namespace Sanathana.Companion.Infrastructure.Persistence.Migrations
                             MobileEnabled = true,
                             RoleId = 2,
                             WebEnabled = false
+                        },
+                        new
+                        {
+                            Id = new Guid("a0000000-0000-0000-0000-000000000010"),
+                            CreatedBy = "system",
+                            CreatedDate = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            MenuModuleId = new Guid("ca1e0da8-0000-0000-0000-000000000001"),
+                            MobileEnabled = true,
+                            RoleId = 2,
+                            WebEnabled = true
                         },
                         new
                         {
