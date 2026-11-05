@@ -92,6 +92,20 @@ public class AccountDataReader : IAccountDataReader
                 VibrationEnabled = s.VibrationEnabled
             }).ToListAsync(cancellationToken);
 
+        export.CalendarMarks = await _context.CalendarEvents.AsNoTracking()
+            .Where(e => e.UserId == userId)
+            .OrderBy(e => e.Date).ThenBy(e => e.Time)
+            .Select(e => new MyDataExportDto.CalendarMarkExport
+            {
+                Date = e.Date,
+                Time = e.Time,
+                Title = e.Title,
+                Notes = e.Notes,
+                Kind = e.Kind,
+                RepeatYearly = e.RepeatYearly
+            })
+            .ToListAsync(cancellationToken);
+
         export.Feedback = await (
             from fb in _context.Feedbacks.AsNoTracking().Where(f => f.UserId == userId)
             join type in _context.IssueTypes.AsNoTracking() on fb.IssueTypeId equals type.Id into t

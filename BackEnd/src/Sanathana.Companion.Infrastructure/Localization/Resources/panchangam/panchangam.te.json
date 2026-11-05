@@ -19,6 +19,7 @@
   "panchangam.loading": "పంచాంగం లోడ్ అవుతోంది…",
   "panchangam.masam": "మాసం",
   "panchangam.missingCoords": "ఈ ప్రాంతానికి అక్షాంశ రేఖాంశాలు అమర్చలేదు — దీని పంచాంగం రూపొందించడానికి ప్రాంత మాస్టర్‌లో వాటిని జోడించండి.",
+  "panchangam.monthView": "నెల వీక్షణ",
   "panchangam.myCurrentLocation": "నా ప్రస్తుత స్థానం",
   "panchangam.myLocation": "నా స్థానం",
   "panchangam.nakshatram": "నక్షత్రం",

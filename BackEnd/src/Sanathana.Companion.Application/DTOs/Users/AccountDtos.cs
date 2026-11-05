@@ -18,6 +18,7 @@ public class MyDataExportDto
     public List<SadhanaEntryExport> Sadhana { get; set; } = new();
     public List<FavoriteExport> Favorites { get; set; } = new();
     public List<ChantSettingExport> ChantSettings { get; set; } = new();
+    public List<CalendarMarkExport> CalendarMarks { get; set; } = new();
     public List<FeedbackExport> Feedback { get; set; } = new();
     public NotificationExport Notifications { get; set; } = new();
 
@@ -52,6 +53,16 @@ public class MyDataExportDto
         public string Chant { get; set; } = string.Empty;
         public int? MalaSize { get; set; }
         public bool VibrationEnabled { get; set; }
+    }
+
+    public class CalendarMarkExport
+    {
+        public DateOnly Date { get; set; }
+        public TimeOnly? Time { get; set; }
+        public string Title { get; set; } = string.Empty;
+        public string? Notes { get; set; }
+        public string Kind { get; set; } = string.Empty;
+        public bool RepeatYearly { get; set; }
     }
 
     public class FeedbackExport

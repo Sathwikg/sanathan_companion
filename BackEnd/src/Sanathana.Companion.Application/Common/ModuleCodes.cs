@@ -38,6 +38,9 @@ public static class ModuleCodes
     public const string Roles = "roles";
     public const string ChantsConfig = "chantsConfig";
     public const string Panchangam = "panchangam";
+
+    /// <summary>The month calendar: tithis, moons, festivals and deities by region, plus a seeker's own marks.</summary>
+    public const string Calendar = "calendar";
     public const string PujaProcessConfig = "pujaProcessConfig";
     public const string PujaProcess = "pujaProcess";
     public const string Pujas = "pujas";

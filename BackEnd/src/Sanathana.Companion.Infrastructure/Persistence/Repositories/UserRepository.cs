@@ -86,6 +86,9 @@ public class UserRepository : BaseRepository<User>, IUserRepository
         Context.UserChantSettings.RemoveRange(
             await Context.UserChantSettings.Where(x => x.UserId == userId).ToListAsync(cancellationToken));
 
+        Context.CalendarEvents.RemoveRange(
+            await Context.CalendarEvents.Where(x => x.UserId == userId).ToListAsync(cancellationToken));
+
         Context.UserNotificationPreferences.RemoveRange(
             await Context.UserNotificationPreferences.Where(x => x.UserId == userId).ToListAsync(cancellationToken));
 

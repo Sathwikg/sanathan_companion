@@ -20,6 +20,13 @@ public sealed class HangfireOptions
     public string? StorageConnectionString { get; set; }
 
     /// <summary>
+    /// The storage connection string in force: the override when one is set, else the application's
+    /// own DefaultConnection. Blank and null both mean "none set"; the shipped appsettings.json uses "".
+    /// </summary>
+    public static string? ResolveConnectionString(HangfireOptions options, string? defaultConnection)
+        => string.IsNullOrWhiteSpace(options.StorageConnectionString) ? defaultConnection : options.StorageConnectionString;
+
+    /// <summary>
     /// Schema name for Hangfire tables. Default: "hangfire".
     /// </summary>
     public string SchemaName { get; set; } = "hangfire";

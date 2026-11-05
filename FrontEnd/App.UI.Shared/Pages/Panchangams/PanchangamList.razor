@@ -8,6 +8,7 @@
 @inject IJSRuntime JS
 @inject IGeolocationProvider Geo
 @inject RegionState Region
+@inject MenuState Menus
 
 <div class="sc-page-head">
     <div class="sc-page-title">
@@ -18,6 +19,10 @@
         </div>
     </div>
     <div class="sc-page-actions">
+        @if (Menus.CanOpen("calendar"))
+        {
+            <a class="sc-btn-ghost sc-btn-sm" href="calendar">📅 @Loc["panchangam.monthView", "Month View"]</a>
+        }
         <button class="sc-btn-ghost sc-btn-sm sc-locbtn" @onclick="UseMyLocation" disabled="@_locating">
             @if (_locating) { <OmLoader Inline="true" Size="16" Message='@Loc["common.locating", "Locating…"]' /> } else { <span>📍 @Loc["panchangam.myLocation", "My Location"]</span> }
         </button>
@@ -188,6 +193,9 @@ else
 </ScModal>
 
 @code {
+    /// <summary>A date to open on, yyyy-MM-dd, as the calendar links here. Absent means today.</summary>
+    [SupplyParameterFromQuery(Name = "date")] public string? DateParam { get; set; }
+
     private DateOnly _date = DateOnly.FromDateTime(DateTime.Now);
     private string _regionId = string.Empty;
     private PanchangamModel? _current;
@@ -215,6 +223,9 @@ else
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
+
+        if (DateOnly.TryParseExact(DateParam, "yyyy-MM-dd", out var asked)) _date = asked;
+        _ = Menus.EnsureLoadedAsync();
 
         Region.OnChanged += OnGlobalRegionChanged;
         await Region.EnsureLoadedAsync();

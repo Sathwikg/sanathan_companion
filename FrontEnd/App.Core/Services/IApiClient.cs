@@ -130,6 +130,13 @@ public interface IApiClient
     Task<PanchangamModel?> ComputePanchangamAsync(double lat, double lon, DateOnly? date = null, string? place = null);
     Task<(bool Success, GenerateResult? Result, string Error)> GeneratePanchangamAsync(GeneratePanchangamRequest request);
 
+    // Calendar
+    Task<CalendarMonth?> GetCalendarMonthAsync(int year, int month, Guid? regionId);
+    Task<List<CalendarEventModel>> GetCalendarEventsAsync(DateOnly from, DateOnly to);
+    Task<(bool Success, CalendarEventModel? Event, string Error)> CreateCalendarEventAsync(SaveCalendarEventRequest request);
+    Task<(bool Success, CalendarEventModel? Event, string Error)> UpdateCalendarEventAsync(Guid id, SaveCalendarEventRequest request);
+    Task<(bool Success, string Error)> DeleteCalendarEventAsync(Guid id);
+
     // Ads
     /// <summary>Admin: the whole ad configuration screen in one call.</summary>
     Task<AdConfigModel?> GetAdConfigAsync();

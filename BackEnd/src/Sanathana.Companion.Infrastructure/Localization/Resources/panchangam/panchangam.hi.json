@@ -19,6 +19,7 @@
   "panchangam.loading": "पंचांग लोड हो रहा है…",
   "panchangam.masam": "मास",
   "panchangam.missingCoords": "इस क्षेत्र के निर्देशांक तय नहीं हैं — इसका पंचांग तैयार करने के लिए उन्हें क्षेत्र मास्टर में जोड़ें।",
+  "panchangam.monthView": "मासिक दृश्य",
   "panchangam.myCurrentLocation": "मेरा वर्तमान स्थान",
   "panchangam.myLocation": "मेरा स्थान",
   "panchangam.nakshatram": "नक्षत्र",

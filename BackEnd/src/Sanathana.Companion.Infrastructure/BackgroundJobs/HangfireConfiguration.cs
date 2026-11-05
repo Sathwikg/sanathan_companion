@@ -28,9 +28,10 @@ public static class HangfireConfiguration
             return services;
         }
 
-        // Get connection string for Hangfire storage
-        var connectionString = options.StorageConnectionString 
-            ?? configuration.GetConnectionString("DefaultConnection");
+        // Get connection string for Hangfire storage. appsettings.json ships the override as "",
+        // which is not null: with ?? the empty string won and Hangfire was silently never configured
+        // in any environment, so no recurring job ever ran. Blank means "use the app's database".
+        var connectionString = HangfireOptions.ResolveConnectionString(options, configuration.GetConnectionString("DefaultConnection"));
 
         if (string.IsNullOrWhiteSpace(connectionString))
         {
@@ -75,6 +76,7 @@ public static class HangfireConfiguration
         services.AddScoped<ReminderSyncJob>();
         services.AddScoped<CleanupJob>();
         services.AddScoped<DataSyncJob>();
+        services.AddScoped<PanchangamCoverageJob>();
 
         return services;
     }
@@ -101,6 +103,19 @@ public static class HangfireConfiguration
             job => job.SyncAllUserRemindersAsync(default),
             "*/30 * * * *", // Every 30 minutes
             new RecurringJobOptions { TimeZone = TimeZoneInfo.FindSystemTimeZoneById("India Standard Time") });
+
+        // Panchangam coverage: this year and next for every region with coordinates, daily at 3:00 AM
+        // IST. Days already stored are skipped, so the steady-state run is a few queries and no astronomy.
+        recurringJobManager.AddOrUpdate<PanchangamCoverageJob>(
+            "panchangam-coverage",
+            job => job.EnsureCoverageAsync(default),
+            "0 3 * * *",
+            new RecurringJobOptions { TimeZone = TimeZoneInfo.FindSystemTimeZoneById("India Standard Time") });
+
+        // And once shortly after start-up, so a fresh or rebuilt database is covered without waiting
+        // for 3 AM or for an administrator to press Generate. Delayed past the start-up migrations.
+        serviceProvider.GetRequiredService<IBackgroundJobClient>()
+            .Schedule<PanchangamCoverageJob>(job => job.EnsureCoverageAsync(default), TimeSpan.FromSeconds(45));
 
         // Data sync - runs every 6 hours
         recurringJobManager.AddOrUpdate<DataSyncJob>(

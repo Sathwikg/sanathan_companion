@@ -320,8 +320,8 @@ try
 
     // Configure Hangfire Dashboard (only if Hangfire was actually configured with a connection string)
     var hangfireOptions = builder.Configuration.GetSection(HangfireOptions.SectionName).Get<HangfireOptions>();
-    var hangfireEnabled = hangfireOptions != null && hangfireOptions.Enabled && 
-        !string.IsNullOrWhiteSpace(hangfireOptions.StorageConnectionString ?? builder.Configuration.GetConnectionString("DefaultConnection"));
+    var hangfireEnabled = hangfireOptions != null && hangfireOptions.Enabled &&
+        !string.IsNullOrWhiteSpace(HangfireOptions.ResolveConnectionString(hangfireOptions, builder.Configuration.GetConnectionString("DefaultConnection")));
     
     if (hangfireEnabled && hangfireOptions != null)
     {
