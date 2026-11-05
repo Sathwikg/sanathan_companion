@@ -76,12 +76,14 @@ else if (_data is not null)
 {
     <div class="sc-cal-layout @(_refreshing ? "is-refreshing" : null)">
         <div class="sc-cal-main">
-            @* The lunar months the civil month touches, and the year's name: the line a printed
-               calendar prints under its heading. *@
+            @* The lunar months the civil month touches, with the days each one covers, and the
+               year's name: the line a printed calendar prints under its heading. A lunar month runs
+               from the day after Amavasya to the next Amavasya, so nearly every civil month spans
+               two of them; the day ranges say where the boundary falls. *@
             <div class="sc-cal-summary">
-                @if (_data.Masams.Count > 0)
+                @if (MasamRanges.Count > 0)
                 {
-                    <span class="sc-cal-masam">🌙 @string.Join(" · ", _data.Masams)</span>
+                    <span class="sc-cal-masam" title="@Loc["calendar.masamHint", "The lunar months this month spans, with the days each covers"]">🌙 @string.Join(" · ", MasamRanges)</span>
                 }
                 @if (!string.IsNullOrWhiteSpace(_data.Samvatsaram))
                 {
@@ -410,6 +412,30 @@ else if (_data is not null)
 
     private List<CalendarEventModel> EventsOn(DateOnly date)
         => _eventsByDay.TryGetValue(date, out var list) ? list : new List<CalendarEventModel>();
+
+    /// <summary>"Asvayujam 1–9 · Kartikam 10–30": each lunar month with the civil days it covers.</summary>
+    private List<string> MasamRanges
+    {
+        get
+        {
+            var ranges = new List<string>();
+            if (_data is null) return ranges;
+            string? current = null; int first = 0, last = 0;
+            foreach (var d in _data.Days.Where(x => !string.IsNullOrWhiteSpace(x.Masam)))
+            {
+                if (d.Masam != current)
+                {
+                    if (current is not null) ranges.Add(Range(current, first, last));
+                    current = d.Masam; first = d.Date.Day;
+                }
+                last = d.Date.Day;
+            }
+            if (current is not null) ranges.Add(Range(current, first, last));
+            return ranges;
+
+            static string Range(string masam, int from, int to) => from == to ? $"{masam} {from}" : $"{masam} {from}–{to}";
+        }
+    }
 
     private bool HasSomething(CalendarDay d)
         => d.Festivals.Count > 0 || d.Markers.Count > 0 || EventsOn(d.Date).Count > 0;
