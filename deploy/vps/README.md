@@ -1,16 +1,21 @@
 # Deploying to the VPS
 
 `deploy.ps1` (repository root) builds the app on your Windows PC, copies it to the VPS and
-starts it there with Docker Compose. The app then runs at **http://187.127.169.147:8081**.
+starts it there with Docker Compose. The app then runs at **https://enityasannidhi.com** (and,
+for a direct check that bypasses Caddy, at http://187.127.169.147:8081).
 
 ```
-browser ──► VPS :8081 ──► web (nginx) ──┬─ /      static Blazor WebAssembly
-                                        └─ /api/  ──► api (.NET 10) ──► PostgreSQL on the VPS :5433
+browser ──► https://enityasannidhi.com ──► caddy ──► web (nginx) ──┬─ /      static Blazor WebAssembly
+                                             │                     └─ /api/  ──► api (.NET 10) ──► PostgreSQL on the VPS :5433
+        ──► https://gippslandfresh.au  ──────┘──► grocery-frontend / grocery-backend (the grocery stack)
 ```
 
-It shares the VPS with the grocery app, which owns ports 80, 443 and 5000. This stack uses only
-**8081**, lives in its own folder (`~/sanathana_deploy`) and its own Compose project, so deploying
-one never touches the other.
+The VPS also runs the grocery app (Gippsland Fresh) as a separate Compose project. Since
+2026-11-06 **this stack's Caddy is the only one on the host**: it owns ports 80 and 443, gets the
+certificates for both domains and routes the grocery domain to that stack's containers over their
+Docker network. The grocery deploy must therefore no longer start a Caddy of its own (see
+[The grocery stack](#the-grocery-stack)). Everything else stays separate: own folder
+(`~/sanathana_deploy`), own Compose project, own images.
 
 | File | What it is | In git? |
 |---|---|---|
@@ -18,6 +23,7 @@ one never touches the other.
 | `docker-compose.remote.yml` | The stack that runs on the VPS. No secrets in it. | Yes |
 | `.env.vps.example` | Template for your settings. | Yes |
 | `.env.vps` | Your settings: database password, JWT secret, admin password. | **No** (git-ignored, never commit it) |
+| `deploy/vps/Caddyfile` | Routes both domains. Uploaded and reloaded on every deploy. | Yes |
 
 ## What you need on your PC
 
@@ -49,7 +55,7 @@ Fill in the following values and save:
 | `CONNECTION_STRING` | Replace `YOUR-PASSWORD` with the Postgres password. The port (5433) and host are already set. `sanathan` is the database name; it already exists and holds the app's data, and the API applies any new migrations to it at startup. |
 | `JWT_SECRET` | The string generated above. **Keep it the same on every deploy**: changing it signs every user out. |
 | `ADMIN_INITIAL_PASSWORD` | At least 10 characters. The seeded `admin` account is locked on a new database until this is set. |
-| `GOOGLE_CLIENT_ID` | Leave empty. Google sign-in needs HTTPS. |
+| `GOOGLE_CLIENT_ID` | Optional. Leave empty to hide the Google button; see [Afterwards](#afterwards) to enable it. |
 
 If a value contains a `$`, write it as `$$`.
 
@@ -86,10 +92,11 @@ reports each step:
 3. Builds the web image
 4. Saves both images to one file
 5. Creates `~/sanathana_deploy` on the VPS
-6. Uploads the images, the compose file and your settings (the longest step)
-7. Loads the images, starts the stack and waits until the API answers a database query
+6. Uploads the images, the compose file, the Caddyfile and your settings (the longest step)
+7. Validates the Caddyfile, loads the images, starts the stack, waits until the API answers a
+   database query, reloads Caddy and checks both domains answer over https
 
-It ends with `Open http://187.127.169.147:8081`. The first deploy takes longer, because the API
+It ends with `Open https://enityasannidhi.com`. The first deploy takes longer, because the API
 creates the database and loads the seed data before it reports healthy.
 
 If step 7 fails, the script prints the last 80 lines of the API's log. The
@@ -163,25 +170,57 @@ images.
 | API log: `JwtSettings:Secret` error | The secret is too short or a placeholder. | Generate a new one (step 1). |
 | `port is already allocated` / `address already in use` | Something else holds 8081. | Free it, or deploy with `-WebPort <other port>` (and open that port in the firewall). |
 | Containers healthy, but the page will not load in the browser | The firewall blocks 8081. | `ufw allow 8081/tcp`, and the provider's panel firewall. |
-| Google sign-in or the browser's location prompt does not work | The site is served over plain HTTP. | Expected until HTTPS is added (below). |
+| Google sign-in or the browser's location prompt does not work | The site was opened over plain http://IP:8081. | Use https://enityasannidhi.com; set `GOOGLE_CLIENT_ID` (see [Afterwards](#afterwards)). |
 
-## Adding HTTPS later
+## The domains
 
-Plain `http://IP:8081` is fine for testing, but browsers only allow Google sign-in, location access
-and some other features on HTTPS. To add it:
+Both domains point at the VPS (A records for `@` and `www` of each, at the registrar) and the
+Caddyfile in `deploy/vps/Caddyfile` says where each one goes:
 
-1. Point a domain (for example `app.example.com`) at 187.127.169.147.
-2. The grocery stack's Caddy already owns ports 80 and 443. Give its `caddy` service
-   `extra_hosts: ["host.docker.internal:host-gateway"]` in the grocery compose file, and add a site
-   block to the grocery `Caddyfile`:
+```
+enityasannidhi.com      -> web:80          (this stack's nginx, then /api -> api)
+www.enityasannidhi.com  -> 301 to enityasannidhi.com
+gippslandfresh.au, www  -> /api* -> grocery-backend:5000, everything else -> grocery-frontend:80
+```
 
-   ```
-   app.example.com {
-       reverse_proxy host.docker.internal:8081
-   }
-   ```
+Edit that file to add or change a site and run `deploy.ps1`: it validates the file before anything
+is touched, uploads it and reloads Caddy in place. Let's Encrypt issues a new certificate within a
+minute of the first deploy of a domain; the certificates live in the `caddy_data` volume and
+survive deploys.
 
-3. Redeploy the grocery stack so Caddy picks it up. Caddy fetches the certificate automatically.
-4. Optionally close 8081 in the firewall so the app is only reachable through the domain.
-5. Set `GOOGLE_CLIENT_ID` in `.env.vps`, register the `https://` origin in Google Cloud Console,
-   and run `deploy.ps1` again.
+### The grocery stack
+
+Caddy reaches `grocery-frontend` and `grocery-backend` by joining the grocery project's network
+(`grocery_deploy_default`), which Compose treats as external: the grocery stack must be running
+when this one deploys. On the first deploy after the switch, `deploy_step.sh` removes the grocery
+stack's old `caddy` container (only one carrying the grocery compose project label) so the ports
+are free.
+
+Two consequences for the **grocery repository**, whose `deploy.ps1` generates the compose file and
+uploads a Caddyfile:
+
+- Remove the `caddy` service (and the `caddy_data` / `caddy_config` volumes) from the compose text
+  it generates, and stop uploading its Caddyfile. Until that is done, the next grocery deploy
+  tries to start a second Caddy, fails on ports 80/443 being in use, and the grocery deploy
+  reports a failure - its frontend and backend containers still update, and this stack's Caddy
+  keeps serving the site.
+- `docker compose down` on the grocery side cannot remove its network while Caddy is attached. Use
+  `up -d` to update it, as its deploy script already does.
+
+### Afterwards
+
+- Google sign-in now works: set `GOOGLE_CLIENT_ID` in `.env.vps`, register
+  `https://enityasannidhi.com` as an authorised JavaScript origin in Google Cloud Console, and run
+  `deploy.ps1` again.
+- Port 8081 can stay open (plain http, bypassing Caddy) or be closed in the hosting provider's
+  firewall. The web image's nginx trusts `X-Forwarded-For` / `X-Forwarded-Proto` only from
+  Docker-network addresses (that is, from Caddy), so the API sees each seeker's own address for
+  rate limiting and the audit log, and knows the request came in over HTTPS; a request straight to
+  :8081 cannot impersonate Caddy.
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| Deploy stops at `Validating the Caddyfile` | Syntax error in `deploy/vps/Caddyfile`. | Fix it; nothing on the server changed. |
+| `grocery_deploy_default does not exist` | The grocery stack is not running. | Start it (`cd ~/grocery_deploy && docker compose -f docker-compose.remote.yml up -d`), deploy again. |
+| `WARNING: https://... answers '000'` and the Caddy log shows ACME errors | Let's Encrypt could not validate the domain - DNS pointing elsewhere or port 80 blocked. | Check the A records and the provider firewall; Caddy keeps retrying on its own. |
+| `port is already allocated` for 80 or 443 | Another Caddy (the grocery one) is running. | `docker rm -f caddy`, deploy again, and fix the grocery deploy script as above. |
