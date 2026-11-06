@@ -195,7 +195,9 @@ rm -f $Payload
     [System.IO.File]::WriteAllText((Join-Path $Stage ".env"), (($envLines -join "`n") + "`n"), $utf8NoBom)
 
     Copy-Item (Join-Path $PSScriptRoot "docker-compose.remote.yml") $Stage
-    Copy-Item (Join-Path $PSScriptRoot "deploy/vps/Caddyfile") $Stage
+    # Caddy reads the file as-is, so make sure a Windows checkout has not given it CRLF endings.
+    $caddyfile = [System.IO.File]::ReadAllText((Join-Path $PSScriptRoot "deploy/vps/Caddyfile")).Replace("`r", "")
+    [System.IO.File]::WriteAllText((Join-Path $Stage "Caddyfile"), $caddyfile, $utf8NoBom)
 
     # Run on the host by name rather than piped to `ssh bash -s`: PowerShell prefixes a piped
     # stream with a UTF-8 BOM, which bash reads as a command on line 1. A file also stays on
