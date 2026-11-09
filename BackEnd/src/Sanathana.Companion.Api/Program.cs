@@ -69,7 +69,7 @@ try
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen(options =>
     {
-        options.SwaggerDoc("v1", new OpenApiInfo { Title = "Sanathana Companion API", Version = "v1" });
+        options.SwaggerDoc("v1", new OpenApiInfo { Title = "Nitya Sannidhi API", Version = "v1" });
 
         var jwtScheme = new OpenApiSecurityScheme
         {
@@ -329,7 +329,7 @@ try
         var dashboardOptions = new DashboardOptions
         {
             Authorization = new[] { new HangfireDashboardAuthorizationFilter(hangfireOptions.DashboardRequireAdmin) },
-            DashboardTitle = "Sanathana Companion - Background Jobs",
+            DashboardTitle = "Nitya Sannidhi - Background Jobs",
             StatsPollingInterval = 30000
         };
         app.UseHangfireDashboard(dashboardPath, dashboardOptions);
@@ -453,7 +453,7 @@ try
 }
 catch (Exception ex)
 {
-    Log.Fatal(ex, "Sanathana Companion API terminated unexpectedly");
+    Log.Fatal(ex, "Nitya Sannidhi API terminated unexpectedly");
     throw;
 }
 finally

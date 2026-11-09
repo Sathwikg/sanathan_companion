@@ -1,4 +1,4 @@
-# Sanathana Companion — app stack on one host, database hosted on Supabase.
+# Nitya Sannidhi — app stack on one host, database hosted on Supabase.
 #
 #   browser ──► web (nginx) :${WEB_PORT:-8080} ─┬─ /      static Blazor WebAssembly
 #                                               └─ /api/  ──► api (.NET 10) ──► Supabase

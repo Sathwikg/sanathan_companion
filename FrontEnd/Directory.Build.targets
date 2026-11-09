@@ -11,7 +11,8 @@
     still gets the name and logo from the one place.
 
     Tokens: {{Brand:AppName}}, {{Brand:LogoGlyph}}, {{Brand:LogoMark}} (the glyph, or an <img>
-    of the logo image when one is configured).
+    of the logo image when one is configured). Publisher details: {{Brand:CompanyName}},
+    {{Brand:CompanyUrl}}, {{Brand:SupportEmail}}, {{Brand:AppUrl}}, {{Brand:PrivacyUrl}}.
   -->
   <PropertyGroup>
     <_BrandLogoMarkHtml Condition="'$(BrandLogoImage)' == ''">$(BrandLogoGlyph)</_BrandLogoMarkHtml>
@@ -37,6 +38,11 @@
       <_BrandedHtmlText>$(_BrandedHtmlText.Replace('{{Brand:AppName}}', $(BrandAppName)))</_BrandedHtmlText>
       <_BrandedHtmlText>$(_BrandedHtmlText.Replace('{{Brand:LogoGlyph}}', $(BrandLogoGlyph)))</_BrandedHtmlText>
       <_BrandedHtmlText>$(_BrandedHtmlText.Replace('{{Brand:LogoMark}}', $(_BrandLogoMarkHtml)))</_BrandedHtmlText>
+      <_BrandedHtmlText>$(_BrandedHtmlText.Replace('{{Brand:CompanyName}}', $(BrandCompanyName)))</_BrandedHtmlText>
+      <_BrandedHtmlText>$(_BrandedHtmlText.Replace('{{Brand:CompanyUrl}}', $(BrandCompanyUrl)))</_BrandedHtmlText>
+      <_BrandedHtmlText>$(_BrandedHtmlText.Replace('{{Brand:SupportEmail}}', $(BrandSupportEmail)))</_BrandedHtmlText>
+      <_BrandedHtmlText>$(_BrandedHtmlText.Replace('{{Brand:AppUrl}}', $(BrandAppUrl)))</_BrandedHtmlText>
+      <_BrandedHtmlText>$(_BrandedHtmlText.Replace('{{Brand:PrivacyUrl}}', $(BrandPrivacyUrl)))</_BrandedHtmlText>
     </PropertyGroup>
 
     <MakeDir Directories="$([System.IO.Path]::GetDirectoryName('$(_BrandedHtmlOut)'))" />

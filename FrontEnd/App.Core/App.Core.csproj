@@ -6,12 +6,17 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
-  <!-- The app's name and logo from FrontEnd/Branding/Branding.props, baked into this assembly so
+  <!-- The app's name, logo and publisher details from FrontEnd/Branding/Branding.props, baked into this assembly so
        Config/Brand.cs can hand them to every host and screen. -->
   <ItemGroup>
     <AssemblyMetadata Include="Brand.AppName" Value="$(BrandAppName)" />
     <AssemblyMetadata Include="Brand.LogoGlyph" Value="$(BrandLogoGlyph)" />
     <AssemblyMetadata Include="Brand.LogoImageUrl" Value="$(BrandLogoImageUrl)" />
+    <AssemblyMetadata Include="Brand.CompanyName" Value="$(BrandCompanyName)" />
+    <AssemblyMetadata Include="Brand.CompanyUrl" Value="$(BrandCompanyUrl)" />
+    <AssemblyMetadata Include="Brand.SupportEmail" Value="$(BrandSupportEmail)" />
+    <AssemblyMetadata Include="Brand.AppUrl" Value="$(BrandAppUrl)" />
+    <AssemblyMetadata Include="Brand.PrivacyUrl" Value="$(BrandPrivacyUrl)" />
   </ItemGroup>
 
   <!-- Without Branding.props the app would build nameless, and the web host without an index.html.

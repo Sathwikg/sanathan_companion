@@ -5,7 +5,7 @@
 # bind-mounts it into the sanathana-caddy container, and every deploy reloads Caddy so an edit
 # here is live after the next deploy.
 
-# ---- Sanathana Companion -------------------------------------------------------------------
+# ---- Nitya Sannidhi -------------------------------------------------------------------
 # `web` is this stack's nginx container: it serves the Blazor app and proxies /api to the API.
 enityasannidhi.com {
 	reverse_proxy web:80

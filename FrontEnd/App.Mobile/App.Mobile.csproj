@@ -42,6 +42,17 @@
         <ApplicationDisplayVersion>1.2.0</ApplicationDisplayVersion>
         <ApplicationVersion>3</ApplicationVersion>
 
+        <!-- Release signing for Google Play. The upload keystore lives OUTSIDE the repo, in the
+             developer's profile, with its password in the .keystore.pass and .keystore.keypass files beside
+             it (the file: prefix makes the Android build read the password from a file, so nothing
+             secret is ever on a command line or in git; two files because apksigner reads a second
+             line from a shared file while jarsigner reads the whole file). All are git-ignored. When the
+             keystore is absent, Release builds fall back to the debug certificate as before, which
+             installs on a device but Google Play refuses. Override NsUploadKeystore / the
+             AndroidSigning* properties with -p: on a CI machine. Google Sign-In needs the SHA-1 of
+             every signing certificate registered as an Android OAuth client: debug, this upload
+             key, and the Play App Signing key from Play Console (Setup -> App signing). -->
+        <NsUploadKeystore Condition="'$(NsUploadKeystore)' == ''">$(USERPROFILE)\.android\nityasannidhi-upload.keystore</NsUploadKeystore>
         <!-- To develop, package, and publish an app to the Microsoft Store, see: https://aka.ms/MauiTemplateUnpackaged -->
         <WindowsPackageType>None</WindowsPackageType>
 
@@ -53,6 +64,16 @@
         <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
         <TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
     </PropertyGroup>
+
+    <!-- Google Play upload signing; see the NsUploadKeystore note above. -->
+    <PropertyGroup Condition="'$(Configuration)' == 'Release' and $([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android' and Exists('$(NsUploadKeystore)')">
+        <AndroidKeyStore>true</AndroidKeyStore>
+        <AndroidSigningKeyStore>$(NsUploadKeystore)</AndroidSigningKeyStore>
+        <AndroidSigningKeyAlias>upload</AndroidSigningKeyAlias>
+        <AndroidSigningStorePass>file:$(NsUploadKeystore).pass</AndroidSigningStorePass>
+        <AndroidSigningKeyPass>file:$(NsUploadKeystore).keypass</AndroidSigningKeyPass>
+    </PropertyGroup>
+
 
     <ItemGroup>
         <!-- App icon and splash screen, artwork and colours both from FrontEnd/Branding. The icon's

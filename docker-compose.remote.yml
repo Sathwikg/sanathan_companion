@@ -1,4 +1,4 @@
-# Sanathana Companion - the stack deploy.ps1 runs on the VPS.
+# Nitya Sannidhi - the stack deploy.ps1 runs on the VPS.
 #
 #   browser --> https://enityasannidhi.com --> caddy --> web (nginx) -+- /      static Blazor WebAssembly
 #                                                                     +- /api/  --> api (.NET 10) --> Postgres on the VPS

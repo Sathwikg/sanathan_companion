@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-# Sanathana Companion web host: Blazor WebAssembly published to static files and
+# Nitya Sannidhi web host: Blazor WebAssembly published to static files and
 # served by nginx, which also reverse-proxies /api to the API container.
 # Build context is the FrontEnd/ folder.
 

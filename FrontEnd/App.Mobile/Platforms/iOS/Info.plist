@@ -37,7 +37,7 @@
     <!-- Debug builds call http://localhost:7050/api, which App Transport Security blocks by
          default. NSAllowsLocalNetworking exempts localhost, *.local and link-local addresses
          only — unlike NSAllowsArbitraryLoads it needs no App Review justification, and the
-         Release target (https://…onrender.com) does not rely on it. -->
+         Release target (https://enityasannidhi.com) does not rely on it. -->
     <key>NSAppTransportSecurity</key>
     <dict>
         <key>NSAllowsLocalNetworking</key>

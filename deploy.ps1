@@ -1,5 +1,5 @@
 <#
-Deploys Sanathana Companion to the VPS (Windows PowerShell).
+Deploys Nitya Sannidhi to the VPS (Windows PowerShell).
 
 What it does:
 - Builds the API and web images locally (BackEnd/Dockerfile, FrontEnd/Dockerfile)

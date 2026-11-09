@@ -1,5 +1,5 @@
 #!/bin/bash
-# Sanathana Companion — container init for Render.
+# Nitya Sannidhi — container init for Render.
 #
 # Compose supervises two containers; here one container supervises two
 # processes. This script does what compose did for us: render the nginx config,

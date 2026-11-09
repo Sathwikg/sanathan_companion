@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-# Sanathana Companion API (.NET 10). Build context is the BackEnd/ folder.
+# Nitya Sannidhi API (.NET 10). Build context is the BackEnd/ folder.
 
 # ---- build -----------------------------------------------------------------
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build

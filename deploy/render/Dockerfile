@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-# Sanathana Companion — single-image build for Render.
+# Nitya Sannidhi — single-image build for Render.
 #
 # Render has no docker-compose support: one service is one image. This file
 # folds the two compose services into one container while keeping the same

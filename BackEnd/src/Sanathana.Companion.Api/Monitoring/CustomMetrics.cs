@@ -3,7 +3,7 @@ using System.Diagnostics.Metrics;
 namespace Sanathana.Companion.Api.Monitoring;
 
 /// <summary>
-/// Custom metrics for Sanathana Companion application.
+/// Custom metrics for Nitya Sannidhi application.
 /// These metrics are exposed via Prometheus for alerting.
 /// </summary>
 public static class CustomMetrics

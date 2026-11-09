@@ -1,4 +1,4 @@
-# Sanathana Companion — the single public entry point on Render.
+# Nitya Sannidhi — the single public entry point on Render.
 #
 #   /      -> the Blazor WebAssembly app (static files baked into this image)
 #   /api/  -> reverse-proxied to Kestrel on loopback, inside this container

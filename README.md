@@ -1,4 +1,4 @@
-# Sanathana Companion
+# Nitya Sannidhi
 
 A Hindu Dharma "spiritual companion" app. Two **standalone** applications that talk only over a REST API:
 
@@ -331,14 +331,14 @@ also offer an equivalent login that collects only name and email and lets the us
 address, and our registration asks for a mobile number, so it does not qualify. Adding Sign in with
 Apple lifts that restriction and is the natural next step.
 
-**Setting it up** (Google Cloud Console, all free):
+**Setting it up** (Google Cloud Console, all free; the project lives in the company Google account, sbstechnolabs@gmail.com, not a personal one):
 
 1. *APIs & Services → OAuth consent screen*: External, app name, support and developer emails,
    scopes `openid email profile`, then **Publish to production** (otherwise it is capped at 100
    test users). Brand verification is optional and only affects whether your logo shows.
 2. *Credentials → Create OAuth client ID → Web application*: authorised JavaScript origins
    `http://localhost:7001`, `http://localhost:7002` and your deployed origin (for example
-   `https://sanathan-companion.onrender.com`). No redirect URIs are needed. **Its client id is the
+   `https://enityasannidhi.com`). No redirect URIs are needed. **Its client id is the
    one value used everywhere.**
 3. *Create OAuth client ID → Android*: package name `com.sanathana.companion` and the SHA-1 of the
    signing certificate: the debug keystore now
@@ -447,11 +447,15 @@ That produces a signed `.apk` and a Play Store `.aab` under
 `artifacts/` is gitignored, because a 36 MB binary per rebuild would outweigh the whole source tree
 in history.
 
-> **That APK is signed with the Android debug certificate** (`CN=Android Debug`), which MSBuild
-> generates automatically. It installs and runs on a device, and it is fine for testing — but Google
-> Play will refuse it. Publishing needs an upload key you own, referenced through
-> `AndroidSigningKeyStore` / `AndroidSigningKeyAlias` and their passwords supplied out of band, the
-> same way `JwtSettings__Secret` is.
+> **Release signing.** When `%USERPROFILE%\.android\nityasannidhi-upload.keystore` exists (alias
+> `upload`, password in the `.keystore.pass` and `.keystore.keypass` files beside it, all git-ignored), a Release Android build
+> is signed with that Play upload key automatically; see `NsUploadKeystore` in `App.Mobile.csproj`.
+> Without it MSBuild falls back to the Android debug certificate (`CN=Android Debug`), which installs
+> and runs on a device but Google Play refuses. The keystore and its password live only in the
+> developer's profile and the company password manager, never in the repo. Google Play re-signs the
+> store build with its own App Signing key; its SHA-1 (Play Console → Setup → App signing) and the
+> upload key's SHA-1 both need an Android OAuth client in the Google Cloud project, or Sign in with
+> Google fails on those builds with developer error 10.
 
 On Linux CI the framework has to be selected with `-p:TargetFrameworks=net10.0-android` rather than
 `-f`: workload resolution reads the whole `TargetFrameworks` list during evaluation, so `-f` alone
