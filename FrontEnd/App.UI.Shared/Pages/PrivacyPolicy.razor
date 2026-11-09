@@ -24,7 +24,7 @@
         <div class="sc-privacy-meta-box">
             <div class="sc-meta-item">
                 <span class="sc-meta-label">Governing Organization:</span>
-                <span class="sc-placeholder-tag">[SBS Labs / Your Company Legal Name]</span>
+                <span>@Brand.CompanyName</span>
             </div>
             <div class="sc-meta-item">
                 <span class="sc-meta-label">Application:</span>
@@ -36,7 +36,7 @@
             </div>
             <div class="sc-meta-item">
                 <span class="sc-meta-label">Last Updated:</span>
-                <span>October 5, 2026</span>
+                <span>November 9, 2026</span>
             </div>
         </div>
 
@@ -242,15 +242,15 @@
             <div class="sc-contact-box">
                 <div class="sc-contact-row">
                     <strong>Entity Name:</strong>
-                    <span class="sc-placeholder-tag">[SBS Labs / Your Company Legal Name]</span>
+                    <span>@Brand.CompanyName</span>
                 </div>
                 <div class="sc-contact-row">
                     <strong>Support & Privacy Email:</strong>
-                    <span class="sc-placeholder-tag">[privacy@sanathancompanion.org / your-company-email@domain.com]</span>
+                    <a href="mailto:@Brand.SupportEmail">@Brand.SupportEmail</a>
                 </div>
                 <div class="sc-contact-row">
                     <strong>Grievance Officer:</strong>
-                    <span class="sc-placeholder-tag">[Grievance Officer Name / SBS Labs Legal Cell]</span>
+                    <span>Privacy Desk, @Brand.CompanyName (reach it at the email above)</span>
                 </div>
                 <div class="sc-contact-row">
                     <strong>Mailing Address:</strong>
@@ -258,13 +258,21 @@
                 </div>
                 <div class="sc-contact-row">
                     <strong>Website:</strong>
-                    <span class="sc-placeholder-tag">[https://your-domain.com]</span>
+                    <a href="@Brand.CompanyUrl" target="_blank" rel="noopener">@Brand.CompanyUrl</a>
+                </div>
+                <div class="sc-contact-row">
+                    <strong>Application:</strong>
+                    <a href="@Brand.AppUrl" target="_blank" rel="noopener">@Brand.AppUrl</a>
+                </div>
+                <div class="sc-contact-row">
+                    <strong>This Policy:</strong>
+                    <a href="@Brand.PrivacyUrl" target="_blank" rel="noopener">@Brand.PrivacyUrl</a>
                 </div>
             </div>
         </section>
 
         <footer class="sc-privacy-card-footer">
-            <p>© 2026 @Brand.AppName. Dedicated to the eternal dharma and seeker privacy.</p>
+            <p>© 2026 @Brand.CompanyName · @Brand.AppName. Dedicated to the eternal dharma and seeker privacy.</p>
             <div style="margin-top: 0.75rem;">
                 <AuthorizeView>
                     <Authorized>

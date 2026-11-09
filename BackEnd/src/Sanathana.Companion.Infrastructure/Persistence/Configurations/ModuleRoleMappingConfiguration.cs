@@ -119,6 +119,16 @@ public class ModuleRoleMappingConfiguration : IEntityTypeConfiguration<ModuleRol
             },
             new ModuleRoleMapping
             {
+                Id = SeedConstants.SanathanCalendarAccessId,
+                RoleId = SeedConstants.SanathanRoleId,
+                MenuModuleId = SeedConstants.CalendarMenuId,
+                WebEnabled = true,
+                MobileEnabled = true,
+                CreatedBy = "system",
+                CreatedDate = SeedConstants.SeedTimestamp
+            },
+            new ModuleRoleMapping
+            {
                 Id = SeedConstants.SanathanNotificationsAccessId,
                 RoleId = SeedConstants.SanathanRoleId,
                 MenuModuleId = SeedConstants.MyNotificationsMenuId,

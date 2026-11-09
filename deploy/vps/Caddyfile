@@ -1,0 +1,30 @@
+# The one Caddy on the VPS. It owns ports 80 and 443 and terminates TLS for every site on the
+# host; certificates come from Let's Encrypt automatically.
+#
+# deploy.ps1 uploads this file to ~/sanathana_deploy/Caddyfile, docker-compose.remote.yml
+# bind-mounts it into the sanathana-caddy container, and every deploy reloads Caddy so an edit
+# here is live after the next deploy.
+
+# ---- Nitya Sannidhi -------------------------------------------------------------------
+# `web` is this stack's nginx container: it serves the Blazor app and proxies /api to the API.
+enityasannidhi.com {
+	reverse_proxy web:80
+}
+
+www.enityasannidhi.com {
+	redir https://enityasannidhi.com{uri} permanent
+}
+
+# ---- Gippsland Fresh (the grocery stack, a separate compose project) -----------------------
+# Its containers are reached over that project's own network, grocery_deploy_default, which
+# this Caddy joins. The grocery stack's own Caddy was retired on 2026-11-06 - the grocery
+# deploy must not start one again, or the two would fight over ports 80 and 443.
+gippslandfresh.au, www.gippslandfresh.au {
+	handle /api* {
+		reverse_proxy grocery-backend:5000
+	}
+
+	handle {
+		reverse_proxy grocery-frontend:80
+	}
+}

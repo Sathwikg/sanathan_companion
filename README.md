@@ -1,4 +1,4 @@
-# Sanathana Companion
+# Nitya Sannidhi
 
 A Hindu Dharma "spiritual companion" app. Two **standalone** applications that talk only over a REST API:
 
@@ -100,6 +100,41 @@ because changing it after a release orphans installed copies, and the .NET names
 
 Set `"Platform": "Mobile"` in the *web* `appsettings.json` to render the phone shell in a desktop
 browser's device emulation — the quickest way to review mobile UI without a device.
+
+## The calendar
+
+`/calendar` (module code `calendar`, under **Sadhana**, published to mobile) draws one month of the
+Hindu calendar for the region in the top bar. It is the first screen that joins four masters:
+
+| Master | What the month takes from it |
+|---|---|
+| `Panchangams` | The tithi and nakshatra at sunrise, sunrise/sunset and the kalams. Stored rows first; any missing day is computed on the fly from the region's coordinates through the same `PanchangamComputeCache` the compute endpoint uses, so the two never disagree. |
+| `Festivals` | The festivals dated in the month whose `Regions` CSV names the region (empty = everywhere). |
+| `Deities` | Which deity a festival honours (`Deity.Festivals`, matched by name) and which deities a weekday belongs to (`Deity.Days`), filtered by `Deity.Regions`. |
+| `CalendarEvents` | The signed-in seeker's own marks — a vratam, a puja, a birthday, a shraddha — one-off or repeating yearly by date. Removed with the account; included in the data export. |
+
+Everything derived from the Panchangam text lives in `Application/HinduCalendar/CalendarRules.cs`, a
+pure, tested module: the moon phase and lit fraction from the tithi index, the monthly observances a
+tithi carries (Purnima, Amavasya, Ekadashi, Pradosham, Vinayaka/Sankashti Chaturthi, Masa Shivaratri,
+Skanda Shashti, Durga Ashtami) and the **day reading**. The reading is good / neutral / caution from
+a small score: the tithi class (rikta tithis Chaviti, Navami and Chaturdasi are avoided for beginnings;
+Pournami is most favoured; Amavasya is for ancestors), the nakshatra's traditional gentleness or
+harshness, the weekday (Tuesday and Saturday down, Thursday and Friday up) and whether a festival falls
+that day. It is explained in words when a day is opened and the legend says plainly that it is not a
+muhurtha. The server sends reason *codes*; the client puts them into the seeker's language.
+
+Desktop shows the opened day in a side panel; a phone (and the MAUI shell always) opens the same
+fragment as a bottom sheet — `viewport.js` answers the CSS breakpoint so the Razor side knows which
+one is on screen. A guest browses everything shared; only the marks ask them to sign in.
+
+### The Panchangam heals itself
+
+`Panchangams` is derived data, never master data: every row is recomputable from a date and a region's
+coordinates. `PanchangamCoverageJob` (Hangfire, `panchangam-coverage`) generates every missing day of
+the current IST year and the next for every active region with coordinates — 45 seconds after start-up
+and daily at 03:00 IST. Days already stored are skipped, so a steady-state run is a few queries; a
+rebuilt database pays for the astronomy once (about 26k days for 36 regions and two years). The
+administrator's **Generate** button on the Panchangam page still works for other years.
 
 ## Run with Docker (single server, API under `/api`)
 
@@ -296,14 +331,14 @@ also offer an equivalent login that collects only name and email and lets the us
 address, and our registration asks for a mobile number, so it does not qualify. Adding Sign in with
 Apple lifts that restriction and is the natural next step.
 
-**Setting it up** (Google Cloud Console, all free):
+**Setting it up** (Google Cloud Console, all free; the project lives in the company Google account, sbstechnolabs@gmail.com, not a personal one):
 
 1. *APIs & Services → OAuth consent screen*: External, app name, support and developer emails,
    scopes `openid email profile`, then **Publish to production** (otherwise it is capped at 100
    test users). Brand verification is optional and only affects whether your logo shows.
 2. *Credentials → Create OAuth client ID → Web application*: authorised JavaScript origins
    `http://localhost:7001`, `http://localhost:7002` and your deployed origin (for example
-   `https://sanathan-companion.onrender.com`). No redirect URIs are needed. **Its client id is the
+   `https://enityasannidhi.com`). No redirect URIs are needed. **Its client id is the
    one value used everywhere.**
 3. *Create OAuth client ID → Android*: package name `com.sanathana.companion` and the SHA-1 of the
    signing certificate: the debug keystore now
@@ -348,6 +383,9 @@ original casing or punctuation.
 | POST | `/api/auth/logout` | anon | Revoke the refresh-token family (always 204) |
 | PUT  | `/api/users/{id}/status` | Admin | Open or close an account |
 | GET  | `/api/dashboard` | Bearer | Protected placeholder dashboard |
+| GET  | `/api/calendar/month?year&month&regionId` | Bearer or guest | One month: tithi, moon, observances, festivals (with their deities), weekday deities, day reading, and the caller's marks |
+| GET  | `/api/calendar/events?from&to` | Bearer | The seeker's marks in a range, yearly repeats expanded |
+| POST / PUT / DELETE | `/api/calendar/events[/{id}]` | Bearer | Add, change or remove one of the seeker's own marks |
 
 ## Ads
 
@@ -409,11 +447,15 @@ That produces a signed `.apk` and a Play Store `.aab` under
 `artifacts/` is gitignored, because a 36 MB binary per rebuild would outweigh the whole source tree
 in history.
 
-> **That APK is signed with the Android debug certificate** (`CN=Android Debug`), which MSBuild
-> generates automatically. It installs and runs on a device, and it is fine for testing — but Google
-> Play will refuse it. Publishing needs an upload key you own, referenced through
-> `AndroidSigningKeyStore` / `AndroidSigningKeyAlias` and their passwords supplied out of band, the
-> same way `JwtSettings__Secret` is.
+> **Release signing.** When `%USERPROFILE%\.android\nityasannidhi-upload.keystore` exists (alias
+> `upload`, password in the `.keystore.pass` and `.keystore.keypass` files beside it, all git-ignored), a Release Android build
+> is signed with that Play upload key automatically; see `NsUploadKeystore` in `App.Mobile.csproj`.
+> Without it MSBuild falls back to the Android debug certificate (`CN=Android Debug`), which installs
+> and runs on a device but Google Play refuses. The keystore and its password live only in the
+> developer's profile and the company password manager, never in the repo. Google Play re-signs the
+> store build with its own App Signing key; its SHA-1 (Play Console → Setup → App signing) and the
+> upload key's SHA-1 both need an Android OAuth client in the Google Cloud project, or Sign in with
+> Google fails on those builds with developer error 10.
 
 On Linux CI the framework has to be selected with `-p:TargetFrameworks=net10.0-android` rather than
 `-f`: workload resolution reads the whole `TargetFrameworks` list during evaluation, so `-f` alone

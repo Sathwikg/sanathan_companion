@@ -72,6 +72,17 @@ secrets.json
 .env.*
 !.env.example
 !.env.vps.example
+# Android signing: the Play upload keystore and its password file live in %USERPROFILE%\.android,
+# never here (see NsUploadKeystore in FrontEnd/App.Mobile/App.Mobile.csproj).
+*.keystore
+*.jks
+*.keystore.pass
+*.keystore.keypass
+# SSH key pairs for the VPS belong in ~/.ssh, not the repo root.
+sathwik
+sathwik.pub
+id_*
+
 
 # ---- Logs & runtime ----
 *.log

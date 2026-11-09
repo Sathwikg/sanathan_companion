@@ -1,0 +1,842 @@
+@* The Hindu calendar, one month at a time, for the region in the top bar.
+
+   Every cell is a day: its number, the moon as it stands that morning, the tithi, the festivals
+   observed in the region, the monthly observances the tithi carries (Purnima, Ekadashi, Pradosham …)
+   and the seeker's own marks. The cell is tinted by a plain reading of the day — good, neutral or
+   caution — derived on the server from the tithi, the nakshatra, the weekday and the festivals, and
+   explained in words when the day is opened. It is a general reading, never a muhurtha, and the
+   legend says so.
+
+   Desktop: the month on the left and the opened day in a panel on the right. Phone: the panel is
+   hidden by CSS and the same detail opens as a bottom sheet (ScModal becomes one under 560px, and
+   the MAUI shell always). The choice is made per tap with a matchMedia call, because the Razor side
+   cannot otherwise know which of the two the CSS is showing.
+
+   A guest sees everything shared; only the marks ask them to sign in. *@
+@page "/calendar"
+@attribute [Authorize(Policy = GuestSession.BrowsePolicy)]
+@inherits LocalizedComponentBase
+@implements IDisposable
+@inject IApiClient Api
+@inject RegionState Region
+@inject MenuState Menus
+@inject ToastService Toast
+@inject ConfirmService Confirm
+@inject LoginGate Gate
+@inject MediaUrlBuilder Media
+@inject AppConfig Config
+@inject IJSRuntime JS
+
+<div class="sc-page-head">
+    <div class="sc-page-title">
+        <span class="sc-page-emoji">📅</span>
+        <div>
+            <h1>@Loc["calendar.title", "Calendar"]</h1>
+            <p class="sc-page-sub">@Loc["calendar.sub", "Festivals, tithis and the moon for your region, with your own marks"]</p>
+        </div>
+    </div>
+    <div class="sc-page-actions">
+        <div class="sc-viewtoggle">
+            <button type="button" class="@(_view == "grid" ? "active" : "")" @onclick='() => _view = "grid"'>▦ @Loc["calendar.monthView", "Month"]</button>
+            <button type="button" class="@(_view == "list" ? "active" : "")" @onclick='() => _view = "list"'>☰ @Loc["calendar.listView", "List"]</button>
+        </div>
+    </div>
+</div>
+
+<div class="sc-card sc-filtercard sc-cal-toolbar">
+    <div class="sc-cal-monthnav" role="group" aria-label="@Loc["calendar.month", "Month"]">
+        <button type="button" title="@Loc["calendar.previousMonth", "Previous Month"]" @onclick="() => Shift(-1)">‹</button>
+        <button type="button" class="sc-cal-monthlabel" @onclick="GoToday" title="@Loc["calendar.today", "Today"]">
+            <strong>@MonthName(_month)</strong> <span>@_year</span>
+        </button>
+        <button type="button" title="@Loc["calendar.nextMonth", "Next Month"]" @onclick="() => Shift(1)">›</button>
+    </div>
+    <div class="sc-cal-toolbar-right">
+        @if (!IsCurrentMonth)
+        {
+            <button type="button" class="sc-btn-ghost sc-btn-sm" @onclick="GoToday">@Loc["calendar.today", "Today"]</button>
+        }
+        @if (_data?.RegionName is { } rn)
+        {
+            <span class="sc-cal-region" title="@Loc["calendar.regionHint", "Change the region in the top bar"]">🗺️ @rn</span>
+        }
+    </div>
+</div>
+
+@if (_error is not null)
+{
+    <div class="sc-alert sc-alert-error">@_error</div>
+}
+
+@if (_loading)
+{
+    <OmLoader FullPage="true" Message='@Loc["calendar.loading", "Reading the month…"]' />
+}
+else if (_data is not null)
+{
+    <div class="sc-cal-layout @(_refreshing ? "is-refreshing" : null)">
+        <div class="sc-cal-main">
+            @* The lunar months the civil month touches, with the days each one covers, and the
+               year's name: the line a printed calendar prints under its heading. A lunar month runs
+               from the day after Amavasya to the next Amavasya, so nearly every civil month spans
+               two of them; the day ranges say where the boundary falls. *@
+            <div class="sc-cal-summary">
+                @if (MasamRanges.Count > 0)
+                {
+                    <span class="sc-cal-masam" title="@Loc["calendar.masamHint", "The lunar months this month spans, with the days each covers"]">🌙 @string.Join(" · ", MasamRanges)</span>
+                }
+                @if (!string.IsNullOrWhiteSpace(_data.Samvatsaram))
+                {
+                    <span class="sc-cal-samvat">@_data.Samvatsaram @Loc["calendar.samvatsaramSuffix", "Samvatsaram"]</span>
+                }
+                @if (_data.MissingPanchangam)
+                {
+                    <span class="sc-hint sc-hint-error">@Loc["calendar.noPanchangam", "No Panchangam for this region yet — the region has no coordinates."]</span>
+                }
+            </div>
+
+            @if (_view == "grid")
+            {
+                <div class="sc-card sc-cal-card">
+                    <div class="sc-cal-grid" role="grid">
+                        @foreach (var dow in DowLabels)
+                        {
+                            <div class="sc-cal-dow" role="columnheader">@dow</div>
+                        }
+                        @foreach (var cell in Cells())
+                        {
+                            if (cell is null)
+                            {
+                                <div class="sc-cal-cell is-empty" aria-hidden="true"></div>
+                                continue;
+                            }
+                            var d = cell;
+                            var evs = EventsOn(d.Date);
+                            <button type="button" role="gridcell" class="@CellClass(d, evs.Count)" @onclick="() => OpenDay(d.Date)"
+                                    aria-label="@CellAria(d)" title="@CellTitle(d)">
+                                <span class="sc-cal-top">
+                                    <span class="sc-cal-num">@d.Date.Day</span>
+                                    @if (d.MoonPhase is not null)
+                                    {
+                                        <span class="sc-cal-moon @(d.IsPurnima || d.IsAmavasya ? "is-key" : null)" aria-hidden="true">@MoonGlyph(d.MoonPhase)</span>
+                                    }
+                                </span>
+                                @if (d.Tithi is not null)
+                                {
+                                    <span class="sc-cal-tithi">@d.Tithi</span>
+                                }
+                                <span class="sc-cal-chips">
+                                    @foreach (var f in d.Festivals.Take(2))
+                                    {
+                                        <span class="sc-cal-chip festival">@f.Name</span>
+                                    }
+                                    @if (d.Festivals.Count > 2)
+                                    {
+                                        <span class="sc-cal-chip festival more">+@(d.Festivals.Count - 2)</span>
+                                    }
+                                    @foreach (var m in d.Markers.Take(d.Festivals.Count == 0 ? 2 : 1))
+                                    {
+                                        <span class="sc-cal-chip marker">@MarkerLabel(m)</span>
+                                    }
+                                    @foreach (var e in evs.Take(2))
+                                    {
+                                        <span class="sc-cal-chip mark kind-@CalendarEventKinds.Slug(e.Kind)">@e.Title</span>
+                                    }
+                                    @if (evs.Count > 2)
+                                    {
+                                        <span class="sc-cal-chip mark more">+@(evs.Count - 2)</span>
+                                    }
+                                </span>
+                                @* The phone's cells are too narrow for words: dots say the same thing. *@
+                                <span class="sc-cal-dots" aria-hidden="true">
+                                    @if (d.Festivals.Count > 0) { <i class="festival"></i> }
+                                    @if (d.Markers.Count > 0) { <i class="marker"></i> }
+                                    @if (evs.Count > 0) { <i class="mark"></i> }
+                                </span>
+                            </button>
+                        }
+                    </div>
+                </div>
+            }
+            else
+            {
+                var rows = _data.Days.Where(HasSomething).ToList();
+                @if (rows.Count == 0)
+                {
+                    <div class="sc-card sc-empty-state">
+                        <div class="sc-empty-om">📅</div>
+                        <h3>@Loc["calendar.quietMonthTitle", "A Quiet Month"]</h3>
+                        <p>@Loc["calendar.quietMonthBody", "No festivals or observances fall in this month for the region."]</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="sc-cal-list">
+                        @foreach (var d in rows)
+                        {
+                            var evs = EventsOn(d.Date);
+                            <button type="button" class="sc-tile sc-cal-list-row rating-@d.Rating @(d.Date == Today ? "is-today" : null)" @onclick="() => OpenDay(d.Date)">
+                                <div class="sc-tile-date">
+                                    <span class="sc-tile-day">@d.Date.ToString("dd")</span>
+                                    <span class="sc-tile-mon">@DowShort(d.Date.DayOfWeek)</span>
+                                </div>
+                                <div class="sc-cal-list-body">
+                                    <div class="sc-cal-list-line">
+                                        @if (d.MoonPhase is not null) { <span aria-hidden="true">@MoonGlyph(d.MoonPhase)</span> }
+                                        @if (d.Tithi is not null) { <span>@d.Tithi</span> }
+                                        @if (d.Nakshatram is not null) { <span class="sc-muted">· @d.Nakshatram</span> }
+                                    </div>
+                                    <div class="sc-cal-chips wrap">
+                                        @foreach (var f in d.Festivals) { <span class="sc-cal-chip festival">@f.Name</span> }
+                                        @foreach (var m in d.Markers) { <span class="sc-cal-chip marker">@MarkerLabel(m)</span> }
+                                        @foreach (var e in evs) { <span class="sc-cal-chip mark kind-@CalendarEventKinds.Slug(e.Kind)">@e.Title</span> }
+                                    </div>
+                                </div>
+                                <span class="sc-cal-pill @d.Rating">@RatingLabel(d.Rating)</span>
+                            </button>
+                        }
+                    </div>
+                }
+            }
+
+            <div class="sc-cal-legend" aria-label="@Loc["calendar.legend", "Legend"]">
+                <span><i class="sc-cal-swatch good"></i>@Loc["calendar.ratingGood", "Good Day"]</span>
+                <span><i class="sc-cal-swatch caution"></i>@Loc["calendar.ratingCaution", "Caution"]</span>
+                <span><i class="sc-cal-swatch festival"></i>@Loc["calendar.legendFestival", "Festival"]</span>
+                <span><i class="sc-cal-swatch marker"></i>@Loc["calendar.legendObservance", "Observance"]</span>
+                <span><i class="sc-cal-swatch mark"></i>@Loc["calendar.legendMarks", "My Marks"]</span>
+                <span>🌕 @Loc["calendar.marker.purnima", "Purnima"]</span>
+                <span>🌑 @Loc["calendar.marker.amavasya", "Amavasya"]</span>
+            </div>
+            <p class="sc-hint sc-cal-disclaimer">@Loc["calendar.disclaimer", "The day reading is a general guide from the tithi, nakshatra and weekday; it is not a muhurtha. Consult a priest for an important undertaking."]</p>
+        </div>
+
+        @* The opened day, on a wide screen. Hidden by CSS on a narrow one, where the sheet below
+           shows the same fragment. *@
+        <aside class="sc-cal-aside">
+            @if (SelectedDay is { } sd)
+            {
+                <div class="sc-card sc-cal-aside-card">
+                    @DayDetail(sd)
+                </div>
+            }
+            else
+            {
+                <div class="sc-card sc-cal-aside-card sc-cal-aside-empty">
+                    <span aria-hidden="true">🪔</span>
+                    <p>@Loc["calendar.pickADay", "Pick a day to see its festivals, Panchangam and your marks."]</p>
+                </div>
+            }
+        </aside>
+    </div>
+}
+
+<ScModal Visible="_sheetOpen && SelectedDay is not null" Title="@(SelectedDay is { } t ? ClockText.ShortDate(t.Date) : string.Empty)" OnClose="() => _sheetOpen = false">
+    @if (SelectedDay is { } sd)
+    {
+        @DayDetail(sd)
+    }
+</ScModal>
+
+<ScModal Visible="_formOpen" Title='@(_editingId is null ? Loc["calendar.addMark", "Add a Mark"] : Loc["calendar.editMark", "Edit Mark"])' OnClose="CloseForm">
+    <div class="sc-form">
+        <div class="sc-form-grid">
+            <div class="sc-field sc-span-2">
+                <label>@Loc["calendar.markTitle", "Title"]</label>
+                <input class="sc-input" maxlength="120" @bind="_form.Title" @bind:event="oninput" placeholder="@Loc["calendar.markTitleHint", "e.g. Satyanarayana Vratam"]" />
+                @if (_formError is not null)
+                {
+                    <span class="sc-hint sc-hint-error">@_formError</span>
+                }
+            </div>
+            <div class="sc-field">
+                <label>@Loc["calendar.markKind", "Kind"]</label>
+                <select class="sc-input" @bind="_form.Kind">
+                    @foreach (var k in CalendarEventKinds.All)
+                    {
+                        <option value="@k">@KindLabel(k)</option>
+                    }
+                </select>
+            </div>
+            <div class="sc-field">
+                <label>@Loc["common.date", "Date"]</label>
+                <input type="date" class="sc-input" value="@_form.Date.ToString("yyyy-MM-dd")" @onchange="OnFormDateChanged" />
+            </div>
+            <div class="sc-field">
+                <label>@Loc["common.time", "Time"] <span class="sc-muted">@Loc["common.optional", "(optional)"]</span></label>
+                <input type="time" class="sc-input" value="@(_form.Time?.ToString("HH:mm"))" @onchange="OnFormTimeChanged" />
+            </div>
+            <div class="sc-field sc-span-2">
+                <label>@Loc["calendar.markNotes", "Notes"] <span class="sc-muted">@Loc["common.optional", "(optional)"]</span></label>
+                <textarea class="sc-input sc-textarea" maxlength="1000" @bind="_form.Notes"></textarea>
+            </div>
+        </div>
+        <div class="sc-switchrow">
+            <label class="sc-switch"><input type="checkbox" @bind="_form.RepeatYearly" /><span class="sc-slider"></span></label>
+            <span>@Loc["calendar.repeatYearly", "Repeat every year on this date"]</span>
+        </div>
+        <div class="sc-modal-actions">
+            <button type="button" class="sc-btn-ghost" @onclick="CloseForm">@Loc["common.cancel", "Cancel"]</button>
+            <button type="button" class="sc-btn-primary" disabled="@_saving" @onclick="SaveMark">
+                @if (_saving) { <OmLoader Inline="true" Size="18" Message='@Loc["common.saving", "Saving…"]' /> } else { <span>@Loc["common.save", "Save"]</span> }
+            </button>
+        </div>
+    </div>
+</ScModal>
+
+@code {
+    [CascadingParameter] private Task<AuthenticationState>? AuthState { get; set; }
+
+    private int _year = AppClock.TodayIst.Year;
+    private int _month = AppClock.TodayIst.Month;
+    private string _view = "grid";
+
+    private CalendarMonth? _data;
+    private Dictionary<DateOnly, List<CalendarEventModel>> _eventsByDay = new();
+    private DateOnly? _selected;
+    private bool _sheetOpen;
+
+    private bool _loading = true;
+    private bool _refreshing;
+    private string? _error;
+    private bool _isGuest;
+    private int _generation;
+
+    private bool _formOpen;
+    private bool _saving;
+    private Guid? _editingId;
+    private string? _formError;
+    private SaveCalendarEventRequest _form = new();
+
+    private static DateOnly Today => AppClock.TodayIst;
+    private bool IsCurrentMonth => _year == Today.Year && _month == Today.Month;
+
+    private CalendarDay? SelectedDay
+        => _selected is { } s ? _data?.Days.FirstOrDefault(d => d.Date == s) : null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        _isGuest = GuestSession.IsGuest(AuthState is null ? null : (await AuthState).User);
+
+        Region.OnChanged += OnRegionChanged;
+        await Region.EnsureLoadedAsync();
+        // The menu decides whether a day may link to the full Panchangam page.
+        _ = Menus.EnsureLoadedAsync();
+        await Media.EnsureAsync();
+
+        // Today opens itself when the month is the current one, so the panel is never blank.
+        _selected = Today;
+        await LoadAsync();
+    }
+
+    private void OnRegionChanged() => _ = InvokeAsync(async () => { await LoadAsync(); StateHasChanged(); });
+
+    public override void Dispose()
+    {
+        Region.OnChanged -= OnRegionChanged;
+        base.Dispose();
+    }
+
+    private async Task LoadAsync(bool soft = false)
+    {
+        var generation = ++_generation;
+        if (soft) _refreshing = true; else _loading = true;
+        _error = null;
+        try
+        {
+            var data = await Api.GetCalendarMonthAsync(_year, _month, Region.SelectedRegionId);
+            if (generation != _generation) return;   // a newer request has taken over
+            _data = data;
+            _eventsByDay = (data?.Events ?? new())
+                .GroupBy(e => e.OccursOn)
+                .ToDictionary(g => g.Key, g => g.OrderBy(e => e.Time).ThenBy(e => e.Title).ToList());
+        }
+        catch (Exception ex)
+        {
+            if (generation != _generation) return;
+            _error = Loc.ErrorText(ex);
+            if (!soft) _data = null;
+        }
+        finally
+        {
+            if (generation == _generation) { _loading = false; _refreshing = false; }
+        }
+    }
+
+    private async Task Shift(int months)
+    {
+        var moved = new DateOnly(_year, _month, 1).AddMonths(months);
+        if (moved.Year < 1900 || moved.Year > 2100) return;
+        _year = moved.Year;
+        _month = moved.Month;
+        // Keep a selection in view: the same day of the new month when it exists.
+        _selected = _selected is { } s ? new DateOnly(_year, _month, Math.Min(s.Day, DateTime.DaysInMonth(_year, _month))) : null;
+        await LoadAsync();
+    }
+
+    private async Task GoToday()
+    {
+        var changed = !IsCurrentMonth;
+        _year = Today.Year;
+        _month = Today.Month;
+        _selected = Today;
+        if (changed) await LoadAsync();
+    }
+
+    private async Task OpenDay(DateOnly date)
+    {
+        _selected = date;
+        // The MAUI shell is always a phone; the web host asks the CSS breakpoint the panel hides at.
+        var narrow = Config.IsMobile;
+        if (!narrow)
+        {
+            try { narrow = await JS.InvokeAsync<bool>("scViewport.matches", "(max-width: 820px)"); }
+            catch { narrow = false; }
+        }
+        _sheetOpen = narrow;
+    }
+
+    // ------------------------------------------------------------------ the grid
+
+    private IEnumerable<CalendarDay?> Cells()
+    {
+        if (_data is null) yield break;
+        var lead = (int)new DateOnly(_year, _month, 1).DayOfWeek;   // Sunday first, as the Panchangam counts
+        for (var i = 0; i < lead; i++) yield return null;
+        foreach (var d in _data.Days) yield return d;
+        var total = lead + _data.Days.Count;
+        for (var i = total; i % 7 != 0; i++) yield return null;
+    }
+
+    private List<CalendarEventModel> EventsOn(DateOnly date)
+        => _eventsByDay.TryGetValue(date, out var list) ? list : new List<CalendarEventModel>();
+
+    /// <summary>"Asvayujam 1–9 · Kartikam 10–30": each lunar month with the civil days it covers.</summary>
+    private List<string> MasamRanges
+    {
+        get
+        {
+            var ranges = new List<string>();
+            if (_data is null) return ranges;
+            string? current = null; int first = 0, last = 0;
+            foreach (var d in _data.Days.Where(x => !string.IsNullOrWhiteSpace(x.Masam)))
+            {
+                if (d.Masam != current)
+                {
+                    if (current is not null) ranges.Add(Range(current, first, last));
+                    current = d.Masam; first = d.Date.Day;
+                }
+                last = d.Date.Day;
+            }
+            if (current is not null) ranges.Add(Range(current, first, last));
+            return ranges;
+
+            static string Range(string masam, int from, int to) => from == to ? $"{masam} {from}" : $"{masam} {from}–{to}";
+        }
+    }
+
+    private bool HasSomething(CalendarDay d)
+        => d.Festivals.Count > 0 || d.Markers.Count > 0 || EventsOn(d.Date).Count > 0;
+
+    private string CellClass(CalendarDay d, int marks)
+    {
+        var cls = $"sc-cal-cell rating-{d.Rating}";
+        if (d.Date == Today) cls += " is-today";
+        if (d.Date == _selected) cls += " is-selected";
+        if (d.Festivals.Count > 0) cls += " has-festival";
+        if (marks > 0) cls += " has-marks";
+        if (d.IsPurnima) cls += " is-purnima";
+        if (d.IsAmavasya) cls += " is-amavasya";
+        if (!d.HasPanchangam) cls += " no-pchg";
+        return cls;
+    }
+
+    private string CellTitle(CalendarDay d)
+    {
+        var parts = new List<string>();
+        if (d.Tithi is not null) parts.Add(d.Tithi);
+        if (d.Nakshatram is not null) parts.Add(d.Nakshatram);
+        parts.AddRange(d.Festivals.Select(f => f.Name));
+        return string.Join(" · ", parts);
+    }
+
+    private string CellAria(CalendarDay d)
+        => $"{ClockText.LongDate(d.Date)}. {CellTitle(d)}. {RatingLabel(d.Rating)}";
+
+    private IEnumerable<string> DowLabels => Enum.GetValues<DayOfWeek>().Select(DowShort);
+
+    private string DowShort(DayOfWeek dow) => dow switch
+    {
+        DayOfWeek.Sunday => Loc["calendar.dowSun", "Sun"],
+        DayOfWeek.Monday => Loc["calendar.dowMon", "Mon"],
+        DayOfWeek.Tuesday => Loc["calendar.dowTue", "Tue"],
+        DayOfWeek.Wednesday => Loc["calendar.dowWed", "Wed"],
+        DayOfWeek.Thursday => Loc["calendar.dowThu", "Thu"],
+        DayOfWeek.Friday => Loc["calendar.dowFri", "Fri"],
+        _ => Loc["calendar.dowSat", "Sat"]
+    };
+
+    private string MonthName(int month) => month switch
+    {
+        1 => Loc["calendar.month1", "January"],
+        2 => Loc["calendar.month2", "February"],
+        3 => Loc["calendar.month3", "March"],
+        4 => Loc["calendar.month4", "April"],
+        5 => Loc["calendar.month5", "May"],
+        6 => Loc["calendar.month6", "June"],
+        7 => Loc["calendar.month7", "July"],
+        8 => Loc["calendar.month8", "August"],
+        9 => Loc["calendar.month9", "September"],
+        10 => Loc["calendar.month10", "October"],
+        11 => Loc["calendar.month11", "November"],
+        _ => Loc["calendar.month12", "December"]
+    };
+
+    // ------------------------------------------------------------------ words for codes
+
+    private static string MoonGlyph(string phase) => phase switch
+    {
+        "new" => "🌑",
+        "waxingCrescent" => "🌒",
+        "firstQuarter" => "🌓",
+        "waxingGibbous" => "🌔",
+        "full" => "🌕",
+        "waningGibbous" => "🌖",
+        "lastQuarter" => "🌗",
+        _ => "🌘"
+    };
+
+    private string MoonLabel(string phase) => phase switch
+    {
+        "new" => Loc["calendar.moon.new", "New Moon"],
+        "waxingCrescent" => Loc["calendar.moon.waxingCrescent", "Waxing Crescent"],
+        "firstQuarter" => Loc["calendar.moon.firstQuarter", "First Quarter"],
+        "waxingGibbous" => Loc["calendar.moon.waxingGibbous", "Waxing Gibbous"],
+        "full" => Loc["calendar.moon.full", "Full Moon"],
+        "waningGibbous" => Loc["calendar.moon.waningGibbous", "Waning Gibbous"],
+        "lastQuarter" => Loc["calendar.moon.lastQuarter", "Last Quarter"],
+        _ => Loc["calendar.moon.waningCrescent", "Waning Crescent"]
+    };
+
+    private string MarkerLabel(string code) => code switch
+    {
+        "purnima" => Loc["calendar.marker.purnima", "Purnima"],
+        "amavasya" => Loc["calendar.marker.amavasya", "Amavasya"],
+        "ekadashi" => Loc["calendar.marker.ekadashi", "Ekadashi"],
+        "pradosham" => Loc["calendar.marker.pradosham", "Pradosham"],
+        "vinayakaChaturthi" => Loc["calendar.marker.vinayakaChaturthi", "Vinayaka Chaturthi"],
+        "sankashtiChaturthi" => Loc["calendar.marker.sankashtiChaturthi", "Sankashti Chaturthi"],
+        "masaShivaratri" => Loc["calendar.marker.masaShivaratri", "Masa Shivaratri"],
+        "skandaShashti" => Loc["calendar.marker.skandaShashti", "Skanda Shashti"],
+        "durgaAshtami" => Loc["calendar.marker.durgaAshtami", "Durga Ashtami"],
+        _ => code
+    };
+
+    private string RatingLabel(string rating) => rating switch
+    {
+        "good" => Loc["calendar.ratingGood", "Good Day"],
+        "caution" => Loc["calendar.ratingCaution", "Caution"],
+        _ => Loc["calendar.ratingNeutral", "Ordinary Day"]
+    };
+
+    private static string RatingIcon(string rating) => rating switch { "good" => "✦", "caution" => "▲", _ => "•" };
+
+    private string KindLabel(string kind) => kind switch
+    {
+        CalendarEventKinds.Puja => Loc["calendar.kind.puja", "Puja"],
+        CalendarEventKinds.Vratam => Loc["calendar.kind.vratam", "Vratam"],
+        CalendarEventKinds.Festival => Loc["calendar.kind.festival", "Festival"],
+        CalendarEventKinds.Birthday => Loc["calendar.kind.birthday", "Birthday"],
+        CalendarEventKinds.Anniversary => Loc["calendar.kind.anniversary", "Anniversary"],
+        CalendarEventKinds.Shraddha => Loc["calendar.kind.shraddha", "Shraddha"],
+        _ => Loc["calendar.kind.personal", "Personal"]
+    };
+
+    /// <summary>The reason codes, in words, with the day's own tithi and nakshatra named.</summary>
+    private string ReasonText(string code, CalendarDay d) => code switch
+    {
+        "purnima" => Loc["calendar.reason.purnima", "Purnima, the full moon: the most favoured tithi"],
+        "tithiAmavasya" => Loc["calendar.reason.tithiAmavasya", "Amavasya is kept for ancestors, not for new beginnings"],
+        "tithiRikta" => Loc.TF("calendar.reason.tithiRikta", "{0} is a rikta tithi, avoided for beginnings", d.Tithi),
+        "tithiAshtami" => Loc.TF("calendar.reason.tithiAshtami", "{0} is a middling tithi", d.Tithi),
+        "tithiAuspicious" => Loc.TF("calendar.reason.tithiAuspicious", "{0} is an auspicious tithi", d.Tithi),
+        "nakshatraAuspicious" => Loc.TF("calendar.reason.nakshatraAuspicious", "{0} is a gentle, favourable nakshatra", d.Nakshatram),
+        "nakshatraHarsh" => Loc.TF("calendar.reason.nakshatraHarsh", "{0} is a sharp nakshatra; take care with new work", d.Nakshatram),
+        "weekdayAuspicious" => Loc["calendar.reason.weekdayAuspicious", "A favourable weekday for undertakings"],
+        "weekdayHarsh" => Loc["calendar.reason.weekdayHarsh", "Tuesdays and Saturdays are avoided for beginnings"],
+        "festival" => Loc["calendar.reason.festival", "A festival day: auspicious for worship"],
+        _ => code
+    };
+
+    private string ImgSrc(Guid id) => Media.Absolute(ApiRoutes.Media.DeityImage(id));
+
+    private static string Fmt(TimeOnly? t) => t is null ? "—" : ClockText.Time(t.Value);
+
+    // ------------------------------------------------------------------ the opened day
+
+    private RenderFragment<CalendarDay> DayDetail => d =>
+        @<div class="sc-cal-detail">
+            <div class="sc-cal-detail-head">
+                <div>
+                    <div class="sc-cal-detail-date">@ClockText.LongDate(d.Date)</div>
+                    <div class="sc-cal-detail-hindu">
+                        @string.Join(" · ", new[] { d.Masam, d.Paksham, d.Tithi }.Where(s => !string.IsNullOrWhiteSpace(s)))
+                    </div>
+                </div>
+                @if (d.MoonPhase is not null)
+                {
+                    <div class="sc-cal-moonbig" title="@MoonLabel(d.MoonPhase)">
+                        <span aria-hidden="true">@MoonGlyph(d.MoonPhase)</span>
+                        <small>@MoonLabel(d.MoonPhase)@(d.MoonIllumination is { } ill ? $" · {ill}%" : string.Empty)</small>
+                    </div>
+                }
+            </div>
+
+            <div class="sc-cal-pill lg @d.Rating">
+                <span aria-hidden="true">@RatingIcon(d.Rating)</span> @RatingLabel(d.Rating)
+            </div>
+            @if (d.Reasons.Count > 0)
+            {
+                <ul class="sc-cal-reasons">
+                    @foreach (var r in d.Reasons)
+                    {
+                        <li>@ReasonText(r, d)</li>
+                    }
+                </ul>
+            }
+
+            @if (d.Festivals.Count > 0 || d.Markers.Count > 0)
+            {
+                <div class="sc-cal-section">
+                    <h4>🎉 @Loc["calendar.festivalsAndObservances", "Festivals & Observances"]</h4>
+                    @foreach (var f in d.Festivals)
+                    {
+                        <div class="sc-cal-festival">
+                            <div class="sc-cal-festival-name">@f.Name</div>
+                            @if (!string.IsNullOrWhiteSpace(f.Description))
+                            {
+                                <p class="sc-cal-festival-desc">@f.Description</p>
+                            }
+                            @if (f.Deities.Count > 0)
+                            {
+                                <div class="sc-cal-deities">
+                                    @foreach (var g in f.Deities)
+                                    {
+                                        @DeityChip(g)
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+                    @if (d.Markers.Count > 0)
+                    {
+                        <div class="sc-cal-chips wrap">
+                            @foreach (var m in d.Markers)
+                            {
+                                <span class="sc-cal-chip marker">@MarkerLabel(m)</span>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+
+            @if (d.Deities.Count > 0)
+            {
+                <div class="sc-cal-section">
+                    <h4>🛕 @Loc.TF("calendar.deitiesOfDay", "Deities of {0}", DowLong(d.Date.DayOfWeek))</h4>
+                    <div class="sc-cal-deities">
+                        @foreach (var g in d.Deities)
+                        {
+                            @DeityChip(g)
+                        }
+                    </div>
+                </div>
+            }
+
+            <div class="sc-cal-section">
+                <div class="sc-cal-section-head">
+                    <h4>🔖 @Loc["calendar.myMarks", "My Marks"]</h4>
+                    @if (!_isGuest)
+                    {
+                        <button type="button" class="sc-btn-ghost sc-btn-sm" @onclick="() => OpenForm(d.Date, null)">+ @Loc["common.add", "Add"]</button>
+                    }
+                </div>
+                @if (_isGuest)
+                {
+                    <p class="sc-muted sc-cal-guest">
+                        @Loc["calendar.guestMarks", "Sign in to mark your own vratams, pujas and anniversaries on this calendar."]
+                        <a href="@Gate.LoginUrlForHere()">@Loc["auth.signInInstead", "Sign In"]</a>
+                    </p>
+                }
+                else
+                {
+                    var evs = EventsOn(d.Date);
+                    @if (evs.Count == 0)
+                    {
+                        <p class="sc-muted sc-cal-nomarks">@Loc["calendar.noMarks", "Nothing marked on this day."]</p>
+                    }
+                    else
+                    {
+                        <ul class="sc-cal-events">
+                            @foreach (var e in evs)
+                            {
+                                <li class="sc-cal-event kind-@CalendarEventKinds.Slug(e.Kind)">
+                                    <i class="dot" aria-hidden="true"></i>
+                                    <div class="sc-cal-event-body">
+                                        <div class="sc-cal-event-title">@e.Title</div>
+                                        <div class="sc-cal-event-sub">
+                                            @KindLabel(e.Kind)
+                                            @if (e.Time is { } t) { <span>· @ClockText.Time(t)</span> }
+                                            @if (e.RepeatYearly) { <span>· 🔁 @Loc["calendar.yearly", "Yearly"]</span> }
+                                        </div>
+                                        @if (!string.IsNullOrWhiteSpace(e.Notes))
+                                        {
+                                            <div class="sc-cal-event-notes">@e.Notes</div>
+                                        }
+                                    </div>
+                                    <div class="sc-cal-event-actions">
+                                        <button type="button" class="sc-btn-ghost sc-btn-sm" title="@Loc["common.edit", "Edit"]" @onclick="() => OpenForm(d.Date, e)">✎</button>
+                                        <button type="button" class="sc-btn-ghost sc-btn-sm" title="@Loc["common.delete", "Delete"]" @onclick="() => DeleteMark(e)">🗑</button>
+                                    </div>
+                                </li>
+                            }
+                        </ul>
+                    }
+                }
+            </div>
+
+            @if (d.HasPanchangam)
+            {
+                <div class="sc-cal-section">
+                    <h4>🗓️ @Loc["panchangam.title", "Panchangam"]</h4>
+                    <div class="sc-cal-pchg">
+                        <PchgRow K='@Loc["panchangam.sunrise", "Sunrise"]' V="@Fmt(d.Sunrise)" />
+                        <PchgRow K='@Loc["panchangam.sunset", "Sunset"]' V="@Fmt(d.Sunset)" />
+                        <PchgRow K='@Loc["panchangam.tithi", "Tithi"]' V="@d.TithiDetails" />
+                        <PchgRow K='@Loc["panchangam.nakshatram", "Nakshatram"]' V="@d.NakshatramDetails" />
+                        <PchgRow K='@Loc["panchangam.rahuKalam", "Rahu Kalam"]' V="@d.RahuKalam" />
+                        <PchgRow K='@Loc["panchangam.yamagandam", "Yamagandam"]' V="@d.Yamagandam" />
+                        <PchgRow K='@Loc["panchangam.abhijitMuhurtham", "Abhijit Muhurtham"]' V="@d.AbhijitMuhurtham" />
+                        <PchgRow K='@Loc["panchangam.amruthaKalam", "Amrutha Kalam"]' V="@d.AmruthaKalam" />
+                    </div>
+                    @if (Menus.CanOpen("panchangam"))
+                    {
+                        <a class="sc-cal-pchg-link" href="panchangam?date=@d.Date.ToString("yyyy-MM-dd")">@Loc["calendar.fullPanchangam", "Full Panchangam"] →</a>
+                    }
+                </div>
+            }
+        </div>;
+
+    private RenderFragment<CalendarDeity> DeityChip => g =>
+        @<span class="sc-cal-deity" title="@g.DeityType">
+            <span class="sc-cal-deity-avatar">
+                @if (g.HasImage)
+                {
+                    <img src="@ImgSrc(g.Id)" alt="" loading="lazy" />
+                }
+                else
+                {
+                    <span aria-hidden="true">@(g.DeityType == "Goddess" ? "🙏" : "🕉️")</span>
+                }
+            </span>
+            <span class="sc-cal-deity-name">@g.Name</span>
+        </span>;
+
+    private string DowLong(DayOfWeek dow) => dow switch
+    {
+        DayOfWeek.Sunday => Loc["calendar.sunday", "Sunday"],
+        DayOfWeek.Monday => Loc["calendar.monday", "Monday"],
+        DayOfWeek.Tuesday => Loc["calendar.tuesday", "Tuesday"],
+        DayOfWeek.Wednesday => Loc["calendar.wednesday", "Wednesday"],
+        DayOfWeek.Thursday => Loc["calendar.thursday", "Thursday"],
+        DayOfWeek.Friday => Loc["calendar.friday", "Friday"],
+        _ => Loc["calendar.saturday", "Saturday"]
+    };
+
+    // ------------------------------------------------------------------ marks
+
+    private void OpenForm(DateOnly date, CalendarEventModel? existing)
+    {
+        _editingId = existing?.Id;
+        _formError = null;
+        _form = existing is null
+            ? new SaveCalendarEventRequest { Date = date }
+            : new SaveCalendarEventRequest
+            {
+                Date = existing.Date,
+                Time = existing.Time,
+                Title = existing.Title,
+                Notes = existing.Notes,
+                Kind = existing.Kind,
+                RepeatYearly = existing.RepeatYearly
+            };
+        _formOpen = true;
+    }
+
+    private void CloseForm() => _formOpen = false;
+
+    private void OnFormDateChanged(ChangeEventArgs e)
+    {
+        if (DateOnly.TryParse(e.Value?.ToString(), out var d)) _form.Date = d;
+    }
+
+    private void OnFormTimeChanged(ChangeEventArgs e)
+        => _form.Time = TimeOnly.TryParse(e.Value?.ToString(), out var t) ? t : null;
+
+    private async Task SaveMark()
+    {
+        if (string.IsNullOrWhiteSpace(_form.Title))
+        {
+            _formError = Loc["calendar.titleRequired", "Give the mark a title."];
+            return;
+        }
+
+        _saving = true;
+        _formError = null;
+        var (ok, saved, err) = _editingId is { } id
+            ? await Api.UpdateCalendarEventAsync(id, _form)
+            : await Api.CreateCalendarEventAsync(_form);
+        _saving = false;
+
+        if (!ok)
+        {
+            _formError = err;
+            return;
+        }
+
+        _formOpen = false;
+        Toast.Success(_editingId is null
+            ? Loc["calendar.markAdded", "Marked on your calendar."]
+            : Loc["calendar.markSaved", "Mark updated."]);
+
+        // Follow the mark to its month if the seeker dated it elsewhere; otherwise refresh in place.
+        if (saved is not null && (saved.Date.Year != _year || saved.Date.Month != _month))
+        {
+            _year = saved.Date.Year;
+            _month = saved.Date.Month;
+            _selected = saved.Date;
+            await LoadAsync();
+        }
+        else
+        {
+            await LoadAsync(soft: true);
+        }
+    }
+
+    private async Task DeleteMark(CalendarEventModel e)
+    {
+        var sure = await Confirm.ConfirmAsync(
+            Loc["calendar.deleteMark", "Delete Mark"],
+            Loc.TF("common.confirmDelete", "Delete {0}?", e.Title),
+            Loc["common.delete", "Delete"], Loc["common.cancel", "Cancel"], ConfirmKind.Danger);
+        if (!sure) return;
+
+        var (ok, err) = await Api.DeleteCalendarEventAsync(e.Id);
+        if (!ok) { Toast.Error(err); return; }
+
+        Toast.Success(Loc["calendar.markDeleted", "Mark removed."]);
+        await LoadAsync(soft: true);
+    }
+}

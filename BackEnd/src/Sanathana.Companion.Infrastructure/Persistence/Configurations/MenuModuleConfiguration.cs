@@ -281,6 +281,24 @@ public class MenuModuleConfiguration : IEntityTypeConfiguration<MenuModule>
             },
             new MenuModule
             {
+                Id = SeedConstants.CalendarMenuId,
+                Name = "Calendar",
+                Icon = "📅",
+                Description = "Month calendar: tithis, moon, festivals and deities by region, with your own marks",
+                RoutePath = "/calendar",
+                Code = "calendar",
+                // Ties with Panchangam and breaks on Name, so it takes the bottom-bar tab ahead of it: the
+                // month view opens a day's full Panchangam from inside; the reverse is not true.
+                DisplayOrder = 2,
+                IsVisibleInMenu = true,
+                ShowInMobile = true,
+                IsActive = true,
+                ParentId = SeedConstants.SadhanaModuleId,
+                CreatedBy = "system",
+                CreatedDate = SeedConstants.SeedTimestamp
+            },
+            new MenuModule
+            {
                 Id = SeedConstants.SadhanaModuleId,
                 Name = "Sadhana",
                 Icon = "🙏",

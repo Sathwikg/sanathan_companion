@@ -52,7 +52,7 @@ public static class MobileSettings
         return Coalesce(file?.ApiBaseUrlDebug, "http://localhost:7050/api");
     #endif
 #else
-        return Coalesce(file?.ApiBaseUrl, "https://sanathan-companion.onrender.com/api");
+        return Coalesce(file?.ApiBaseUrl, "https://enityasannidhi.com/api");
 #endif
     }
 

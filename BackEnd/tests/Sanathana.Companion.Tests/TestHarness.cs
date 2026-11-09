@@ -58,6 +58,7 @@ internal sealed class TestHarness : IDisposable
         var chantConfigs = new ChantConfigRepository(Context);
         var languages = new LanguageRepository(Context);
         var panchangams = new PanchangamRepository(Context);
+        var calendarEvents = new CalendarEventRepository(Context);
         var sadhana = new SadhanaRepository(Context);
         var moduleRoleMappings = new ModuleRoleMappingRepository(Context);
         var issueTypes = new IssueTypeRepository(Context);
@@ -72,7 +73,7 @@ internal sealed class TestHarness : IDisposable
         var refreshTokens = new RefreshTokenRepository(Context);
         var ads = new AdRepository(Context);
         var audit = new AuditRepository(Context);
-        UnitOfWork = new UnitOfWork(Context, users, refreshTokens, ads, roles, menuModules, regions, festivals, days, deities, chants, wallpapers, pujas, pujaProcess, chantConfigs, languages, panchangams, sadhana, moduleRoleMappings, issueTypes, feedbacks, favorites, notificationConfigs, userNotifications, localization, audit);
+        UnitOfWork = new UnitOfWork(Context, users, refreshTokens, ads, roles, menuModules, regions, festivals, days, deities, chants, wallpapers, pujas, pujaProcess, chantConfigs, languages, panchangams, calendarEvents, sadhana, moduleRoleMappings, issueTypes, feedbacks, favorites, notificationConfigs, userNotifications, localization, audit);
 
         Hasher = new BCryptPasswordHasher();
 

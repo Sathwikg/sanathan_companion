@@ -23,6 +23,7 @@ public static class DependencyInjection
         services.AddScoped<IChantConfigService, ChantConfigService>();
         services.AddScoped<ILanguageService, LanguageService>();
         services.AddScoped<IPanchangamService, PanchangamService>();
+        services.AddScoped<ICalendarService, CalendarService>();
         // Singleton: the astronomy for one place on one day never changes, so the cache is only
         // worth anything if it outlives the request that filled it.
         services.AddSingleton<IPanchangamComputeCache, PanchangamComputeCache>();

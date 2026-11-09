@@ -56,6 +56,7 @@ public static class DependencyInjection
         services.AddScoped<IChantConfigRepository, ChantConfigRepository>();
         services.AddScoped<ILanguageRepository, LanguageRepository>();
         services.AddScoped<IPanchangamRepository, PanchangamRepository>();
+        services.AddScoped<ICalendarEventRepository, CalendarEventRepository>();
         services.AddScoped<ISadhanaRepository, SadhanaRepository>();
         services.AddScoped<IModuleRoleMappingRepository, ModuleRoleMappingRepository>();
         services.AddScoped<ILocalizationRepository, LocalizationRepository>();

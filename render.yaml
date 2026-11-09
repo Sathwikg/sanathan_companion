@@ -1,4 +1,4 @@
-# Sanathana Companion — Render Blueprint.
+# Nitya Sannidhi — Render Blueprint.
 #
 # Render does not read docker-compose.yml; it builds one image per service.
 # deploy/render/Dockerfile folds the compose stack's two services into a single

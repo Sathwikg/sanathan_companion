@@ -68,7 +68,7 @@ public sealed class PushNotificationOptions
     /// <summary>
     /// Default notification title if not provided.
     /// </summary>
-    public string DefaultTitle { get; set; } = "Sanathana Companion";
+    public string DefaultTitle { get; set; } = "Nitya Sannidhi";
 
     /// <summary>
     /// Default notification icon (Android).

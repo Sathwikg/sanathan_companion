@@ -1,6 +1,6 @@
 <Project>
   <!--
-    The app's name and logo. This file and this folder are the only place either is defined.
+    The app's name, logo and publisher details. This file and this folder are the only place any of them is defined.
 
     Every surface reads from here at build time:
       * the web tab title, the loading screen and the favicon (App.Web/index.template.html)
@@ -19,7 +19,7 @@
   -->
   <PropertyGroup>
     <!-- Shown everywhere the app names itself: launcher, store listing, top bar, login, About. -->
-    <BrandAppName>Sanathan Companion</BrandAppName>
+    <BrandAppName>Nitya Sannidhi</BrandAppName>
 
     <!-- The mark in the logo tile (top bar, login, loader, dashboard, share card) when
          BrandLogoImage is empty. One or two characters. -->
@@ -35,6 +35,17 @@
          are favicon.png and icon-192.png. -->
     <BrandIconColor>#7C440E</BrandIconColor>
     <BrandSplashColor>#FDFBF7</BrandSplashColor>
+
+    <!-- The company behind the app and how to reach it. Shown on the privacy policy (governing
+         organisation, support email, website) and wherever the UI names the publisher. -->
+    <BrandCompanyName>SBS TechnoLabs</BrandCompanyName>
+    <BrandCompanyUrl>https://sbstechnolabs.com</BrandCompanyUrl>
+    <BrandSupportEmail>sbstechnolabs@gmail.com</BrandSupportEmail>
+
+    <!-- Where the app lives on the web, and the public URL of its privacy policy (the one the
+         store listings point at). -->
+    <BrandAppUrl>https://enityasannidhi.com</BrandAppUrl>
+    <BrandPrivacyUrl>https://enityasannidhi.com/privacy</BrandPrivacyUrl>
   </PropertyGroup>
 
   <!-- Derived from the above; nothing to edit below this line. -->
