@@ -18,13 +18,10 @@
 <div class="sc-card sc-filtercard">
     <div class="sc-field">
         <label>@Loc["pujaProcessConfig.selectPuja", "Puja"]</label>
-        <select class="sc-input" value="@_pujaId" @onchange="OnPujaChanged">
-            <option value="">@Loc["pujaProcessConfig.choosePuja", "— Select a puja —"]</option>
-            @foreach (var p in _pujas)
-            {
-                <option value="@p.Id">@p.Name@(p.HasFestival ? $" · {p.FestivalLabel}" : "")</option>
-            }
-        </select>
+        <SearchableSelect Options="PujaOptions" Value="@_pujaId" ValueChanged="OnPujaChanged"
+                          EmptyLabel="@Loc["pujaProcessConfig.choosePuja", "— Select a puja —"]"
+                          PlaceholderLabel="@Loc["pujaProcessConfig.choosePuja", "— Select a puja —"]"
+                          SearchPlaceholder="@Loc["pujaProcessConfig.searchPuja", "Search pujas…"]" />
     </div>
 </div>
 
@@ -179,9 +176,13 @@ else
 
     private void SetActiveLang(PujaStepConfigModel step, Guid languageId) => _activeLang[step] = languageId;
 
-    private async Task OnPujaChanged(ChangeEventArgs e)
+    /// <summary>Puja master list for the searchable dropdown; the festival (with year) keeps same-named pujas apart.</summary>
+    private List<SelectOption> PujaOptions =>
+        _pujas.Select(p => new SelectOption(p.Id.ToString(), p.HasFestival ? $"{p.Name} · {p.FestivalLabel}" : p.Name)).ToList();
+
+    private async Task OnPujaChanged(string value)
     {
-        _pujaId = e.Value?.ToString() ?? string.Empty;
+        _pujaId = value ?? string.Empty;
         _activeLang.Clear();
 
         if (!Guid.TryParse(_pujaId, out var id)) { _config = null; return; }

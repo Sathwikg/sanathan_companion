@@ -20,5 +20,6 @@
   "pujaProcessConfig.steps": "ಹಂತಗಳು",
   "pujaProcessConfig.stepsSub": "ತೋರಿಸಿದ ಕ್ರಮದಲ್ಲಿ ಸ್ವಯಂಚಾಲಿತವಾಗಿ ಸಂಖ್ಯೆ ನೀಡಲಾಗುತ್ತದೆ",
   "pujaProcessConfig.sub": "ಅಗತ್ಯ ಸಾಮಗ್ರಿ ಮತ್ತು ಹಂತ ಹಂತದ ವಿಧಾನ",
-  "pujaProcessConfig.title": "ಪೂಜಾ ವಿಧಾನ"
+  "pujaProcessConfig.title": "ಪೂಜಾ ವಿಧಾನ",
+  "pujaProcessConfig.searchPuja": "ಪೂಜೆಗಳನ್ನು ಹುಡುಕಿ…"
 }

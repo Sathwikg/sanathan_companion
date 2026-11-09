@@ -20,5 +20,6 @@
   "pujaProcessConfig.steps": "படிகள்",
   "pujaProcessConfig.stepsSub": "காட்டப்படும் வரிசையில் தானாக எண்ணிடப்படும்",
   "pujaProcessConfig.sub": "தேவையான பொருட்களும் படிப்படியான முறையும்",
-  "pujaProcessConfig.title": "பூஜை முறை"
+  "pujaProcessConfig.title": "பூஜை முறை",
+  "pujaProcessConfig.searchPuja": "பூஜைகளைத் தேடுங்கள்…"
 }

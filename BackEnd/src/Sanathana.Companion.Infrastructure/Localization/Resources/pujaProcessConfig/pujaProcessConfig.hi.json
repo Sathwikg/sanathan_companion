@@ -20,5 +20,6 @@
   "pujaProcessConfig.steps": "चरण",
   "pujaProcessConfig.stepsSub": "दिखाए गए क्रम में स्वतः क्रमांकित",
   "pujaProcessConfig.sub": "आवश्यक सामग्री और चरण-दर-चरण विधि",
-  "pujaProcessConfig.title": "पूजा विधि"
+  "pujaProcessConfig.title": "पूजा विधि",
+  "pujaProcessConfig.searchPuja": "पूजा खोजें…"
 }
