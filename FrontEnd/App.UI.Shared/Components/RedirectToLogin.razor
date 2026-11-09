@@ -2,10 +2,17 @@
    the login page carrying the address they tried to open, and lands back on it after signing in —
    tapping a chant as a guest ends on that chant's japa screen, not on the home page.
 
+   One exception: a signed-out visitor opening the web app's front door ("/", the dashboard) was
+   not interrupted on the way somewhere — they typed the site's address. They get the features
+   page, the public landing page, and reach login from its buttons. Not on the phone, where the
+   app's own login screen is the front door; and not a guest, who holds the browse policy and
+   sees the dashboard.
+
    A SIGNED-IN seeker refused by a role-gated page goes to access-denied instead. Sending them to
    sign in with a return address would loop: they would sign in, come straight back here, and be
    refused again. *@
 @inject NavigationManager Nav
+@inject AppConfig Config
 
 @code {
     [CascadingParameter] private Task<AuthenticationState>? AuthState { get; set; }
@@ -19,8 +26,19 @@
             return;
         }
 
+        var target = Nav.ToBaseRelativePath(Nav.Uri);
+        if (!Config.IsMobile && IsRoot(target))
+        {
+            Nav.NavigateTo("features", replace: true);
+            return;
+        }
+
         // replace: so Back from the login page returns to where the guest was, not to the page
         // that just refused them (which would bounce them straight back to login).
-        Nav.NavigateTo(LoginGate.LoginUrl(Nav.ToBaseRelativePath(Nav.Uri)), replace: true);
+        Nav.NavigateTo(LoginGate.LoginUrl(target), replace: true);
     }
+
+    /// <summary>"" or only a query or fragment: the site's address with nothing after it.</summary>
+    private static bool IsRoot(string relative) =>
+        relative.Length == 0 || relative[0] == '?' || relative[0] == '#';
 }
