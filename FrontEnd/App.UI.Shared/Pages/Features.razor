@@ -1,0 +1,1586 @@
+@* The public features page: the app's shop window, one scrolling story of what a seeker gets on
+   the phone, ending in the store badges. Open to everyone, signed in or not, exactly like the
+   privacy policy — the two public pages share PublicLayout.
+
+   The "screenshots" are drawn in HTML inside CSS phone frames rather than shipped as PNGs: they
+   follow the theme toggle and the chosen language the way the real app does, and they weigh
+   nothing. Each is a still of a real screen (home, Panchangam, calendar, japa, puja, prayers) laid
+   out from the same tokens the phone shell uses, with the real screens' labels pulled from the same
+   dictionary keys. When real captures exist, a frame's .lp-screen is the thing to replace with an
+   <img>; the frame, the glow and the motion around it stay.
+
+   Motion: the hero animates on load with plain keyframes; everything below reveals as it scrolls
+   into view ([data-reveal] + landing.js), the sky drifts with the scroll (--land-y), and browsers
+   with scroll-driven animations get the phones settling into place as they enter. All of it is
+   transform/opacity only, and all of it stands down under prefers-reduced-motion. A reveal that
+   never gets its JS still appears (the land-safety keyframe), so the page is never blank.
+
+   The store links and QR codes are placeholders until the listings exist: PlayStoreUrl follows
+   from the fixed ApplicationId, AppStoreUrl is a dummy id, and the two codes live in
+   wwwroot/landing/. Swap the two constants and regenerate the two SVGs when the apps go live. *@
+@page "/features"
+@page "/download"
+@attribute [AllowAnonymous]
+@layout PublicLayout
+@inherits LocalizedComponentBase
+@inject IJSRuntime JS
+
+<div class="sc-land" @ref="_root">
+    <div class="sc-land-progress" aria-hidden="true"></div>
+
+    @* The sky: fixed to the viewport, drifting with the scroll. *@
+    <div class="sc-land-sky" aria-hidden="true">
+        <div class="sc-land-orb sc-land-orb-a"></div>
+        <div class="sc-land-orb sc-land-orb-b"></div>
+        <div class="sc-land-orb sc-land-orb-c"></div>
+        <div class="sc-land-stars"></div>
+    </div>
+
+    @* ---------------- Hero ---------------- *@
+    <section class="sc-land-hero">
+        <div class="sc-land-mandala" aria-hidden="true">
+            <svg viewBox="0 0 600 600" class="sc-land-mandala-svg">
+                <g class="sc-land-ring sc-land-ring-a" fill="none" stroke="currentColor">
+                    <circle cx="300" cy="300" r="292" stroke-width="1" stroke-dasharray="2 10" />
+                    <circle cx="300" cy="300" r="262" stroke-width="0.8" />
+                    <path d="M300 22c18 46 18 82 0 108-18-26-18-62 0-108z" stroke-width="0.9" />
+                    <path d="M300 22c18 46 18 82 0 108-18-26-18-62 0-108z" stroke-width="0.9" transform="rotate(30 300 300)" />
+                    <path d="M300 22c18 46 18 82 0 108-18-26-18-62 0-108z" stroke-width="0.9" transform="rotate(60 300 300)" />
+                    <path d="M300 22c18 46 18 82 0 108-18-26-18-62 0-108z" stroke-width="0.9" transform="rotate(90 300 300)" />
+                    <path d="M300 22c18 46 18 82 0 108-18-26-18-62 0-108z" stroke-width="0.9" transform="rotate(120 300 300)" />
+                    <path d="M300 22c18 46 18 82 0 108-18-26-18-62 0-108z" stroke-width="0.9" transform="rotate(150 300 300)" />
+                    <path d="M300 22c18 46 18 82 0 108-18-26-18-62 0-108z" stroke-width="0.9" transform="rotate(180 300 300)" />
+                    <path d="M300 22c18 46 18 82 0 108-18-26-18-62 0-108z" stroke-width="0.9" transform="rotate(210 300 300)" />
+                    <path d="M300 22c18 46 18 82 0 108-18-26-18-62 0-108z" stroke-width="0.9" transform="rotate(240 300 300)" />
+                    <path d="M300 22c18 46 18 82 0 108-18-26-18-62 0-108z" stroke-width="0.9" transform="rotate(270 300 300)" />
+                    <path d="M300 22c18 46 18 82 0 108-18-26-18-62 0-108z" stroke-width="0.9" transform="rotate(300 300 300)" />
+                    <path d="M300 22c18 46 18 82 0 108-18-26-18-62 0-108z" stroke-width="0.9" transform="rotate(330 300 300)" />
+                </g>
+                <g class="sc-land-ring sc-land-ring-b" fill="none" stroke="currentColor">
+                    <circle cx="300" cy="300" r="206" stroke-width="0.8" stroke-dasharray="14 8" />
+                    <circle cx="300" cy="300" r="176" stroke-width="0.6" />
+                    <path d="M300 96c14 34 14 60 0 80-14-20-14-46 0-80z" stroke-width="0.8" />
+                    <path d="M300 96c14 34 14 60 0 80-14-20-14-46 0-80z" stroke-width="0.8" transform="rotate(45 300 300)" />
+                    <path d="M300 96c14 34 14 60 0 80-14-20-14-46 0-80z" stroke-width="0.8" transform="rotate(90 300 300)" />
+                    <path d="M300 96c14 34 14 60 0 80-14-20-14-46 0-80z" stroke-width="0.8" transform="rotate(135 300 300)" />
+                    <path d="M300 96c14 34 14 60 0 80-14-20-14-46 0-80z" stroke-width="0.8" transform="rotate(180 300 300)" />
+                    <path d="M300 96c14 34 14 60 0 80-14-20-14-46 0-80z" stroke-width="0.8" transform="rotate(225 300 300)" />
+                    <path d="M300 96c14 34 14 60 0 80-14-20-14-46 0-80z" stroke-width="0.8" transform="rotate(270 300 300)" />
+                    <path d="M300 96c14 34 14 60 0 80-14-20-14-46 0-80z" stroke-width="0.8" transform="rotate(315 300 300)" />
+                </g>
+                <g class="sc-land-ring sc-land-ring-c" fill="none" stroke="currentColor">
+                    <circle cx="300" cy="300" r="128" stroke-width="0.8" stroke-dasharray="1 6" />
+                    <circle cx="300" cy="300" r="104" stroke-width="0.6" />
+                    <path d="M300 182l10 22-10 22-10-22z" stroke-width="0.8" />
+                    <path d="M300 182l10 22-10 22-10-22z" stroke-width="0.8" transform="rotate(60 300 300)" />
+                    <path d="M300 182l10 22-10 22-10-22z" stroke-width="0.8" transform="rotate(120 300 300)" />
+                    <path d="M300 182l10 22-10 22-10-22z" stroke-width="0.8" transform="rotate(180 300 300)" />
+                    <path d="M300 182l10 22-10 22-10-22z" stroke-width="0.8" transform="rotate(240 300 300)" />
+                    <path d="M300 182l10 22-10 22-10-22z" stroke-width="0.8" transform="rotate(300 300 300)" />
+                </g>
+            </svg>
+        </div>
+
+        <div class="sc-land-wrap sc-land-hero-grid">
+            <div class="sc-land-hero-copy">
+                <span class="sc-land-brandpill sc-land-up" style="--d:.05s">
+                    <AppLogo Size="22" />
+                    <span>@Brand.AppName</span>
+                </span>
+                <h1 class="sc-land-h1">
+                    <span class="sc-land-up" style="--d:.18s">@Loc["features.heroTitle1", "Your Daily Sadhana,"]</span>
+                    <span class="sc-land-up sc-land-grad" style="--d:.32s">@Loc["features.heroTitle2", "Divinely Guided"]</span>
+                </h1>
+                <p class="sc-land-hero-sub sc-land-up" style="--d:.46s">
+                    @Loc["features.heroSub", "Panchangam for your exact location, japa that counts with a tap, festivals, pujas and chants in your language — all in one serene app."]
+                </p>
+                <div class="sc-land-cta sc-land-up" style="--d:.6s">
+                    <button type="button" class="sc-land-btn sc-land-btn-primary" @onclick="ScrollToDownload">
+                        <span class="sc-land-btn-ic" aria-hidden="true">⬇</span>
+                        <span>@Loc["features.ctaDownload", "Download the App"]</span>
+                    </button>
+                    <a class="sc-land-btn sc-land-btn-ghost" href="login">
+                        <span class="sc-land-btn-ic" aria-hidden="true">🌐</span>
+                        <span>@Loc["features.ctaWeb", "Open in Browser"]</span>
+                    </a>
+                </div>
+                <ul class="sc-land-badges sc-land-up" style="--d:.74s">
+                    <li>🗣️ @Loc["features.badgeLanguages", "5 Languages"]</li>
+                    <li>📱 @Loc["features.badgePlatforms", "Android & iOS"]</li>
+                    <li>🌗 @Loc["features.badgeThemes", "Light & Dark"]</li>
+                    <li>👤 @Loc["features.badgeGuest", "Browse as Guest"]</li>
+                </ul>
+            </div>
+
+            <div class="sc-land-hero-stage sc-land-up" style="--d:.3s" data-tilt>
+                <div class="sc-land-halo" aria-hidden="true"></div>
+                <div class="sc-land-rays" aria-hidden="true"></div>
+                <div class="sc-land-tilt">
+                    <div class="sc-land-phone-float">
+                        <div class="sc-land-phone sc-land-phone-hero">
+                            <div class="lp-screen">
+                                <div class="lp-status"><span>6:12</span><span class="lp-island"></span><span>▲ ▮▮▮ ▰</span></div>
+                                <div class="lp-topbar">
+                                    <span class="lp-logo"><AppLogo Bare="true" /></span>
+                                    <span class="lp-tb-titles"><b>@Loc["features.tabHome", "Home"]</b><i>@Brand.AppName</i></span>
+                                    <span class="lp-bell">🔔<i></i></span>
+                                </div>
+                                <div class="lp-body lp-home">
+                                    <div class="lp-aurora"></div>
+                                    <div class="lp-greet">
+                                        <span class="lp-greet-k">@Loc["auth.greetingMorning", "Shubh Prabhat · Good Morning"]</span>
+                                        <span class="lp-greet-n">@Loc["dashboard.seeker", "Seeker"]</span>
+                                    </div>
+                                    <div class="lp-bento">
+                                        <div class="lp-streak">
+                                            <span class="lp-streak-k">🔥 @Loc["sadhana.dayStreak", "Day Streak"]</span>
+                                            <span class="lp-streak-n">12</span>
+                                            <span class="lp-streak-s">@Loc["sadhana.streakSecuredToday", "Your streak is secured for today."]</span>
+                                            <span class="lp-streak-bar"><i></i></span>
+                                        </div>
+                                        <div class="lp-deity" style="background-image:url('_content/App.UI.Shared/img/lord_krishna.png')">
+                                            <span>@Loc["dashboard.todaysGod", "Today's God"]</span>
+                                            <b>Sri Krishna</b>
+                                        </div>
+                                    </div>
+                                    <div class="lp-card">
+                                        <div class="lp-card-h"><b>@Loc["dashboard.panchangamTitle", "Today's Panchangam"]</b><span>@Loc["panchangam.today", "Today"]</span></div>
+                                        <div class="lp-kv"><span>@Loc["panchangam.tithi", "Tithi"]</span><b>Shukla Dashami</b></div>
+                                        <div class="lp-kv"><span>@Loc["panchangam.nakshatram", "Nakshatram"]</span><b>Revati</b></div>
+                                        <div class="lp-kv is-red"><span>@Loc["panchangam.rahuKalam", "Rahu Kalam"]</span><b>1:30 – 3:00 PM</b></div>
+                                    </div>
+                                    <div class="lp-tiles">
+                                        <div class="lp-tile accent"><b>248</b><span>@Loc["sadhana.totalMalas", "Total Malas"]</span></div>
+                                        <div class="lp-tile"><b>21</b><span>@Loc["sadhana.longest", "Longest"]</span></div>
+                                        <div class="lp-tile"><b>64</b><span>@Loc["common.days", "Days"]</span></div>
+                                    </div>
+                                    <div class="lp-tiles two">
+                                        <div class="lp-tile lp-next"><i>🌇</i><span>@Loc["mobileDashboard.nextPrayer", "Next Prayer"]</span><b>Sandhya</b></div>
+                                        <div class="lp-tile lp-sun">
+                                            <span>🌅 @Loc["panchangam.sunrise", "Sunrise"] <b>6:24</b></span>
+                                            <span>🌇 @Loc["panchangam.sunset", "Sunset"] <b>5:38</b></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <nav class="lp-nav">
+                                    <span class="active">🏠<i>@Loc["features.tabHome", "Home"]</i></span>
+                                    <span>🗓️<i>@Loc["nav.panchangam", "Panchangam"]</i></span>
+                                    <span>🙏<i>@Loc["nav.sadhana", "Sadhana"]</i></span>
+                                    <span>📅<i>@Loc["mobileDashboard.calendar", "Calendar"]</i></span>
+                                    <span>⋯<i>@Loc["nav.more", "More"]</i></span>
+                                </nav>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="sc-land-chip sc-land-chip-a" aria-hidden="true">🔥 <b>12</b> @Loc["sadhana.dayStreak", "Day Streak"]</div>
+                <div class="sc-land-chip sc-land-chip-b" aria-hidden="true">🌅 @Loc["panchangam.sunrise", "Sunrise"] <b>6:24</b></div>
+                <div class="sc-land-chip sc-land-chip-c" aria-hidden="true">📿 @Loc["sadhana.malaCompleteTitle", "Mala Complete"]</div>
+            </div>
+        </div>
+
+        <div class="sc-land-scrollhint sc-land-up" style="--d:1.1s" aria-hidden="true">
+            <span>@Loc["features.scrollHint", "Scroll to explore"]</span>
+            <i></i>
+        </div>
+    </section>
+
+    @* ---------------- Feature 1: Home ---------------- *@
+    <section class="sc-land-feat" id="f-home">
+        <div class="sc-land-wrap sc-land-feat-grid">
+            <div class="sc-land-feat-copy" data-reveal="up">
+                <p class="sc-land-eyebrow"><span>🏠</span>@Loc["features.homeKicker", "Home"]</p>
+                <h2 class="sc-land-h2">@Loc["features.homeTitle", "Begin Each Day with Darshan"]</h2>
+                <p class="sc-land-lead">@Loc["features.homeBody", "A warm greeting, today's deity, your streak and the day's Panchangam — the first screen is the whole morning at a glance."]</p>
+                <ul class="sc-land-points">
+                    <li data-reveal="left" style="--d:.1s"><i>✦</i>@Loc["features.homePoint1", "Today's Bhakti with the deity of the day"]</li>
+                    <li data-reveal="left" style="--d:.2s"><i>✦</i>@Loc["features.homePoint2", "Your streak, total malas and days practiced"]</li>
+                    <li data-reveal="left" style="--d:.3s"><i>✦</i>@Loc["features.homePoint3", "Sunrise, sunset and the next prayer window"]</li>
+                </ul>
+            </div>
+            <div class="sc-land-feat-phone" data-reveal="phone-right">
+                <div class="sc-land-glow" aria-hidden="true"></div>
+                <div class="sc-land-phone-float">
+                    <div class="sc-land-phone">
+                        <div class="lp-screen">
+                            <div class="lp-status"><span>6:12</span><span class="lp-island"></span><span>▲ ▮▮▮ ▰</span></div>
+                            <div class="lp-topbar">
+                                <span class="lp-logo"><AppLogo Bare="true" /></span>
+                                <span class="lp-tb-titles"><b>@Loc["features.tabHome", "Home"]</b><i>@Brand.AppName</i></span>
+                                <span class="lp-bell">🔔<i></i></span>
+                            </div>
+                            <div class="lp-body lp-home">
+                                <div class="lp-aurora"></div>
+                                <div class="lp-greet">
+                                    <span class="lp-greet-k">@Loc["auth.greetingMorning", "Shubh Prabhat · Good Morning"]</span>
+                                    <span class="lp-greet-n">@Loc["dashboard.seeker", "Seeker"]</span>
+                                </div>
+                                <div class="lp-bento">
+                                    <div class="lp-streak">
+                                        <span class="lp-streak-k">🔥 @Loc["sadhana.dayStreak", "Day Streak"]</span>
+                                        <span class="lp-streak-n">12</span>
+                                        <span class="lp-streak-s">@Loc["sadhana.streakSecuredToday", "Your streak is secured for today."]</span>
+                                        <span class="lp-streak-bar"><i></i></span>
+                                    </div>
+                                    <div class="lp-deity" style="background-image:url('_content/App.UI.Shared/img/lord_ganesha.png')">
+                                        <span>@Loc["dashboard.todaysGod", "Today's God"]</span>
+                                        <b>Sri Ganesha</b>
+                                    </div>
+                                </div>
+                                <div class="lp-sec">@Loc["dashboard.todaysBhakti", "Today's Bhakti"]</div>
+                                <div class="lp-card lp-bhakti">
+                                    <div class="lp-bhakti-row"><i>📿</i><div><b>Ganesha Pancharatnam</b><span>@Loc["sadhana.recommendedToday", "Recommended for Today"]</span></div><em>›</em></div>
+                                    <div class="lp-bhakti-row"><i>🪔</i><div><b>Sankata Nashana Stotram</b><span>@Loc["sadhana.recommended", "Recommended"]</span></div><em>›</em></div>
+                                </div>
+                                <div class="lp-tiles">
+                                    <div class="lp-tile accent"><b>248</b><span>@Loc["sadhana.totalMalas", "Total Malas"]</span></div>
+                                    <div class="lp-tile"><b>21</b><span>@Loc["sadhana.longest", "Longest"]</span></div>
+                                    <div class="lp-tile"><b>64</b><span>@Loc["common.days", "Days"]</span></div>
+                                </div>
+                            </div>
+                            <nav class="lp-nav">
+                                <span class="active">🏠<i>@Loc["features.tabHome", "Home"]</i></span>
+                                <span>🗓️<i>@Loc["nav.panchangam", "Panchangam"]</i></span>
+                                <span>🙏<i>@Loc["nav.sadhana", "Sadhana"]</i></span>
+                                <span>📅<i>@Loc["mobileDashboard.calendar", "Calendar"]</i></span>
+                                <span>⋯<i>@Loc["nav.more", "More"]</i></span>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="sc-land-divider" aria-hidden="true"><i>✦</i></div>
+
+    @* ---------------- Feature 2: Panchangam ---------------- *@
+    <section class="sc-land-feat is-flip" id="f-panchangam">
+        <div class="sc-land-wrap sc-land-feat-grid">
+            <div class="sc-land-feat-copy" data-reveal="up">
+                <p class="sc-land-eyebrow"><span>🗓️</span>@Loc["features.panchKicker", "Panchangam"]</p>
+                <h2 class="sc-land-h2">@Loc["features.panchTitle", "The Day's Timings, for Where You Stand"]</h2>
+                <p class="sc-land-lead">@Loc["features.panchBody", "Tithi, nakshatram, Rahu Kalam, Yamagandam and the auspicious muhurthas, computed for your location or for any region you choose."]</p>
+                <ul class="sc-land-points">
+                    <li data-reveal="right" style="--d:.1s"><i>✦</i>@Loc["features.panchPoint1", "Live calculation from your location"]</li>
+                    <li data-reveal="right" style="--d:.2s"><i>✦</i>@Loc["features.panchPoint2", "Auspicious and inauspicious windows at a glance"]</li>
+                    <li data-reveal="right" style="--d:.3s"><i>✦</i>@Loc["features.panchPoint3", "Share a beautiful Panchangam card"]</li>
+                </ul>
+            </div>
+            <div class="sc-land-feat-phone" data-reveal="phone-left">
+                <div class="sc-land-glow" aria-hidden="true"></div>
+                <div class="sc-land-phone-float">
+                    <div class="sc-land-phone">
+                        <div class="lp-screen">
+                            <div class="lp-status"><span>6:12</span><span class="lp-island"></span><span>▲ ▮▮▮ ▰</span></div>
+                            <div class="lp-topbar">
+                                <span class="lp-logo"><AppLogo Bare="true" /></span>
+                                <span class="lp-tb-titles"><b>@Loc["panchangam.title", "Panchangam"]</b><i>@Brand.AppName</i></span>
+                                <span class="lp-bell">🔔</span>
+                            </div>
+                            <div class="lp-body">
+                                <div class="lp-page-h"><span class="lp-chip live"><i></i>@Loc["panchangam.liveLocation", "Live · Your Location"]</span></div>
+                                <div class="lp-datenav"><span>‹</span><b>Thu, 19 Nov 2026</b><span>›</span></div>
+                                <div class="lp-sunrow">
+                                    <div><i>🌅</i><span>@Loc["panchangam.sunrise", "Sunrise"]</span><b>6:24 AM</b></div>
+                                    <div><i>🌇</i><span>@Loc["panchangam.sunset", "Sunset"]</span><b>5:38 PM</b></div>
+                                </div>
+                                <div class="lp-sec">@Loc["panchangam.groupDayElements", "Day & Elements"]</div>
+                                <div class="lp-grid2">
+                                    <div class="lp-fact"><span>@Loc["panchangam.tithi", "Tithi"]</span><b>Shukla Dashami</b></div>
+                                    <div class="lp-fact"><span>@Loc["panchangam.nakshatram", "Nakshatram"]</span><b>Revati</b></div>
+                                    <div class="lp-fact"><span>@Loc["panchangam.vaaram", "Vaaram (Day)"]</span><b>@Loc["calendar.thursday", "Thursday"]</b></div>
+                                    <div class="lp-fact"><span>@Loc["panchangam.masam", "Masam"]</span><b>Kartika</b></div>
+                                </div>
+                                <div class="lp-sec red">@Loc["panchangam.groupInauspicious", "Inauspicious"]</div>
+                                <div class="lp-row red"><span>@Loc["panchangam.rahuKalam", "Rahu Kalam"]</span><b>1:30 – 3:00 PM</b></div>
+                                <div class="lp-row red"><span>@Loc["panchangam.yamagandam", "Yamagandam"]</span><b>6:00 – 7:30 AM</b></div>
+                                <div class="lp-row red"><span>@Loc["panchangam.gulika", "Gulika"]</span><b>9:00 – 10:30 AM</b></div>
+                                <div class="lp-sec green">@Loc["panchangam.groupAuspicious", "Auspicious"]</div>
+                                <div class="lp-row green"><span>@Loc["panchangam.abhijitMuhurtham", "Abhijit Muhurtham"]</span><b>11:38 – 12:24 PM</b></div>
+                                <div class="lp-row green"><span>@Loc["panchangam.amruthaKalam", "Amrutha Kalam"]</span><b>7:12 – 8:48 AM</b></div>
+                                <div class="lp-fab">📤</div>
+                            </div>
+                            <nav class="lp-nav">
+                                <span>🏠<i>@Loc["features.tabHome", "Home"]</i></span>
+                                <span class="active">🗓️<i>@Loc["nav.panchangam", "Panchangam"]</i></span>
+                                <span>🙏<i>@Loc["nav.sadhana", "Sadhana"]</i></span>
+                                <span>📅<i>@Loc["mobileDashboard.calendar", "Calendar"]</i></span>
+                                <span>⋯<i>@Loc["nav.more", "More"]</i></span>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="sc-land-divider" aria-hidden="true"><i>✦</i></div>
+
+    @* ---------------- Feature 3: Calendar ---------------- *@
+    <section class="sc-land-feat" id="f-calendar">
+        <div class="sc-land-wrap sc-land-feat-grid">
+            <div class="sc-land-feat-copy" data-reveal="up">
+                <p class="sc-land-eyebrow"><span>📅</span>@Loc["features.calKicker", "Calendar"]</p>
+                <h2 class="sc-land-h2">@Loc["features.calTitle", "Every Festival, Every Moon"]</h2>
+                <p class="sc-land-lead">@Loc["features.calBody", "Lunar months, festivals and observances, Ekadashi and Purnima markers — and your own vratams, pujas and anniversaries, all on one calendar."]</p>
+                <ul class="sc-land-points">
+                    <li data-reveal="left" style="--d:.1s"><i>✦</i>@Loc["features.calPoint1", "Festivals and observances for your region"]</li>
+                    <li data-reveal="left" style="--d:.2s"><i>✦</i>@Loc["features.calPoint2", "Moon phases and the lunar months each month spans"]</li>
+                    <li data-reveal="left" style="--d:.3s"><i>✦</i>@Loc["features.calPoint3", "Mark your own vratams, pujas and anniversaries"]</li>
+                </ul>
+            </div>
+            <div class="sc-land-feat-phone" data-reveal="phone-right">
+                <div class="sc-land-glow" aria-hidden="true"></div>
+                <div class="sc-land-phone-float">
+                    <div class="sc-land-phone">
+                        <div class="lp-screen">
+                            <div class="lp-status"><span>6:12</span><span class="lp-island"></span><span>▲ ▮▮▮ ▰</span></div>
+                            <div class="lp-topbar">
+                                <span class="lp-logo"><AppLogo Bare="true" /></span>
+                                <span class="lp-tb-titles"><b>@Loc["mobileDashboard.calendar", "Calendar"]</b><i>@Brand.AppName</i></span>
+                                <span class="lp-bell">🔔</span>
+                            </div>
+                            <div class="lp-body">
+                                <div class="lp-page-h"><b class="lp-month">‹ &nbsp;@Loc["calendar.month11", "November"] 2026&nbsp; ›</b><span class="lp-chip">@Loc["calendar.monthView", "Month"]</span></div>
+                                <div class="lp-masam">Kartika · 1–24 &nbsp;·&nbsp; Margashira · 25–30</div>
+                                <div class="lp-dow">
+                                    <span>@Loc["calendar.dowSun", "Sun"]</span><span>@Loc["calendar.dowMon", "Mon"]</span><span>@Loc["calendar.dowTue", "Tue"]</span><span>@Loc["calendar.dowWed", "Wed"]</span><span>@Loc["calendar.dowThu", "Thu"]</span><span>@Loc["calendar.dowFri", "Fri"]</span><span>@Loc["calendar.dowSat", "Sat"]</span>
+                                </div>
+                                <div class="lp-days">
+                                    <span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span>
+                                    <span class="fest">8<i>🪔</i></span><span class="moon">9<i>🌑</i></span><span>10</span><span>11</span><span>12</span><span>13</span><span>14</span>
+                                    <span>15</span><span>16</span><span>17</span><span>18</span><span class="today">19</span><span class="obs">20<i></i></span><span>21</span>
+                                    <span class="obs">22<i></i></span><span>23</span><span class="fest moon">24<i>🌕</i></span><span>25</span><span>26</span><span class="mine">27<i>★</i></span><span>28</span>
+                                    <span>29</span><span>30</span><span class="off">1</span><span class="off">2</span><span class="off">3</span><span class="off">4</span><span class="off">5</span>
+                                </div>
+                                <div class="lp-sec">@Loc["calendar.festivalsAndObservances", "Festivals & Observances"]</div>
+                                <div class="lp-ev"><i>🪔</i><div><b>Deepavali</b><span>8 · @Loc["calendar.kind.festival", "Festival"]</span></div></div>
+                                <div class="lp-ev"><i>🌙</i><div><b>@Loc["calendar.marker.ekadashi", "Ekadashi"]</b><span>20 · @Loc["calendar.legendObservance", "Observance"]</span></div></div>
+                                <div class="lp-ev"><i>🌕</i><div><b>Karthika Purnima</b><span>24 · @Loc["calendar.kind.festival", "Festival"]</span></div></div>
+                                <div class="lp-ev mine"><i>★</i><div><b>@Loc["calendar.kind.anniversary", "Anniversary"]</b><span>27 · @Loc["calendar.legendMarks", "My Marks"]</span></div></div>
+                            </div>
+                            <nav class="lp-nav">
+                                <span>🏠<i>@Loc["features.tabHome", "Home"]</i></span>
+                                <span>🗓️<i>@Loc["nav.panchangam", "Panchangam"]</i></span>
+                                <span>🙏<i>@Loc["nav.sadhana", "Sadhana"]</i></span>
+                                <span class="active">📅<i>@Loc["mobileDashboard.calendar", "Calendar"]</i></span>
+                                <span>⋯<i>@Loc["nav.more", "More"]</i></span>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="sc-land-divider" aria-hidden="true"><i>✦</i></div>
+
+    @* ---------------- Feature 4: Japa ---------------- *@
+    <section class="sc-land-feat is-flip" id="f-japa">
+        <div class="sc-land-wrap sc-land-feat-grid">
+            <div class="sc-land-feat-copy" data-reveal="up">
+                <p class="sc-land-eyebrow"><span>📿</span>@Loc["features.japaKicker", "Japa & Sadhana"]</p>
+                <h2 class="sc-land-h2">@Loc["features.japaTitle", "Tap Anywhere. Count Every Chant."]</h2>
+                <p class="sc-land-lead">@Loc["features.japaBody", "The whole screen is your mala. Set the count for one mala, feel a gentle vibration as it completes, and watch your streak grow day by day."]</p>
+                <ul class="sc-land-points">
+                    <li data-reveal="right" style="--d:.1s"><i>✦</i>@Loc["features.japaPoint1", "Whole-screen tap counter with gentle vibration"]</li>
+                    <li data-reveal="right" style="--d:.2s"><i>✦</i>@Loc["features.japaPoint2", "Chant text in the language you read"]</li>
+                    <li data-reveal="right" style="--d:.3s"><i>✦</i>@Loc["features.japaPoint3", "Streaks, milestones and a card to share"]</li>
+                </ul>
+            </div>
+            <div class="sc-land-feat-phone" data-reveal="phone-left">
+                <div class="sc-land-glow" aria-hidden="true"></div>
+                <div class="sc-land-phone-float">
+                    <div class="sc-land-phone">
+                        <div class="lp-screen lp-screen-japa">
+                            <div class="lp-status"><span>6:12</span><span class="lp-island"></span><span>▲ ▮▮▮ ▰</span></div>
+                            <div class="lp-japa-h"><span>‹</span><b>Om Namah Shivaya</b><span>⚙</span></div>
+                            <div class="lp-body lp-japa">
+                                <div class="lp-japa-deity">🛕 Lord Shiva · @Loc["sadhana.recommendedToday", "Recommended for Today"]</div>
+                                <div class="lp-japa-ring">
+                                    <div class="lp-japa-count"><b>72</b><span>@Loc.TF("sadhana.ofCount", "of {0}", 108)</span></div>
+                                    <div class="lp-ripple"></div>
+                                    <div class="lp-ripple two"></div>
+                                </div>
+                                <div class="lp-japa-text">ॐ नमः शिवाय<i>Om Namah Shivaya</i></div>
+                                <div class="lp-beads"><i class="on"></i><i class="on"></i><i class="cur"></i><i></i><i></i><i></i><i></i><i></i></div>
+                                <div class="lp-japa-hint">👆 @Loc["sadhana.tapAnywhereHint", "Tap anywhere on the screen to count. Scroll to read."]</div>
+                                <div class="lp-japa-foot">
+                                    <div><b>2</b><span>@Loc["sadhana.malasToday", "Malas Today"]</span></div>
+                                    <div><b>12</b><span>@Loc["sadhana.dayStreak", "Day Streak"]</span></div>
+                                    <div><b>🔋</b><span>@Loc["sadhana.batterySaver", "Battery Saver"]</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="sc-land-divider" aria-hidden="true"><i>✦</i></div>
+
+    @* ---------------- Feature 5: Puja ---------------- *@
+    <section class="sc-land-feat" id="f-puja">
+        <div class="sc-land-wrap sc-land-feat-grid">
+            <div class="sc-land-feat-copy" data-reveal="up">
+                <p class="sc-land-eyebrow"><span>🪔</span>@Loc["features.pujaKicker", "Puja Process"]</p>
+                <h2 class="sc-land-h2">@Loc["features.pujaTitle", "Perform Every Puja with Confidence"]</h2>
+                <p class="sc-land-lead">@Loc["features.pujaBody", "Step-by-step guidance for every puja, with the materials you need listed first. Tap a step to mark it done and the app keeps your place."]</p>
+                <ul class="sc-land-points">
+                    <li data-reveal="left" style="--d:.1s"><i>✦</i>@Loc["features.pujaPoint1", "Required materials before you begin"]</li>
+                    <li data-reveal="left" style="--d:.2s"><i>✦</i>@Loc["features.pujaPoint2", "Steps you tick off as you go"]</li>
+                    <li data-reveal="left" style="--d:.3s"><i>✦</i>@Loc["features.pujaPoint3", "Pujas grouped by festival"]</li>
+                </ul>
+            </div>
+            <div class="sc-land-feat-phone" data-reveal="phone-right">
+                <div class="sc-land-glow" aria-hidden="true"></div>
+                <div class="sc-land-phone-float">
+                    <div class="sc-land-phone">
+                        <div class="lp-screen">
+                            <div class="lp-status"><span>6:12</span><span class="lp-island"></span><span>▲ ▮▮▮ ▰</span></div>
+                            <div class="lp-topbar">
+                                <span class="lp-logo"><AppLogo Bare="true" /></span>
+                                <span class="lp-tb-titles"><b>@Loc["pujaProcess.title", "Puja Process"]</b><i>@Brand.AppName</i></span>
+                                <span class="lp-bell">🔔</span>
+                            </div>
+                            <div class="lp-body">
+                                <div class="lp-puja-hero">
+                                    <span>🪔 @Loc.TF("dashboard.festivalWithName", "Festival · {0}", "Karthika Purnima")</span>
+                                    <b>Satyanarayana Vratam</b>
+                                    <small>@Loc.TF("pujaProcess.stepsOf", "{0} of {1} steps", 3, 9)</small>
+                                    <i class="lp-bar"><em></em></i>
+                                </div>
+                                <div class="lp-sec">@Loc["pujaProcess.materials", "Required Materials"]</div>
+                                <div class="lp-chips"><span>Turmeric</span><span>Kumkum</span><span>Betel Leaves</span><span>Bananas</span><span>Panchamrutam</span><span>Ghee Lamp</span></div>
+                                <div class="lp-sec">@Loc["pujaProcess.steps", "Steps"]</div>
+                                <div class="lp-step done"><i>✓</i><span>@Loc.TF("pujaProcess.stepN", "Step {0}", 1) · Sankalpam</span></div>
+                                <div class="lp-step done"><i>✓</i><span>@Loc.TF("pujaProcess.stepN", "Step {0}", 2) · Ganapati Puja</span></div>
+                                <div class="lp-step done"><i>✓</i><span>@Loc.TF("pujaProcess.stepN", "Step {0}", 3) · Kalasha Sthapana</span></div>
+                                <div class="lp-step current"><i>4</i><span>@Loc.TF("pujaProcess.stepN", "Step {0}", 4) · Avahanam</span><em>@Loc["pujaProcess.youAreHere", "You Are Here"]</em></div>
+                                <div class="lp-step"><i>5</i><span>@Loc.TF("pujaProcess.stepN", "Step {0}", 5) · Shodashopachara</span></div>
+                                <div class="lp-step"><i>6</i><span>@Loc.TF("pujaProcess.stepN", "Step {0}", 6) · Katha Shravanam</span></div>
+                                <div class="lp-cta">@Loc["pujaProcess.markDone", "Mark Done"]</div>
+                            </div>
+                            <nav class="lp-nav">
+                                <span>🏠<i>@Loc["features.tabHome", "Home"]</i></span>
+                                <span>🗓️<i>@Loc["nav.panchangam", "Panchangam"]</i></span>
+                                <span class="active">🙏<i>@Loc["nav.sadhana", "Sadhana"]</i></span>
+                                <span>📅<i>@Loc["mobileDashboard.calendar", "Calendar"]</i></span>
+                                <span>⋯<i>@Loc["nav.more", "More"]</i></span>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="sc-land-divider" aria-hidden="true"><i>✦</i></div>
+
+    @* ---------------- Feature 6: Prayers & reminders ---------------- *@
+    <section class="sc-land-feat is-flip" id="f-reminders">
+        <div class="sc-land-wrap sc-land-feat-grid">
+            <div class="sc-land-feat-copy" data-reveal="up">
+                <p class="sc-land-eyebrow"><span>🔔</span>@Loc["features.remindKicker", "Prayers & Reminders"]</p>
+                <h2 class="sc-land-h2">@Loc["features.remindTitle", "Never Miss a Sacred Moment"]</h2>
+                <p class="sc-land-lead">@Loc["features.remindBody", "Morning, noon and evening prayers with their windows, festival alerts and daily sadhana reminders — on your schedule, with quiet hours you control."]</p>
+                <ul class="sc-land-points">
+                    <li data-reveal="right" style="--d:.1s"><i>✦</i>@Loc["features.remindPoint1", "Time-of-day prayers with the chant to recite"]</li>
+                    <li data-reveal="right" style="--d:.2s"><i>✦</i>@Loc["features.remindPoint2", "Daily reminders and festival alerts"]</li>
+                    <li data-reveal="right" style="--d:.3s"><i>✦</i>@Loc["features.remindPoint3", "Quiet hours when the app stays silent"]</li>
+                </ul>
+            </div>
+            <div class="sc-land-feat-phone" data-reveal="phone-left">
+                <div class="sc-land-glow" aria-hidden="true"></div>
+                <div class="sc-land-phone-float">
+                    <div class="sc-land-phone">
+                        <div class="lp-screen">
+                            <div class="lp-status"><span>6:12</span><span class="lp-island"></span><span>▲ ▮▮▮ ▰</span></div>
+                            <div class="lp-topbar">
+                                <span class="lp-logo"><AppLogo Bare="true" /></span>
+                                <span class="lp-tb-titles"><b>@Loc["dashboard.prayersTitle", "Prayers"]</b><i>@Brand.AppName</i></span>
+                                <span class="lp-bell">🔔<i></i></span>
+                            </div>
+                            <div class="lp-body">
+                                <div class="lp-sec">@Loc["dashboard.prayersSub", "For this time of day"]</div>
+                                <div class="lp-prayer now"><i>🌇</i><div><b>Sandhya Vandanam</b><span>5:30 – 7:00 PM · Lingashtakam</span></div><em>@Loc["dashboard.prayerNow", "Now"]</em></div>
+                                <div class="lp-prayer done"><i>🌅</i><div><b>Prabhata Sandhya</b><span>5:30 – 8:00 AM · Suprabhatam</span></div><em>✓</em></div>
+                                <div class="lp-prayer"><i>🌙</i><div><b>Ratri Prarthana</b><span>8:30 – 10:00 PM · Shiva Panchakshari</span></div><em>@Loc["mobileDashboard.upNext", "Up Next"]</em></div>
+                                <div class="lp-sec">@Loc["myNotifications.title", "My Notifications"]</div>
+                                <div class="lp-toggle on"><span>Daily Sadhana Reminder</span><i></i></div>
+                                <div class="lp-toggle on"><span>Festival Alerts</span><i></i></div>
+                                <div class="lp-toggle on"><span>Ekadashi &amp; Purnima</span><i></i></div>
+                                <div class="lp-toggle"><span>@Loc["mobileDashboard.streakAtRisk", "Streak at Risk"]</span><i></i></div>
+                                <div class="lp-quiet"><b>🌙 @Loc["myNotifications.quietHours", "Quiet Hours"]</b><span>10:00 PM → 6:00 AM</span></div>
+                            </div>
+                            <nav class="lp-nav">
+                                <span>🏠<i>@Loc["features.tabHome", "Home"]</i></span>
+                                <span>🗓️<i>@Loc["nav.panchangam", "Panchangam"]</i></span>
+                                <span class="active">🙏<i>@Loc["nav.sadhana", "Sadhana"]</i></span>
+                                <span>📅<i>@Loc["mobileDashboard.calendar", "Calendar"]</i></span>
+                                <span>⋯<i>@Loc["nav.more", "More"]</i></span>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    @* ---------------- And more ---------------- *@
+    <section class="sc-land-more" id="f-more">
+        <div class="sc-land-wrap">
+            <div class="sc-land-center" data-reveal="up">
+                <p class="sc-land-eyebrow is-center"><span>✨</span>@Loc["features.moreSub", "Small touches that make the practice yours"]</p>
+                <h2 class="sc-land-h2">@Loc["features.moreTitle", "And So Much More"]</h2>
+            </div>
+            <div class="sc-land-more-grid">
+                <div class="sc-land-more-card" data-reveal="zoom" style="--d:.05s"><i>⭐</i><b>@Loc["features.moreFavTitle", "Favorites"]</b><span>@Loc["features.moreFavBody", "Keep your chants and deities one tap away."]</span></div>
+                <div class="sc-land-more-card" data-reveal="zoom" style="--d:.1s"><i>🖼️</i><b>@Loc["features.moreWallTitle", "Wallpapers"]</b><span>@Loc["features.moreWallBody", "Download deity wallpapers for your phone."]</span></div>
+                <div class="sc-land-more-card" data-reveal="zoom" style="--d:.15s"><i>🗣️</i><b>@Loc["features.moreLangTitle", "Five Languages"]</b><span>@Loc["features.moreLangBody", "English, Telugu, Hindi, Tamil and Kannada."]</span></div>
+                <div class="sc-land-more-card" data-reveal="zoom" style="--d:.2s"><i>🌗</i><b>@Loc["features.moreThemeTitle", "Light & Dark"]</b><span>@Loc["features.moreThemeBody", "A cream day theme and a calm night theme."]</span></div>
+                <div class="sc-land-more-card" data-reveal="zoom" style="--d:.25s"><i>📤</i><b>@Loc["features.moreShareTitle", "Share Cards"]</b><span>@Loc["features.moreShareBody", "Panchangam and sadhana cards for WhatsApp and Instagram."]</span></div>
+                <div class="sc-land-more-card" data-reveal="zoom" style="--d:.3s"><i>👤</i><b>@Loc["features.moreGuestTitle", "Browse as Guest"]</b><span>@Loc["features.moreGuestBody", "Look around first; sign in when you begin your sadhana."]</span></div>
+                <div class="sc-land-more-card" data-reveal="zoom" style="--d:.35s"><i>🔑</i><b>@Loc["features.moreGoogleTitle", "Sign in with Google"]</b><span>@Loc["features.moreGoogleBody", "One tap to sign in, on every device."]</span></div>
+                <div class="sc-land-more-card" data-reveal="zoom" style="--d:.4s"><i>🛡️</i><b>@Loc["features.morePrivacyTitle", "Privacy First"]</b><span>@Loc["features.morePrivacyBody", "No data selling and no background tracking."]</span></div>
+            </div>
+        </div>
+    </section>
+
+    @* ---------------- Download ---------------- *@
+    <section class="sc-land-dl" id="download">
+        <div class="sc-land-wrap">
+            <div class="sc-land-dl-card" data-reveal="zoom">
+                <div class="sc-land-dl-shine" aria-hidden="true"></div>
+                <div class="sc-land-center">
+                    <p class="sc-land-eyebrow is-center"><span>⬇</span>@Loc["features.dlKicker", "Download"]</p>
+                    <h2 class="sc-land-h2">@Loc["features.dlTitle", "Carry Your Sadhana Everywhere"]</h2>
+                    <p class="sc-land-lead">@Loc["features.dlSub", "Scan a code with your phone, or tap a badge to open the store."]</p>
+                </div>
+                <div class="sc-land-stores">
+                    <a class="sc-land-store" href="@PlayStoreUrl" target="_blank" rel="noopener" data-reveal="up" style="--d:.15s">
+                        <span class="sc-land-soon">@Loc["features.dlComingSoon", "Coming Soon"]</span>
+                        <span class="sc-land-qr-tile"><img class="sc-land-qr" src="_content/App.UI.Shared/landing/qr-play.svg" alt="@Loc["features.qrPlayAlt", "QR code for Google Play"]" /></span>
+                        <span class="sc-land-qr-hint">@Loc["features.dlScan", "Scan with your phone's camera"]</span>
+                        <span class="sc-land-badge">
+                            <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true">
+                                <path fill="#00D7FE" d="M3.6 2.3 13.3 12 3.6 21.7c-.4-.2-.6-.6-.6-1.1V3.4c0-.5.2-.9.6-1.1z" />
+                                <path fill="#00F076" d="M3.6 2.3c.3-.2.8-.2 1.2 0L17 9.3 13.3 12z" />
+                                <path fill="#FFC900" d="M17 9.3l3.5 2c.9.5.9 1 0 1.5l-3.5 2L13.3 12z" />
+                                <path fill="#F63448" d="M17 14.7 4.8 21.7c-.4.2-.9.2-1.2 0L13.3 12z" />
+                            </svg>
+                            <span><small>@Loc["features.dlGetItOn", "Get it on"]</small><b>Google Play</b></span>
+                        </span>
+                    </a>
+                    <a class="sc-land-store" href="@AppStoreUrl" target="_blank" rel="noopener" data-reveal="up" style="--d:.3s">
+                        <span class="sc-land-soon">@Loc["features.dlComingSoon", "Coming Soon"]</span>
+                        <span class="sc-land-qr-tile"><img class="sc-land-qr" src="_content/App.UI.Shared/landing/qr-appstore.svg" alt="@Loc["features.qrAppStoreAlt", "QR code for the App Store"]" /></span>
+                        <span class="sc-land-qr-hint">@Loc["features.dlScan", "Scan with your phone's camera"]</span>
+                        <span class="sc-land-badge">
+                            <svg viewBox="0 0 24 24" width="28" height="28" aria-hidden="true">
+                                <path fill="#fff" d="M16.4 12.6c0-2.2 1.8-3.2 1.9-3.3-1-1.5-2.6-1.7-3.2-1.7-1.4-.1-2.7.8-3.4.8-.7 0-1.8-.8-2.9-.8-1.5 0-2.9.9-3.7 2.2-1.6 2.7-.4 6.8 1.1 9 .8 1.1 1.7 2.3 2.8 2.3 1.1 0 1.6-.7 2.9-.7 1.4 0 1.7.7 2.9.7 1.2 0 2-1.1 2.7-2.2.9-1.3 1.2-2.5 1.2-2.6-.1 0-2.3-.9-2.3-3.7zM14.2 6.1c.6-.7 1-1.7.9-2.7-.9 0-1.9.6-2.6 1.3-.6.6-1.1 1.6-.9 2.6 1 .1 2-.5 2.6-1.2z" />
+                            </svg>
+                            <span><small>@Loc["features.dlDownloadOn", "Download on the"]</small><b>App Store</b></span>
+                        </span>
+                    </a>
+                </div>
+                <p class="sc-land-dl-web" data-reveal="up" style="--d:.4s">
+                    @Loc["features.dlWeb", "Or use it in your browser"] →
+                    <a href="login">@Loc["features.ctaWeb", "Open in Browser"]</a>
+                    <span aria-hidden="true">·</span>
+                    <a href="register">@Loc["auth.createAccount", "Create an Account"]</a>
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <footer class="sc-land-foot">
+        <div class="sc-land-wrap sc-land-foot-grid">
+            <div class="sc-land-foot-brand">
+                <AppLogo Size="40" />
+                <div>
+                    <b>@Brand.AppName</b>
+                    <span>@Loc["features.footerTag", "Dedicated to the eternal dharma"]</span>
+                </div>
+            </div>
+            <nav class="sc-land-foot-links">
+                <a href="privacy">🛡️ @Loc["privacy.viewPolicy", "Privacy Policy & Terms"]</a>
+                <a href="mailto:@Brand.SupportEmail">✉️ @Brand.SupportEmail</a>
+                <a href="@Brand.CompanyUrl" target="_blank" rel="noopener">🏢 @Brand.CompanyName</a>
+            </nav>
+            <small>© 2026 @Brand.CompanyName · @Brand.AppName</small>
+        </div>
+    </footer>
+</div>
+
+<style>
+    /* ---- The page takes the whole width of the public shell; the other public page keeps its 900px column. ---- */
+    .sc-public-body:has(.sc-land) { max-width: none; padding: 0; }
+
+    .sc-land {
+        --land-gold: #E4A951;
+        --land-saffron: #D47222;
+        --land-deep: #8D4E19;
+        --land-cream: #FFF3DC;
+        --land-ink: var(--color-on-surface);
+        --land-muted: var(--color-secondary);
+        --land-glass: color-mix(in srgb, var(--color-surface) 70%, transparent);
+        --land-glass-edge: rgba(255, 255, 255, 0.6);
+        --land-glass-shadow: 0 24px 60px -30px rgba(61, 33, 10, 0.35);
+        --land-glow: rgba(228, 169, 81, 0.42);
+        --land-glow-soft: rgba(212, 114, 34, 0.22);
+        --land-text-grad: linear-gradient(92deg, #B8651F 0%, #E4A951 35%, #D47222 60%, #8D4E19 100%);
+        --land-y: 0px;
+        --land-prog: 0;
+        --land-hero: 0;
+        position: relative;
+        z-index: 0;
+        isolation: isolate;
+        overflow-x: clip;
+        color: var(--land-ink);
+        font-family: var(--font-body);
+    }
+
+    :root[data-theme="dark"] .sc-land {
+        --land-glass: rgba(43, 29, 16, 0.58);
+        --land-glass-edge: rgba(255, 226, 168, 0.14);
+        --land-glass-shadow: 0 24px 60px -30px rgba(0, 0, 0, 0.7);
+        --land-glow: rgba(243, 159, 90, 0.34);
+        --land-glow-soft: rgba(243, 159, 90, 0.16);
+        --land-text-grad: linear-gradient(92deg, #FFE2A8 0%, #F39F5A 45%, #E4A951 75%, #FFD98A 100%);
+    }
+
+    .sc-land-wrap { width: 100%; max-width: 1180px; margin: 0 auto; padding: 0 1.25rem; }
+
+    /* ---- Scroll progress: a gold hairline under the top bar ---- */
+    .sc-land-progress {
+        position: fixed;
+        top: 60px;
+        left: 0;
+        width: 100%;
+        height: 3px;
+        z-index: 49;
+        background: linear-gradient(90deg, var(--land-gold), var(--land-saffron), var(--land-gold));
+        transform-origin: 0 50%;
+        transform: scaleX(var(--land-prog));
+        box-shadow: 0 0 12px var(--land-glow);
+        pointer-events: none;
+    }
+
+    /* ---- The sky: orbs and stars, fixed to the viewport, drifting with the scroll ---- */
+    .sc-land-sky { position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; }
+    .sc-land-orb {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(64px);
+        opacity: 0.55;
+        will-change: transform;
+        animation: land-drift 18s ease-in-out infinite alternate;
+    }
+    .sc-land-orb-a { width: 46vw; height: 46vw; left: -12vw; top: -8vh; background: radial-gradient(circle, rgba(228, 169, 81, 0.75), rgba(228, 169, 81, 0) 70%); transform: translate3d(0, calc(var(--land-y) * -0.08), 0); }
+    .sc-land-orb-b { width: 38vw; height: 38vw; right: -10vw; top: 30vh; background: radial-gradient(circle, rgba(212, 114, 34, 0.6), rgba(212, 114, 34, 0) 70%); animation-delay: -6s; transform: translate3d(0, calc(var(--land-y) * -0.14), 0); }
+    .sc-land-orb-c { width: 30vw; height: 30vw; left: 30vw; bottom: -14vh; background: radial-gradient(circle, rgba(255, 226, 168, 0.7), rgba(255, 226, 168, 0) 70%); animation-delay: -12s; transform: translate3d(0, calc(var(--land-y) * -0.05), 0); }
+    :root[data-theme="dark"] .sc-land-orb { opacity: 0.38; }
+    @@keyframes land-drift {
+        from { translate: 0 0; scale: 1; }
+        to { translate: 4vw 3vh; scale: 1.08; }
+    }
+
+    .sc-land-stars {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        background-image:
+            radial-gradient(1.5px 1.5px at 8% 18%, rgba(255, 240, 210, 0.9), transparent 60%),
+            radial-gradient(1px 1px at 22% 62%, rgba(255, 240, 210, 0.8), transparent 60%),
+            radial-gradient(1.5px 1.5px at 35% 30%, rgba(255, 226, 168, 0.9), transparent 60%),
+            radial-gradient(1px 1px at 48% 80%, rgba(255, 240, 210, 0.7), transparent 60%),
+            radial-gradient(2px 2px at 60% 12%, rgba(255, 226, 168, 0.95), transparent 60%),
+            radial-gradient(1px 1px at 70% 48%, rgba(255, 240, 210, 0.8), transparent 60%),
+            radial-gradient(1.5px 1.5px at 82% 72%, rgba(255, 226, 168, 0.9), transparent 60%),
+            radial-gradient(1px 1px at 90% 26%, rgba(255, 240, 210, 0.8), transparent 60%),
+            radial-gradient(1px 1px at 15% 88%, rgba(255, 240, 210, 0.7), transparent 60%),
+            radial-gradient(1.5px 1.5px at 55% 55%, rgba(255, 226, 168, 0.8), transparent 60%),
+            radial-gradient(1px 1px at 95% 92%, rgba(255, 240, 210, 0.7), transparent 60%),
+            radial-gradient(1px 1px at 40% 5%, rgba(255, 240, 210, 0.8), transparent 60%);
+        transform: translate3d(0, calc(var(--land-y) * -0.03), 0);
+        transition: opacity 0.6s ease;
+    }
+    :root[data-theme="dark"] .sc-land-stars { opacity: 0.85; animation: land-twinkle 6s ease-in-out infinite alternate; }
+    @@keyframes land-twinkle { from { opacity: 0.45; } to { opacity: 0.95; } }
+
+    /* ---- Load-in: the hero rises word by word ---- */
+    .sc-land-up {
+        opacity: 0;
+        transform: translateY(26px);
+        animation: land-up 1s cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
+        animation-delay: var(--d, 0s);
+    }
+    @@keyframes land-up { to { opacity: 1; transform: translateY(0); } }
+
+    /* ---- Reveal on scroll ---- */
+    .sc-land [data-reveal] {
+        opacity: 0;
+        transform: translateY(36px);
+        transition: opacity 0.9s ease, transform 1s cubic-bezier(0.2, 0.7, 0.2, 1);
+        transition-delay: var(--d, 0s);
+        /* Never a blank page: without its JS a reveal still shows after a moment. */
+        animation: land-safety 0s linear 2.5s forwards;
+    }
+    .sc-land.is-ready [data-reveal] { animation: none; }
+    .sc-land [data-reveal="left"] { transform: translateX(-44px); }
+    .sc-land [data-reveal="right"] { transform: translateX(44px); }
+    .sc-land [data-reveal="zoom"] { transform: scale(0.9) translateY(18px); }
+    .sc-land [data-reveal="phone-left"] { transform: perspective(1400px) rotateY(22deg) translateX(-60px) scale(0.92); }
+    .sc-land [data-reveal="phone-right"] { transform: perspective(1400px) rotateY(-22deg) translateX(60px) scale(0.92); }
+    .sc-land [data-reveal].is-in { opacity: 1; transform: none; }
+    @@keyframes land-safety { to { opacity: 1; transform: none; } }
+
+    /* ---- Type ---- */
+    .sc-land-h1 {
+        font-family: "Cinzel", var(--font-heading);
+        font-weight: 700;
+        font-size: clamp(2.3rem, 5.4vw, 4.6rem);
+        line-height: 1.04;
+        letter-spacing: 0.005em;
+        margin: 1rem 0 1.25rem;
+        color: var(--land-ink);
+    }
+    .sc-land-h1 > span { display: block; }
+    .sc-land-grad {
+        background: var(--land-text-grad);
+        background-size: 200% auto;
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        animation: land-up 1s cubic-bezier(0.2, 0.7, 0.2, 1) forwards, land-shimmer 7s linear 1.2s infinite;
+        animation-delay: var(--d, 0s), 1.2s;
+        filter: drop-shadow(0 6px 24px var(--land-glow-soft));
+    }
+    @@keyframes land-shimmer { to { background-position: 200% center; } }
+
+    .sc-land-h2 {
+        font-family: "Cinzel", var(--font-heading);
+        font-weight: 700;
+        font-size: clamp(1.7rem, 3.2vw, 2.7rem);
+        line-height: 1.12;
+        margin: 0.5rem 0 1rem;
+        color: var(--land-ink);
+    }
+    .sc-land-lead { font-size: clamp(1rem, 1.25vw, 1.15rem); line-height: 1.7; color: var(--land-muted); margin: 0 0 1.4rem; max-width: 34rem; }
+    .sc-land-center { text-align: center; }
+    .sc-land-center .sc-land-lead { margin-left: auto; margin-right: auto; }
+
+    .sc-land-eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--land-deep);
+        margin: 0;
+    }
+    :root[data-theme="dark"] .sc-land-eyebrow { color: var(--land-gold); }
+    .sc-land-eyebrow span {
+        display: grid;
+        place-items: center;
+        width: 2rem;
+        height: 2rem;
+        border-radius: 999px;
+        background: var(--land-glass);
+        border: 1px solid var(--land-glass-edge);
+        box-shadow: 0 6px 18px -8px var(--land-glow);
+        font-size: 1rem;
+        letter-spacing: 0;
+    }
+    .sc-land-eyebrow.is-center { justify-content: center; }
+
+    .sc-land-brandpill {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.35rem 0.85rem 0.35rem 0.4rem;
+        border-radius: 999px;
+        background: var(--land-glass);
+        border: 1px solid var(--land-glass-edge);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        font-weight: 700;
+        font-size: 0.9rem;
+        letter-spacing: 0.04em;
+        color: var(--land-ink);
+        box-shadow: 0 10px 30px -16px var(--land-glow);
+    }
+
+    /* ---- Hero ---- */
+    .sc-land-hero {
+        position: relative;
+        min-height: calc(100vh - 60px);
+        display: flex;
+        align-items: center;
+        padding: clamp(2.5rem, 6vh, 5rem) 0 4rem;
+        overflow: clip;
+    }
+    .sc-land-hero-grid {
+        display: grid;
+        grid-template-columns: 1.1fr 0.9fr;
+        gap: 3rem;
+        align-items: center;
+        position: relative;
+        z-index: 1;
+        /* fades and lifts away as the seeker scrolls on */
+        opacity: calc(1 - var(--land-hero) * 0.85);
+        transform: translateY(calc(var(--land-hero) * -40px));
+    }
+    .sc-land-hero-copy { max-width: 40rem; }
+    .sc-land-hero-sub { font-size: clamp(1.05rem, 1.4vw, 1.25rem); line-height: 1.7; color: var(--land-muted); margin: 0 0 1.75rem; max-width: 34rem; }
+
+    .sc-land-mandala {
+        position: absolute;
+        right: -8%;
+        top: 50%;
+        width: min(78vw, 900px);
+        aspect-ratio: 1;
+        transform: translateY(-50%);
+        color: var(--land-deep);
+        opacity: 0.22;
+        pointer-events: none;
+    }
+    :root[data-theme="dark"] .sc-land-mandala { color: var(--land-gold); opacity: 0.2; }
+    .sc-land-mandala-svg { width: 100%; height: 100%; overflow: visible; }
+    .sc-land-ring { transform-origin: 300px 300px; transform-box: view-box; }
+    .sc-land-ring-a { animation: land-spin 120s linear infinite; }
+    .sc-land-ring-b { animation: land-spin 80s linear infinite reverse; }
+    .sc-land-ring-c { animation: land-spin 50s linear infinite; }
+    @@keyframes land-spin { to { transform: rotate(360deg); } }
+
+    .sc-land-cta { display: flex; flex-wrap: wrap; gap: 0.85rem; margin-bottom: 1.5rem; }
+    .sc-land-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 0.95rem 1.5rem;
+        border-radius: 14px;
+        font: inherit;
+        font-weight: 700;
+        font-size: 1rem;
+        letter-spacing: 0.01em;
+        cursor: pointer;
+        text-decoration: none;
+        border: 1px solid transparent;
+        transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+    }
+    .sc-land-btn:hover { text-decoration: none; transform: translateY(-2px); }
+    .sc-land-btn:active { transform: translateY(0); }
+    .sc-land-btn-ic { font-size: 1.05em; line-height: 1; }
+    .sc-land-btn-primary {
+        color: #fff;
+        background: var(--gradient-gold);
+        box-shadow: 0 14px 34px -12px rgba(212, 114, 34, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+        position: relative;
+        overflow: hidden;
+    }
+    .sc-land-btn-primary::after {
+        content: "";
+        position: absolute;
+        top: -40%;
+        left: -60%;
+        width: 40%;
+        height: 180%;
+        background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.45), transparent);
+        transform: skewX(-20deg);
+        animation: land-sheen 4.5s ease-in-out 2s infinite;
+    }
+    @@keyframes land-sheen { 0%, 70% { left: -60%; } 100% { left: 140%; } }
+    .sc-land-btn-primary:hover { box-shadow: 0 18px 40px -12px rgba(212, 114, 34, 0.85), inset 0 1px 0 rgba(255, 255, 255, 0.35); }
+    .sc-land-btn-ghost {
+        color: var(--land-ink);
+        background: var(--land-glass);
+        border-color: var(--land-glass-edge);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+    }
+    .sc-land-btn-ghost:hover { border-color: var(--land-gold); box-shadow: 0 12px 30px -16px var(--land-glow); }
+
+    .sc-land-badges { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .sc-land-badges li {
+        font-size: 0.82rem;
+        font-weight: 600;
+        padding: 0.4rem 0.8rem;
+        border-radius: 999px;
+        background: color-mix(in srgb, var(--color-primary-container) 70%, transparent);
+        color: var(--color-on-primary-container);
+        border: 1px solid var(--glass-border);
+    }
+
+    /* The hero phone and what orbits it */
+    .sc-land-hero-stage {
+        position: relative;
+        display: grid;
+        place-items: center;
+        min-height: 560px;
+        --tilt-x: 0deg;
+        --tilt-y: 0deg;
+    }
+    .sc-land-tilt {
+        transform: perspective(1400px) rotateX(var(--tilt-x)) rotateY(var(--tilt-y));
+        transition: transform 0.5s cubic-bezier(0.2, 0.7, 0.2, 1);
+        transform-style: preserve-3d;
+    }
+    .sc-land-halo {
+        position: absolute;
+        width: 120%;
+        aspect-ratio: 1;
+        border-radius: 50%;
+        background: radial-gradient(circle, var(--land-glow) 0%, var(--land-glow-soft) 30%, transparent 62%);
+        filter: blur(10px);
+        animation: land-breathe 7s ease-in-out infinite;
+        pointer-events: none;
+    }
+    @@keyframes land-breathe { 0%, 100% { transform: scale(0.94); opacity: 0.8; } 50% { transform: scale(1.06); opacity: 1; } }
+    .sc-land-rays {
+        position: absolute;
+        width: 150%;
+        aspect-ratio: 1;
+        border-radius: 50%;
+        background: repeating-conic-gradient(from 0deg, var(--land-glow-soft) 0deg 5deg, transparent 5deg 18deg);
+        -webkit-mask: radial-gradient(circle, rgba(0, 0, 0, 0.9) 10%, transparent 58%);
+        mask: radial-gradient(circle, rgba(0, 0, 0, 0.9) 10%, transparent 58%);
+        animation: land-spin 70s linear infinite;
+        pointer-events: none;
+        opacity: 0.8;
+    }
+    .sc-land-phone-float { animation: land-float 7s ease-in-out infinite; will-change: transform; }
+    @@keyframes land-float { 0%, 100% { transform: translateY(-9px); } 50% { transform: translateY(9px); } }
+
+    .sc-land-chip {
+        position: absolute;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.55rem 0.9rem;
+        border-radius: 999px;
+        background: var(--land-glass);
+        border: 1px solid var(--land-glass-edge);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        box-shadow: var(--land-glass-shadow);
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: var(--land-ink);
+        white-space: nowrap;
+        animation: land-float 6s ease-in-out infinite;
+    }
+    .sc-land-chip b { font-size: 1rem; }
+    .sc-land-chip-a { top: 12%; left: 2%; animation-delay: -1.5s; }
+    .sc-land-chip-b { right: 0; top: 42%; animation-delay: -3s; }
+    .sc-land-chip-c { left: 6%; bottom: 14%; animation-delay: -4.5s; }
+
+    .sc-land-scrollhint {
+        position: absolute;
+        left: 50%;
+        bottom: 1.2rem;
+        transform: translateX(-50%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.4rem;
+        font-size: 0.75rem;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--land-muted);
+        opacity: calc(1 - var(--land-hero) * 4);
+    }
+    .sc-land-scrollhint i {
+        width: 1px;
+        height: 42px;
+        background: linear-gradient(var(--land-gold), transparent);
+        position: relative;
+        overflow: hidden;
+    }
+    .sc-land-scrollhint i::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: -40%;
+        width: 100%;
+        height: 40%;
+        background: var(--land-ink);
+        animation: land-dropline 1.8s ease-in-out infinite;
+    }
+    @@keyframes land-dropline { to { top: 110%; } }
+
+    /* ---- Feature sections ---- */
+    .sc-land-feat { position: relative; z-index: 1; padding: clamp(3rem, 8vh, 6rem) 0; }
+    .sc-land-feat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(2rem, 5vw, 5rem); align-items: center; }
+    .sc-land-feat.is-flip .sc-land-feat-copy { order: 2; }
+    .sc-land-feat-copy { max-width: 36rem; }
+    .sc-land-feat.is-flip .sc-land-feat-copy { margin-left: auto; }
+    .sc-land-feat-phone { position: relative; display: grid; place-items: center; }
+    .sc-land-glow {
+        position: absolute;
+        width: 110%;
+        aspect-ratio: 1;
+        border-radius: 50%;
+        background: radial-gradient(circle, var(--land-glow) 0%, transparent 60%);
+        filter: blur(20px);
+        pointer-events: none;
+        animation: land-breathe 8s ease-in-out infinite;
+    }
+    .sc-land-points { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.7rem; }
+    .sc-land-points li {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.75rem;
+        padding: 0.8rem 1rem;
+        border-radius: 14px;
+        background: var(--land-glass);
+        border: 1px solid var(--land-glass-edge);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        font-size: 0.98rem;
+        line-height: 1.5;
+        color: var(--land-ink);
+    }
+    .sc-land-points li i {
+        flex: none;
+        display: grid;
+        place-items: center;
+        width: 1.5rem;
+        height: 1.5rem;
+        border-radius: 999px;
+        background: var(--gradient-gold);
+        color: #fff;
+        font-size: 0.7rem;
+        font-style: normal;
+        box-shadow: 0 6px 14px -6px rgba(212, 114, 34, 0.7);
+    }
+
+    .sc-land-divider { position: relative; z-index: 1; display: flex; align-items: center; justify-content: center; gap: 1rem; margin: 0 auto; max-width: 720px; padding: 0 1.25rem; color: var(--land-gold); }
+    .sc-land-divider::before, .sc-land-divider::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, transparent, var(--land-gold), transparent); opacity: 0.6; }
+    .sc-land-divider i { font-style: normal; font-size: 0.9rem; animation: land-twinkle 3s ease-in-out infinite alternate; }
+
+    /* Scroll-driven settle, where the browser has it: a phone tilts upright as it enters */
+    @@supports (animation-timeline: view()) {
+        .sc-land-feat-phone .sc-land-phone-float {
+            animation: land-float 7s ease-in-out infinite, land-settle linear both;
+            animation-timeline: auto, view();
+            animation-range: normal, entry 5% cover 40%;
+        }
+        @@keyframes land-settle {
+            from { rotate: x 10deg; scale: 0.94; }
+            to { rotate: x 0deg; scale: 1; }
+        }
+    }
+
+    /* ---- And more ---- */
+    .sc-land-more { position: relative; z-index: 1; padding: clamp(3rem, 8vh, 6rem) 0 2rem; }
+    .sc-land-more-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-top: 2rem; }
+    .sc-land-more-card {
+        position: relative;
+        padding: 1.4rem 1.25rem 1.3rem;
+        border-radius: 20px;
+        background: var(--land-glass);
+        border: 1px solid var(--land-glass-edge);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        box-shadow: var(--land-glass-shadow);
+        display: grid;
+        gap: 0.45rem;
+        overflow: hidden;
+    }
+    .sc-land-more-card::before {
+        content: "";
+        position: absolute;
+        inset: -40% auto auto -40%;
+        width: 80%;
+        aspect-ratio: 1;
+        border-radius: 50%;
+        background: radial-gradient(circle, var(--land-glow-soft), transparent 70%);
+        transition: transform 0.6s ease;
+    }
+    .sc-land-more-card:hover::before { transform: translate(30%, 30%); }
+    .sc-land-more-card:hover { transform: translateY(-4px); box-shadow: 0 30px 60px -30px var(--land-glow); transition: transform 0.3s ease, box-shadow 0.3s ease; }
+    .sc-land-more-card i {
+        font-style: normal;
+        display: grid;
+        place-items: center;
+        width: 2.8rem;
+        height: 2.8rem;
+        border-radius: 14px;
+        background: var(--gradient-saffron);
+        color: #fff;
+        font-size: 1.35rem;
+        box-shadow: 0 10px 24px -10px rgba(141, 78, 25, 0.7);
+        margin-bottom: 0.3rem;
+    }
+    .sc-land-more-card b { font-family: var(--font-heading); font-size: 1.08rem; color: var(--land-ink); }
+    .sc-land-more-card span { font-size: 0.9rem; line-height: 1.5; color: var(--land-muted); }
+
+    /* ---- Download ---- */
+    .sc-land-dl { position: relative; z-index: 1; padding: clamp(2rem, 6vh, 4rem) 0 clamp(3rem, 8vh, 6rem); }
+    .sc-land-dl-card {
+        position: relative;
+        overflow: hidden;
+        padding: clamp(2rem, 5vw, 4rem) clamp(1.25rem, 4vw, 3.5rem);
+        border-radius: 32px;
+        background: var(--land-glass);
+        border: 1px solid var(--land-glass-edge);
+        backdrop-filter: blur(18px);
+        -webkit-backdrop-filter: blur(18px);
+        box-shadow: var(--land-glass-shadow), 0 0 0 1px rgba(228, 169, 81, 0.12), 0 0 80px -30px var(--land-glow);
+    }
+    .sc-land-dl-shine {
+        position: absolute;
+        inset: -50%;
+        background: conic-gradient(from 0deg, transparent 0 70%, var(--land-glow-soft) 80%, transparent 90%);
+        animation: land-spin 24s linear infinite;
+        pointer-events: none;
+        opacity: 0.9;
+    }
+    .sc-land-dl-card > * { position: relative; }
+    .sc-land-stores { display: flex; justify-content: center; flex-wrap: wrap; gap: 1.5rem; margin-top: 1.5rem; }
+    .sc-land-store {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.85rem;
+        width: min(100%, 290px);
+        padding: 1.8rem 1.25rem 1.5rem;
+        border-radius: 24px;
+        background: color-mix(in srgb, var(--color-surface) 85%, transparent);
+        border: 1px solid var(--land-glass-edge);
+        color: inherit;
+        text-decoration: none;
+        transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+    }
+    .sc-land-store:hover { text-decoration: none; transform: translateY(-6px); border-color: var(--land-gold); box-shadow: 0 30px 60px -28px var(--land-glow); }
+    .sc-land-soon {
+        position: absolute;
+        top: -0.7rem;
+        right: 1rem;
+        padding: 0.3rem 0.7rem;
+        border-radius: 999px;
+        background: var(--gradient-gold);
+        color: #fff;
+        font-size: 0.68rem;
+        font-weight: 800;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        box-shadow: var(--shadow-glow);
+    }
+    .sc-land-qr-tile { display: block; padding: 0.7rem; border-radius: 18px; background: #fff; box-shadow: inset 0 0 0 1px #E9E1D2, 0 10px 30px -18px rgba(61, 33, 10, 0.4); }
+    .sc-land-qr { display: block; width: 156px; height: 156px; color: #1B120A; }
+    .sc-land-qr-hint { font-size: 0.78rem; color: var(--land-muted); }
+    .sc-land-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.7rem;
+        padding: 0.55rem 1.1rem 0.55rem 0.85rem;
+        border-radius: 13px;
+        background: #111;
+        color: #fff;
+        border: 1px solid #3a3a3a;
+        min-width: 190px;
+    }
+    .sc-land-badge small { display: block; font-size: 0.6rem; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.85; line-height: 1.1; }
+    .sc-land-badge b { display: block; font-size: 1.15rem; line-height: 1.15; letter-spacing: 0.01em; }
+    .sc-land-dl-web { text-align: center; margin: 1.75rem 0 0; color: var(--land-muted); font-size: 0.95rem; }
+    .sc-land-dl-web a { font-weight: 700; color: var(--color-accent); }
+    .sc-land-dl-web span { margin: 0 0.4rem; }
+
+    /* ---- Footer ---- */
+    .sc-land-foot { position: relative; z-index: 1; padding: 2rem 0 3rem; border-top: 1px solid var(--glass-border); background: color-mix(in srgb, var(--color-surface) 55%, transparent); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+    .sc-land-foot-grid { display: grid; grid-template-columns: 1fr auto; gap: 1rem 2rem; align-items: center; }
+    .sc-land-foot-brand { display: flex; align-items: center; gap: 0.8rem; }
+    .sc-land-foot-brand b { display: block; font-family: var(--font-heading); font-size: 1.1rem; }
+    .sc-land-foot-brand span { display: block; font-size: 0.82rem; color: var(--land-muted); }
+    .sc-land-foot-links { display: flex; flex-wrap: wrap; gap: 0.5rem 1.25rem; font-size: 0.88rem; }
+    .sc-land-foot-links a { color: var(--land-ink); }
+    .sc-land-foot small { grid-column: 1 / -1; font-size: 0.78rem; color: var(--land-muted); }
+
+    /* =========================================================================
+       The phone: a frame drawn in CSS around a screen drawn from the app's tokens.
+       Everything inside is in em so one font-size scales the whole device.
+       ========================================================================= */
+    .sc-land-phone {
+        position: relative;
+        font-size: 12px;
+        width: 22.6em;
+        height: 46.8em;
+        border-radius: 3.4em;
+        padding: 0.6em;
+        background: linear-gradient(160deg, #3b2a1b 0%, #150d07 45%, #2a1a0e 100%);
+        box-shadow:
+            0 50px 90px -34px rgba(0, 0, 0, 0.6),
+            0 18px 40px -20px rgba(61, 33, 10, 0.5),
+            inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+        transform: translateZ(0);
+    }
+    .sc-land-phone::before {
+        content: "";
+        position: absolute;
+        inset: -2px;
+        border-radius: inherit;
+        padding: 2px;
+        background: linear-gradient(140deg, rgba(255, 226, 168, 0.95), rgba(228, 169, 81, 0.25) 28%, rgba(228, 169, 81, 0.12) 72%, rgba(255, 226, 168, 0.8));
+        -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+        -webkit-mask-composite: xor;
+        mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+        mask-composite: exclude;
+        pointer-events: none;
+    }
+    .sc-land-phone::after {
+        /* side buttons */
+        content: "";
+        position: absolute;
+        right: -0.3em;
+        top: 9em;
+        width: 0.3em;
+        height: 4.5em;
+        border-radius: 0 0.2em 0.2em 0;
+        background: #2a1a0e;
+        box-shadow: 0 7em 0 0 #2a1a0e, -23em -1em 0 0 #2a1a0e, -23em 2.6em 0 0 #2a1a0e;
+    }
+    .sc-land-phone-hero { font-size: 13px; }
+
+    .lp-screen {
+        position: absolute;
+        inset: 0.6em;
+        border-radius: 2.9em;
+        overflow: hidden;
+        background: var(--color-background);
+        color: var(--color-on-surface);
+        display: flex;
+        flex-direction: column;
+        font-family: var(--font-body);
+        line-height: 1.25;
+    }
+    .lp-screen::after {
+        /* glass reflection */
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        background: linear-gradient(115deg, rgba(255, 255, 255, 0.16) 0%, rgba(255, 255, 255, 0.04) 28%, transparent 46%);
+        pointer-events: none;
+    }
+    .lp-status { position: relative; flex: none; height: 3em; display: flex; align-items: center; justify-content: space-between; padding: 0.4em 1.7em 0; font-size: 0.95em; font-weight: 700; }
+    .lp-status span:last-child { font-size: 0.7em; letter-spacing: 0.08em; }
+    .lp-island { position: absolute; top: 0.6em; left: 50%; transform: translateX(-50%); width: 6.6em; height: 1.75em; border-radius: 1em; background: #0a0705; }
+
+    .lp-topbar {
+        flex: none;
+        display: flex;
+        align-items: center;
+        gap: 0.55em;
+        padding: 0.35em 1.1em 0.6em;
+        border-bottom: 1px solid var(--glass-border);
+        background: color-mix(in srgb, var(--color-surface) 88%, transparent);
+    }
+    .lp-logo { width: 2.2em; height: 2.2em; border-radius: 0.7em; background: var(--gradient-saffron); display: grid; place-items: center; color: #fff; font-size: 1em; font-family: var(--font-heading); box-shadow: 0 4px 10px -4px rgba(141, 78, 25, 0.7); }
+    .lp-logo .sc-logo-img { width: 1.4em; height: 1.4em; }
+    .lp-tb-titles { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.15; }
+    .lp-tb-titles b { font-size: 1em; font-family: var(--font-heading); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .lp-tb-titles i { font-style: normal; font-size: 0.68em; color: var(--color-secondary); }
+    .lp-bell { position: relative; font-size: 1.1em; }
+    .lp-bell i { position: absolute; top: -0.1em; right: -0.15em; width: 0.6em; height: 0.6em; border-radius: 50%; background: var(--color-error); border: 1.5px solid var(--color-surface); }
+
+    .lp-body { position: relative; flex: 1; min-height: 0; overflow: hidden; padding: 0.8em 1em 0; display: flex; flex-direction: column; gap: 0.7em; }
+    .lp-body::after {
+        /* the page runs on below the fold */
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 2.5em;
+        background: linear-gradient(transparent, var(--color-background));
+        pointer-events: none;
+    }
+
+    .lp-nav {
+        flex: none;
+        display: flex;
+        height: 4.4em;
+        padding: 0.3em 0.2em 0.6em;
+        border-top: 1px solid var(--glass-border);
+        background: color-mix(in srgb, var(--color-surface) 92%, transparent);
+    }
+    .lp-nav span { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.2em; font-size: 1.1em; color: var(--color-secondary); position: relative; }
+    .lp-nav span i { font-style: normal; font-size: 0.5em; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+    .lp-nav span.active { color: var(--color-primary); }
+    .lp-nav span.active::before { content: ""; position: absolute; top: 0.1em; width: 2.6em; height: 1.6em; border-radius: 999px; background: var(--color-primary-container); z-index: -1; }
+
+    /* shared bits */
+    .lp-sec { font-size: 0.7em; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--color-secondary); margin-top: 0.2em; }
+    .lp-sec.red { color: #B3261E; }
+    .lp-sec.green { color: #2E7D32; }
+    :root[data-theme="dark"] .lp-sec.red { color: #F2B8B5; }
+    :root[data-theme="dark"] .lp-sec.green { color: #9BD3A2; }
+    .lp-card { border-radius: 1.2em; padding: 0.8em 0.9em; background: color-mix(in srgb, var(--color-surface) 92%, transparent); border: 1px solid var(--glass-border); box-shadow: 0 6px 16px -10px rgba(61, 33, 10, 0.3); display: grid; gap: 0.45em; }
+    .lp-card-h { display: flex; justify-content: space-between; align-items: baseline; }
+    .lp-card-h b { font-family: var(--font-heading); font-size: 0.95em; }
+    .lp-card-h span { font-size: 0.66em; color: var(--color-secondary); }
+    .lp-kv { display: flex; justify-content: space-between; gap: 0.6em; font-size: 0.8em; padding: 0.25em 0; border-top: 1px dashed var(--color-outline); }
+    .lp-kv span { color: var(--color-secondary); }
+    .lp-kv b { text-align: right; }
+    .lp-kv.is-red b { color: #B3261E; }
+    :root[data-theme="dark"] .lp-kv.is-red b { color: #F2B8B5; }
+    .lp-chip { display: inline-flex; align-items: center; gap: 0.35em; font-size: 0.66em; font-weight: 700; padding: 0.3em 0.7em; border-radius: 999px; background: var(--color-primary-container); color: var(--color-on-primary-container); }
+    .lp-chip.live i { width: 0.7em; height: 0.7em; border-radius: 50%; background: #2E7D32; box-shadow: 0 0 0 0 rgba(46, 125, 50, 0.5); animation: lp-pulse 2s ease-out infinite; }
+    @@keyframes lp-pulse { to { box-shadow: 0 0 0 0.6em rgba(46, 125, 50, 0); } }
+    .lp-page-h { display: flex; justify-content: space-between; align-items: center; gap: 0.5em; }
+    .lp-page-h b.lp-month { font-family: var(--font-heading); font-size: 1em; }
+    .lp-tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5em; }
+    .lp-tiles.two { grid-template-columns: 1fr 1.25fr; }
+    .lp-tile { border-radius: 1em; padding: 0.65em 0.6em; background: color-mix(in srgb, var(--color-surface) 90%, transparent); border: 1px solid var(--glass-border); display: flex; flex-direction: column; align-items: center; text-align: center; gap: 0.1em; }
+    .lp-tile b { font-size: 1.35em; font-family: var(--font-heading); line-height: 1.1; }
+    .lp-tile span { font-size: 0.6em; color: var(--color-secondary); font-weight: 600; }
+    .lp-tile.accent { background: var(--color-primary-container); color: var(--color-on-primary-container); }
+    .lp-tile.accent span { color: inherit; opacity: 0.8; }
+    .lp-tile.lp-next i { font-style: normal; font-size: 1.1em; }
+    .lp-tile.lp-next b { font-size: 0.95em; }
+    .lp-tile.lp-sun { align-items: stretch; gap: 0.35em; }
+    .lp-tile.lp-sun span { display: flex; justify-content: space-between; font-size: 0.68em; }
+    .lp-tile.lp-sun b { font-size: 0.85em; }
+
+    /* home */
+    .lp-aurora { position: absolute; inset: -30% -20% auto; height: 60%; background: radial-gradient(60% 60% at 30% 30%, rgba(228, 169, 81, 0.35), transparent 70%), radial-gradient(50% 60% at 80% 20%, rgba(212, 114, 34, 0.25), transparent 70%); filter: blur(18px); pointer-events: none; }
+    .lp-greet { position: relative; display: flex; flex-direction: column; line-height: 1.2; }
+    .lp-greet-k { font-size: 0.7em; color: var(--color-secondary); font-weight: 600; }
+    .lp-greet-n { font-size: 1.3em; font-family: var(--font-heading); }
+    .lp-bento { position: relative; display: grid; grid-template-columns: 1.3fr 1fr; gap: 0.6em; }
+    .lp-streak { border-radius: 1.2em; padding: 0.85em 0.9em; color: #fff; background: var(--gradient-saffron); box-shadow: 0 10px 24px -12px rgba(141, 78, 25, 0.8); display: flex; flex-direction: column; gap: 0.2em; position: relative; overflow: hidden; }
+    .lp-streak::after { content: ""; position: absolute; right: -2em; top: -2em; width: 6em; height: 6em; border-radius: 50%; background: rgba(255, 255, 255, 0.12); }
+    .lp-streak-k { font-size: 0.68em; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; opacity: 0.9; }
+    .lp-streak-n { font-size: 2.6em; font-family: var(--font-heading); line-height: 1; }
+    .lp-streak-s { font-size: 0.62em; opacity: 0.9; line-height: 1.3; }
+    .lp-streak-bar { display: block; height: 0.45em; border-radius: 999px; background: rgba(255, 255, 255, 0.25); overflow: hidden; margin-top: 0.3em; }
+    .lp-streak-bar i { display: block; height: 100%; width: 0; border-radius: inherit; background: #FFE2A8; transition: width 1.6s cubic-bezier(0.2, 0.7, 0.2, 1) 0.4s; }
+    .is-in .lp-streak-bar i, .sc-land-hero .lp-streak-bar i { width: 72%; }
+    .lp-deity { border-radius: 1.2em; background-size: cover; background-position: center top; position: relative; min-height: 8.6em; display: flex; flex-direction: column; justify-content: flex-end; padding: 0.6em 0.7em; color: #fff; overflow: hidden; box-shadow: 0 10px 24px -12px rgba(0, 0, 0, 0.6); }
+    .lp-deity::before { content: ""; position: absolute; inset: 0; background: linear-gradient(transparent 40%, rgba(30, 14, 5, 0.85)); }
+    .lp-deity span, .lp-deity b { position: relative; }
+    .lp-deity span { font-size: 0.58em; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.9; }
+    .lp-deity b { font-size: 0.85em; font-family: var(--font-heading); }
+    .lp-bhakti { gap: 0.2em; padding: 0.5em 0.7em; }
+    .lp-bhakti-row { display: flex; align-items: center; gap: 0.6em; padding: 0.4em 0; }
+    .lp-bhakti-row + .lp-bhakti-row { border-top: 1px dashed var(--color-outline); }
+    .lp-bhakti-row i { font-style: normal; font-size: 1.2em; width: 2em; height: 2em; display: grid; place-items: center; border-radius: 0.7em; background: var(--color-primary-container); }
+    .lp-bhakti-row div { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+    .lp-bhakti-row b { font-size: 0.82em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .lp-bhakti-row span { font-size: 0.62em; color: var(--color-secondary); }
+    .lp-bhakti-row em { font-style: normal; color: var(--color-secondary); }
+
+    /* panchangam */
+    .lp-datenav { display: flex; justify-content: space-between; align-items: center; font-size: 0.85em; }
+    .lp-datenav span { color: var(--color-secondary); font-size: 1.3em; padding: 0 0.4em; }
+    .lp-datenav b { font-family: var(--font-heading); }
+    .lp-sunrow { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5em; }
+    .lp-sunrow div { display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto; column-gap: 0.5em; align-items: center; padding: 0.55em 0.7em; border-radius: 1em; background: var(--color-primary-container); color: var(--color-on-primary-container); }
+    .lp-sunrow i { grid-row: 1 / 3; font-style: normal; font-size: 1.4em; }
+    .lp-sunrow span { font-size: 0.6em; text-transform: uppercase; letter-spacing: 0.06em; opacity: 0.85; }
+    .lp-sunrow b { font-size: 0.85em; }
+    .lp-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0.45em; }
+    .lp-fact { padding: 0.5em 0.65em; border-radius: 0.9em; background: color-mix(in srgb, var(--color-surface) 92%, transparent); border: 1px solid var(--glass-border); display: flex; flex-direction: column; gap: 0.1em; }
+    .lp-fact span { font-size: 0.6em; color: var(--color-secondary); text-transform: uppercase; letter-spacing: 0.06em; }
+    .lp-fact b { font-size: 0.8em; }
+    .lp-row { display: flex; justify-content: space-between; align-items: center; gap: 0.5em; padding: 0.45em 0.7em; border-radius: 0.8em; font-size: 0.78em; border: 1px solid transparent; }
+    .lp-row.red { background: rgba(179, 38, 30, 0.1); border-color: rgba(179, 38, 30, 0.25); }
+    .lp-row.green { background: rgba(46, 125, 50, 0.1); border-color: rgba(46, 125, 50, 0.25); }
+    .lp-row span { color: var(--color-on-surface); }
+    .lp-row b { white-space: nowrap; }
+    .lp-fab { position: absolute; right: 1em; bottom: 1em; width: 3.2em; height: 3.2em; border-radius: 50%; display: grid; place-items: center; background: var(--gradient-saffron); color: #fff; font-size: 1.1em; box-shadow: 0 10px 22px -8px rgba(141, 78, 25, 0.7); z-index: 1; }
+
+    /* calendar */
+    .lp-masam { font-size: 0.62em; color: var(--color-secondary); text-align: center; }
+    .lp-dow { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: 0.6em; font-weight: 700; color: var(--color-secondary); text-transform: uppercase; }
+    .lp-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.2em; text-align: center; }
+    .lp-days span { position: relative; display: grid; place-items: center; height: 2.35em; border-radius: 0.6em; font-size: 0.8em; font-weight: 600; background: color-mix(in srgb, var(--color-surface) 92%, transparent); border: 1px solid var(--glass-border); padding-bottom: 0.4em; }
+    .lp-days span i { position: absolute; bottom: 0.15em; font-style: normal; font-size: 0.6em; line-height: 1; }
+    .lp-days span.obs i { width: 0.45em; height: 0.45em; border-radius: 50%; background: var(--color-accent); }
+    .lp-days span.fest { background: var(--color-primary-container); color: var(--color-on-primary-container); border-color: transparent; }
+    .lp-days span.mine i { color: var(--color-accent); }
+    .lp-days span.off { opacity: 0.35; }
+    .lp-days span.today { background: var(--gradient-saffron); color: #fff; border-color: transparent; box-shadow: 0 0 0 0 rgba(212, 114, 34, 0.6); animation: lp-today 2.4s ease-out infinite; }
+    @@keyframes lp-today { to { box-shadow: 0 0 0 0.6em rgba(212, 114, 34, 0); } }
+    .lp-ev { display: flex; align-items: center; gap: 0.6em; padding: 0.4em 0.6em; border-radius: 0.9em; background: color-mix(in srgb, var(--color-surface) 92%, transparent); border: 1px solid var(--glass-border); }
+    .lp-ev i { font-style: normal; font-size: 1.1em; width: 1.9em; height: 1.9em; display: grid; place-items: center; border-radius: 0.6em; background: var(--color-primary-container); }
+    .lp-ev.mine i { color: var(--color-accent); }
+    .lp-ev div { display: flex; flex-direction: column; }
+    .lp-ev b { font-size: 0.8em; }
+    .lp-ev span { font-size: 0.62em; color: var(--color-secondary); }
+
+    /* japa (immersive: no bottom bar, the whole screen counts) */
+    .lp-screen-japa { background: radial-gradient(90% 60% at 50% 0%, color-mix(in srgb, var(--color-primary-container) 80%, transparent), transparent 70%), var(--color-background); }
+    .lp-japa-h { flex: none; display: flex; justify-content: space-between; align-items: center; padding: 0.3em 1.1em 0.4em; }
+    .lp-japa-h b { font-family: var(--font-heading); font-size: 1em; }
+    .lp-japa-h span { color: var(--color-secondary); font-size: 1.1em; }
+    .lp-japa { align-items: center; justify-content: space-between; gap: 0.6em; text-align: center; padding-bottom: 1em; }
+    .lp-japa::after { display: none; }
+    .lp-japa-deity { font-size: 0.66em; font-weight: 700; padding: 0.35em 0.8em; border-radius: 999px; background: var(--color-primary-container); color: var(--color-on-primary-container); }
+    .lp-japa-ring { position: relative; width: 12.5em; height: 12.5em; border-radius: 50%; display: grid; place-items: center; background: conic-gradient(var(--color-accent) 0 240deg, color-mix(in srgb, var(--color-primary) 18%, transparent) 240deg 360deg); box-shadow: 0 20px 40px -24px rgba(141, 78, 25, 0.7); }
+    .lp-japa-ring::before { content: ""; position: absolute; inset: 0.9em; border-radius: 50%; background: var(--color-background); }
+    .lp-japa-count { position: relative; display: flex; flex-direction: column; line-height: 1; }
+    .lp-japa-count b { font-size: 3.6em; font-family: var(--font-heading); }
+    .lp-japa-count span { font-size: 0.75em; color: var(--color-secondary); margin-top: 0.4em; }
+    .lp-ripple { position: absolute; inset: -0.5em; border-radius: 50%; border: 2px solid var(--color-accent); opacity: 0; animation: lp-ripple 3s ease-out infinite; }
+    .lp-ripple.two { animation-delay: 1.5s; }
+    @@keyframes lp-ripple { 0% { transform: scale(0.9); opacity: 0.7; } 100% { transform: scale(1.35); opacity: 0; } }
+    .lp-japa-text { font-size: 1.25em; font-family: var(--font-heading); display: flex; flex-direction: column; gap: 0.15em; }
+    .lp-japa-text i { font-style: normal; font-size: 0.6em; color: var(--color-secondary); font-family: var(--font-body); }
+    .lp-beads { display: flex; gap: 0.45em; }
+    .lp-beads i { width: 0.9em; height: 0.9em; border-radius: 50%; background: color-mix(in srgb, var(--color-primary) 20%, transparent); }
+    .lp-beads i.on { background: var(--gradient-gold); }
+    .lp-beads i.cur { background: var(--color-accent); box-shadow: 0 0 0 0.25em rgba(212, 114, 34, 0.25); }
+    .lp-japa-hint { font-size: 0.62em; color: var(--color-secondary); padding: 0 1em; }
+    .lp-japa-foot { width: 100%; display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.4em; }
+    .lp-japa-foot div { display: flex; flex-direction: column; align-items: center; padding: 0.5em 0.3em; border-radius: 0.9em; background: color-mix(in srgb, var(--color-surface) 92%, transparent); border: 1px solid var(--glass-border); }
+    .lp-japa-foot b { font-size: 1.1em; font-family: var(--font-heading); }
+    .lp-japa-foot span { font-size: 0.55em; color: var(--color-secondary); font-weight: 600; text-align: center; }
+
+    /* puja */
+    .lp-puja-hero { border-radius: 1.2em; padding: 0.8em 0.9em; color: #fff; background: var(--gradient-saffron); display: flex; flex-direction: column; gap: 0.2em; box-shadow: 0 10px 24px -12px rgba(141, 78, 25, 0.8); }
+    .lp-puja-hero span { font-size: 0.62em; text-transform: uppercase; letter-spacing: 0.06em; opacity: 0.9; }
+    .lp-puja-hero b { font-size: 1.1em; font-family: var(--font-heading); }
+    .lp-puja-hero small { font-size: 0.62em; opacity: 0.9; }
+    .lp-bar { display: block; height: 0.45em; border-radius: 999px; background: rgba(255, 255, 255, 0.25); overflow: hidden; margin-top: 0.25em; }
+    .lp-bar em { display: block; height: 100%; width: 0; background: #FFE2A8; border-radius: inherit; transition: width 1.6s cubic-bezier(0.2, 0.7, 0.2, 1) 0.4s; }
+    .is-in .lp-bar em { width: 33%; }
+    .lp-chips { display: flex; flex-wrap: wrap; gap: 0.35em; }
+    .lp-chips span { font-size: 0.62em; font-weight: 600; padding: 0.3em 0.65em; border-radius: 999px; background: var(--color-primary-container); color: var(--color-on-primary-container); }
+    .lp-step { display: flex; align-items: center; gap: 0.6em; padding: 0.45em 0.6em; border-radius: 0.9em; background: color-mix(in srgb, var(--color-surface) 92%, transparent); border: 1px solid var(--glass-border); font-size: 0.78em; position: relative; }
+    .lp-step i { flex: none; font-style: normal; width: 1.8em; height: 1.8em; border-radius: 50%; display: grid; place-items: center; font-size: 0.85em; font-weight: 800; background: color-mix(in srgb, var(--color-primary) 14%, transparent); color: var(--color-secondary); }
+    .lp-step.done i { background: #2E7D32; color: #fff; }
+    .lp-step.done span { color: var(--color-secondary); text-decoration: line-through; text-decoration-color: color-mix(in srgb, var(--color-secondary) 50%, transparent); }
+    .lp-step.current { border-color: var(--color-accent); background: color-mix(in srgb, var(--color-accent) 10%, var(--color-surface)); }
+    .lp-step.current i { background: var(--gradient-gold); color: #fff; }
+    .lp-step span { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .lp-step em { font-style: normal; font-size: 0.72em; font-weight: 800; color: var(--color-accent); white-space: nowrap; }
+    .lp-cta { align-self: center; margin-top: 0.1em; padding: 0.55em 1.4em; border-radius: 0.9em; background: var(--gradient-gold); color: #fff; font-weight: 800; font-size: 0.8em; box-shadow: 0 8px 18px -8px rgba(212, 114, 34, 0.8); }
+
+    /* prayers & reminders */
+    .lp-prayer { display: flex; align-items: center; gap: 0.6em; padding: 0.5em 0.65em; border-radius: 1em; background: color-mix(in srgb, var(--color-surface) 92%, transparent); border: 1px solid var(--glass-border); }
+    .lp-prayer i { font-style: normal; font-size: 1.2em; width: 2.1em; height: 2.1em; display: grid; place-items: center; border-radius: 0.7em; background: var(--color-primary-container); }
+    .lp-prayer div { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+    .lp-prayer b { font-size: 0.82em; }
+    .lp-prayer span { font-size: 0.6em; color: var(--color-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .lp-prayer em { font-style: normal; font-size: 0.6em; font-weight: 800; padding: 0.3em 0.6em; border-radius: 999px; background: color-mix(in srgb, var(--color-primary) 12%, transparent); color: var(--color-secondary); white-space: nowrap; }
+    .lp-prayer.now { border-color: var(--color-accent); }
+    .lp-prayer.now em { background: var(--gradient-gold); color: #fff; animation: lp-glow 2s ease-in-out infinite alternate; }
+    @@keyframes lp-glow { from { box-shadow: 0 0 0 0 rgba(212, 114, 34, 0.4); } to { box-shadow: 0 0 0 0.4em rgba(212, 114, 34, 0); } }
+    .lp-prayer.done em { background: #2E7D32; color: #fff; }
+    .lp-toggle { display: flex; justify-content: space-between; align-items: center; padding: 0.5em 0.7em; border-radius: 0.9em; background: color-mix(in srgb, var(--color-surface) 92%, transparent); border: 1px solid var(--glass-border); font-size: 0.78em; font-weight: 600; }
+    .lp-toggle i { width: 2.6em; height: 1.45em; border-radius: 999px; background: color-mix(in srgb, var(--color-secondary) 35%, transparent); position: relative; transition: background 0.3s; }
+    .lp-toggle i::after { content: ""; position: absolute; top: 0.15em; left: 0.15em; width: 1.15em; height: 1.15em; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3); transition: left 0.3s; }
+    .lp-toggle.on i { background: var(--color-accent); }
+    .lp-toggle.on i::after { left: 1.3em; }
+    .lp-quiet { display: flex; justify-content: space-between; align-items: center; padding: 0.6em 0.8em; border-radius: 1em; background: var(--color-primary-container); color: var(--color-on-primary-container); font-size: 0.75em; }
+    .lp-quiet b { font-weight: 800; }
+
+    /* ---- Responsive ---- */
+    @@media (max-width: 1100px) {
+        .sc-land-more-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @@media (max-width: 980px) {
+        .sc-land-hero { min-height: 0; padding-top: 2rem; }
+        .sc-land-hero-grid { grid-template-columns: 1fr; gap: 2.5rem; text-align: center; }
+        .sc-land-hero-copy { margin: 0 auto; }
+        .sc-land-hero-sub, .sc-land-lead { margin-left: auto; margin-right: auto; }
+        .sc-land-cta, .sc-land-badges { justify-content: center; }
+        .sc-land-hero-stage { min-height: 0; padding: 1.5rem 0 2.5rem; }
+        .sc-land-mandala { right: 50%; top: 62%; transform: translate(50%, -50%); width: min(120vw, 760px); }
+        .sc-land-scrollhint { display: none; }
+        .sc-land-feat-grid { grid-template-columns: 1fr; gap: 2.5rem; }
+        .sc-land-feat.is-flip .sc-land-feat-copy { order: 0; margin-left: 0; }
+        .sc-land-feat-copy { max-width: 36rem; margin: 0 auto; text-align: center; }
+        .sc-land-eyebrow { justify-content: center; }
+        .sc-land-points li { text-align: left; }
+        .sc-land [data-reveal="phone-left"], .sc-land [data-reveal="phone-right"] { transform: perspective(1400px) rotateX(10deg) translateY(50px) scale(0.94); }
+        .sc-land-foot-grid { grid-template-columns: 1fr; text-align: center; }
+        .sc-land-foot-brand { justify-content: center; }
+        .sc-land-foot-links { justify-content: center; }
+    }
+    @@media (max-width: 640px) {
+        .sc-land-more-grid { grid-template-columns: 1fr; }
+        .sc-land-chip-a { left: 0; top: 4%; }
+        .sc-land-chip-b { right: 0; top: 46%; }
+        .sc-land-chip-c { left: 0; bottom: 8%; }
+        .sc-land-phone-hero { font-size: 11.5px; }
+        .sc-land-stores { gap: 1.25rem; }
+    }
+    @@media (max-width: 420px) {
+        .sc-land-phone { font-size: 10.5px; }
+        .sc-land-phone-hero { font-size: 10.5px; }
+        .sc-land-chip { font-size: 0.72rem; padding: 0.45rem 0.7rem; }
+        .sc-land-btn { width: 100%; justify-content: center; }
+    }
+
+    /* ---- Reduced motion: everything in its final place, nothing moving ---- */
+    @@media (prefers-reduced-motion: reduce) {
+        .sc-land *, .sc-land *::before, .sc-land *::after { animation: none !important; transition: none !important; }
+        .sc-land .sc-land-up, .sc-land [data-reveal] { opacity: 1; transform: none; }
+        .sc-land-hero-grid, .sc-land-scrollhint { opacity: 1; transform: none; }
+        .sc-land-progress { display: none; }
+        .lp-streak-bar i { width: 72%; }
+        .lp-bar em { width: 33%; }
+    }
+
+    @@media print {
+        .sc-land-sky, .sc-land-progress, .sc-land-mandala, .sc-land-halo, .sc-land-rays { display: none !important; }
+    }
+</style>
+
+@code {
+    // Placeholders until the listings exist. The Play Store address is already the final one — it
+    // follows from the ApplicationId in App.Mobile.csproj — and the App Store id is a dummy. The
+    // two QR codes in wwwroot/landing/ encode exactly these; regenerate them when these change.
+    private const string PlayStoreUrl = "https://play.google.com/store/apps/details?id=com.sanathana.companion";
+    private const string AppStoreUrl = "https://apps.apple.com/app/id0000000000";
+
+    private ElementReference _root;
+    private IJSObjectReference? _module;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!firstRender) return;
+        try
+        {
+            _module = await JS.InvokeAsync<IJSObjectReference>("import", "./_content/App.UI.Shared/landing.js");
+            await _module.InvokeVoidAsync("attach", _root);
+        }
+        catch
+        {
+            // Without the module the page still shows (land-safety); only the scroll motion is lost.
+        }
+    }
+
+    private async Task ScrollToDownload()
+    {
+        if (_module is null) return;
+        try { await _module.InvokeVoidAsync("scrollTo", "download"); }
+        catch { /* the page is going away */ }
+    }
+
+    public override void Dispose()
+    {
+        if (_module is not null) _ = DisposeModuleAsync(_module);
+        base.Dispose();
+    }
+
+    private static async Task DisposeModuleAsync(IJSObjectReference module)
+    {
+        try
+        {
+            await module.InvokeVoidAsync("detach");
+            await module.DisposeAsync();
+        }
+        catch { /* the page, or the WebView, is already gone */ }
+    }
+}
