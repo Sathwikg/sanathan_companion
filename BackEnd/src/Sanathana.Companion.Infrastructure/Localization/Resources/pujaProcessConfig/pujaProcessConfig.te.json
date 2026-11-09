@@ -20,5 +20,6 @@
   "pujaProcessConfig.steps": "దశలు",
   "pujaProcessConfig.stepsSub": "చూపిన క్రమంలో స్వయంచాలకంగా సంఖ్యలు వేయబడతాయి",
   "pujaProcessConfig.sub": "కావలసిన సామగ్రి మరియు దశల వారీ విధానం",
-  "pujaProcessConfig.title": "పూజా విధానం"
+  "pujaProcessConfig.title": "పూజా విధానం",
+  "pujaProcessConfig.searchPuja": "పూజలను వెతకండి…"
 }

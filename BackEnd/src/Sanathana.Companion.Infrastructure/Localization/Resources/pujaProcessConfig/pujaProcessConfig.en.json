@@ -20,5 +20,6 @@
   "pujaProcessConfig.steps": "Steps",
   "pujaProcessConfig.stepsSub": "Numbered automatically in the order shown",
   "pujaProcessConfig.sub": "Required materials and the step-by-step process",
-  "pujaProcessConfig.title": "Puja Process"
+  "pujaProcessConfig.title": "Puja Process",
+  "pujaProcessConfig.searchPuja": "Search pujas…"
 }
