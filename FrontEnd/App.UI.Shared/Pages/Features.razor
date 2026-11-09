@@ -976,9 +976,12 @@
         animation: land-float 6s ease-in-out infinite;
     }
     .sc-land-chip b { font-size: 1rem; }
-    .sc-land-chip-a { top: 12%; left: 2%; animation-delay: -1.5s; }
-    .sc-land-chip-b { right: 0; top: 42%; animation-delay: -3s; }
-    .sc-land-chip-c { left: 6%; bottom: 14%; animation-delay: -4.5s; }
+    /* Placed from the stage's centre line so each chip tucks a finger's width under the phone's
+       bezel and no further, whatever the stage's width: the hero phone is 22.6em at 13px, so
+       its edge is 9.2rem from the centre. */
+    .sc-land-chip-a { top: 12%; right: calc(50% + 8.4rem); animation-delay: -1.5s; }
+    .sc-land-chip-b { left: calc(50% + 8.4rem); top: 42%; animation-delay: -3s; }
+    .sc-land-chip-c { right: calc(50% + 8.4rem); bottom: 14%; animation-delay: -4.5s; }
 
     .sc-land-scrollhint {
         position: absolute;
@@ -1509,9 +1512,11 @@
     }
     @@media (max-width: 640px) {
         .sc-land-more-grid { grid-template-columns: 1fr; }
-        .sc-land-chip-a { left: 0; top: 4%; }
-        .sc-land-chip-b { right: 0; top: 46%; }
-        .sc-land-chip-c { left: 0; bottom: 8%; }
+        /* No room beside the phone: two chips float above it, the third goes. */
+        .sc-land-hero-stage { padding-top: 2.75rem; }
+        .sc-land-chip-a { top: 0; left: 0; right: auto; }
+        .sc-land-chip-b { top: 0; right: 0; left: auto; }
+        .sc-land-chip-c { display: none; }
         .sc-land-phone-hero { font-size: 11.5px; }
         .sc-land-stores { gap: 1.25rem; }
     }
