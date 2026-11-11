@@ -4,10 +4,10 @@ using App.Core.Models;
 
 /// <summary>Schedules the seeker's daily reminders with the operating system. One per host.</summary>
 /// <remarks>
-/// The API models what a seeker wants to be reminded about but has no delivery mechanism at all —
-/// no push registration, no scheduler, no background job. Locally scheduled notifications are the
-/// only thing that can close that gap from the client, and they are also the cheapest: the OS holds
-/// the schedule and wakes the app, so nothing polls and nothing runs while the phone sleeps.
+/// The server now pushes most notifications itself. What is left for the phone is the plain daily
+/// reminder, and the sadhana reminder on a phone push cannot reach (see <see cref="ReminderPlanner"/>).
+/// Locally scheduled notifications are the cheapest way to deliver those: the OS holds the schedule
+/// and wakes the app, so nothing polls and nothing runs while the phone sleeps.
 /// </remarks>
 public interface IReminderScheduler
 {
@@ -18,7 +18,9 @@ public interface IReminderScheduler
     Task<bool> IsAllowedAsync();
 
     /// <summary>Replaces every scheduled reminder with the ones these preferences imply.</summary>
-    Task SyncAsync(MyNotificationSettings? settings);
+    /// <param name="pushDelivers">The server reaches this phone by push, so it sends the timed types itself.</param>
+    /// <param name="label">A label lookup in the seeker's language; null when there is none to offer.</param>
+    Task SyncAsync(MyNotificationSettings? settings, bool pushDelivers = false, Func<string, string?>? label = null);
 
     /// <summary>Cancels everything. Used on sign-out, so one seeker's reminders never reach the next.</summary>
     Task ClearAsync();
@@ -31,6 +33,6 @@ public interface IReminderScheduler
 public sealed class NoOpReminderScheduler : IReminderScheduler
 {
     public Task<bool> IsAllowedAsync() => Task.FromResult(false);
-    public Task SyncAsync(MyNotificationSettings? settings) => Task.CompletedTask;
+    public Task SyncAsync(MyNotificationSettings? settings, bool pushDelivers = false, Func<string, string?>? label = null) => Task.CompletedTask;
     public Task ClearAsync() => Task.CompletedTask;
 }

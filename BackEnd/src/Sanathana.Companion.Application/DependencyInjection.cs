@@ -2,6 +2,7 @@ using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 using Sanathana.Companion.Application.Common.Translation;
 using Sanathana.Companion.Application.Interfaces;
+using Sanathana.Companion.Application.Notifications;
 using Sanathana.Companion.Application.Services;
 
 namespace Sanathana.Companion.Application;
@@ -48,6 +49,10 @@ public static class DependencyInjection
         services.AddScoped<IFeedbackService, FeedbackService>();
         services.AddScoped<IFavoritesService, FavoritesService>();
         services.AddScoped<INotificationService, NotificationService>();
+        services.AddScoped<INotificationEngine, NotificationEngine>();
+        services.AddScoped<INotificationConsoleService, NotificationConsoleService>();
+        services.AddScoped<IPushTextProvider, PushTextProvider>();
+        services.AddSingleton<PushTextCache>();
         services.AddScoped<IAdConfigService, AdConfigService>();
         services.AddScoped<IAuditService, AuditService>();
         services.AddScoped<IAuditSessionTracker, AuditSessionTracker>();

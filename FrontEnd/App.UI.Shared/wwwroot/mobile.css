@@ -315,6 +315,49 @@
 
 .scm-notif-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.4rem; }
 
+/* The panel's two halves: what arrived, then what is switched on. */
+.scm-panel-h {
+  margin: 0.7rem 0.35rem 0.4rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-secondary);
+}
+.scm-panel-h:first-child { margin-top: 0.2rem; }
+.scm-empty-tight { padding: 0.9rem 1rem 1.1rem; }
+
+/* One delivered notification. A button, because the whole row opens the page it is about. */
+.scm-inbox {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  width: 100%;
+  padding: 0.65rem 0.7rem;
+  border: 1px solid var(--glass-border);
+  border-radius: 14px;
+  background: var(--color-surface);
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+.scm-inbox:active { background: var(--scm-tint); }
+.scm-inbox.is-new {
+  border-color: color-mix(in srgb, var(--color-accent) 45%, transparent);
+  background: color-mix(in srgb, var(--color-accent) 7%, var(--color-surface));
+}
+.scm-inbox-dot {
+  flex-shrink: 0;
+  width: 0.5rem;
+  height: 0.5rem;
+  margin-top: 0.42rem;
+  border-radius: 50%;
+  background: transparent;
+}
+.scm-inbox.is-new .scm-inbox-dot { background: var(--color-accent); }
+.scm-inbox .scm-notif-desc { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+
 .scm-notif {
   display: flex; align-items: flex-start; gap: 0.7rem;
   padding: 0.7rem 0.75rem;

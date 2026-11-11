@@ -8,6 +8,8 @@
 @inject LanguageContext LangContext
 @inject MenuState Menus
 @inject MenuRefreshService MenuRefresh
+@inject DeepLinks Links
+@inject NotificationCenterState Center
 @inject AppConfig Config
 @inject IJSRuntime JS
 @implements IDisposable
@@ -137,6 +139,9 @@
         Nav.LocationChanged += RouteChanged;
         MenuRefresh.OnChanged += MenuEdited;
         Menus.OnChanged += MenuChanged;
+        Links.Arrived += LinkArrived;
+        Links.Received += PushReceived;
+        Links.TokenReplaced += PushTokenReplaced;
 
         SetRoute();
         await Loc.EnsureLoadedAsync();
@@ -144,6 +149,28 @@
         // language switch re-keys this layout (Routes.razor), and this call is what then refetches
         // the menu in the new language.
         await Menus.EnsureLoadedAsync();
+
+        // A notification tapped while the app was closed: its page was waiting for a layout to
+        // exist. Followed last, once the language and the menu are in, so the page it opens renders
+        // complete rather than racing them.
+        FollowLink();
+    }
+
+    private void LinkArrived() => InvokeAsync(FollowLink);
+
+    // Both arrive from the native shell on its own thread; the notification centre raises OnChanged,
+    // which the bell marshals onto the renderer itself.
+    private void PushReceived() => _ = InvokeAsync(Center.RefreshInboxAsync);
+
+    private void PushTokenReplaced() => _ = InvokeAsync(Center.RegisterDeviceAsync);
+
+    /// <summary>Opens the page a tapped notification is about, and refreshes the bell: something has just arrived.</summary>
+    private void FollowLink()
+    {
+        if (Links.Take() is not { } route) return;
+
+        _ = Center.RefreshInboxAsync();
+        Nav.NavigateTo(route.TrimStart('/'));
     }
 
     private void MenuEdited() => _ = InvokeAsync(Menus.ReloadAsync);
@@ -229,6 +256,9 @@
         Nav.LocationChanged -= RouteChanged;
         MenuRefresh.OnChanged -= MenuEdited;
         Menus.OnChanged -= MenuChanged;
+        Links.Arrived -= LinkArrived;
+        Links.Received -= PushReceived;
+        Links.TokenReplaced -= PushTokenReplaced;
 
         if (_scrollLocked)
         {

@@ -15,9 +15,11 @@
   "myNotifications.osBlocked": "आपकी डिवाइस सेटिंग्स में इस ऐप के लिए सूचनाएँ बंद हैं, इसलिए ये अनुस्मारक आप तक नहीं पहुँच सकते। इन्हें पाने के लिए सेटिंग्स में उन्हें चालू करें।",
   "myNotifications.quietHours": "शांत घंटे",
   "myNotifications.quietHoursHint": "इन घंटों में कोई आवाज़ नहीं — आवश्यक सूचनाओं के लिए भी।",
+  "myNotifications.remindAt": "मुझे इस समय याद दिलाएँ",
   "myNotifications.saved": "🔔 सूचना प्राथमिकताएँ सहेज ली गईं।",
   "myNotifications.sub": "चुनें कि आपको किस बारे में और कब सूचना मिले",
   "myNotifications.title": "मेरी सूचनाएँ",
+  "myNotifications.usesDefaultTime": "जब तक आप समय नहीं चुनते, {0} का उपयोग होगा।",
   "myNotifications.whatHeading": "मुझे किस बारे में सूचित करें",
   "myNotifications.whatSub": "हर एक के लिए वैकल्पिक समय अवधि तय करें",
   "myNotifications.wouldNotifyNow": "अभी सूचित करेगा"

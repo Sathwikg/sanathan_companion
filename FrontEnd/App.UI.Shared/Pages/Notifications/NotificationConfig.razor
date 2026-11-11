@@ -4,12 +4,18 @@
 @inject IApiClient Api
 @inject ToastService Toast
 
+@* One row per notification type. Every form can have the plain daily reminder (the seeker's phone
+   schedules it); the forms the server knows more about also list their built-in types, which the
+   server sends: the sadhana reminder and streak notices, the Panchangam summary and its window
+   warnings, festivals and calendar marks. What each built-in type SAYS is not edited here: the
+   wording lives under "push" on Language Configs, per language, like every other label. *@
+
 <div class="sc-page-head">
     <div class="sc-page-title">
         <span class="sc-page-emoji">🛠️</span>
         <div>
             <h1>@Loc["notificationConfig.title", "Notification Config"]</h1>
-            <p class="sc-page-sub">@Loc["notificationConfig.sub", "Choose which modules can send notifications to seekers"]</p>
+            <p class="sc-page-sub">@Loc["notificationConfig.sub", "Choose which notifications seekers can receive, and when each goes out"]</p>
         </div>
     </div>
     @if (!_forbidden && !_loading)
@@ -47,7 +53,7 @@ else
         </div>
         <div class="sc-notif-summary">
             <span class="sc-badge on">@Loc.TF("notificationConfig.enabledCount", "{0} enabled", _modules.Count(m => m.IsEnabled))</span>
-            <span class="sc-muted">@Loc.TF("notificationConfig.ofModules", "of {0} modules", _modules.Count)</span>
+            <span class="sc-muted">@Loc.TF("notificationConfig.ofTypes", "of {0} types", _modules.Count)</span>
             <button class="sc-btn-ghost sc-btn-sm" @onclick="ExpandAll">⊞ @Loc["common.expandAll", "Expand All"]</button>
             <button class="sc-btn-ghost sc-btn-sm" @onclick="CollapseAll">⊟ @Loc["common.collapseAll", "Collapse All"]</button>
         </div>
@@ -57,11 +63,12 @@ else
         <table class="sc-table">
             <thead>
                 <tr>
-                    <th style="width:32%">@Loc["notificationConfig.colModule", "Module"]</th>
-                    <th style="width:16%">@Loc["notificationConfig.colNotifications", "Notifications"]</th>
+                    <th style="width:26%">@Loc["notificationConfig.colType", "Notification"]</th>
+                    <th style="width:11%">@Loc["notificationConfig.colNotifications", "Notifications"]</th>
+                    <th style="width:17%">@Loc["notificationConfig.colWhen", "When"]</th>
                     <th>@Loc["notificationConfig.colTitleDesc", "Title & Description Shown to Users"]</th>
-                    <th style="width:12%">@Loc["notificationConfig.colDefaultOn", "Default On"]</th>
-                    <th style="width:12%">@Loc["notificationConfig.colMandatory", "Mandatory"]</th>
+                    <th style="width:9%">@Loc["notificationConfig.colDefaultOn", "Default On"]</th>
+                    <th style="width:10%">@Loc["notificationConfig.colMandatory", "Mandatory"]</th>
                 </tr>
             </thead>
             @foreach (var group in Groups)
@@ -69,7 +76,7 @@ else
                 var expanded = IsExpanded(group.Key);
                 <tbody class="sc-notif-group">
                     <tr class="sc-notif-grouprow" @onclick="() => ToggleGroup(group.Key)">
-                        <td colspan="5">
+                        <td colspan="6">
                             <span class="sc-mtree-caret">@(expanded ? "▾" : "▸")</span>
                             <strong>@(group.Key == TopLevelGroup ? Loc["notificationConfig.topLevel", "Top Level"] : group.Key)</strong>
                             <span class="sc-mtree-count">@group.Count()</span>
@@ -84,9 +91,21 @@ else
                     {
                         @foreach (var m in group)
                         {
+                            var builtIn = m.Kind != "reminder";
                             <tr class="@(m.IsEnabled ? "" : "sc-row-muted")">
                                 <td class="sc-notif-childcell">
-                                    <strong>@(string.IsNullOrWhiteSpace(m.Icon) ? "" : m.Icon + " ")@m.ModuleName</strong>
+                                    @if (builtIn)
+                                    {
+                                        @* A built-in type is named in the admin's language from the same labels the seekers see. *@
+                                        <strong>@Loc[$"push.{m.Kind}.name", m.KindName]</strong>
+                                        <div class="sc-muted" style="font-size:0.74rem">@(string.IsNullOrWhiteSpace(m.Icon) ? "" : m.Icon + " ")@m.ModuleName</div>
+                                        <div class="sc-muted" style="font-size:0.72rem">@Loc[$"push.{m.Kind}.desc", m.KindDescription ?? string.Empty]</div>
+                                    }
+                                    else
+                                    {
+                                        <strong>@(string.IsNullOrWhiteSpace(m.Icon) ? "" : m.Icon + " ")@m.ModuleName</strong>
+                                        <div class="sc-muted" style="font-size:0.74rem">@Loc["notificationConfig.plainReminder", "Daily Reminder"]</div>
+                                    }
                                     @if (m.OptedOutUsers > 0)
                                     {
                                         <div class="sc-muted" style="font-size:0.72rem">@Loc.TF("notificationConfig.optedOut", "{0} opted out", m.OptedOutUsers)</div>
@@ -100,7 +119,42 @@ else
                                     <span class="sc-status @(m.IsEnabled ? "on" : "off")">@(m.IsEnabled ? Loc["notificationConfig.on", "On"] : Loc["notificationConfig.off", "Off"])</span>
                                 </td>
                                 <td>
-                                    <input class="sc-input sc-input-sm" placeholder="@Loc.TF("notificationConfig.titlePlaceholder", "e.g. {0} reminder", m.ModuleName)"
+                                    @switch (m.Schedule)
+                                    {
+                                        case "UserTime":
+                                        case "DailyAt":
+                                            <label class="sc-nc-fieldlabel">@(m.Schedule == "UserTime" ? Loc["notificationConfig.defaultTime", "Default Time"] : Loc["notificationConfig.sendTime", "Send Time"])</label>
+                                            <input type="time" class="sc-input sc-input-sm" value="@Fmt(m.SendTime ?? m.DefaultSendTime)"
+                                                   @onchange="e => m.SendTime = ParseTime(e.Value)" disabled="@(!m.IsEnabled)" />
+                                            @if (m.DefaultThreshold is not null)
+                                            {
+                                                <label class="sc-nc-fieldlabel" style="margin-top:0.35rem">@Loc["notificationConfig.minStreak", "Shortest Streak (Days)"]</label>
+                                                <input type="number" min="1" max="365" class="sc-input sc-input-sm" value="@(m.Threshold ?? m.DefaultThreshold)"
+                                                       @onchange="e => m.Threshold = ParseInt(e.Value, 1, 365)" disabled="@(!m.IsEnabled)" />
+                                            }
+                                            @if (m.Schedule == "UserTime")
+                                            {
+                                                <div class="sc-muted" style="font-size:0.7rem">@Loc["notificationConfig.userTimeHint", "seekers can pick their own time"]</div>
+                                            }
+                                            break;
+
+                                        case "BeforeWindow":
+                                            <label class="sc-nc-fieldlabel">@Loc["notificationConfig.leadMinutes", "Minutes Before"]</label>
+                                            <input type="number" min="1" max="180" class="sc-input sc-input-sm" value="@(m.LeadMinutes ?? m.DefaultLeadMinutes)"
+                                                   @onchange="e => m.LeadMinutes = ParseInt(e.Value, 1, 180)" disabled="@(!m.IsEnabled)" />
+                                            break;
+
+                                        case "Manual":
+                                            <span class="sc-muted" style="font-size:0.78rem">@Loc["notificationConfig.whenManual", "When you send one from the console"]</span>
+                                            break;
+
+                                        default:
+                                            <span class="sc-muted" style="font-size:0.78rem">@Loc["notificationConfig.whenDevice", "At the time each seeker sets"]</span>
+                                            break;
+                                    }
+                                </td>
+                                <td>
+                                    <input class="sc-input sc-input-sm" placeholder="@(builtIn ? Loc[$"push.{m.Kind}.name", m.KindName] : Loc.TF("notificationConfig.titlePlaceholder", "e.g. {0} reminder", m.ModuleName))"
                                            value="@m.Title" @onchange="e => m.Title = e.Value?.ToString()" disabled="@(!m.IsEnabled)" />
                                     <input class="sc-input sc-input-sm" style="margin-top:0.35rem" placeholder="@Loc["notificationConfig.descPlaceholder", "What is this notification for?"]"
                                            value="@m.Description" @onchange="e => m.Description = e.Value?.ToString()" disabled="@(!m.IsEnabled)" />
@@ -135,6 +189,9 @@ else
         💡 <strong>@Loc["notificationConfig.colDefaultOn", "Default On"]</strong>
         @Loc["notificationConfig.defaultOnHint", "applies to users who haven't chosen for themselves — including new sign-ups. Turning a module off keeps everyone's saved choices, so re-enabling it restores them."]
     </p>
+    <p class="sc-hint">
+        ✍️ @Loc["notificationConfig.wordingHint", "The words each notification is sent with are edited per language on Language Configs, under \"push\". Leave the title and description here empty to show the built-in name in each seeker's language."]
+    </p>
 }
 
 @code {
@@ -155,12 +212,17 @@ else
         !_searching
             ? _modules
             : _modules.Where(m => m.ModuleName.Contains(_search.Trim(), StringComparison.OrdinalIgnoreCase)
+                               || m.KindName.Contains(_search.Trim(), StringComparison.OrdinalIgnoreCase)
                                || (m.ParentName?.Contains(_search.Trim(), StringComparison.OrdinalIgnoreCase) ?? false));
 
-    /// <summary>Sub-modules grouped under their main module.</summary>
+    /// <summary>
+    /// Types grouped under their form's main module. Groups that hold a built-in type come first:
+    /// those are the ones an administrator comes here for.
+    /// </summary>
     private IEnumerable<IGrouping<string, NotificationModuleModel>> Groups =>
         Filtered.GroupBy(m => string.IsNullOrWhiteSpace(m.ParentName) ? TopLevelGroup : m.ParentName!)
-                .OrderBy(g => g.Key == TopLevelGroup ? 1 : 0)   // main modules first
+                .OrderBy(g => g.Any(m => m.Kind != "reminder") ? 0 : 1)
+                .ThenBy(g => g.Key == TopLevelGroup ? 1 : 0)
                 .ThenBy(g => g.Key);
 
     // While searching every matching group opens, otherwise a hidden match looks like "no results".
@@ -218,12 +280,17 @@ else
             Items = _modules.Select(m => new SaveNotificationModule
             {
                 MenuModuleId = m.MenuModuleId,
+                Kind = m.Kind,
                 IsEnabled = m.IsEnabled,
                 Title = m.Title,
                 Description = m.Description,
                 DefaultEnabledForUsers = m.DefaultEnabledForUsers,
                 IsMandatory = m.IsMandatory,
-                DisplayOrder = m.DisplayOrder
+                DisplayOrder = m.DisplayOrder,
+                SendTime = m.SendTime,
+                LeadMinutes = m.LeadMinutes,
+                Threshold = m.Threshold,
+                ImageUrl = m.ImageUrl
             }).ToList()
         };
 
@@ -240,4 +307,13 @@ else
             Toast.Error(err);
         }
     }
+
+    private static string Fmt(TimeOnly? t) => t?.ToString("HH:mm") ?? "";
+
+    private static TimeOnly? ParseTime(object? value)
+        => TimeOnly.TryParse(value?.ToString(), out var t) ? t : null;
+
+    /// <summary>A whole number inside the range, or null (which means "follow the built-in") for anything else.</summary>
+    private static int? ParseInt(object? value, int min, int max)
+        => int.TryParse(value?.ToString(), out var n) && n >= min && n <= max ? n : null;
 }

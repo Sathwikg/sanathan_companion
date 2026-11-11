@@ -24,6 +24,15 @@ public class DeviceToken : BaseEntity
     /// <summary>Optional app version for debugging.</summary>
     public string? AppVersion { get; set; }
 
+    /// <summary>
+    /// The device's time zone as an IANA id ("Asia/Kolkata"). A reminder set for 06:00 means 06:00
+    /// where the seeker is, and only the phone knows where that is. Null is read as India.
+    /// </summary>
+    public string? TimeZoneId { get; set; }
+
+    /// <summary>The language the app is showing on this device ("te"), so a push arrives in it. Null is English.</summary>
+    public string? Language { get; set; }
+
     /// <summary>Whether this token is active and can receive notifications.</summary>
     public bool IsActive { get; set; } = true;
 

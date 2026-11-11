@@ -4,6 +4,7 @@
 @inject IApiClient Api
 @inject ToastService Toast
 @inject IReminderScheduler Reminders
+@inject NotificationCenterState Center
 @inject AppConfig Config
 
 <div class="sc-page-head">
@@ -114,10 +115,10 @@ else
                     <div class="sc-notif-item-head">
                         <span class="sc-notif-ic">@(string.IsNullOrWhiteSpace(item.Icon) ? "🔔" : item.Icon)</span>
                         <div class="sc-notif-item-text">
-                            <strong>@item.Title</strong>
-                            @if (!string.IsNullOrWhiteSpace(item.Description))
+                            <strong>@NotificationText.Title(Loc, item)</strong>
+                            @if (NotificationText.Description(Loc, item) is { Length: > 0 } description)
                             {
-                                <div class="sc-muted">@item.Description</div>
+                                <div class="sc-muted">@description</div>
                             }
                             <div class="sc-notif-flags">
                                 @if (item.IsMandatory)
@@ -141,7 +142,22 @@ else
                         </label>
                     </div>
 
-                    @if (item.IsEnabled)
+                    @if (item.IsEnabled && item.Schedule == ReminderPlanner.UserTimeSchedule)
+                    {
+                        @* A type the seeker times: one time, not a span. Empty follows the administrator's default. *@
+                        <div class="sc-notif-times">
+                            <div class="sc-field">
+                                <label>@Loc["myNotifications.remindAt", "Remind Me At"]</label>
+                                <input type="time" class="sc-input sc-input-sm" value="@Fmt(item.FromTime ?? item.DefaultTime)"
+                                       @onchange="e => SetTime(item, e.Value)" />
+                            </div>
+                            @if (item.FromTime is null && item.DefaultTime is { } fallback)
+                            {
+                                <span class="sc-hint">@Loc.TF("myNotifications.usesDefaultTime", "Uses {0} until you choose a time.", fallback.ToString("HH:mm"))</span>
+                            }
+                        </div>
+                    }
+                    else if (item.IsEnabled && item.Schedule != "Manual")
                     {
                         <div class="sc-notif-times">
                             <div class="sc-field">
@@ -198,7 +214,9 @@ else
 
         try
         {
-            await Reminders.SyncAsync(_settings);
+            // Through the notification centre rather than the scheduler directly: it knows whether
+            // push reaches this phone, which decides what the phone itself has to schedule.
+            await Center.UseAsync(_settings);
             _blockedByOs = !await Reminders.IsAllowedAsync();
         }
         catch
@@ -231,6 +249,13 @@ else
     private static void ClearWindow(MyNotificationItem item)
     {
         item.FromTime = null;
+        item.ToTime = null;
+    }
+
+    /// <summary>A timed type keeps one time and never an end; clearing the box goes back to the default.</summary>
+    private static void SetTime(MyNotificationItem item, object? value)
+    {
+        item.FromTime = Parse(value);
         item.ToTime = null;
     }
 

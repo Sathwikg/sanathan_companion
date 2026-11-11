@@ -15,9 +15,11 @@
   "myNotifications.osBlocked": "ನಿಮ್ಮ ಸಾಧನದ ಸೆಟ್ಟಿಂಗ್ಸ್‌ನಲ್ಲಿ ಈ ಅಪ್ಲಿಕೇಶನ್‌ಗೆ ಅಧಿಸೂಚನೆಗಳನ್ನು ಆಫ್ ಮಾಡಲಾಗಿದೆ, ಅದರಿಂದ ಈ ಜ್ಞಾಪನೆಗಳು ನಿಮ್ಮನ್ನು ತಲುಪುವುದಿಲ್ಲ. ಸೆಟ್ಟಿಂಗ್ಸ್‌ನಲ್ಲಿ ಅವುಗಳನ್ನು ಆನ್ ಮಾಡಿ.",
   "myNotifications.quietHours": "ಮೌನ ಸಮಯ",
   "myNotifications.quietHoursHint": "ಈ ಅವಧಿಯಲ್ಲಿ ಮೌನವಾಗಿರಲಿ — ಅಗತ್ಯ ಸೂಚನೆಗಳಿಗೂ ಸಹ.",
+  "myNotifications.remindAt": "ನನಗೆ ನೆನಪಿಸುವ ಸಮಯ",
   "myNotifications.saved": "🔔 ಅಧಿಸೂಚನೆ ಆದ್ಯತೆಗಳನ್ನು ಉಳಿಸಲಾಗಿದೆ.",
   "myNotifications.sub": "ನಿಮಗೆ ಯಾವುದರ ಬಗ್ಗೆ ಮತ್ತು ಯಾವಾಗ ಸೂಚನೆ ಬರಬೇಕೆಂಬುದನ್ನು ಆಯ್ಕೆಮಾಡಿ",
   "myNotifications.title": "ನನ್ನ ಅಧಿಸೂಚನೆಗಳು",
+  "myNotifications.usesDefaultTime": "ನೀವು ಸಮಯ ಆಯ್ಕೆ ಮಾಡುವವರೆಗೆ {0} ಬಳಸಲಾಗುತ್ತದೆ.",
   "myNotifications.whatHeading": "ನನಗೆ ಯಾವುದರ ಬಗ್ಗೆ ತಿಳಿಸಬೇಕು",
   "myNotifications.whatSub": "ಪ್ರತಿಯೊಂದಕ್ಕೂ ಐಚ್ಛಿಕ ಸಮಯದ ಅವಧಿಯನ್ನು ಹೊಂದಿಸಿ",
   "myNotifications.wouldNotifyNow": "ಈಗ ತಿಳಿಸಲಾಗುತ್ತಿತ್ತು"

@@ -982,6 +982,10 @@ namespace Sanathana.Companion.Infrastructure.Persistence.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
 
+                    b.Property<string>("Language")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
                     b.Property<string>("LastFailureReason")
                         .HasColumnType("text");
 
@@ -996,6 +1000,10 @@ namespace Sanathana.Companion.Infrastructure.Persistence.Migrations
 
                     b.Property<int>("Platform")
                         .HasColumnType("integer");
+
+                    b.Property<string>("TimeZoneId")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
 
                     b.Property<string>("Token")
                         .IsRequired()
@@ -2265,6 +2273,38 @@ namespace Sanathana.Companion.Infrastructure.Persistence.Migrations
                         },
                         new
                         {
+                            Id = new Guid("63636363-6363-6363-6363-636363636363"),
+                            Code = "pushNotifications",
+                            CreatedBy = "system",
+                            CreatedDate = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Every notification as a job: schedule, last run, delivery log, devices, run now and test",
+                            DisplayOrder = 3,
+                            Icon = "📡",
+                            IsActive = true,
+                            IsVisibleInMenu = true,
+                            Name = "Notification Console",
+                            ParentId = new Guid("60606060-6060-6060-6060-606060606060"),
+                            RoutePath = "/push-notifications",
+                            ShowInMobile = false
+                        },
+                        new
+                        {
+                            Id = new Guid("64646464-6464-6464-6464-646464646464"),
+                            Code = "hangfire",
+                            CreatedBy = "system",
+                            CreatedDate = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "The server's recurring jobs: status, failures, run now",
+                            DisplayOrder = 9,
+                            Icon = "⚙️",
+                            IsActive = true,
+                            IsVisibleInMenu = true,
+                            Name = "Background Jobs",
+                            ParentId = new Guid("99999999-9999-9999-9999-999999999999"),
+                            RoutePath = "/hangfire",
+                            ShowInMobile = false
+                        },
+                        new
+                        {
                             Id = new Guid("70707070-7070-7070-7070-707070707070"),
                             Code = "languageConfigs",
                             CreatedBy = "system",
@@ -2463,11 +2503,25 @@ namespace Sanathana.Companion.Infrastructure.Persistence.Migrations
                     b.Property<int>("DisplayOrder")
                         .HasColumnType("integer");
 
+                    b.Property<string>("ImageUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
 
                     b.Property<bool>("IsMandatory")
                         .HasColumnType("boolean");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasDefaultValue("reminder");
+
+                    b.Property<int?>("LeadMinutes")
+                        .HasColumnType("integer");
 
                     b.Property<Guid>("MenuModuleId")
                         .HasColumnType("uuid");
@@ -2479,17 +2533,166 @@ namespace Sanathana.Companion.Infrastructure.Persistence.Migrations
                     b.Property<DateTime?>("ModifiedDate")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<TimeOnly?>("SendTime")
+                        .HasColumnType("time without time zone");
+
+                    b.Property<int?>("Threshold")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Title")
                         .HasMaxLength(150)
                         .HasColumnType("character varying(150)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("MenuModuleId")
+                    b.HasIndex("MenuModuleId", "Kind")
                         .IsUnique()
-                        .HasDatabaseName("UX_NotificationConfigs_Module");
+                        .HasDatabaseName("UX_NotificationConfigs_Module_Kind");
 
                     b.ToTable("NotificationConfigs", (string)null);
+                });
+
+            modelBuilder.Entity("Sanathana.Companion.Domain.Entities.NotificationLog", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Body")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DedupeKey")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<int>("Devices")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Error")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<string>("ModifiedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime?>("ModifiedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("NotificationConfigId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("ReadAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Route")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<DateTime?>("SentAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("Trigger")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedDate")
+                        .HasDatabaseName("IX_NotificationLogs_Created");
+
+                    b.HasIndex("DedupeKey")
+                        .IsUnique()
+                        .HasDatabaseName("UX_NotificationLogs_DedupeKey");
+
+                    b.HasIndex("UserId", "CreatedDate")
+                        .HasDatabaseName("IX_NotificationLogs_User_Created");
+
+                    b.ToTable("NotificationLogs", (string)null);
+                });
+
+            modelBuilder.Entity("Sanathana.Companion.Domain.Entities.NotificationRun", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Due")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("DurationMs")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Error")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<int>("Failed")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<string>("ModifiedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime?>("ModifiedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Sent")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("StartedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Trigger")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Kind", "StartedAtUtc")
+                        .HasDatabaseName("IX_NotificationRuns_Kind_Started");
+
+                    b.ToTable("NotificationRuns", (string)null);
                 });
 
             modelBuilder.Entity("Sanathana.Companion.Domain.Entities.Panchangam", b =>

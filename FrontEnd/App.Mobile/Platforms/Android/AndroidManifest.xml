@@ -16,14 +16,28 @@
                  android:roundIcon="@mipmap/appicon_round"
                  android:supportsRtl="true"
                  android:hardwareAccelerated="true"
-                 android:networkSecurityConfig="@xml/network_security_config"></application>
+                 android:networkSecurityConfig="@xml/network_security_config">
+
+        <!-- What Google Play services uses when IT draws a push (the app was closed, so the app's
+             own renderer never ran): the diya as the status-bar icon, the app's saffron as the
+             accent, and the channel for a message that names none. The server names the same icon
+             and a channel on every push, and AppNotifications.cs uses the same three when the app
+             draws one itself, so the two cannot be told apart. Without these the system falls back
+             to the launcher icon, which Android renders as a grey square. -->
+        <meta-data android:name="com.google.firebase.messaging.default_notification_icon"
+                   android:resource="@drawable/ic_notification" />
+        <meta-data android:name="com.google.firebase.messaging.default_notification_color"
+                   android:resource="@color/notification_accent" />
+        <meta-data android:name="com.google.firebase.messaging.default_notification_channel_id"
+                   android:value="general" />
+    </application>
 
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
 
     <!-- Android 13 (API 33) and later refuse to show a notification unless the user has granted
          this at runtime. Declaring it is only half the job; ReminderScheduler requests it before
-         it schedules anything. -->
+         it schedules anything, and NotificationCenterState once the phone is registered for push. -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <!-- Alarms are cleared when the device restarts, so the daily reminders have to be rebuilt.

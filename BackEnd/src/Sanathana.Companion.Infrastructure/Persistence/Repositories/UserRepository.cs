@@ -95,6 +95,14 @@ public class UserRepository : BaseRepository<User>, IUserRepository
         Context.UserNotificationSettings.RemoveRange(
             await Context.UserNotificationSettings.Where(x => x.UserId == userId).ToListAsync(cancellationToken));
 
+        // The phones registered for push, and everything that was ever sent to them: the inbox is
+        // the seeker's data, and a token left behind would keep a deleted account's phone on the list.
+        Context.DeviceTokens.RemoveRange(
+            await Context.DeviceTokens.Where(x => x.UserId == userId).ToListAsync(cancellationToken));
+
+        Context.NotificationLogs.RemoveRange(
+            await Context.NotificationLogs.Where(x => x.UserId == userId).ToListAsync(cancellationToken));
+
         Context.Feedbacks.RemoveRange(
             await Context.Feedbacks.Where(x => x.UserId == userId).ToListAsync(cancellationToken));
 

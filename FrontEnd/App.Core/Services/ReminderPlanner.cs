@@ -24,6 +24,15 @@ namespace App.Core.Services;
 /// seeker is, which is also the only reading that works for anyone outside India. The stored value
 /// is therefore treated as a wall-clock time, never converted to an instant.
 /// </item>
+/// <item>
+/// <b>The server sends what it can; the phone schedules the rest.</b> Since push arrived, most
+/// notification types are raised by the server and never appear here. Two kinds still can: a plain
+/// reminder ("Device"), which only this phone ever schedules, and a type the seeker times
+/// themselves ("UserTime", the daily sadhana reminder), which the server sends when it can reach
+/// this phone and which is scheduled here when it cannot — push not set up on the server, no
+/// Google Play services, a build without the Firebase file. Never both: a reminder that arrives
+/// twice is worse than one that arrives plainly.
+/// </item>
 /// </list>
 /// </remarks>
 public static class ReminderPlanner
@@ -66,7 +75,21 @@ public static class ReminderPlanner
         }
     }
 
-    public static IReadOnlyList<Reminder> Plan(MyNotificationSettings? settings)
+    /// <summary>The schedule value of a plain reminder this phone alone delivers.</summary>
+    public const string DeviceSchedule = "Device";
+
+    /// <summary>The schedule value of a type the seeker times themselves.</summary>
+    public const string UserTimeSchedule = "UserTime";
+
+    /// <param name="pushDelivers">
+    /// True when the server can push and this phone is registered for it, so the server sends the
+    /// types the seeker times themselves and the phone must not schedule them as well.
+    /// </param>
+    /// <param name="label">
+    /// Looks up a label in the seeker's language, or returns null when there is none. Used for the
+    /// wording of a built-in type scheduled here, so the fallback reads like the push it stands in for.
+    /// </param>
+    public static IReadOnlyList<Reminder> Plan(MyNotificationSettings? settings, bool pushDelivers = false, Func<string, string?>? label = null)
     {
         if (settings is null) return Array.Empty<Reminder>();
 
@@ -79,21 +102,37 @@ public static class ReminderPlanner
             var enabled = item.IsMandatory || (item.IsEnabled && settings.MasterEnabled);
             if (!enabled) continue;
 
+            var userTimed = item.Schedule == UserTimeSchedule;
+
+            // Everything else is the server's to send: a Panchangam warning or a streak notice
+            // depends on data this phone does not hold. An empty schedule is an older server,
+            // which only ever had plain reminders.
+            if (!userTimed && !string.IsNullOrEmpty(item.Schedule) && item.Schedule != DeviceSchedule) continue;
+            if (userTimed && pushDelivers) continue;
+
             // No window means "any time of day", which is a permission, not a schedule. Firing at
-            // some invented hour would be worse than staying silent.
-            if (item.FromTime is not { } start) continue;
+            // some invented hour would be worse than staying silent. A type the seeker times
+            // themselves does have an hour before they choose one: the administrator's default.
+            if ((item.FromTime ?? (userTimed ? item.DefaultTime : null)) is not { } start) continue;
 
             // Quiet hours outrank everything, mandatory included. The server takes the same line:
             // quiet hours exist so the app stays silent while the seeker rests.
             if (settings.QuietHoursEnabled && Contains(settings.QuietFrom, settings.QuietTo, start))
                 continue;
 
-            reminders.Add(new Reminder(
-                item.ConfigId,
-                string.IsNullOrWhiteSpace(item.Title) ? item.ModuleName : item.Title,
-                string.IsNullOrWhiteSpace(item.Description) ? null : item.Description,
-                start.Hour,
-                start.Minute));
+            var title = string.IsNullOrWhiteSpace(item.Title) ? item.ModuleName : item.Title;
+            var body = string.IsNullOrWhiteSpace(item.Description) ? null : item.Description;
+
+            // A built-in type's description explains the setting ("A gentle call to your japa at
+            // the time you choose…"), which is not what a notification should say. Use the push's
+            // own wording, in the seeker's language, when it can be found.
+            if (userTimed && label is not null)
+            {
+                title = label($"push.{item.Kind}.title") ?? title;
+                body = label($"push.{item.Kind}.body") ?? body;
+            }
+
+            reminders.Add(new Reminder(item.ConfigId, title, body, start.Hour, start.Minute));
         }
 
         return reminders;

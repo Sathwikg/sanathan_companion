@@ -566,6 +566,41 @@ public class MenuModuleConfiguration : IEntityTypeConfiguration<MenuModule>
                 CreatedBy = "system",
                 CreatedDate = SeedConstants.SeedTimestamp
             },
+            // The two administration screens behind the notification engine. Both existed as pages
+            // reachable only by typing their address; without a menu row a form has no entry on
+            // Access Rights, no per-form language switch and no place in the navigation.
+            new MenuModule
+            {
+                Id = SeedConstants.NotificationConsoleMenuId,
+                Name = "Notification Console",
+                Icon = "📡",
+                Description = "Every notification as a job: schedule, last run, delivery log, devices, run now and test",
+                RoutePath = "/push-notifications",
+                Code = "pushNotifications",
+                DisplayOrder = 3,
+                IsVisibleInMenu = true,
+                ShowInMobile = false,
+                IsActive = true,
+                ParentId = SeedConstants.NotificationsModuleId,
+                CreatedBy = "system",
+                CreatedDate = SeedConstants.SeedTimestamp
+            },
+            new MenuModule
+            {
+                Id = SeedConstants.BackgroundJobsMenuId,
+                Name = "Background Jobs",
+                Icon = "⚙️",
+                Description = "The server's recurring jobs: status, failures, run now",
+                RoutePath = "/hangfire",
+                Code = "hangfire",
+                DisplayOrder = 9,
+                IsVisibleInMenu = true,
+                ShowInMobile = false,
+                IsActive = true,
+                ParentId = SeedConstants.ConfigurationModuleId,
+                CreatedBy = "system",
+                CreatedDate = SeedConstants.SeedTimestamp
+            },
             new MenuModule
             {
                 Id = SeedConstants.LanguageConfigsMenuId,

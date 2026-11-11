@@ -2053,3 +2053,87 @@ img, svg, video { max-width: 100%; height: auto; }
   .sc-cal-list-row .sc-cal-pill { display: none; }
   .sc-cal-detail-head { flex-wrap: wrap; }
 }
+
+/* ============================================================================================
+   Notification console (/push-notifications) and the "When" column of Notification Config.
+   ============================================================================================ */
+.sc-nc-auto { display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.8rem; color: var(--color-secondary); cursor: pointer; }
+.sc-nc-fieldlabel { display: block; font-size: 0.68rem; font-weight: 600; color: var(--color-secondary); margin-bottom: 0.15rem; }
+
+.sc-nc-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 0.8rem; margin-bottom: 1.1rem; }
+.sc-nc-stat { padding: 0.9rem 1.05rem; display: flex; flex-direction: column; gap: 0.15rem; border-left: 4px solid var(--color-outline); min-width: 0; }
+.sc-nc-stat.ok { border-left-color: var(--color-success); }
+.sc-nc-stat.warn { border-left-color: var(--color-gold); }
+.sc-nc-stat.bad { border-left-color: var(--color-error); }
+.sc-nc-stat-l { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--color-secondary); }
+.sc-nc-stat-n { font-size: 1.45rem; font-weight: 700; font-family: var(--font-heading); color: var(--color-on-surface); line-height: 1.2; }
+.sc-nc-stat.bad .sc-nc-stat-n { color: var(--color-error); }
+.sc-nc-stat-sub { font-size: 0.76rem; color: var(--color-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Fourteen days of sent (accent) stacked on failed (error). Heights are a share of the busiest day. */
+.sc-nc-chart { grid-column: span 2; }
+.sc-nc-bars { display: flex; align-items: flex-end; gap: 4px; height: 3.1rem; margin-top: 0.3rem; }
+.sc-nc-bar { flex: 1; height: 100%; display: flex; flex-direction: column-reverse; justify-content: flex-start; gap: 1px; border-bottom: 1px solid var(--color-outline); }
+.sc-nc-bar i { display: block; width: 100%; border-radius: 3px 3px 0 0; background: var(--color-accent); }
+.sc-nc-bar i.fail { background: var(--color-error); border-radius: 0; }
+
+.sc-nc-tabs { flex-wrap: wrap; }
+.sc-nc-jobs td { vertical-align: top; }
+.sc-nc-kind { display: flex; align-items: flex-start; gap: 0.4rem; width: 100%; padding: 0; border: none; background: none; color: inherit; font: inherit; text-align: start; cursor: pointer; }
+.sc-nc-sub { display: block; font-size: 0.74rem; }
+.sc-nc-num { font-weight: 700; font-size: 1rem; }
+.sc-nc-actions { display: flex; flex-wrap: wrap; gap: 0.3rem; justify-content: flex-end; }
+.sc-nc-failbadge { background: color-mix(in srgb, var(--color-error) 16%, transparent); color: var(--color-error); }
+.sc-nc-error { display: block; font-size: 0.72rem; color: var(--color-error); max-width: 34rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.sc-nc-detailrow td { background: color-mix(in srgb, var(--color-primary) 4%, transparent); }
+.sc-nc-detail { display: grid; grid-template-columns: minmax(0, 1fr) minmax(240px, 340px); gap: 1.2rem; align-items: start; padding: 0.3rem 0.2rem 0.5rem 1.4rem; }
+.sc-nc-detail p { margin: 0 0 0.4rem; }
+
+/* A notification as the phone's shade draws it: app line, bold title, body. */
+.sc-nc-preview {
+  display: flex; flex-direction: column; gap: 0.2rem;
+  padding: 0.75rem 0.9rem;
+  border-radius: 18px;
+  background: var(--color-surface);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-lg);
+  font-size: 0.86rem;
+  color: var(--color-on-surface);
+}
+.sc-nc-preview strong { font-size: 0.92rem; }
+.sc-nc-preview-head { display: flex; align-items: center; gap: 0.35rem; font-size: 0.72rem; color: var(--color-secondary); margin-bottom: 0.15rem; }
+.sc-nc-preview-icon {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 1.15rem; height: 1.15rem; border-radius: 50%;
+  background: var(--color-accent); color: #fff; font-size: 0.66rem; line-height: 1;
+}
+.sc-nc-preview-dot { opacity: 0.6; }
+
+.sc-nc-pager { display: flex; align-items: center; justify-content: flex-end; gap: 0.8rem; margin-top: 0.7rem; flex-wrap: wrap; }
+.sc-nc-pager .sc-hint { margin-right: auto; }
+
+.sc-nc-broadcast { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(260px, 1fr); gap: 1.2rem; align-items: start; }
+.sc-nc-form { padding: 1.2rem 1.3rem; display: flex; flex-direction: column; gap: 0.8rem; }
+.sc-nc-form h3 { margin: 0; }
+.sc-nc-form p { margin: 0; }
+.sc-nc-phone { display: flex; flex-direction: column; gap: 0.5rem; padding: 1.1rem; border-radius: 22px; background: color-mix(in srgb, var(--color-primary) 10%, transparent); }
+.sc-nc-phone-l { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--color-secondary); }
+
+.sc-nc-setup { padding: 1.2rem 1.3rem; }
+.sc-nc-setup h3 { margin: 0 0 0.8rem; }
+.sc-nc-checklist { list-style: none; margin: 0 0 1.1rem; padding: 0; display: flex; flex-direction: column; gap: 0.6rem; }
+.sc-nc-checklist li { display: flex; flex-direction: column; gap: 0.1rem; padding-left: 1.9rem; position: relative; }
+.sc-nc-checklist li::before { position: absolute; left: 0; top: 0; font-size: 1.05rem; line-height: 1.25; }
+.sc-nc-checklist li.ok::before { content: "✅"; }
+.sc-nc-checklist li.todo::before { content: "⬜"; }
+.sc-nc-checklist li span { font-size: 0.84rem; color: var(--color-secondary); }
+.sc-nc-settings { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.6rem 1.2rem; margin-bottom: 0.7rem; }
+.sc-nc-settings div { display: flex; flex-direction: column; gap: 0.1rem; }
+.sc-nc-settings span { font-size: 0.72rem; color: var(--color-secondary); }
+
+@media (max-width: 900px) {
+  .sc-nc-detail, .sc-nc-broadcast { grid-template-columns: minmax(0, 1fr); }
+  .sc-nc-chart { grid-column: span 1; }
+  .sc-nc-actions { justify-content: flex-start; }
+}

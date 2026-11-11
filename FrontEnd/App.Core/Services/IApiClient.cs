@@ -168,6 +168,26 @@ public interface IApiClient
     Task<MyNotificationSettings?> GetMyNotificationsAsync();
     Task<(bool Success, string Error)> SaveMyNotificationsAsync(SaveMyNotificationSettingsRequest request);
 
+    /// <summary>Registers (or refreshes) this phone for push. False when the server refused it.</summary>
+    Task<bool> RegisterPushDeviceAsync(RegisterDeviceRequest request);
+    /// <summary>Takes this phone off the push list. Works without a session, so it also works at an expired sign-out.</summary>
+    Task RemovePushDeviceAsync(string token);
+    /// <summary>The notifications this seeker was sent, newest first, with the unread count.</summary>
+    Task<Inbox?> GetNotificationInboxAsync(int take = 30);
+    Task MarkNotificationInboxReadAsync();
+
+    // Notification console (admin)
+    Task<ConsoleOverview?> GetNotificationConsoleOverviewAsync();
+    Task<ConsoleLogPage?> GetNotificationConsoleLogsAsync(string? kind, string? status, string? search, int page, int pageSize = 50);
+    Task<List<ConsoleRun>> GetNotificationConsoleRunsAsync(string? kind = null, int take = 50);
+    Task<List<ConsoleDevice>> GetNotificationConsoleDevicesAsync(int take = 200);
+    /// <summary>Runs one type now (or one ordinary pass over all, when null). Sends real notifications.</summary>
+    Task<ConsoleActionResult> RunNotificationKindAsync(string? kind);
+    /// <summary>Sends a sample of one type to the signed-in administrator's own phone.</summary>
+    Task<ConsoleActionResult> TestNotificationKindAsync(string kind);
+    Task<(bool Success, string Error)> SetNotificationKindEnabledAsync(string kind, bool enabled);
+    Task<ConsoleActionResult> BroadcastNotificationAsync(ConsoleBroadcastRequest request);
+
     // Issue types (feedback master)
     Task<(bool Ok, List<IssueTypeModel> Items, bool Forbidden, string Error)> GetIssueTypesAsync();
     Task<List<IssueTypeModel>> GetActiveIssueTypesAsync();
