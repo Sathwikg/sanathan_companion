@@ -12,6 +12,11 @@
         <!-- The Mac App Store rejects a package built for maccatalyst-arm64 alone; ship both. -->
         <RuntimeIdentifiers Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst' and '$(Configuration)' == 'Release'">maccatalyst-x64;maccatalyst-arm64</RuntimeIdentifiers>
 
+        <!-- Release Android packages carry only 64-bit ARM: every phone the app supports is arm64, and
+             the default's second ABI (x86_64) exists only for emulators, where it doubled the native
+             payload and so the APK. Debug keeps the default so an emulator still runs it. -->
+        <RuntimeIdentifiers Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android' and '$(Configuration)' == 'Release'">android-arm64</RuntimeIdentifiers>
+
         <OutputType>Exe</OutputType>
         <RootNamespace>App.Mobile</RootNamespace>
         <UseMaui>true</UseMaui>
