@@ -71,6 +71,13 @@ public static class DependencyInjection
         services.AddScoped<IAuditRepository, AuditRepository>();
         services.AddScoped<IDeviceTokenRepository, DeviceTokenRepository>();
         services.AddScoped<IPushNotificationService, PushNotificationService>();
+
+        // Push notifications. The options were declared but never bound before, so "Enabled" could
+        // not be switched on from configuration at all. The transport is a singleton because the
+        // Firebase client holds a token and a connection pool meant to live for the process.
+        services.Configure<PushNotificationOptions>(configuration.GetSection(PushNotificationOptions.SectionName));
+        services.AddSingleton<IPushTransport, FcmPushTransport>();
+        services.AddScoped<INotificationStore, NotificationStore>();
         services.AddScoped(typeof(IRepository<>), typeof(BaseRepository<>));
 
         services.Configure<JwtSettings>(configuration.GetSection(JwtSettings.SectionName));

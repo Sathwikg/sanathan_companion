@@ -207,6 +207,27 @@ public static class ApiRoutes
         public const string Config = "notificationconfig";
         /// <summary>The signed-in user's own preferences, and whether each would fire right now.</summary>
         public const string Mine = "notifications/me";
+        /// <summary>This phone introducing itself for push.</summary>
+        public const string Devices = "notifications/devices";
+        /// <summary>This phone taking itself off the list at sign-out. Needs no session.</summary>
+        public const string RemoveDevice = "notifications/devices/remove";
+        public static string Inbox(int take) => $"notifications/inbox?take={take}";
+        public const string InboxRead = "notifications/inbox/read";
+    }
+
+    /// <summary>The administrator's notification console.</summary>
+    public static class NotificationConsole
+    {
+        public const string Overview = "notification-console/overview";
+        public static string Logs(string? kind, string? status, string? search, int page, int pageSize)
+            => Query("notification-console/logs", ("kind", kind), ("status", status), ("search", search), ("page", page), ("pageSize", pageSize));
+        public static string Runs(string? kind, int take) => Query("notification-console/runs", ("kind", kind), ("take", take));
+        public static string Devices(int take) => $"notification-console/devices?take={take}";
+        public const string RunAll = "notification-console/run";
+        public static string RunKind(string kind) => $"notification-console/kinds/{Uri.EscapeDataString(kind)}/run";
+        public static string TestKind(string kind) => $"notification-console/kinds/{Uri.EscapeDataString(kind)}/test";
+        public static string KindEnabled(string kind) => $"notification-console/kinds/{Uri.EscapeDataString(kind)}/enabled";
+        public const string Broadcast = "notification-console/broadcast";
     }
 
     public static class Ads

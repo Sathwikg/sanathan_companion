@@ -66,6 +66,12 @@ public static class CoreServiceCollectionExtensions
         // Same pattern: a browser cannot schedule a notification that outlives its tab, so the
         // default does nothing and the MAUI host replaces it.
         services.AddScoped<IReminderScheduler, NoOpReminderScheduler>();
+        // Same pattern again: a browser tab is not a push target, so the default has no token to
+        // offer and the MAUI host replaces it with Firebase's.
+        services.AddSingleton<IPushRegistrar, NoPushRegistrar>();
+        // A tapped notification's page, handed from the native shell to the layout. A singleton
+        // because the shell that hears the tap lives outside the Blazor scope.
+        services.AddSingleton<DeepLinks>();
         // A browser already throttles hidden tabs; a native host replaces this so shared
         // components can stop their timers when the app is backgrounded.
         services.AddSingleton<IAppLifecycle, AlwaysActiveLifecycle>();

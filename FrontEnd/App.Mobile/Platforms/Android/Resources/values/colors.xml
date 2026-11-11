@@ -13,4 +13,10 @@
     <color name="colorPrimaryDark">#5A2A04</color>
     <color name="colorAccent">#D47222</color>
     <color name="colorBackground">#FDFBF7</color>
+
+    <!-- The tint of the notification icon and title: the same saffron as colorAccent, under a
+         name of its own. The manifest refers to it, and the Android build lower-cases every
+         resource name it finds in the manifest, so a camel-cased name cannot be resolved from
+         there. Keep the two values the same. -->
+    <color name="notification_accent">#D47222</color>
 </resources>

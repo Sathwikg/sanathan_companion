@@ -36,6 +36,8 @@ public static class SeedConstants
     public static readonly Guid NotificationsModuleId = new("60606060-6060-6060-6060-606060606060");
     public static readonly Guid NotificationConfigMenuId = new("61616161-6161-6161-6161-616161616161");
     public static readonly Guid MyNotificationsMenuId = new("62626262-6262-6262-6262-626262626262");
+    public static readonly Guid NotificationConsoleMenuId = new("63636363-6363-6363-6363-636363636363");
+    public static readonly Guid BackgroundJobsMenuId = new("64646464-6464-6464-6464-646464646464");
     public static readonly Guid LanguageConfigsMenuId = new("70707070-7070-7070-7070-707070707070");
     public static readonly Guid WallpaperMasterMenuId = new("80808080-8080-8080-8080-808080808080");
     public static readonly Guid DownloadWallpapersMenuId = new("81818181-8181-8181-8181-818181818181");

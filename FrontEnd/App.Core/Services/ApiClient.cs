@@ -587,6 +587,56 @@ public class ApiClient : IApiClient
         return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
     }
 
+    public async Task<bool> RegisterPushDeviceAsync(RegisterDeviceRequest request)
+        => (await _http.PostAsJsonAsync(ApiRoutes.Notifications.Devices, request)).IsSuccessStatusCode;
+
+    public async Task RemovePushDeviceAsync(string token)
+        => await _http.PostAsJsonAsync(ApiRoutes.Notifications.RemoveDevice, new { token });
+
+    public async Task<Inbox?> GetNotificationInboxAsync(int take = 30)
+        => await _http.GetFromJsonAsync<Inbox>(ApiRoutes.Notifications.Inbox(take));
+
+    public async Task MarkNotificationInboxReadAsync()
+        => await _http.PostAsync(ApiRoutes.Notifications.InboxRead, null);
+
+    // ---- notification console (admin) ----
+
+    public async Task<ConsoleOverview?> GetNotificationConsoleOverviewAsync()
+        => await _http.GetFromJsonAsync<ConsoleOverview>(ApiRoutes.NotificationConsole.Overview);
+
+    public async Task<ConsoleLogPage?> GetNotificationConsoleLogsAsync(string? kind, string? status, string? search, int page, int pageSize = 50)
+        => await _http.GetFromJsonAsync<ConsoleLogPage>(ApiRoutes.NotificationConsole.Logs(kind, status, search, page, pageSize));
+
+    public async Task<List<ConsoleRun>> GetNotificationConsoleRunsAsync(string? kind = null, int take = 50)
+        => await _http.GetFromJsonAsync<List<ConsoleRun>>(ApiRoutes.NotificationConsole.Runs(kind, take)) ?? new();
+
+    public async Task<List<ConsoleDevice>> GetNotificationConsoleDevicesAsync(int take = 200)
+        => await _http.GetFromJsonAsync<List<ConsoleDevice>>(ApiRoutes.NotificationConsole.Devices(take)) ?? new();
+
+    public async Task<ConsoleActionResult> RunNotificationKindAsync(string? kind)
+        => await ReadConsoleResultAsync(await _http.PostAsync(kind is null ? ApiRoutes.NotificationConsole.RunAll : ApiRoutes.NotificationConsole.RunKind(kind), null));
+
+    public async Task<ConsoleActionResult> TestNotificationKindAsync(string kind)
+        => await ReadConsoleResultAsync(await _http.PostAsJsonAsync(ApiRoutes.NotificationConsole.TestKind(kind), new { }));
+
+    public async Task<(bool Success, string Error)> SetNotificationKindEnabledAsync(string kind, bool enabled)
+    {
+        var response = await _http.PutAsJsonAsync(ApiRoutes.NotificationConsole.KindEnabled(kind), new { enabled });
+        return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
+    }
+
+    public async Task<ConsoleActionResult> BroadcastNotificationAsync(ConsoleBroadcastRequest request)
+        => await ReadConsoleResultAsync(await _http.PostAsJsonAsync(ApiRoutes.NotificationConsole.Broadcast, request));
+
+    /// <summary>A console action answers 200 with its result; anything else (a validation message, a 404) becomes a failed result carrying the text.</summary>
+    private static async Task<ConsoleActionResult> ReadConsoleResultAsync(HttpResponseMessage response)
+    {
+        if (response.IsSuccessStatusCode)
+            return await response.Content.ReadFromJsonAsync<ConsoleActionResult>() ?? new ConsoleActionResult { Ok = false, Message = "The server sent no result." };
+
+        return new ConsoleActionResult { Ok = false, Message = await ExtractErrorAsync(response) };
+    }
+
     public async Task<(bool Ok, List<IssueTypeModel> Items, bool Forbidden, string Error)> GetIssueTypesAsync()
     {
         var response = await _http.GetAsync(ApiRoutes.IssueTypes.Root);

@@ -72,8 +72,7 @@ public static class HangfireConfiguration
         });
 
         // Register background job services
-        services.AddScoped<NotificationDeliveryJob>();
-        services.AddScoped<ReminderSyncJob>();
+        services.AddScoped<NotificationEngineJob>();
         services.AddScoped<CleanupJob>();
         services.AddScoped<DataSyncJob>();
         services.AddScoped<PanchangamCoverageJob>();
@@ -97,12 +96,18 @@ public static class HangfireConfiguration
             "0 2 * * *", // Daily at 2:00 AM
             new RecurringJobOptions { TimeZone = TimeZoneInfo.FindSystemTimeZoneById("India Standard Time") });
 
-        // Reminder sync - runs every 30 minutes
-        recurringJobManager.AddOrUpdate<ReminderSyncJob>(
-            "reminder-sync",
-            job => job.SyncAllUserRemindersAsync(default),
-            "*/30 * * * *", // Every 30 minutes
+        // The notification engine: every minute it asks who is due which notification and sends
+        // each one once. See NotificationEngineJob for why a minute and not five.
+        recurringJobManager.AddOrUpdate<NotificationEngineJob>(
+            NotificationEngineJob.RecurringJobId,
+            job => job.TickAsync(default),
+            "* * * * *",
             new RecurringJobOptions { TimeZone = TimeZoneInfo.FindSystemTimeZoneById("India Standard Time") });
+
+        // The two placeholders the engine replaces. Recurring jobs live in the database, so a
+        // deployment that once registered them keeps running them until they are removed by name.
+        recurringJobManager.RemoveIfExists("reminder-sync");
+        recurringJobManager.RemoveIfExists("notification-delivery");
 
         // Panchangam coverage: this year and next for every region with coordinates, daily at 3:00 AM
         // IST. Days already stored are skipped, so the steady-state run is a few queries and no astronomy.
@@ -124,13 +129,6 @@ public static class HangfireConfiguration
             "0 */6 * * *", // Every 6 hours
             new RecurringJobOptions { TimeZone = TimeZoneInfo.FindSystemTimeZoneById("India Standard Time") });
 
-        // Notification delivery - runs every 5 minutes (when FCM/APNs is implemented)
-        recurringJobManager.AddOrUpdate<NotificationDeliveryJob>(
-            "notification-delivery",
-            job => job.ProcessPendingNotificationsAsync(default),
-            "*/5 * * * *", // Every 5 minutes
-            new RecurringJobOptions { TimeZone = TimeZoneInfo.FindSystemTimeZoneById("India Standard Time") });
-
         // Audit config cache reload - runs every minute (already handled by AuditMaintenanceService)
         // But we can also trigger it via Hangfire for multi-instance deployments
         recurringJobManager.AddOrUpdate<IAuditConfigCache>(
@@ -138,22 +136,6 @@ public static class HangfireConfiguration
             cache => cache.ReloadAsync(default),
             "* * * * *", // Every minute
             new RecurringJobOptions { TimeZone = TimeZoneInfo.FindSystemTimeZoneById("India Standard Time") });
-    }
-
-    /// <summary>
-    /// Enqueues a job to sync reminders for a specific user (triggered on preference change).
-    /// </summary>
-    public static void EnqueueUserReminderSync(this IBackgroundJobClient client, Guid userId)
-    {
-        client.Enqueue<ReminderSyncJob>(job => job.OnUserPreferencesChangedAsync(userId, default));
-    }
-
-    /// <summary>
-    /// Enqueues a test notification job.
-    /// </summary>
-    public static void EnqueueTestNotification(this IBackgroundJobClient client, Guid userId, string title, string body)
-    {
-        client.Enqueue<NotificationDeliveryJob>(job => job.SendTestNotificationAsync(userId, title, body, default));
     }
 
     /// <summary>

@@ -15,9 +15,11 @@
   "myNotifications.osBlocked": "Notifications are turned off for this app in your device settings, so none of these reminders can reach you. Enable them in Settings to start receiving them.",
   "myNotifications.quietHours": "Quiet Hours",
   "myNotifications.quietHoursHint": "Stay silent during these hours — even for required notices.",
+  "myNotifications.remindAt": "Remind Me At",
   "myNotifications.saved": "🔔 Notification preferences saved.",
   "myNotifications.sub": "Choose what you're notified about, and when",
   "myNotifications.title": "My Notifications",
+  "myNotifications.usesDefaultTime": "Uses {0} until you choose a time.",
   "myNotifications.whatHeading": "What to Notify Me About",
   "myNotifications.whatSub": "Set an optional time window for each",
   "myNotifications.wouldNotifyNow": "Would Notify Now"

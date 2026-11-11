@@ -72,6 +72,12 @@ public static class MauiProgram
         // no way to deliver it, so the phone schedules the reminders locally.
         builder.Services.AddScoped<IReminderScheduler, MauiReminderScheduler>();
 
+        // Push: Android asks Firebase for this installation's token. The other heads keep the
+        // default, which has no token to offer, so they go on scheduling their own reminders.
+#if ANDROID
+        builder.Services.AddSingleton<IPushRegistrar, global::App.Mobile.Platforms.Android.Services.AndroidPushRegistrar>();
+#endif
+
         // Singleton: App.xaml.cs pushes window Activated/Deactivated into it, and every component
         // that idles while backgrounded reads the same instance.
         builder.Services.AddSingleton<IAppLifecycle, MauiAppLifecycle>();

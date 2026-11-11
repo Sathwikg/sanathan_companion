@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "128598618140",
+    "project_id": "nitya-sannidhi-e2fea",
+    "storage_bucket": "nitya-sannidhi-e2fea.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:128598618140:android:30c3fd32b38964ee1bafd9",
+        "android_client_info": {
+          "package_name": "com.sanathana.companion"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCZkIInURVGIWYDbZMMT-yCoL2a8k8lHtc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

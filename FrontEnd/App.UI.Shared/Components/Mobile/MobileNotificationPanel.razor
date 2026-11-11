@@ -3,14 +3,15 @@
    Rendered by MobileLayout as a SIBLING of the top bar so its fixed scrim resolves against the
    viewport — see MobileNotificationBell for why it cannot live next to the button.
 
-   The API has no message feed: `GET notifications/me` returns which reminder types the seeker has
-   switched on, with the server's own verdict on whether each would fire *right now* (IsActiveNow /
-   InactiveReason / quiet hours). So this is a live "what is watching over you today" panel rather
-   than an inbox, and the badge counts active reminders, not unread items. It is labelled that way
-   so nobody taps it expecting messages. *@
+   Two halves. First the inbox: the notifications this seeker was actually sent (`GET
+   notifications/inbox`), newest first, each opening the page it is about. The bell's badge counts
+   the unread ones. Below it, what is switched on (`GET notifications/me`) with the server's own
+   verdict on whether each would reach them right now, so "why did I not get one" has an answer
+   without leaving the panel. *@
 @implements IDisposable
 @inject NotificationCenterState Center
 @inject LocalizationState Loc
+@inject NavigationManager Nav
 
 @if (Center.IsOpen)
 {
@@ -52,44 +53,70 @@
                     @Loc["myNotifications.couldNotLoad", "Could not load your notification settings."] @Center.Error
                 </div>
             }
-            else if (Center.Settings is null || Center.Settings.Items.Count == 0)
-            {
-                <div class="scm-empty">
-                    <div class="scm-empty-om">🪔</div>
-                    <p>@Loc["nav.notifNone", "No reminders are set up yet."]</p>
-                </div>
-            }
             else
             {
-                <ul class="scm-notif-list">
-                    @foreach (var item in Center.Settings.Items.OrderByDescending(i => i.IsActiveNow))
-                    {
-                        <li class="scm-notif @(item.IsActiveNow ? "on" : "off")">
-                            <span class="scm-notif-ic">@(string.IsNullOrWhiteSpace(item.Icon) ? "🔔" : item.Icon)</span>
-                            <div class="scm-notif-text">
-                                <strong>@item.Title</strong>
-                                @if (!string.IsNullOrWhiteSpace(item.Description))
-                                {
-                                    <span class="scm-notif-desc">@item.Description</span>
-                                }
-                                <span class="scm-notif-meta">
-                                    @if (item.IsActiveNow)
-                                    {
-                                        <span class="scm-notif-live">● @Loc["nav.notifActiveNow", "Active Now"]</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="scm-notif-off">@(item.InactiveReason ?? Loc["nav.notifInactive", "Not Active"])</span>
-                                    }
-                                    @if (item.FromTime is not null && item.ToTime is not null)
-                                    {
-                                        <span class="scm-notif-window">@item.FromTime.Value.ToString("HH:mm")–@item.ToTime.Value.ToString("HH:mm")</span>
-                                    }
-                                </span>
-                            </div>
-                        </li>
-                    }
-                </ul>
+                <h3 class="scm-panel-h">@Loc["nav.notifRecent", "Recent"]</h3>
+                @if (Center.Inbox.Count == 0)
+                {
+                    <div class="scm-empty scm-empty-tight">
+                        <div class="scm-empty-om">🪔</div>
+                        <p>@Loc["nav.notifInboxEmpty", "Nothing yet. Notifications you receive will appear here."]</p>
+                    </div>
+                }
+                else
+                {
+                    <ul class="scm-notif-list">
+                        @foreach (var item in Center.Inbox)
+                        {
+                            <li>
+                                <button class="scm-inbox @(item.IsRead ? "" : "is-new")" @onclick="() => Open(item)">
+                                    <span class="scm-inbox-dot" aria-hidden="true"></span>
+                                    <span class="scm-notif-text">
+                                        <strong>@item.Title</strong>
+                                        <span class="scm-notif-desc">@item.Body</span>
+                                        <span class="scm-notif-meta">
+                                            @if (!item.IsRead)
+                                            {
+                                                <span class="scm-notif-live">@Loc["nav.notifNew", "New"]</span>
+                                            }
+                                            <span class="scm-notif-off">@NotificationText.Ago(Loc, item.SentAtUtc, _now)</span>
+                                        </span>
+                                    </span>
+                                </button>
+                            </li>
+                        }
+                    </ul>
+                }
+
+                @if (Center.Settings is { Items.Count: > 0 } settings)
+                {
+                    <h3 class="scm-panel-h">@Loc["nav.notifSwitchedOn", "What You're Notified About"]</h3>
+                    <ul class="scm-notif-list">
+                        @foreach (var item in settings.Items.Where(i => i.IsEnabled).OrderByDescending(i => i.IsActiveNow))
+                        {
+                            <li class="scm-notif @(item.IsActiveNow ? "on" : "off")">
+                                <span class="scm-notif-ic">@(string.IsNullOrWhiteSpace(item.Icon) ? "🔔" : item.Icon)</span>
+                                <div class="scm-notif-text">
+                                    <strong>@NotificationText.Title(Loc, item)</strong>
+                                    <span class="scm-notif-meta">
+                                        @if (item.IsActiveNow)
+                                        {
+                                            <span class="scm-notif-live">● @Loc["nav.notifActiveNow", "Active Now"]</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="scm-notif-off">@(item.InactiveReason ?? Loc["nav.notifInactive", "Not Active"])</span>
+                                        }
+                                        @if (TimeText(item) is { } time)
+                                        {
+                                            <span class="scm-notif-window">@time</span>
+                                        }
+                                    </span>
+                                </div>
+                            </li>
+                        }
+                    </ul>
+                }
             }
         </div>
 
@@ -102,15 +129,41 @@
 }
 
 @code {
+    /// <summary>Read once per render pass so every row's "3 min ago" is measured from the same instant.</summary>
+    private DateTime _now = DateTime.UtcNow;
+
     protected override void OnInitialized()
     {
         Center.OnChanged += Changed;
         Loc.OnChanged += Changed;
     }
 
+    /// <summary>A type the seeker times shows its one time; a windowed type shows its span; the rest show nothing.</summary>
+    private static string? TimeText(MyNotificationItem item)
+    {
+        if (item.Schedule == ReminderPlanner.UserTimeSchedule)
+            return (item.FromTime ?? item.DefaultTime)?.ToString("HH:mm");
+
+        return item.FromTime is { } from && item.ToTime is { } to ? $"{from:HH:mm}–{to:HH:mm}" : null;
+    }
+
+    private void Open(InboxItem item)
+    {
+        Center.Close();
+
+        // The route came from the server's own catalogue, but it travelled through a push payload
+        // on the way to some phones, so it is checked the same way wherever it is used.
+        if (DeepLinks.IsInAppPath(item.Route))
+            Nav.NavigateTo(item.Route!.TrimStart('/'));
+    }
+
     private void Close() => Center.Close();
 
-    private void Changed() => InvokeAsync(StateHasChanged);
+    private void Changed()
+    {
+        _now = DateTime.UtcNow;
+        InvokeAsync(StateHasChanged);
+    }
 
     public void Dispose()
     {

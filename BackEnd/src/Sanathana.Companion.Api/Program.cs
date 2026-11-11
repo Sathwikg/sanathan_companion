@@ -372,6 +372,11 @@ try
             var termTexts = await termSeed.ImportTermTranslationsAsync();
             if (terms > 0 || termTexts > 0)
                 Log.Information("Term dictionary seeded {Terms} terms and {Texts} translations.", terms, termTexts);
+
+            // The built-in notification types (sadhana reminder, streak notices, Panchangam warnings…)
+            // each need a config row before an administrator can see or switch them. Idempotent.
+            var notificationTypes = await scope.ServiceProvider.GetRequiredService<INotificationService>().EnsureBuiltInTypesAsync();
+            if (notificationTypes > 0) Log.Information("Created {Count} built-in notification types.", notificationTypes);
         }
         catch (Exception ex)
         {

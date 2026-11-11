@@ -183,7 +183,80 @@ public class NotificationServiceTests
 
         // The admin list also reports the opt-out.
         var config = await service.GetConfigAsync();
-        Assert.Equal(1, config.Modules.Single(m => m.MenuModuleId == SeedConstants.TodaysSadhanaMenuId).OptedOutUsers);
+        // A form now lists several types; the one configured above is its plain reminder.
+        Assert.Equal(1, config.Modules.Single(m => m.MenuModuleId == SeedConstants.TodaysSadhanaMenuId && m.Kind == "reminder").OptedOutUsers);
+    }
+
+    [Fact]
+    public async Task Config_lists_each_built_in_type_on_the_form_it_belongs_to()
+    {
+        using var harness = new TestHarness();
+        var service = new NotificationService(harness.UnitOfWork);
+
+        var config = await service.GetConfigAsync();
+
+        var rahu = config.Modules.Single(m => m.Kind == "rahuKalam");
+        Assert.Equal(SeedConstants.PanchangamMenuId, rahu.MenuModuleId);
+        Assert.Equal("BeforeWindow", rahu.Schedule);
+        Assert.Equal(10, rahu.DefaultLeadMinutes);
+        Assert.True(rahu.IsEnabled);   // built-in types arrive switched on
+
+        // Every form still offers the plain reminder, off until an administrator enables it.
+        Assert.False(config.Modules.Single(m => m.MenuModuleId == SeedConstants.PanchangamMenuId && m.Kind == "reminder").IsEnabled);
+    }
+
+    [Fact]
+    public async Task A_built_in_type_cannot_be_saved_onto_another_form()
+    {
+        using var harness = new TestHarness();
+        var service = new NotificationService(harness.UnitOfWork);
+
+        await Assert.ThrowsAsync<BadRequestException>(() => service.SaveConfigAsync(new SaveNotificationConfigDto
+        {
+            Items = new() { new SaveNotificationModuleDto { MenuModuleId = SeedConstants.TodaysSadhanaMenuId, Kind = "rahuKalam", IsEnabled = true } }
+        }));
+    }
+
+    [Fact]
+    public async Task The_numbers_an_administrator_sets_are_kept_and_bounded()
+    {
+        using var harness = new TestHarness();
+        var service = new NotificationService(harness.UnitOfWork);
+        await service.EnsureBuiltInTypesAsync();
+
+        SaveNotificationConfigDto Rahu(int lead) => new()
+        {
+            Items = new() { new SaveNotificationModuleDto { MenuModuleId = SeedConstants.PanchangamMenuId, Kind = "rahuKalam", IsEnabled = true, LeadMinutes = lead } }
+        };
+
+        await service.SaveConfigAsync(Rahu(25));
+        Assert.Equal(25, (await service.GetConfigAsync()).Modules.Single(m => m.Kind == "rahuKalam").LeadMinutes);
+
+        await Assert.ThrowsAsync<BadRequestException>(() => service.SaveConfigAsync(Rahu(0)));
+        await Assert.ThrowsAsync<BadRequestException>(() => service.SaveConfigAsync(Rahu(500)));
+    }
+
+    [Fact]
+    public async Task A_type_the_seeker_times_themselves_takes_one_time_not_a_window()
+    {
+        using var harness = new TestHarness();
+        var service = new NotificationService(harness.UnitOfWork);
+        await service.EnsureBuiltInTypesAsync();
+
+        var mine = await service.GetMySettingsAsync(UserId);
+        var reminder = mine.Items.Single(i => i.Kind == "sadhanaReminder");
+        Assert.Equal("UserTime", reminder.Schedule);
+        Assert.Equal(new TimeOnly(6, 0), reminder.DefaultTime);
+        Assert.False(reminder.HasCustomText);
+
+        // A start with no end is refused for a window, and is exactly right here.
+        await service.SaveMySettingsAsync(UserId, new SaveMyNotificationSettingsDto
+        {
+            MasterEnabled = true,
+            Items = new() { new SaveMyNotificationItemDto { ConfigId = reminder.ConfigId, IsEnabled = true, FromTime = new TimeOnly(5, 30) } }
+        });
+
+        Assert.Equal(new TimeOnly(5, 30), (await service.GetMySettingsAsync(UserId)).Items.Single(i => i.Kind == "sadhanaReminder").FromTime);
     }
 
     [Fact]

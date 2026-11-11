@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Sanathana.Companion.Application.Common;
 using Sanathana.Companion.Application.Interfaces;
 using Sanathana.Companion.Domain.Entities;
 using Sanathana.Companion.Domain.Interfaces;
@@ -22,11 +24,13 @@ public sealed class CleanupJob
 {
     private readonly ApplicationDbContext _db;
     private readonly ILogger<CleanupJob> _logger;
+    private readonly PushNotificationOptions _pushOptions;
 
-    public CleanupJob(ApplicationDbContext db, ILogger<CleanupJob> logger)
+    public CleanupJob(ApplicationDbContext db, ILogger<CleanupJob> logger, IOptions<PushNotificationOptions> pushOptions)
     {
         _db = db;
         _logger = logger;
+        _pushOptions = pushOptions.Value;
     }
 
     /// <summary>
@@ -46,6 +50,7 @@ public sealed class CleanupJob
             summary.ExpiredMediaTickets = await CleanupExpiredMediaTicketsAsync(cancellationToken);
             summary.StaleSessions = await CleanupStaleSessionsAsync(cancellationToken);
             summary.OldErrorLogs = await CleanupOldErrorLogsAsync(cancellationToken);
+            summary.OldNotificationHistory = await CleanupNotificationHistoryAsync(cancellationToken);
 
             _logger.LogInformation(
                 "Cleanup job completed: {Tokens} tokens, {Tickets} tickets, {Sessions} sessions, {Errors} errors removed",
@@ -116,6 +121,23 @@ public sealed class CleanupJob
     }
 
     /// <summary>
+    /// Removes delivery history and engine runs older than PushNotifications:HistoryDays (60 by
+    /// default). The history is also each seeker's inbox, so this is how far back an inbox reaches.
+    /// </summary>
+    public async Task<int> CleanupNotificationHistoryAsync(CancellationToken cancellationToken = default)
+    {
+        var cutoff = DateTime.UtcNow.AddDays(-Math.Max(7, _pushOptions.HistoryDays));
+
+        var logs = await _db.NotificationLogs.Where(l => l.CreatedDate < cutoff).ExecuteDeleteAsync(cancellationToken);
+        var runs = await _db.NotificationRuns.Where(r => r.StartedAtUtc < cutoff).ExecuteDeleteAsync(cancellationToken);
+
+        if (logs + runs > 0)
+            _logger.LogDebug("Deleted {Logs} old notification log rows and {Runs} engine runs", logs, runs);
+
+        return logs + runs;
+    }
+
+    /// <summary>
     /// Removes error logs older than 30 days.
     /// </summary>
     public async Task<int> CleanupOldErrorLogsAsync(CancellationToken cancellationToken = default)
@@ -154,7 +176,8 @@ public sealed class CleanupSummary
     public int ExpiredMediaTickets { get; set; }
     public int StaleSessions { get; set; }
     public int OldErrorLogs { get; set; }
+    public int OldNotificationHistory { get; set; }
     public int OrphanedFavorites { get; set; }
 
-    public int Total => ExpiredRefreshTokens + ExpiredMediaTickets + StaleSessions + OldErrorLogs + OrphanedFavorites;
+    public int Total => ExpiredRefreshTokens + ExpiredMediaTickets + StaleSessions + OldErrorLogs + OldNotificationHistory + OrphanedFavorites;
 }

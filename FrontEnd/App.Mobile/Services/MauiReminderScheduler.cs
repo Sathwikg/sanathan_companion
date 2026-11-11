@@ -71,9 +71,9 @@ public class MauiReminderScheduler : IReminderScheduler
 #endif
     }
 
-    public async Task SyncAsync(MyNotificationSettings? settings)
+    public async Task SyncAsync(MyNotificationSettings? settings, bool pushDelivers = false, Func<string, string?>? label = null)
     {
-        var reminders = ReminderPlanner.Plan(settings);
+        var reminders = ReminderPlanner.Plan(settings, pushDelivers, label);
 
         // Asking only when there is something to schedule keeps the permission prompt off the
         // first launch, where it would arrive with no context and be refused.

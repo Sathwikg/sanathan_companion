@@ -30,6 +30,11 @@ services:
       JwtSettings__Secret: ${JWT_SECRET:?set JWT_SECRET in .env.vps}
       Admin__InitialPassword: ${ADMIN_INITIAL_PASSWORD:-}
       Google__ClientIds__0: ${GOOGLE_CLIENT_ID:-}
+      # Push notifications (Firebase Cloud Messaging). Off unless PUSH_ENABLED is true AND the
+      # service account key is given, base64-encoded, in FCM_SERVICE_ACCOUNT_B64. Both empty is a
+      # valid configuration: the API runs, and its Notification Console says push is not set up.
+      PushNotifications__Enabled: ${PUSH_ENABLED:-false}
+      PushNotifications__FcmServiceAccountJson: ${FCM_SERVICE_ACCOUNT_B64:-}
     expose:
       - "8080"
     # Lets the container reach Postgres running on the VPS as host.docker.internal.

@@ -19,11 +19,13 @@ public sealed class PushNotificationController : ControllerBase
 {
     private readonly IPushNotificationService _pushNotificationService;
     private readonly IOptions<PushNotificationOptions> _options;
+    private readonly IPushTransport _transport;
 
-    public PushNotificationController(IPushNotificationService pushNotificationService, IOptions<PushNotificationOptions> options)
+    public PushNotificationController(IPushNotificationService pushNotificationService, IOptions<PushNotificationOptions> options, IPushTransport transport)
     {
         _pushNotificationService = pushNotificationService;
         _options = options;
+        _transport = transport;
     }
 
     // ========== Configuration ==========
@@ -37,11 +39,15 @@ public sealed class PushNotificationController : ControllerBase
     public IActionResult GetConfig()
     {
         var o = _options.Value;
+        var status = _transport.Status;
         return Ok(new
         {
             enabled = o.Enabled,
-            fcmConfigured = o.IsFcmConfigured,
-            fcmProjectId = o.FcmProjectId,
+            // "Configured" used to mean "a setting is present"; it now means the key was found,
+            // parsed and accepted, which is the only thing the screen's green tick should claim.
+            fcmConfigured = status.Ready,
+            fcmProjectId = status.ProjectId ?? o.FcmProjectId,
+            fcmStatus = status.Reason,
             fcmSenderId = o.FcmSenderId,
             apnsConfigured = o.IsApnsConfigured,
             apnsKeyId = o.ApnsKeyId,

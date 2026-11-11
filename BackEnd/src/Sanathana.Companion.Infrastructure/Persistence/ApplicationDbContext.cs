@@ -61,6 +61,8 @@ public class ApplicationDbContext : DbContext
     public DbSet<AuditDataLog> AuditDataLogs => Set<AuditDataLog>();
     public DbSet<ErrorLog> ErrorLogs => Set<ErrorLog>();
     public DbSet<DeviceToken> DeviceTokens => Set<DeviceToken>();
+    public DbSet<NotificationLog> NotificationLogs => Set<NotificationLog>();
+    public DbSet<NotificationRun> NotificationRuns => Set<NotificationRun>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

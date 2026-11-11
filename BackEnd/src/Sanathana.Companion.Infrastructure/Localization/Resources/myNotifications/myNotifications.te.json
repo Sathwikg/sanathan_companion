@@ -15,9 +15,11 @@
   "myNotifications.osBlocked": "మీ పరికర సెట్టింగ్స్‌లో ఈ యాప్‌కు నోటిఫికేషన్‌లు ఆఫ్ చేయబడ్డాయి, కాబట్టి ఈ రిమైండర్‌లు మీకు చేరవు. వాటిని సెట్టింగ్స్‌లో ఆన్ చేయండి.",
   "myNotifications.quietHours": "నిశ్శబ్ద సమయాలు",
   "myNotifications.quietHoursHint": "ఈ సమయాల్లో ఏ నోటిఫికేషన్ రాదు — తప్పనిసరివి కూడా.",
+  "myNotifications.remindAt": "నాకు గుర్తు చేయాల్సిన సమయం",
   "myNotifications.saved": "🔔 నోటిఫికేషన్ ప్రాధాన్యతలు భద్రపరచబడ్డాయి.",
   "myNotifications.sub": "మీకు దేని గురించి, ఎప్పుడు నోటిఫికేషన్‌లు రావాలో ఎంచుకోండి",
   "myNotifications.title": "నా నోటిఫికేషన్‌లు",
+  "myNotifications.usesDefaultTime": "మీరు సమయం ఎంచుకునే వరకు {0}కి వస్తుంది.",
   "myNotifications.whatHeading": "నాకు దేని గురించి తెలియజేయాలి",
   "myNotifications.whatSub": "ప్రతిదానికీ ఐచ్ఛికంగా సమయ వ్యవధిని అమర్చుకోండి",
   "myNotifications.wouldNotifyNow": "ఇప్పుడు తెలియజేస్తుంది"

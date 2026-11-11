@@ -3,53 +3,883 @@
 @inherits LocalizedComponentBase
 @inject IApiClient Api
 @inject ToastService Toast
+@inject ConfirmService Confirm
+
+@* The notification console. The server's notification engine wakes once a minute and asks, for
+   every notification type, "who is due this right now?". This screen is that engine laid open the
+   way Hangfire lays open its jobs: each type is a row with its schedule, what it did today and on
+   its last run, and buttons to run it now or send a sample to your own phone; behind the tabs are
+   the delivery history, the engine's runs, the registered phones, a broadcast form and the setup
+   status. Everything here is read from the server; nothing is kept in the browser. *@
 
 <div class="sc-page-head">
     <div class="sc-page-title">
-        <span class="sc-page-emoji">📱</span>
+        <span class="sc-page-emoji">📡</span>
         <div>
-            <h1>Push Notifications</h1>
-            <p class="sc-page-sub">Configure and send push notifications for mobile devices</p>
+            <h1>@Loc["pushNotifications.title", "Notification Console"]</h1>
+            <p class="sc-page-sub">@Loc["pushNotifications.sub", "Every notification as a job: what it sends, when it last ran and who it reached"]</p>
         </div>
     </div>
+    <AuthorizeView Roles="Admin">
+        <Authorized>
+            <div class="sc-page-actions">
+                <label class="sc-nc-auto">
+                    <input type="checkbox" checked="@_autoRefresh" @onchange="ToggleAutoRefresh" />
+                    @Loc["pushNotifications.autoRefresh", "Auto Refresh"]
+                </label>
+                <button class="sc-btn-ghost sc-btn-sm" @onclick="RefreshAsync" disabled="@_refreshing">⟳ @Loc["common.refresh", "Refresh"]</button>
+                <button class="sc-btn-primary sc-btn-sm" @onclick="RunAllAsync" disabled="@(_busy is not null || !Ready)">▶ @Loc["pushNotifications.runEngine", "Run Engine Now"]</button>
+            </div>
+        </Authorized>
+    </AuthorizeView>
 </div>
 
 <AuthorizeView Roles="Admin">
-    <Authorized>
-        <div class="sc-tabs">
-            <button class="sc-tab @(_tab == "config" ? "active" : "")" @onclick='() => _tab = "config"'>
-                ⚙️ Configuration
-            </button>
-            <button class="sc-tab @(_tab == "send" ? "active" : "")" @onclick='() => _tab = "send"'>
-                📤 Send Notification
-            </button>
-            <button class="sc-tab @(_tab == "stats" ? "active" : "")" @onclick='() => _tab = "stats"'>
-                📊 Statistics
-            </button>
-        </div>
-
-        @if (_tab == "config")
-        {
-            <PushNotificationConfigTab />
-        }
-        else if (_tab == "send")
-        {
-            <PushNotificationSendTab />
-        }
-        else if (_tab == "stats")
-        {
-            <PushNotificationStatsTab />
-        }
-    </Authorized>
     <NotAuthorized>
         <div class="sc-card sc-empty-state">
             <div class="sc-empty-om">🔒</div>
-            <h3>Admins Only</h3>
-            <p>Push notification management is restricted to administrators.</p>
+            <h3>@Loc["common.adminOnly", "Administrator Access Required"]</h3>
+            <p>@Loc["pushNotifications.adminOnlyBody", "The notification console is available to administrators only."]</p>
         </div>
     </NotAuthorized>
+    <Authorized>
+        @if (_loading)
+        {
+            <OmLoader FullPage="true" Message="@Loc["pushNotifications.loading", "Loading the console…"]" />
+        }
+        else if (_overview is null)
+        {
+            <div class="sc-alert sc-alert-error">@(_error ?? Loc["pushNotifications.couldNotLoad", "Could not load the notification console."])</div>
+        }
+        else
+        {
+            @if (!_overview.Push.Ready)
+            {
+                <div class="sc-alert sc-alert-error">
+                    <strong>@Loc["pushNotifications.notReadyTitle", "Nothing is being sent."]</strong>
+                    @_overview.Push.Reason
+                    @Loc["pushNotifications.notReadyHint", "The Setup tab lists what is needed."]
+                </div>
+            }
+            else if (!_overview.Engine.Scheduled)
+            {
+                <div class="sc-alert sc-alert-error">
+                    <strong>@Loc["pushNotifications.notScheduledTitle", "The engine is not scheduled."]</strong>
+                    @Loc["pushNotifications.notScheduledBody", "Background jobs are switched off on the server (Hangfire:Enabled), so nothing is sent on its own. Run Now and Send Test still work."]
+                </div>
+            }
+
+            <div class="sc-nc-stats">
+                <div class="sc-card sc-nc-stat @(_overview.Push.Ready ? "ok" : "bad")">
+                    <span class="sc-nc-stat-l">@Loc["pushNotifications.statPush", "Push Service"]</span>
+                    <span class="sc-nc-stat-n">@(_overview.Push.Ready ? Loc["pushNotifications.ready", "Ready"] : Loc["pushNotifications.notReady", "Not Ready"])</span>
+                    <span class="sc-nc-stat-sub">@(_overview.Push.ProjectId ?? Loc["pushNotifications.noProject", "no Firebase project"])</span>
+                </div>
+                <div class="sc-card sc-nc-stat @(_overview.Engine.Scheduled ? (_overview.Engine.LastState == "Failed" ? "bad" : "ok") : "warn")">
+                    <span class="sc-nc-stat-l">@Loc["pushNotifications.statEngine", "Engine"]</span>
+                    <span class="sc-nc-stat-n">@(_overview.Engine.Scheduled ? Loc["pushNotifications.everyMinute", "Every Minute"] : Loc["pushNotifications.notScheduled", "Not Scheduled"])</span>
+                    <span class="sc-nc-stat-sub">
+                        @if (_overview.Engine.LastRunUtc is { } last)
+                        {
+                            @Loc.TF("pushNotifications.lastTick", "last run {0}", Ago(last))
+                        }
+                        else
+                        {
+                            @Loc["pushNotifications.neverRan", "has not run yet"]
+                        }
+                    </span>
+                </div>
+                <div class="sc-card sc-nc-stat">
+                    <span class="sc-nc-stat-l">@Loc["pushNotifications.statReachable", "Reachable Seekers"]</span>
+                    <span class="sc-nc-stat-n">@_overview.ReachableSeekers</span>
+                    <span class="sc-nc-stat-sub">@_overview.AndroidDevices Android · @_overview.IosDevices iOS</span>
+                </div>
+                <div class="sc-card sc-nc-stat">
+                    <span class="sc-nc-stat-l">@Loc["pushNotifications.statSentToday", "Sent Today"]</span>
+                    <span class="sc-nc-stat-n">@_overview.SentToday</span>
+                    <span class="sc-nc-stat-sub">
+                        @if (_overview.LastSentUtc is { } lastSent)
+                        {
+                            @Loc.TF("pushNotifications.lastSent", "last {0}", Ago(lastSent))
+                        }
+                        else
+                        {
+                            @Loc["pushNotifications.nothingSentYet", "nothing sent yet"]
+                        }
+                    </span>
+                </div>
+                <div class="sc-card sc-nc-stat @(_overview.FailedToday > 0 ? "bad" : "")">
+                    <span class="sc-nc-stat-l">@Loc["pushNotifications.statFailedToday", "Failed Today"]</span>
+                    <span class="sc-nc-stat-n">@_overview.FailedToday</span>
+                    <span class="sc-nc-stat-sub">@Loc["pushNotifications.failedHint", "see the delivery log"]</span>
+                </div>
+                <div class="sc-card sc-nc-stat sc-nc-chart" title="@Loc["pushNotifications.chartTitle", "Notifications sent per day, last 14 days"]">
+                    <span class="sc-nc-stat-l">@Loc["pushNotifications.statLast14", "Last 14 Days"]</span>
+                    <div class="sc-nc-bars" role="img" aria-label="@Loc["pushNotifications.chartTitle", "Notifications sent per day, last 14 days"]">
+                        @foreach (var day in _overview.Days)
+                        {
+                            <span class="sc-nc-bar" title="@($"{day.Date:d MMM}: {day.Sent} / {day.Failed}")">
+                                <i class="fail" style="height:@BarHeight(day.Failed)"></i>
+                                <i style="height:@BarHeight(day.Sent)"></i>
+                            </span>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <div class="sc-tabs sc-nc-tabs">
+                <button class="sc-tab @(_tab == "jobs" ? "active" : "")" @onclick='() => ShowAsync("jobs")'>🗂 @Loc["pushNotifications.tabJobs", "Notifications"]</button>
+                <button class="sc-tab @(_tab == "logs" ? "active" : "")" @onclick='() => ShowAsync("logs")'>📜 @Loc["pushNotifications.tabLogs", "Delivery Log"]</button>
+                <button class="sc-tab @(_tab == "runs" ? "active" : "")" @onclick='() => ShowAsync("runs")'>⏱ @Loc["pushNotifications.tabRuns", "Runs"]</button>
+                <button class="sc-tab @(_tab == "devices" ? "active" : "")" @onclick='() => ShowAsync("devices")'>📱 @Loc["pushNotifications.tabDevices", "Devices"]</button>
+                <button class="sc-tab @(_tab == "broadcast" ? "active" : "")" @onclick='() => ShowAsync("broadcast")'>📣 @Loc["pushNotifications.tabBroadcast", "Broadcast"]</button>
+                <button class="sc-tab @(_tab == "setup" ? "active" : "")" @onclick='() => ShowAsync("setup")'>🔧 @Loc["pushNotifications.tabSetup", "Setup"]</button>
+            </div>
+
+            @if (_tab == "jobs")
+            {
+                <div class="sc-card sc-tablewrap">
+                    <table class="sc-table sc-nc-jobs">
+                        <thead>
+                            <tr>
+                                <th style="width:27%">@Loc["pushNotifications.colNotification", "Notification"]</th>
+                                <th style="width:17%">@Loc["pushNotifications.colSchedule", "Schedule"]</th>
+                                <th style="width:9%">@Loc["pushNotifications.colStatus", "Status"]</th>
+                                <th style="width:9%">@Loc["pushNotifications.colToday", "Today"]</th>
+                                <th style="width:8%">@Loc["pushNotifications.col7Days", "7 Days"]</th>
+                                <th>@Loc["pushNotifications.colLastRun", "Last Run"]</th>
+                                <th style="width:18%"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var kind in _overview.Kinds)
+                            {
+                                var open = _openKind == kind.Kind;
+                                <tr class="@(kind.IsEnabled ? "" : "sc-row-muted")">
+                                    <td>
+                                        <button class="sc-nc-kind" @onclick="() => _openKind = open ? null : kind.Kind" aria-expanded="@(open ? "true" : "false")">
+                                            <span class="sc-mtree-caret">@(open ? "▾" : "▸")</span>
+                                            <span>
+                                                <strong>@Loc[$"push.{kind.Kind}.name", kind.Name]</strong>
+                                                <span class="sc-muted sc-nc-sub">@(string.IsNullOrWhiteSpace(kind.Icon) ? "" : kind.Icon + " ")@kind.ModuleName</span>
+                                            </span>
+                                        </button>
+                                    </td>
+                                    <td>@ScheduleText(kind)</td>
+                                    <td>
+                                        <label class="sc-switch" title="@Loc["pushNotifications.pauseHint", "Pause or resume this notification for everyone"]">
+                                            <input type="checkbox" checked="@kind.IsEnabled" disabled="@(_busy is not null || kind.ConfigId is null)"
+                                                   @onchange="e => SetEnabledAsync(kind, (bool)(e.Value ?? false))" />
+                                            <span class="sc-slider"></span>
+                                        </label>
+                                    </td>
+                                    <td>
+                                        <span class="sc-nc-num">@kind.SentToday</span>
+                                        @if (kind.FailedToday > 0)
+                                        {
+                                            <span class="sc-badge sc-nc-failbadge">@Loc.TF("pushNotifications.failedCount", "{0} failed", kind.FailedToday)</span>
+                                        }
+                                    </td>
+                                    <td><span class="sc-nc-num">@kind.SentLast7Days</span></td>
+                                    <td>
+                                        @if (kind.LastRunUtc is { } lastRun)
+                                        {
+                                            <span title="@lastRun.ToLocalTime().ToString("d MMM yyyy HH:mm:ss")">@Ago(lastRun)</span>
+                                            <span class="sc-muted sc-nc-sub">
+                                                @Loc.TF("pushNotifications.runSummary", "{0} due · {1} sent · {2} failed", kind.LastDue ?? 0, kind.LastSent ?? 0, kind.LastFailed ?? 0)
+                                                @if (kind.LastTrigger is not null and not "Schedule")
+                                                {
+                                                    <span class="sc-minichip">@TriggerText(kind.LastTrigger)</span>
+                                                }
+                                            </span>
+                                            @if (!string.IsNullOrWhiteSpace(kind.LastError))
+                                            {
+                                                <span class="sc-nc-error" title="@kind.LastError">⚠ @kind.LastError</span>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <span class="sc-muted">@Loc["pushNotifications.noRunYet", "Nobody has been due yet"]</span>
+                                        }
+                                    </td>
+                                    <td class="sc-nc-actions">
+                                        @if (kind.Schedule != "Manual")
+                                        {
+                                            <button class="sc-btn-ghost sc-btn-sm" disabled="@(_busy is not null || !Ready || !kind.IsEnabled)"
+                                                    title="@Loc["pushNotifications.runNowHint", "Send it now to everyone who is due and has not had it"]"
+                                                    @onclick="() => RunKindAsync(kind)">
+                                                @(_busy == "run:" + kind.Kind ? "…" : "▶") @Loc["pushNotifications.runNow", "Run Now"]
+                                            </button>
+                                        }
+                                        <button class="sc-btn-ghost sc-btn-sm" disabled="@(_busy is not null || !Ready)"
+                                                title="@Loc["pushNotifications.sendTestHint", "Send a sample to your own phone"]"
+                                                @onclick="() => TestKindAsync(kind)">
+                                            @(_busy == "test:" + kind.Kind ? "…" : "🔔") @Loc["pushNotifications.sendTest", "Send Test"]
+                                        </button>
+                                    </td>
+                                </tr>
+                                @if (open)
+                                {
+                                    <tr class="sc-nc-detailrow">
+                                        <td colspan="7">
+                                            <div class="sc-nc-detail">
+                                                <div>
+                                                    <p class="sc-muted">@Loc[$"push.{kind.Kind}.desc", kind.Description ?? string.Empty]</p>
+                                                    <p class="sc-hint">
+                                                        @Loc.TF("pushNotifications.detailDefaults", "On by default for seekers: {0}. Mandatory: {1}.", YesNo(kind.DefaultOn), YesNo(kind.IsMandatory))
+                                                        <a href="notification-config">@Loc["pushNotifications.editConfig", "Change in Notification Config"] →</a>
+                                                    </p>
+                                                </div>
+                                                @if (kind.TitleTemplate is not null)
+                                                {
+                                                    <div class="sc-nc-preview" aria-label="@Loc["pushNotifications.previewLabel", "How it looks on the phone"]">
+                                                        <div class="sc-nc-preview-head">
+                                                            <span class="sc-nc-preview-icon" aria-hidden="true">🪔</span>
+                                                            <span>@Brand.AppName</span>
+                                                            <span class="sc-nc-preview-dot">·</span>
+                                                            <span>@Loc["pushNotifications.previewNow", "now"]</span>
+                                                        </div>
+                                                        <strong>@kind.TitleTemplate</strong>
+                                                        <span>@kind.BodyTemplate</span>
+                                                    </div>
+                                                }
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                <p class="sc-hint" style="margin-top:0.6rem">
+                    💡 @Loc["pushNotifications.jobsHint", "Run Now sends real notifications: to every seeker the notification's own rule and their settings allow, minus anyone who already had it for this occasion. Send Test reaches only your own phone and ignores your settings."]
+                </p>
+            }
+            else if (_tab == "logs")
+            {
+                <div class="sc-card sc-filtercard">
+                    <div class="sc-filter">
+                        <label>@Loc["pushNotifications.filterType", "Notification"]</label>
+                        <select class="sc-input sc-input-sm" value="@_logKind" @onchange="e => FilterLogsAsync(kind: e.Value?.ToString())">
+                            <option value="">@Loc["pushNotifications.allTypes", "All Notifications"]</option>
+                            @foreach (var kind in _overview.Kinds)
+                            {
+                                <option value="@kind.Kind">@Loc[$"push.{kind.Kind}.name", kind.Name]</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="sc-filter">
+                        <label>@Loc["pushNotifications.filterStatus", "Status"]</label>
+                        <select class="sc-input sc-input-sm" value="@_logStatus" @onchange="e => FilterLogsAsync(status: e.Value?.ToString())">
+                            <option value="">@Loc["pushNotifications.allStatuses", "All Statuses"]</option>
+                            <option value="Sent">@Loc["pushNotifications.statusSent", "Sent"]</option>
+                            <option value="Failed">@Loc["pushNotifications.statusFailed", "Failed"]</option>
+                            <option value="Pending">@Loc["pushNotifications.statusPending", "Interrupted"]</option>
+                        </select>
+                    </div>
+                    <div class="sc-filter" style="min-width:240px">
+                        <label>@Loc["common.search", "Search"]</label>
+                        <input class="sc-input sc-input-sm" placeholder="@Loc["pushNotifications.searchPlaceholder", "Seeker, title or text…"]"
+                               value="@_logSearch" @onchange="e => FilterLogsAsync(search: e.Value?.ToString())" />
+                    </div>
+                    <span class="sc-flex-spacer"></span>
+                    <span class="sc-muted">@Loc.TF("pushNotifications.rowCount", "{0} rows", _logs?.Total ?? 0)</span>
+                </div>
+
+                @if (_tabLoading)
+                {
+                    <OmLoader Size="40" Message="@Loc["common.loading", "Loading…"]" />
+                }
+                else if (_logs is null || _logs.Items.Count == 0)
+                {
+                    <div class="sc-card sc-empty-state">
+                        <div class="sc-empty-om">📭</div>
+                        <h3>@Loc["pushNotifications.noLogs", "Nothing Sent Yet"]</h3>
+                        <p>@Loc["pushNotifications.noLogsBody", "Every notification the server sends is listed here, with what became of it."]</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="sc-card sc-tablewrap">
+                        <table class="sc-table">
+                            <thead>
+                                <tr>
+                                    <th style="width:11%">@Loc["pushNotifications.colWhen", "When"]</th>
+                                    <th style="width:15%">@Loc["pushNotifications.colSeeker", "Seeker"]</th>
+                                    <th style="width:14%">@Loc["pushNotifications.colNotification", "Notification"]</th>
+                                    <th>@Loc["pushNotifications.colMessage", "Message"]</th>
+                                    <th style="width:14%">@Loc["pushNotifications.colStatus", "Status"]</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var log in _logs.Items)
+                                {
+                                    <tr>
+                                        <td title="@log.CreatedUtc.ToLocalTime().ToString("d MMM yyyy HH:mm:ss")">@log.CreatedUtc.ToLocalTime().ToString("d MMM HH:mm")</td>
+                                        <td>@(log.UserName ?? "—")</td>
+                                        <td>
+                                            @Loc[$"push.{log.Kind}.name", log.Kind]
+                                            @if (log.Trigger != "Schedule")
+                                            {
+                                                <span class="sc-minichip">@TriggerText(log.Trigger)</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            <strong>@log.Title</strong>
+                                            <div class="sc-muted sc-nc-sub">@log.Body</div>
+                                            @if (!string.IsNullOrWhiteSpace(log.Error))
+                                            {
+                                                <div class="sc-nc-error">⚠ @log.Error</div>
+                                            }
+                                        </td>
+                                        <td>
+                                            <span class="sc-badge @StatusClass(log.Status)">@StatusText(log.Status)</span>
+                                            @if (log.Status == "Sent")
+                                            {
+                                                <div class="sc-muted sc-nc-sub">
+                                                    @Loc.TF("pushNotifications.deviceCount", "{0} device(s)", log.Devices)
+                                                    @if (log.ReadAtUtc is not null)
+                                                    {
+                                                        <span> · @Loc["pushNotifications.seen", "seen"]</span>
+                                                    }
+                                                </div>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="sc-nc-pager">
+                        <button class="sc-btn-ghost sc-btn-sm" disabled="@(_logPage <= 1)" @onclick="() => PageLogsAsync(_logPage - 1)">← @Loc["common.previous", "Previous"]</button>
+                        <span class="sc-muted">@Loc.TF("pushNotifications.pageOf", "Page {0} of {1}", _logPage, LogPages)</span>
+                        <button class="sc-btn-ghost sc-btn-sm" disabled="@(_logPage >= LogPages)" @onclick="() => PageLogsAsync(_logPage + 1)">@Loc["common.next", "Next"] →</button>
+                    </div>
+                }
+            }
+            else if (_tab == "runs")
+            {
+                @if (_tabLoading)
+                {
+                    <OmLoader Size="40" Message="@Loc["common.loading", "Loading…"]" />
+                }
+                else if (_runs.Count == 0)
+                {
+                    <div class="sc-card sc-empty-state">
+                        <div class="sc-empty-om">⏱</div>
+                        <h3>@Loc["pushNotifications.noRuns", "No Runs Recorded Yet"]</h3>
+                        <p>@Loc["pushNotifications.noRunsBody", "The engine wakes every minute, and only the passes that had someone to notify are kept here."]</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="sc-card sc-tablewrap">
+                        <table class="sc-table">
+                            <thead>
+                                <tr>
+                                    <th>@Loc["pushNotifications.colStarted", "Started"]</th>
+                                    <th>@Loc["pushNotifications.colNotification", "Notification"]</th>
+                                    <th>@Loc["pushNotifications.colTrigger", "Trigger"]</th>
+                                    <th>@Loc["pushNotifications.colDue", "Due"]</th>
+                                    <th>@Loc["pushNotifications.colSent", "Sent"]</th>
+                                    <th>@Loc["pushNotifications.colFailed", "Failed"]</th>
+                                    <th>@Loc["pushNotifications.colDuration", "Took"]</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var run in _runs)
+                                {
+                                    <tr>
+                                        <td>@run.StartedAtUtc.ToLocalTime().ToString("d MMM HH:mm:ss")</td>
+                                        <td>
+                                            @Loc[$"push.{run.Kind}.name", run.Kind]
+                                            @if (!string.IsNullOrWhiteSpace(run.Error))
+                                            {
+                                                <div class="sc-nc-error">⚠ @run.Error</div>
+                                            }
+                                        </td>
+                                        <td>@TriggerText(run.Trigger)</td>
+                                        <td>@run.Due</td>
+                                        <td>@run.Sent</td>
+                                        <td>@(run.Failed > 0 ? run.Failed.ToString() : "—")</td>
+                                        <td>@run.DurationMs ms</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            }
+            else if (_tab == "devices")
+            {
+                @if (_tabLoading)
+                {
+                    <OmLoader Size="40" Message="@Loc["common.loading", "Loading…"]" />
+                }
+                else if (_devices.Count == 0)
+                {
+                    <div class="sc-card sc-empty-state">
+                        <div class="sc-empty-om">📱</div>
+                        <h3>@Loc["pushNotifications.noDevices", "No Phones Registered Yet"]</h3>
+                        <p>@Loc["pushNotifications.noDevicesBody", "A phone appears here once someone signs in to the mobile app on it. A build without the Firebase file never registers."]</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="sc-card sc-tablewrap">
+                        <table class="sc-table">
+                            <thead>
+                                <tr>
+                                    <th>@Loc["pushNotifications.colSeeker", "Seeker"]</th>
+                                    <th>@Loc["pushNotifications.colPhone", "Phone"]</th>
+                                    <th>@Loc["pushNotifications.colApp", "App"]</th>
+                                    <th>@Loc["pushNotifications.colLanguage", "Language"]</th>
+                                    <th>@Loc["pushNotifications.colTimeZone", "Time Zone"]</th>
+                                    <th>@Loc["pushNotifications.colLastSent", "Last Sent To"]</th>
+                                    <th>@Loc["pushNotifications.colStatus", "Status"]</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var device in _devices)
+                                {
+                                    <tr class="@(device.IsActive ? "" : "sc-row-muted")">
+                                        <td>@(device.UserName ?? "—")</td>
+                                        <td>
+                                            @(device.Platform == 2 ? "iOS" : "Android") @device.DeviceModel
+                                            <div class="sc-muted sc-nc-sub">@device.TokenTail</div>
+                                        </td>
+                                        <td>@(device.AppVersion ?? "—")</td>
+                                        <td>@(device.Language ?? "en")</td>
+                                        <td>@(device.TimeZone ?? "—")</td>
+                                        <td>@(device.LastUsedUtc is { } used ? Ago(used) : Loc["pushNotifications.never", "never"])</td>
+                                        <td>
+                                            <span class="sc-badge @(device.IsActive ? "on" : "off")">@(device.IsActive ? Loc["pushNotifications.deviceActive", "Active"] : Loc["pushNotifications.deviceRetired", "Retired"])</span>
+                                            @if (!string.IsNullOrWhiteSpace(device.LastFailureReason))
+                                            {
+                                                <div class="sc-nc-error" title="@device.LastFailureReason">⚠ @device.LastFailureReason</div>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="sc-nc-pager">
+                        <span class="sc-hint">@Loc["pushNotifications.retiredHint", "A phone is retired when the push service says its token will never work again: the app was removed or its data cleared."]</span>
+                        <button class="sc-btn-ghost sc-btn-sm" @onclick="CleanupTokensAsync">🧹 @Loc["pushNotifications.cleanup", "Remove Retired Phones"]</button>
+                    </div>
+                }
+            }
+            else if (_tab == "broadcast")
+            {
+                <div class="sc-nc-broadcast">
+                    <div class="sc-card sc-nc-form">
+                        <h3>@Loc["pushNotifications.broadcastHeading", "Send an Announcement"]</h3>
+                        <p class="sc-muted">@Loc.TF("pushNotifications.broadcastSub", "Goes to every seeker who accepts announcements and is outside their quiet hours: up to {0} right now.", _overview.ReachableSeekers)</p>
+
+                        <div class="sc-field">
+                            <label>@Loc["pushNotifications.fieldTitle", "Title"]</label>
+                            <input class="sc-input" maxlength="80" placeholder="@Loc["pushNotifications.titlePlaceholder", "e.g. Karthika Masam begins tomorrow"]" @bind="_broadcast.Title" @bind:event="oninput" />
+                        </div>
+                        <div class="sc-field">
+                            <label>@Loc["pushNotifications.fieldMessage", "Message"]</label>
+                            <textarea class="sc-input" rows="3" maxlength="300" placeholder="@Loc["pushNotifications.messagePlaceholder", "One or two sentences. The whole of it should fit on a lock screen."]" @bind="_broadcast.Body" @bind:event="oninput"></textarea>
+                        </div>
+                        <div class="sc-field">
+                            <label>@Loc["pushNotifications.fieldOpens", "Tapping It Opens"]</label>
+                            <select class="sc-input" @bind="_broadcast.Route">
+                                <option value="/">@Loc["pushNotifications.routeHome", "Home"]</option>
+                                <option value="/sadhana">@Loc["pushNotifications.routeSadhana", "Today's Sadhana"]</option>
+                                <option value="/panchangam">@Loc["pushNotifications.routePanchangam", "Panchangam"]</option>
+                                <option value="/calendar">@Loc["pushNotifications.routeCalendar", "Calendar"]</option>
+                            </select>
+                        </div>
+                        <div class="sc-field">
+                            <label>@Loc["pushNotifications.fieldImage", "Picture (Optional)"]</label>
+                            <input class="sc-input" placeholder="https://…" @bind="_broadcast.ImageUrl" />
+                            <span class="sc-hint">@Loc["pushNotifications.imageHint", "An https address of a picture, shown large when the notification is expanded."]</span>
+                        </div>
+
+                        <div class="sc-formfoot">
+                            <button class="sc-btn-primary" @onclick="BroadcastAsync"
+                                    disabled="@(_busy is not null || !Ready || string.IsNullOrWhiteSpace(_broadcast.Title) || string.IsNullOrWhiteSpace(_broadcast.Body))">
+                                @(_busy == "broadcast" ? Loc["pushNotifications.sending", "Sending…"] : Loc["pushNotifications.sendBroadcast", "Send to Everyone"])
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="sc-nc-phone" aria-label="@Loc["pushNotifications.previewLabel", "How it looks on the phone"]">
+                        <span class="sc-nc-phone-l">@Loc["pushNotifications.previewLabel", "How it looks on the phone"]</span>
+                        <div class="sc-nc-preview">
+                            <div class="sc-nc-preview-head">
+                                <span class="sc-nc-preview-icon" aria-hidden="true">🪔</span>
+                                <span>@Brand.AppName</span>
+                                <span class="sc-nc-preview-dot">·</span>
+                                <span>@Loc["pushNotifications.previewNow", "now"]</span>
+                            </div>
+                            <strong>@(string.IsNullOrWhiteSpace(_broadcast.Title) ? Loc["pushNotifications.fieldTitle", "Title"] : _broadcast.Title)</strong>
+                            <span>@(string.IsNullOrWhiteSpace(_broadcast.Body) ? Loc["pushNotifications.fieldMessage", "Message"] : _broadcast.Body)</span>
+                        </div>
+                    </div>
+                </div>
+            }
+            else if (_tab == "setup")
+            {
+                <div class="sc-card sc-nc-setup">
+                    <h3>@Loc["pushNotifications.setupHeading", "What Push Needs"]</h3>
+                    <ul class="sc-nc-checklist">
+                        <li class="@(_overview.Push.Enabled ? "ok" : "todo")">
+                            <strong>@Loc["pushNotifications.checkEnabled", "Push Is Switched On"]</strong>
+                            <span>@Loc["pushNotifications.checkEnabledBody", "PushNotifications:Enabled is true in the server's settings or environment."]</span>
+                        </li>
+                        <li class="@(_overview.Push.Ready ? "ok" : "todo")">
+                            <strong>@Loc["pushNotifications.checkKey", "The Firebase Key Is Accepted"]</strong>
+                            <span>
+                                @if (_overview.Push.Ready)
+                                {
+                                    @Loc.TF("pushNotifications.checkKeyOk", "Connected to Firebase project {0}.", _overview.Push.ProjectId ?? "?")
+                                }
+                                else
+                                {
+                                    @(_overview.Push.Reason ?? Loc["pushNotifications.checkKeyBody", "The service account key from Firebase console is given to the server as a file path or as its content."])
+                                }
+                            </span>
+                        </li>
+                        <li class="@(_overview.Engine.Scheduled ? "ok" : "todo")">
+                            <strong>@Loc["pushNotifications.checkEngine", "The Engine Is Scheduled"]</strong>
+                            <span>@Loc["pushNotifications.checkEngineBody", "Background jobs are on (Hangfire:Enabled), so the engine wakes every minute."]</span>
+                        </li>
+                        <li class="@(_overview.ActiveDevices > 0 ? "ok" : "todo")">
+                            <strong>@Loc["pushNotifications.checkDevice", "A Phone Is Registered"]</strong>
+                            <span>@Loc["pushNotifications.checkDeviceBody", "The mobile app was built with google-services.json, and someone has signed in and allowed notifications."]</span>
+                        </li>
+                    </ul>
+
+                    <div class="sc-nc-settings">
+                        <div><span>@Loc["pushNotifications.setGrace", "Still Sent When Late By Up To"]</span><strong>@Loc.TF("pushNotifications.minutes", "{0} min", _overview.Push.GraceMinutes)</strong></div>
+                        <div><span>@Loc["pushNotifications.setHistory", "History and Inbox Kept For"]</span><strong>@Loc.TF("pushNotifications.days", "{0} days", _overview.Push.HistoryDays)</strong></div>
+                        <div><span>@Loc["pushNotifications.setDrawnBy", "Drawn By"]</span><strong>@(_overview.Push.DataOnly ? Loc["pushNotifications.drawnByApp", "The app, always"] : Loc["pushNotifications.drawnBySystem", "Android when the app is closed, the app when open"])</strong></div>
+                        <div><span>@Loc["pushNotifications.setSchedule", "Engine Schedule"]</span><strong>@(_overview.Engine.Cron ?? "—")</strong></div>
+                    </div>
+                    <p class="sc-hint">@Loc["pushNotifications.setupHint", "These come from the server's PushNotifications settings. Change them there and restart the API; the key itself is never shown."]</p>
+                </div>
+            }
+        }
+    </Authorized>
 </AuthorizeView>
 
 @code {
-    private string _tab = "config";
+    private const int LogPageSize = 50;
+
+    private ConsoleOverview? _overview;
+    private ConsoleLogPage? _logs;
+    private List<ConsoleRun> _runs = new();
+    private List<ConsoleDevice> _devices = new();
+    private readonly ConsoleBroadcastRequest _broadcast = new() { Route = "/" };
+
+    private string _tab = "jobs";
+    private string? _openKind;
+    private string? _logKind;
+    private string? _logStatus;
+    private string? _logSearch;
+    private int _logPage = 1;
+
+    private bool _loading = true;
+    private bool _refreshing;
+    private bool _tabLoading;
+    private string? _error;
+
+    /// <summary>The action in flight ("run:rahuKalam", "test:…", "broadcast"), or null. One at a time: each sends real notifications.</summary>
+    private string? _busy;
+
+    private bool _autoRefresh = true;
+    private CancellationTokenSource? _timer;
+
+    private bool Ready => _overview?.Push.Ready ?? false;
+    private int LogPages => _logs is null || _logs.Total == 0 ? 1 : (int)Math.Ceiling(_logs.Total / (double)LogPageSize);
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        await LoadOverviewAsync();
+        _loading = false;
+        StartTimer();
+    }
+
+    private async Task LoadOverviewAsync()
+    {
+        try
+        {
+            _overview = await Api.GetNotificationConsoleOverviewAsync();
+            _error = null;
+        }
+        catch (Exception ex)
+        {
+            // Keep the last good overview on screen: a console that blanks on one failed poll is
+            // worse than one that is a few seconds stale.
+            _error = Loc.ErrorText(ex);
+        }
+    }
+
+    private async Task RefreshAsync()
+    {
+        _refreshing = true;
+        await LoadOverviewAsync();
+        await LoadTabAsync(quiet: true);
+        _refreshing = false;
+    }
+
+    private async Task ShowAsync(string tab)
+    {
+        _tab = tab;
+        await LoadTabAsync(quiet: false);
+    }
+
+    /// <summary>Fetches what the open tab shows. Quiet reloads keep the table on screen instead of flashing a loader.</summary>
+    private async Task LoadTabAsync(bool quiet)
+    {
+        if (_tab is not ("logs" or "runs" or "devices")) return;
+
+        if (!quiet) { _tabLoading = true; StateHasChanged(); }
+        try
+        {
+            switch (_tab)
+            {
+                case "logs": _logs = await Api.GetNotificationConsoleLogsAsync(_logKind, _logStatus, _logSearch, _logPage, LogPageSize); break;
+                case "runs": _runs = await Api.GetNotificationConsoleRunsAsync(); break;
+                case "devices": _devices = await Api.GetNotificationConsoleDevicesAsync(); break;
+            }
+        }
+        catch (Exception ex)
+        {
+            if (!quiet) Toast.Error(Loc.ErrorText(ex));
+        }
+        finally
+        {
+            _tabLoading = false;
+        }
+    }
+
+    private async Task FilterLogsAsync(string? kind = null, string? status = null, string? search = null)
+    {
+        // Each handler passes only the filter it changed; the others keep their value.
+        if (kind is not null) _logKind = kind.Length == 0 ? null : kind;
+        if (status is not null) _logStatus = status.Length == 0 ? null : status;
+        if (search is not null) _logSearch = string.IsNullOrWhiteSpace(search) ? null : search.Trim();
+
+        _logPage = 1;
+        await LoadTabAsync(quiet: false);
+    }
+
+    private async Task PageLogsAsync(int page)
+    {
+        _logPage = Math.Clamp(page, 1, LogPages);
+        await LoadTabAsync(quiet: false);
+    }
+
+    // ---------------------------------------------------------------- actions
+
+    private async Task RunAllAsync()
+    {
+        await ActAsync("run:all", () => Api.RunNotificationKindAsync(null));
+    }
+
+    private async Task RunKindAsync(ConsoleKind kind)
+    {
+        var confirmed = await Confirm.ConfirmAsync(new ConfirmRequest
+        {
+            Title = Loc.TF("pushNotifications.confirmRunTitle", "Run \"{0}\" Now?", Loc[$"push.{kind.Kind}.name", kind.Name]),
+            Message = Loc["pushNotifications.confirmRunBody", "This sends real notifications to seekers' phones: everyone this notification's rule and their own settings allow, except anyone who already received it for this occasion."],
+            ConfirmText = Loc["pushNotifications.runNow", "Run Now"],
+            Kind = ConfirmKind.Warning
+        });
+        if (!confirmed) return;
+
+        await ActAsync("run:" + kind.Kind, () => Api.RunNotificationKindAsync(kind.Kind));
+    }
+
+    private Task TestKindAsync(ConsoleKind kind)
+        => ActAsync("test:" + kind.Kind, () => Api.TestNotificationKindAsync(kind.Kind));
+
+    private async Task BroadcastAsync()
+    {
+        var confirmed = await Confirm.ConfirmAsync(new ConfirmRequest
+        {
+            Title = Loc["pushNotifications.confirmBroadcastTitle", "Send This to Everyone?"],
+            Message = Loc.TF("pushNotifications.confirmBroadcastBody", "\"{0}\" will be sent to up to {1} seeker(s). It cannot be recalled.", _broadcast.Title, _overview?.ReachableSeekers ?? 0),
+            ConfirmText = Loc["pushNotifications.sendBroadcast", "Send to Everyone"],
+            Kind = ConfirmKind.Warning
+        });
+        if (!confirmed) return;
+
+        var ok = await ActAsync("broadcast", () => Api.BroadcastNotificationAsync(_broadcast));
+        if (ok)
+        {
+            _broadcast.Title = string.Empty;
+            _broadcast.Body = string.Empty;
+            _broadcast.ImageUrl = null;
+        }
+    }
+
+    /// <summary>Runs one console action, reports its one-line result and refreshes the figures it changed.</summary>
+    private async Task<bool> ActAsync(string name, Func<Task<ConsoleActionResult>> action)
+    {
+        if (_busy is not null) return false;
+
+        _busy = name;
+        try
+        {
+            var result = await action();
+            if (result.Ok) Toast.Success(result.Message); else Toast.Error(result.Message);
+
+            await LoadOverviewAsync();
+            await LoadTabAsync(quiet: true);
+            return result.Ok;
+        }
+        catch (Exception ex)
+        {
+            Toast.Error(Loc.ErrorText(ex));
+            return false;
+        }
+        finally
+        {
+            _busy = null;
+        }
+    }
+
+    private async Task SetEnabledAsync(ConsoleKind kind, bool enabled)
+    {
+        var (ok, error) = await Api.SetNotificationKindEnabledAsync(kind.Kind, enabled);
+        if (ok)
+        {
+            kind.IsEnabled = enabled;
+            Toast.Success(enabled
+                ? Loc.TF("pushNotifications.resumed", "{0} resumed.", Loc[$"push.{kind.Kind}.name", kind.Name])
+                : Loc.TF("pushNotifications.paused", "{0} paused. Seekers' own choices are kept.", Loc[$"push.{kind.Kind}.name", kind.Name]));
+        }
+        else
+        {
+            Toast.Error(error);
+        }
+
+        await LoadOverviewAsync();
+    }
+
+    private async Task CleanupTokensAsync()
+    {
+        var confirmed = await Confirm.ConfirmAsync(new ConfirmRequest
+        {
+            Title = Loc["pushNotifications.confirmCleanupTitle", "Remove Retired Phones?"],
+            Message = Loc["pushNotifications.confirmCleanupBody", "Phones retired more than 30 days ago are removed from the list. A phone that is still in use registers again by itself."],
+            ConfirmText = Loc["pushNotifications.cleanup", "Remove Retired Phones"],
+            Kind = ConfirmKind.Warning
+        });
+        if (!confirmed) return;
+
+        var (ok, deleted, error) = await Api.CleanupPushNotificationTokensAsync();
+        if (ok) Toast.Success(Loc.TF("pushNotifications.cleanedUp", "{0} retired phone(s) removed.", deleted)); else Toast.Error(error);
+
+        await RefreshAsync();
+    }
+
+    // ---------------------------------------------------------------- auto refresh
+
+    private void ToggleAutoRefresh(ChangeEventArgs e)
+    {
+        _autoRefresh = (bool)(e.Value ?? false);
+        if (_autoRefresh) StartTimer(); else StopTimer();
+    }
+
+    /// <summary>
+    /// Polls every twenty seconds while the page is open: the engine runs every minute, so the
+    /// figures here change by themselves and a console that needs a button pressed to notice is not
+    /// one. Skipped while an action is in flight, which refreshes on its own when it finishes.
+    /// </summary>
+    private void StartTimer()
+    {
+        StopTimer();
+        if (!_autoRefresh) return;
+
+        var cts = _timer = new CancellationTokenSource();
+        _ = Task.Run(async () =>
+        {
+            using var timer = new PeriodicTimer(TimeSpan.FromSeconds(20));
+            try
+            {
+                while (await timer.WaitForNextTickAsync(cts.Token))
+                {
+                    if (_busy is not null) continue;
+                    await InvokeAsync(async () =>
+                    {
+                        await LoadOverviewAsync();
+                        await LoadTabAsync(quiet: true);
+                        StateHasChanged();
+                    });
+                }
+            }
+            catch (OperationCanceledException) { }
+        });
+    }
+
+    private void StopTimer()
+    {
+        _timer?.Cancel();
+        _timer?.Dispose();
+        _timer = null;
+    }
+
+    /// <summary>Stops the poll, then lets the base class drop its language subscription.</summary>
+    public override void Dispose()
+    {
+        StopTimer();
+        base.Dispose();
+    }
+
+    // ---------------------------------------------------------------- wording
+
+    private string ScheduleText(ConsoleKind kind) => kind.Schedule switch
+    {
+        "UserTime" => Loc.TF("pushNotifications.schedUserTime", "Daily, at each seeker's time (default {0})", kind.SendTime?.ToString("HH:mm") ?? "—"),
+        "DailyAt" when kind.Threshold is { } days => Loc.TF("pushNotifications.schedDailyStreak", "Daily at {0}, streaks of {1}+ days", kind.SendTime?.ToString("HH:mm") ?? "—", days),
+        "DailyAt" => Loc.TF("pushNotifications.schedDaily", "Daily at {0}", kind.SendTime?.ToString("HH:mm") ?? "—"),
+        "BeforeWindow" => Loc.TF("pushNotifications.schedWindow", "{0} min before it begins", kind.LeadMinutes ?? 0),
+        _ => Loc["pushNotifications.schedManual", "When you send one"]
+    };
+
+    private string TriggerText(string trigger) => trigger switch
+    {
+        "Manual" => Loc["pushNotifications.triggerManual", "Run Now"],
+        "Test" => Loc["pushNotifications.triggerTest", "Test"],
+        "Broadcast" => Loc["pushNotifications.triggerBroadcast", "Broadcast"],
+        _ => Loc["pushNotifications.triggerSchedule", "Schedule"]
+    };
+
+    private string StatusText(string status) => status switch
+    {
+        "Sent" => Loc["pushNotifications.statusSent", "Sent"],
+        "Failed" => Loc["pushNotifications.statusFailed", "Failed"],
+        _ => Loc["pushNotifications.statusPending", "Interrupted"]
+    };
+
+    private static string StatusClass(string status) => status == "Sent" ? "on" : status == "Failed" ? "sc-nc-failbadge" : "off";
+
+    private string YesNo(bool value) => value ? Loc["common.yes", "Yes"] : Loc["common.no", "No"];
+
+    private string Ago(DateTime utc)
+    {
+        var age = DateTime.UtcNow - DateTime.SpecifyKind(utc, DateTimeKind.Utc);
+        if (age < TimeSpan.FromSeconds(60)) return Loc.TF("pushNotifications.secondsAgo", "{0}s ago", Math.Max(0, (int)age.TotalSeconds));
+        if (age < TimeSpan.FromMinutes(60)) return Loc.TF("pushNotifications.minutesAgo", "{0} min ago", (int)age.TotalMinutes);
+        if (age < TimeSpan.FromHours(24)) return Loc.TF("pushNotifications.hoursAgo", "{0} h ago", (int)age.TotalHours);
+        return utc.ToLocalTime().ToString("d MMM HH:mm");
+    }
+
+    /// <summary>Bar height as a share of the busiest day in view; a day with one notification still shows a sliver.</summary>
+    private string BarHeight(int value)
+    {
+        var max = Math.Max(1, _overview?.Days.Max(d => d.Sent + d.Failed) ?? 1);
+        if (value <= 0) return "0";
+        return Math.Max(6, (int)Math.Round(100.0 * value / max)) + "%";
+    }
 }

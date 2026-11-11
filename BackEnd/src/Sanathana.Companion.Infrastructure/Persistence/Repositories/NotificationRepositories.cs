@@ -14,8 +14,8 @@ public class NotificationConfigRepository : BaseRepository<NotificationConfig>, 
                     .OrderBy(c => c.DisplayOrder)
                     .ToListAsync(cancellationToken);
 
-    public async Task<NotificationConfig?> GetByModuleAsync(Guid menuModuleId, CancellationToken cancellationToken = default)
-        => await Set.FirstOrDefaultAsync(c => c.MenuModuleId == menuModuleId, cancellationToken);
+    public async Task<NotificationConfig?> GetByModuleAsync(Guid menuModuleId, string kind, CancellationToken cancellationToken = default)
+        => await Set.FirstOrDefaultAsync(c => c.MenuModuleId == menuModuleId && c.Kind == kind, cancellationToken);
 }
 
 public class UserNotificationRepository : BaseRepository<UserNotificationPreference>, IUserNotificationRepository

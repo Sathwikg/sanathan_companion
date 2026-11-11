@@ -31,6 +31,11 @@ services:
       JwtSettings__Secret: ${JWT_SECRET:?set JWT_SECRET in .env (32+ bytes, random)}
       # Sign in with Google. Optional: empty keeps the feature off.
       Google__ClientIds__0: ${GOOGLE_CLIENT_ID:-}
+      # Push notifications (Firebase Cloud Messaging). Off unless PUSH_ENABLED is true AND the
+      # service account key is given, base64-encoded, in FCM_SERVICE_ACCOUNT_B64. Both empty is a
+      # valid configuration: the API runs, and its Notification Console says push is not set up.
+      PushNotifications__Enabled: ${PUSH_ENABLED:-false}
+      PushNotifications__FcmServiceAccountJson: ${FCM_SERVICE_ACCOUNT_B64:-}
     volumes:
       # The database CA, read-only. The connection string points Root Certificate at
       # this path; see .env.example for why VerifyFull rather than Require.

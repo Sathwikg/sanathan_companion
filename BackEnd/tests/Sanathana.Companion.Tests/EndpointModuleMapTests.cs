@@ -107,6 +107,11 @@ public class EndpointModuleMapTests
             "MediaController.GetTicket",
             "MenuModulesController.GetMenu",
             "NotificationsController.GetMine",
+            // The seeker's own inbox, and their own phone introducing itself at start-up: every
+            // signed-in role's app does these, whether or not it was granted My Notifications.
+            "NotificationsController.Inbox",
+            "NotificationsController.MarkInboxRead",
+            "NotificationsController.RegisterDevice",
             "ProfileController.DeleteMyAccount",
             "ProfileController.ExportMyData",
             "ProfileController.Me",
