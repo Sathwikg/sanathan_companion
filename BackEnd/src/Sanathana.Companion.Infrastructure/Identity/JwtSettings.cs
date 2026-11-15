@@ -10,8 +10,17 @@ public class JwtSettings
     public int ExpiryMinutes { get; set; } = 120;
 
     /// <summary>
-    /// How long a refresh token lives. Read only by RefreshTokenFactory — the Application layer
-    /// cannot see this class, which is why the lifetime is exposed through that interface.
+    /// How long a refresh token lives in a browser. Read only by RefreshTokenFactory — the
+    /// Application layer cannot see this class, which is why the lifetime is exposed through that
+    /// interface. Every refresh issues a new token with a fresh lifetime, so this is the longest a
+    /// seeker may go WITHOUT opening the site before being asked to sign in again.
     /// </summary>
     public int RefreshTokenDays { get; set; } = 30;
+
+    /// <summary>
+    /// The same for the phone app, which a seeker expects to stay signed in until they sign out,
+    /// the way every app on their phone does. Sliding like the browser's, so only a full year without
+    /// opening the app ends the session. Chosen by the X-Platform header the app sends.
+    /// </summary>
+    public int MobileRefreshTokenDays { get; set; } = 365;
 }

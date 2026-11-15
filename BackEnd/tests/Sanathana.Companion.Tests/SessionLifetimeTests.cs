@@ -105,24 +105,107 @@ public class SessionLifetimeTests
     // ---------------------------------------------------------------- reuse detection
 
     [Fact]
-    public async Task Presenting_a_token_twice_revokes_the_whole_family()
+    public async Task Presenting_a_token_after_its_successor_was_used_revokes_the_whole_family()
     {
-        // Either it was stolen or the real device replayed it, and there is no way to tell which
-        // from here. Both parties sign in again.
+        // Two parties hold the same session: one used the successor, the other is replaying the old
+        // token. Either it was stolen or the real device replayed it, and there is no way to tell
+        // which from here. Both parties sign in again.
         using var harness = new TestHarness();
         var first = await SignInAsync(harness);
 
         var second = await harness.AuthService.RefreshAsync(new RefreshRequestDto { RefreshToken = first.RefreshToken });
-        Assert.NotNull(second);
+        var third = await harness.AuthService.RefreshAsync(new RefreshRequestDto { RefreshToken = second!.RefreshToken });
+        Assert.NotNull(third);
 
         var replayed = await harness.AuthService.RefreshAsync(new RefreshRequestDto { RefreshToken = first.RefreshToken });
         Assert.Null(replayed);
 
-        // ...and the successor is dead too, which is the whole point.
-        var afterwards = await harness.AuthService.RefreshAsync(new RefreshRequestDto { RefreshToken = second!.RefreshToken });
+        // ...and the live end of the chain is dead too, which is the whole point.
+        var afterwards = await harness.AuthService.RefreshAsync(new RefreshRequestDto { RefreshToken = third!.RefreshToken });
         Assert.Null(afterwards);
 
         Assert.All(await harness.Context.RefreshTokens.ToListAsync(), t => Assert.NotNull(t.RevokedAtUtc));
+    }
+
+    // ---------------------------------------------------------------- staying signed in
+
+    [Fact]
+    public async Task A_refresh_whose_reply_was_lost_can_be_asked_again_without_signing_the_seeker_out()
+    {
+        // The phone sent its token, the server rotated it, and the reply never arrived (the signal
+        // dropped, or Android froze the app mid-request). The phone still holds the old token and
+        // asks again. Treating that as theft signed seekers out for good over one dropped packet.
+        using var harness = new TestHarness();
+        var first = await SignInAsync(harness);
+
+        var lost = await harness.AuthService.RefreshAsync(new RefreshRequestDto { RefreshToken = first.RefreshToken });
+        Assert.NotNull(lost);   // issued, but imagine the phone never received it
+
+        var retried = await harness.AuthService.RefreshAsync(new RefreshRequestDto { RefreshToken = first.RefreshToken });
+        Assert.NotNull(retried);
+        Assert.NotEqual(lost!.RefreshToken, retried!.RefreshToken);
+
+        // The session carries on from the retry...
+        Assert.NotNull(await harness.AuthService.RefreshAsync(new RefreshRequestDto { RefreshToken = retried.RefreshToken }));
+
+        // ...and the reply that was lost is retired, not left as a second live branch.
+        var superseded = await harness.Context.RefreshTokens.SingleAsync(t => t.TokenHash == harness.RefreshTokens.Hash(lost.RefreshToken));
+        Assert.Equal("superseded", superseded.RevokedReason);
+    }
+
+    [Fact]
+    public async Task If_the_lost_reply_turns_up_after_all_the_family_is_revoked()
+    {
+        // The leniency above must not become a way to hold two live copies of one session. Whoever
+        // presents the superseded token is replaying something that was already replaced.
+        using var harness = new TestHarness();
+        var first = await SignInAsync(harness);
+
+        var lost = await harness.AuthService.RefreshAsync(new RefreshRequestDto { RefreshToken = first.RefreshToken });
+        var retried = await harness.AuthService.RefreshAsync(new RefreshRequestDto { RefreshToken = first.RefreshToken });
+
+        Assert.Null(await harness.AuthService.RefreshAsync(new RefreshRequestDto { RefreshToken = lost!.RefreshToken }));
+        Assert.Null(await harness.AuthService.RefreshAsync(new RefreshRequestDto { RefreshToken = retried!.RefreshToken }));
+        Assert.All(await harness.Context.RefreshTokens.ToListAsync(), t => Assert.NotNull(t.RevokedAtUtc));
+    }
+
+    [Fact]
+    public async Task A_lost_reply_cannot_be_retried_after_signing_out()
+    {
+        using var harness = new TestHarness();
+        var first = await SignInAsync(harness);
+        var second = await harness.AuthService.RefreshAsync(new RefreshRequestDto { RefreshToken = first.RefreshToken });
+
+        await harness.AuthService.LogoutAsync(new RefreshRequestDto { RefreshToken = second!.RefreshToken });
+
+        Assert.Null(await harness.AuthService.RefreshAsync(new RefreshRequestDto { RefreshToken = first.RefreshToken }));
+    }
+
+    [Fact]
+    public async Task The_phone_app_is_kept_signed_in_for_a_year_and_a_browser_for_a_month()
+    {
+        var options = Microsoft.Extensions.Options.Options.Create(new JwtSettings { RefreshTokenDays = 30, MobileRefreshTokenDays = 365 });
+        var now = new DateTime(2026, 11, 15, 0, 0, 0, DateTimeKind.Utc);
+
+        Assert.Equal(now.AddDays(365), new RefreshTokenFactory(options, new FakeAuditRequestContext { Platform = "Android" }).ExpiresAt(now));
+        Assert.Equal(now.AddDays(365), new RefreshTokenFactory(options, new FakeAuditRequestContext { Platform = "iOS" }).ExpiresAt(now));
+        Assert.Equal(now.AddDays(30), new RefreshTokenFactory(options, new FakeAuditRequestContext { Platform = "Web" }).ExpiresAt(now));
+
+        // An app too old to say what it is, and anything outside a request, get the browser's.
+        Assert.Equal(now.AddDays(30), new RefreshTokenFactory(options, new FakeAuditRequestContext { Platform = null }).ExpiresAt(now));
+        Assert.Equal(now.AddDays(30), new RefreshTokenFactory(options).ExpiresAt(now));
+        await Task.CompletedTask;
+    }
+
+    [Fact]
+    public async Task Every_refresh_starts_the_lifetime_again_so_only_disuse_ends_a_session()
+    {
+        using var harness = new TestHarness();
+        var first = await SignInAsync(harness);
+
+        var second = await harness.AuthService.RefreshAsync(new RefreshRequestDto { RefreshToken = first.RefreshToken });
+
+        Assert.True(second!.RefreshExpiresAtUtc >= first.RefreshExpiresAtUtc);
     }
 
     [Fact]

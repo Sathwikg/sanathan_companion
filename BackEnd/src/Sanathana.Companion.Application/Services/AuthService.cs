@@ -135,9 +135,28 @@ public class AuthService : IAuthService
         var stored = await _uow.RefreshTokens.GetByHashAsync(_refreshTokens.Hash(request.RefreshToken), cancellationToken);
         if (stored is null) return null;
 
-        // Already used. Either it was stolen and is being replayed, or the real device replayed it,
-        // and there is no way to tell which from here, so the whole family goes and both parties
-        // sign in again. Without this, rotation buys nothing.
+        // Already used. Before calling it a theft, rule out the commonest innocent cause on a phone:
+        // the refresh went through here, but the reply never reached the app (the signal dropped, or
+        // Android froze the app mid-request), so the app still holds the token it sent and is now
+        // simply asking again. Its sign is that the token issued in exchange has never been used.
+        if (stored.RevokedAtUtc is not null && await IsUnreceivedRotationAsync(stored, now, cancellationToken))
+        {
+            var unused = (await _uow.RefreshTokens.GetByIdAsync(stored.ReplacedByTokenId!.Value, cancellationToken))!;
+            unused.RevokedAtUtc = now;
+            unused.RevokedReason = "superseded";
+
+            var retried = await IssueAsync(stored.User, stored.FamilyId, cancellationToken, opensSession: false);
+            unused.ReplacedByTokenId = _lastIssuedId;
+
+            await _uow.SaveChangesAsync(cancellationToken);
+            _sessions.Heartbeat(stored.FamilyId);
+            return retried;
+        }
+
+        // Already used, and its successor has been used too (or retired). Either it was stolen and
+        // is being replayed, or the real device replayed it, and there is no way to tell which from
+        // here, so the whole family goes and both parties sign in again. Without this, rotation buys
+        // nothing.
         if (stored.RevokedAtUtc is not null)
         {
             await _uow.RefreshTokens.RevokeFamilyAsync(stored.FamilyId, "reuse-detected", now, cancellationToken);
@@ -161,6 +180,29 @@ public class AuthService : IAuthService
         await _uow.SaveChangesAsync(cancellationToken);
         _sessions.Heartbeat(stored.FamilyId);
         return response;
+    }
+
+    /// <summary>
+    /// True when the presented token was retired only by being exchanged, and what it was exchanged
+    /// for has never been presented: the reply to that exchange most likely never arrived.
+    /// </summary>
+    /// <remarks>
+    /// The trade this makes, deliberately: a thief holding an old token whose successor is still
+    /// unused gets a session, where before the family was revoked on the spot. Detection is delayed,
+    /// not lost. The moment the real app next refreshes it presents that successor, which is now
+    /// "superseded", and the whole family is revoked, the thief's copy with it. Without this a single
+    /// dropped reply signed the seeker out for good, which on Indian mobile networks is not rare.
+    /// </remarks>
+    private async Task<bool> IsUnreceivedRotationAsync(RefreshToken stored, DateTime now, CancellationToken cancellationToken)
+    {
+        if (stored.RevokedReason != "rotated" || stored.ReplacedByTokenId is not { } successorId) return false;
+        if (!stored.User.IsActive || stored.CreatedDate < stored.User.TokensValidFromUtc) return false;
+
+        var successor = await _uow.RefreshTokens.GetByIdAsync(successorId, cancellationToken);
+        return successor is not null
+               && successor.FamilyId == stored.FamilyId
+               && successor.RevokedAtUtc is null
+               && successor.ExpiresAtUtc > now;
     }
 
     public async Task LogoutAsync(RefreshRequestDto request, CancellationToken cancellationToken = default)

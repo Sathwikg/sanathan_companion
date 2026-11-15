@@ -114,6 +114,11 @@ public static class CoreServiceCollectionExtensions
         {
             client.BaseAddress = new Uri(config.NormalisedApiBaseUrl);
             client.Timeout = TimeSpan.FromSeconds(config.HttpTimeoutSeconds);
+            // The server keeps a phone signed in far longer than a browser, and decides which this
+            // is from the header every other call carries through PlatformHeaderHandler. This client
+            // has no handlers, so it states it here, or every refresh would shorten the session to
+            // the browser's.
+            client.DefaultRequestHeaders.TryAddWithoutValidation(ClientPlatform.Header, ClientPlatform.Name);
         });
 
         services.AddHttpClient<IApiClient, ApiClient>(client =>
