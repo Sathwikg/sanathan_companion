@@ -22,6 +22,15 @@ public static class MobileMenu
     /// <summary>The home route, pinned to the first tab wherever it appears in the tree.</summary>
     private const string HomeRoute = "/";
 
+    /// <summary>
+    /// Routes that always get a tab when the seeker's menu has them, whatever their DisplayOrder.
+    /// Panchangam is what a seeker checks several times a day (is it Rahu Kalam now?), so it must
+    /// not sit behind "More" just because an administrator ordered Calendar and Wallpapers first.
+    /// A pinned route that would fall past the tabs takes the last tab, and the item that held it
+    /// moves to "More"; one already among the tabs stays where it is.
+    /// </summary>
+    public static readonly IReadOnlyList<string> PinnedRoutes = new[] { "/panchangam" };
+
     /// <param name="Primary">Leaf items to render as bottom tabs, in order.</param>
     /// <param name="Secondary">Every other navigable leaf, for the "More" sheet's quick grid.</param>
     /// <param name="Tree">The untouched tree, for the "More" sheet's grouped list.</param>
@@ -45,6 +54,26 @@ public static class MobileMenu
         }
 
         var take = Math.Clamp(slots, 0, leaves.Count);
+
+        // From the last pinned route backwards, so two pinned routes end up in their listed order.
+        var reserved = 0;
+        foreach (var route in PinnedRoutes.Reverse())
+        {
+            var pinned = leaves.FirstOrDefault(n => Normalise(n.RoutePath).Equals(Normalise(route), StringComparison.OrdinalIgnoreCase));
+            if (pinned is null) continue;
+
+            var index = leaves.IndexOf(pinned);
+            var slot = take - 1 - reserved;
+            if (slot < 1) break;   // never displace the home tab
+
+            if (index > slot)
+            {
+                leaves.RemoveAt(index);
+                leaves.Insert(slot, pinned);
+            }
+            reserved++;
+        }
+
         return new Plan(
             leaves.Take(take).ToList(),
             leaves.Skip(take).ToList(),

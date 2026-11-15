@@ -22,6 +22,10 @@
          seeker does not get a full-screen cream flash on every cold start. -->
     <script src="_content/App.UI.Shared/theme.js"></script>
     <script>scTheme.boot();</script>
+    <!-- Same reason, for the phone's text-size setting: the size the app last saw is applied
+         before first paint, so a seeker with large text does not watch the screen grow. -->
+    <script src="_content/App.UI.Shared/deviceDisplay.js"></script>
+    <script>scDevice.boot();</script>
 
     <style>
         /* WebView-level concerns, kept out of mobile.css because that file is shared with the
@@ -33,6 +37,17 @@
         html, body {
             overscroll-behavior-y: none;
             -webkit-tap-highlight-color: transparent;
+        }
+
+        /* The phone's own text size (Android Font size, iOS Dynamic Type), set by the host as
+           --sc-font-scale. On the root, so every rem grows with it: text and the space around it
+           together. 100% is the WebView's default, which the host pins at 16px: Android's own
+           text-only zoom is switched off (MainPage) so the size is applied once, here.
+           text-size-adjust stops iOS inflating text again when the phone turns sideways. */
+        html {
+            font-size: calc(100% * var(--sc-font-scale, 1));
+            -webkit-text-size-adjust: 100%;
+            text-size-adjust: 100%;
         }
 
         /* Blazor's error strip carries no styling of its own here (App.Web inlines its own).

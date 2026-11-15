@@ -72,6 +72,12 @@ public static class MauiProgram
         // no way to deliver it, so the phone schedules the reminders locally.
         builder.Services.AddScoped<IReminderScheduler, MauiReminderScheduler>();
 
+        // The phone's own text size (Android Font size, iOS Dynamic Type), applied as the root font size.
+        builder.Services.AddSingleton<IDeviceFontScale, MauiDeviceFontScale>();
+
+        // The WebView's own history, for Back (Android's button, the iPhone's swipe, the top bar's arrow).
+        builder.Services.AddSingleton<INativeNavigation, MauiNativeNavigation>();
+
         // Push: Android asks Firebase for this installation's token. The other heads keep the
         // default, which has no token to offer, so they go on scheduling their own reminders.
 #if ANDROID

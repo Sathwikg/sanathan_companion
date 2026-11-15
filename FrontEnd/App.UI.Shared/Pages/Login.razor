@@ -114,7 +114,7 @@ else
         _busy = false;
 
         if (success)
-            Nav.NavigateTo(Target);
+            Nav.NavigateTo(Target, replace: true);
         else
             _error = error;
     }
@@ -131,7 +131,7 @@ else
         try
         {
             await AuthService.ContinueAsGuestAsync();
-            Nav.NavigateTo("");
+            Nav.NavigateTo("", replace: true);
         }
         finally
         {
@@ -160,7 +160,7 @@ else
             switch (outcome)
             {
                 case GoogleOutcomes.SignedIn:
-                    Nav.NavigateTo(Target);
+                    Nav.NavigateTo(Target, replace: true);
                     break;
                 case GoogleOutcomes.RegistrationRequired:
                     Nav.NavigateTo(LoginGate.RegisterUrl(Target));
@@ -188,7 +188,7 @@ else
         _busy = false;
 
         if (success)
-            Nav.NavigateTo(Target);
+            Nav.NavigateTo(Target, replace: true);
         else
             _error = error;
     }

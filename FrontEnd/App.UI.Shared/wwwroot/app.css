@@ -954,6 +954,7 @@ button.sc-prefrow:disabled:hover { background: var(--color-surface-2); }
 .sc-share-fab:active { transform: scale(0.96); }
 .sc-share-fab:focus-visible { outline: 3px solid color-mix(in srgb, var(--color-accent) 45%, transparent); outline-offset: 3px; }
 .sc-share-wait { display: grid; place-items: center; padding: 2.5rem 0; }
+.sc-share-head { display: inline-flex; align-items: center; gap: 0.35rem; }
 .sc-share-inline { position: absolute; right: 0.7rem; bottom: 0.7rem; z-index: 2; width: 40px; height: 40px; border-radius: 999px; border: 0; cursor: pointer; display: grid; place-items: center; color: #fff; background: var(--gradient-saffron); box-shadow: 0 6px 16px -6px rgba(141, 78, 25, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.25); transition: transform .14s ease; }
 .sc-share-inline:hover { transform: translateY(-1px); }
 .sc-share-inline:active { transform: scale(0.94); }
@@ -1930,15 +1931,44 @@ img, svg, video { max-width: 100%; height: auto; }
 .sc-cal-cell.rating-good { background: color-mix(in srgb, var(--cal-good) 11%, var(--color-surface)); border-color: color-mix(in srgb, var(--cal-good) 35%, var(--color-outline)); }
 .sc-cal-cell.rating-caution { background: color-mix(in srgb, var(--cal-caution) 10%, var(--color-surface)); border-color: color-mix(in srgb, var(--cal-caution) 35%, var(--color-outline)); }
 .sc-cal-cell.has-festival { box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--cal-festival) 55%, transparent); }
-.sc-cal-cell.is-today { border-color: var(--color-primary); box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 40%, transparent); }
-.sc-cal-cell.is-today .sc-cal-num { background: var(--gradient-saffron); color: #fff; }
-.sc-cal-cell.is-selected { border-color: var(--color-primary); background: color-mix(in srgb, var(--color-primary) 14%, var(--color-surface)); }
+/* Today is the one FILLED cell in the month. It used to share the selected day's orange, and
+   today is also the day selected when the calendar opens, so among the green, peach and ringed
+   cells nothing said "today". The selected day is now an outline in the text colour instead, so
+   the two never look alike, and today stays obvious after another day is tapped. */
+.sc-cal-cell.is-today {
+  background: var(--gradient-saffron);
+  border-color: transparent;
+  color: #fff;
+  box-shadow: 0 6px 16px -6px color-mix(in srgb, var(--color-primary) 70%, transparent);
+}
+.sc-cal-cell.is-today .sc-cal-num { background: #fff; color: var(--color-primary); font-weight: 800; }
+.sc-cal-cell.is-today .sc-cal-tithi { color: rgba(255, 255, 255, 0.9); }
+.sc-cal-cell.is-today .sc-cal-dots i { box-shadow: 0 0 0 1.5px #fff; }
+.sc-cal-cell.is-today .sc-cal-chip { background: rgba(255, 255, 255, 0.92); color: var(--color-primary); border-color: transparent; }
+.sc-cal-cell.is-selected:not(.is-today) {
+  border-color: transparent;
+  box-shadow: inset 0 0 0 2px var(--color-on-surface);
+}
+/* Today, tapped again after looking at another day: a white ring inside the fill. */
+.sc-cal-cell.is-today.is-selected { box-shadow: inset 0 0 0 2px #fff, 0 6px 16px -6px color-mix(in srgb, var(--color-primary) 70%, transparent); }
 .sc-cal-cell.no-pchg { border-style: dashed; }
 
 .sc-cal-top { display: flex; align-items: center; justify-content: space-between; gap: 0.3rem; }
 .sc-cal-num { display: inline-grid; place-items: center; min-width: 1.7rem; height: 1.7rem; padding: 0 0.3rem; border-radius: 999px; font-weight: 700; font-size: 0.95rem; font-family: var(--font-heading); }
-.sc-cal-moon { font-size: 0.85rem; opacity: 0.75; line-height: 1; }
-.sc-cal-moon.is-key { font-size: 1.15rem; opacity: 1; filter: drop-shadow(0 1px 3px rgba(0,0,0,0.25)); }
+/* The drawn moon (MoonIcon). Sized in em so it grows with the phone's text size; colours from the
+   theme so the unlit part is a visible disc on both light and dark, never black on black. */
+:root { --moon-lit: #F7E7B4; --moon-dark: #5C5468; --moon-edge: rgba(60, 40, 20, 0.28); --moon-glow: rgba(240, 190, 80, 0.75); }
+:root[data-theme="dark"] { --moon-lit: #FFF1C9; --moon-dark: #3C3548; --moon-edge: rgba(255, 240, 210, 0.35); --moon-glow: rgba(255, 210, 110, 0.6); }
+.sc-moon { width: 1em; height: 1em; display: inline-block; flex-shrink: 0; vertical-align: -0.15em; overflow: visible; }
+.sc-moon-dark { fill: var(--moon-dark); }
+.sc-moon-lit { fill: var(--moon-lit); }
+.sc-moon-edge { fill: none; stroke: var(--moon-edge); stroke-width: 1; }
+.sc-moon.is-key { filter: drop-shadow(0 0 2px var(--moon-glow)); }
+.sc-cal-moon { font-size: 1rem; }
+.sc-cal-moon.is-key { font-size: 1.15rem; }
+.sc-cal-cell.is-today .sc-moon-edge { stroke: rgba(255, 255, 255, 0.85); }
+.sc-cal-moon-inline { font-size: 1.05rem; }
+.sc-cal-moon-lg { font-size: 2.4rem; }
 .sc-cal-tithi { font-size: 0.72rem; color: var(--color-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 .sc-cal-chips { display: flex; flex-direction: column; gap: 2px; min-width: 0; margin-top: auto; }
@@ -1979,7 +2009,7 @@ img, svg, video { max-width: 100%; height: auto; }
 .sc-cal-detail-date { font-family: var(--font-heading); font-size: 1.15rem; font-weight: 700; color: var(--color-primary); }
 .sc-cal-detail-hindu { font-size: 0.88rem; color: var(--color-secondary); margin-top: 0.15rem; }
 .sc-cal-moonbig { display: flex; flex-direction: column; align-items: center; gap: 0.1rem; flex-shrink: 0; }
-.sc-cal-moonbig span { font-size: 2rem; line-height: 1; filter: drop-shadow(0 2px 6px rgba(0,0,0,0.25)); }
+.sc-cal-moonbig .sc-moon { filter: drop-shadow(0 2px 6px rgba(0,0,0,0.25)); }
 .sc-cal-moonbig small { font-size: 0.68rem; color: var(--color-secondary); white-space: nowrap; }
 
 .sc-cal-reasons { margin: 0; padding: 0 0 0 1.1rem; font-size: 0.85rem; color: var(--color-on-surface); display: flex; flex-direction: column; gap: 0.15rem; }
@@ -2046,7 +2076,10 @@ img, svg, video { max-width: 100%; height: auto; }
   .sc-cal-grid { gap: 3px; }
   .sc-cal-cell { min-height: 58px; padding: 0.25rem 0.25rem 0.3rem; gap: 0.1rem; border-radius: 9px; }
   .sc-cal-num { min-width: 1.45rem; height: 1.45rem; font-size: 0.85rem; }
-  .sc-cal-moon { font-size: 0.7rem; }
+  /* A phone cell is about 40px wide: the date and the moon side by side did not fit, and the
+     moon hung over the cell's right edge. Stacked and centred they always fit. */
+  .sc-cal-top { flex-direction: column; justify-content: flex-start; gap: 0.15rem; }
+  .sc-cal-moon { font-size: 0.82rem; }
   .sc-cal-moon.is-key { font-size: 0.95rem; }
   .sc-cal-tithi, .sc-cal-chips:not(.wrap) { display: none; }
   .sc-cal-dots { display: flex; }
