@@ -51,13 +51,21 @@ public class SessionExpiryHandler : DelegatingHandler
         if (presented is null)
             return response;
 
-        var renewed = await _refresh.TryRefreshAsync(
+        var outcome = await _refresh.TryRefreshAsync(
             _clients.CreateClient(RefreshClientName), _tokenStore, presented, cancellationToken);
 
-        if (!renewed)
+        switch (outcome)
         {
-            _notifier.Raise();
-            return response;
+            case RefreshOutcome.Rejected:
+                // The server refused the refresh token itself: signed out elsewhere, password
+                // changed, account closed, or a year unused. Only this ends the session.
+                _notifier.Raise();
+                return response;
+
+            case RefreshOutcome.Unavailable:
+                // No signal, or the API is restarting. The seeker stays signed in; this one call
+                // fails as any call does offline, and the next one tries the refresh again.
+                return response;
         }
 
         // Replay with the token that was just minted. The original response is disposed because
