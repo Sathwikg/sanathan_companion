@@ -187,7 +187,7 @@ else
             <section class="sc-jp-set sc-jp-switchrow">
                 <div>
                     <span class="sc-jp-set-label">🔋 @Loc["sadhana.batterySaver", "Battery Saver"]</span>
-                    <p class="sc-hint">@Loc["sadhana.batterySaverHint", "Simpler animations, fewer saves and vibration only when a mala completes."]</p>
+                    <p class="sc-hint">@Loc["sadhana.batterySaverHint", "Simpler animations and fewer saves."]</p>
                     @if (EnergySaver.IsOn)
                     {
                         <p class="sc-hint sc-jp-auto">@Loc["sadhana.batterySaverAuto", "On automatically while your phone's battery saver is on."]</p>
@@ -364,8 +364,11 @@ else
     {
         lite = Lite,
         // The browser vibrates inside the gesture; a native host vibrates from .NET instead.
-        webVibrate = _vibration && !Lite && _canVibrateWeb,
-        tickMs = 12
+        // Battery Saver no longer silences it: a tap's buzz costs next to nothing, it is how a
+        // seeker counting with eyes closed knows the tap registered, and the phone's own saver used
+        // to switch it off without the seeker ever touching a setting. Only the Vibration switch does.
+        webVibrate = _vibration && _canVibrateWeb,
+        tickMs = 30
     };
 
     private async Task PushOptionsAsync()
@@ -390,7 +393,7 @@ else
             return;
         }
 
-        if (_vibration && !Lite && Haptics.IsNative) Haptics.Tick();
+        if (_vibration && Haptics.IsNative) Haptics.Tick();
         ScheduleSave();
         StateHasChanged();
     });

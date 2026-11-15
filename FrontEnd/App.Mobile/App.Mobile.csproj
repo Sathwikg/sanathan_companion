@@ -44,8 +44,8 @@
 
         <!-- Versions. DisplayVersion is what the stores show; ApplicationVersion is the build
              number and must increase with every upload. -->
-        <ApplicationDisplayVersion>1.3.0</ApplicationDisplayVersion>
-        <ApplicationVersion>4</ApplicationVersion>
+        <ApplicationDisplayVersion>1.3.1</ApplicationDisplayVersion>
+        <ApplicationVersion>5</ApplicationVersion>
 
         <!-- Release signing for Google Play. The upload keystore lives OUTSIDE the repo, in the
              developer's profile, with its password in the .keystore.pass and .keystore.keypass files beside
