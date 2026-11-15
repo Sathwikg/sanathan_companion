@@ -1,5 +1,6 @@
 @implements IDisposable
 @inject ConfirmService Confirm
+@inject OverlayStack Overlays
 
 @if (_request is not null)
 {
@@ -34,6 +35,12 @@
     private void Ok() => Complete(true);
     private void Cancel() => Complete(false);
 
+    private OverlayRegistration? _overlay;
+
+    // On the overlay stack while asking: the phone's Back answers "Cancel", never "Yes".
+    protected override void OnAfterRender(bool firstRender)
+        => (_overlay ??= new OverlayRegistration(Overlays)).Sync(_request is not null, () => { Cancel(); return Task.CompletedTask; });
+
     private void Complete(bool result)
     {
         var req = _request;
@@ -60,5 +67,9 @@
         _ => "🪔"
     });
 
-    public void Dispose() => Confirm.Requested -= OnRequested;
+    public void Dispose()
+    {
+        Confirm.Requested -= OnRequested;
+        _overlay?.Dispose();
+    }
 }

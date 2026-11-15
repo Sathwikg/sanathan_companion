@@ -69,9 +69,18 @@ public static class CoreServiceCollectionExtensions
         // Same pattern again: a browser tab is not a push target, so the default has no token to
         // offer and the MAUI host replaces it with Firebase's.
         services.AddSingleton<IPushRegistrar, NoPushRegistrar>();
+        // A browser applies its own text size to rem already; the MAUI host replaces this with the
+        // phone's setting, which a WebView does not follow by itself.
+        services.AddSingleton<IDeviceFontScale, BrowserFontScale>();
         // A tapped notification's page, handed from the native shell to the layout. A singleton
         // because the shell that hears the tap lives outside the Blazor scope.
         services.AddSingleton<DeepLinks>();
+        // Back: one answer for Android's Back button, the iPhone's edge swipe and the top bar's arrow.
+        services.AddScoped<OverlayStack>();
+        services.AddScoped<AppBackNavigator>();
+        services.AddSingleton<HardwareBackButton>();
+        // The browser's own history does this on the web; the MAUI host reads the WebView's.
+        services.AddSingleton<INativeNavigation, BrowserNavigation>();
         // A browser already throttles hidden tabs; a native host replaces this so shared
         // components can stop their timers when the app is backgrounded.
         services.AddSingleton<IAppLifecycle, AlwaysActiveLifecycle>();

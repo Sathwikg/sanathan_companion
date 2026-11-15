@@ -9,6 +9,8 @@
 @inject MenuState Menus
 @inject MenuRefreshService MenuRefresh
 @inject DeepLinks Links
+@inject AppBackNavigator BackNav
+@inject HardwareBackButton HardwareBack
 @inject NotificationCenterState Center
 @inject AppConfig Config
 @inject IJSRuntime JS
@@ -20,9 +22,39 @@
 <div class="sc-shell scm-shell @(Immersive ? "scm-shell--immersive" : null)" lang="@LangCode">
     <header class="scm-topbar">
         <div class="scm-topbar-brand">
-            <AppLogo Size="30" />
+            @* Inner pages get a back arrow where the logo sits, the way both platforms' own apps
+               do. It is the only way back on an iPhone besides the edge swipe, which has no
+               button to press. The home screen and the bottom-tab pages are where Back stops, so
+               they keep the logo. *@
+            @if (ShowBack)
+            {
+                <button class="scm-back" @onclick="BackAsync"
+                        title="@Loc["common.back", "Back"]" aria-label="@Loc["common.back", "Back"]">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" /></svg>
+                </button>
+            }
+            else
+            {
+                <AppLogo Size="30" />
+            }
             <div class="scm-topbar-titles">
-                <span class="scm-topbar-title">@Title</span>
+                @* On the home screen the bar greets the seeker instead of naming the page ("Mobile
+                   Home" says nothing a seeker needs); everywhere else it says where they are. *@
+                @if (IsHomeScreen)
+                {
+                    <AuthorizeView>
+                        <Authorized>
+                            <span class="scm-topbar-title">@Loc.TF("nav.hiName", "Hi, {0}", GreetingName(context.User))</span>
+                        </Authorized>
+                        <NotAuthorized>
+                            <span class="scm-topbar-title">@Loc.TF("nav.hiName", "Hi, {0}", Loc["nav.guestName", "Guest"])</span>
+                        </NotAuthorized>
+                    </AuthorizeView>
+                }
+                else
+                {
+                    <span class="scm-topbar-title">@Title</span>
+                }
                 <span class="scm-topbar-sub">@Brand.AppName</span>
             </div>
         </div>
@@ -120,6 +152,54 @@
         }
     }
 
+    /// <summary>The phone's home: the app root and the mobile dashboard it opens on.</summary>
+    private bool IsHomeScreen => AppBackNavigator.IsHomePath(BackNav.CurrentPath);
+
+    /// <summary>
+    /// A back arrow everywhere except the home screen and the pages the bottom bar opens, which are
+    /// top-level: from those, Back goes home (Android) and there is nothing "behind" to show an arrow
+    /// for. Exact matches only: "sadhana/chant/x" is reached from the Sadhana tab and gets the arrow.
+    /// </summary>
+    private bool ShowBack
+    {
+        get
+        {
+            var current = BackNav.CurrentPath;
+            if (AppBackNavigator.IsHomePath(current)) return false;
+            if (Menus.Menu is not { } menu) return false;
+
+            return !MobileMenu.Build(menu).Primary
+                .Any(tab => AppBackNavigator.Clean(tab.RoutePath).Equals(current, StringComparison.OrdinalIgnoreCase));
+        }
+    }
+
+    private async Task BackAsync() => await BackNav.BackAsync();
+
+    /// <summary>Android's Back button, relayed from MainPage. False sends the app to the background.</summary>
+    private async Task<bool> OnHardwareBack()
+    {
+        // On the renderer's dispatcher: closing a sheet or navigating re-renders this layout.
+        var handled = false;
+        await InvokeAsync(async () => handled = await BackNav.BackAsync());
+        return handled;
+    }
+
+    /// <summary>
+    /// What the bar calls the seeker: their seeker name when they gave one, else the first word of
+    /// their name ("Hi, Ravi", not "Hi, Ravi Kumar Venkata"): the bar is one line on a narrow screen.
+    /// From the token's claims, so it costs no request and is there on the first frame.
+    /// </summary>
+    private string GreetingName(System.Security.Claims.ClaimsPrincipal user)
+    {
+        var seeker = user.FindFirst("seekerName")?.Value;
+        if (!string.IsNullOrWhiteSpace(seeker)) return seeker.Trim();
+
+        var first = (user.FindFirst("fullName")?.Value ?? string.Empty)
+            .Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .FirstOrDefault();
+        return string.IsNullOrWhiteSpace(first) ? Loc["nav.guestName", "Guest"] : first;
+    }
+
     /// <summary>The japa screen (not its completion page) takes the whole screen as its counter.</summary>
     private bool Immersive
     {
@@ -140,6 +220,7 @@
         MenuRefresh.OnChanged += MenuEdited;
         Menus.OnChanged += MenuChanged;
         Links.Arrived += LinkArrived;
+        HardwareBack.Handler = OnHardwareBack;
         Links.Received += PushReceived;
         Links.TokenReplaced += PushTokenReplaced;
 
@@ -257,6 +338,7 @@
         MenuRefresh.OnChanged -= MenuEdited;
         Menus.OnChanged -= MenuChanged;
         Links.Arrived -= LinkArrived;
+        if (HardwareBack.Handler == OnHardwareBack) HardwareBack.Handler = null;
         Links.Received -= PushReceived;
         Links.TokenReplaced -= PushTokenReplaced;
 

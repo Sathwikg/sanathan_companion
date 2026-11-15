@@ -12,6 +12,7 @@
 @inject NotificationCenterState Center
 @inject LocalizationState Loc
 @inject NavigationManager Nav
+@inject OverlayStack Overlays
 
 @if (Center.IsOpen)
 {
@@ -159,6 +160,12 @@
 
     private void Close() => Center.Close();
 
+    private OverlayRegistration? _overlay;
+
+    // On the overlay stack while showing, so the phone's Back closes this before leaving the page.
+    protected override void OnAfterRender(bool firstRender)
+        => (_overlay ??= new OverlayRegistration(Overlays)).Sync(Center.IsOpen, () => { Center.Close(); return Task.CompletedTask; });
+
     private void Changed()
     {
         _now = DateTime.UtcNow;
@@ -167,6 +174,7 @@
 
     public void Dispose()
     {
+        _overlay?.Dispose();
         Center.OnChanged -= Changed;
         Loc.OnChanged -= Changed;
     }

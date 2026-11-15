@@ -1,4 +1,5 @@
 @inherits LocalizedComponentBase
+@inject OverlayStack Overlays
 
 @* A full-size look at one picture over the page: tap the backdrop or the cross to leave. Src is
    null while the picture is still being fetched, so a preview can open at once and fill in. *@
@@ -32,4 +33,16 @@
     [Parameter] public EventCallback OnClose { get; set; }
 
     private Task Close() => OnClose.InvokeAsync();
+
+    private OverlayRegistration? _overlay;
+
+    // On the overlay stack while showing, so the phone's Back closes this before leaving the page.
+    protected override void OnAfterRender(bool firstRender)
+        => (_overlay ??= new OverlayRegistration(Overlays)).Sync(Visible, Close);
+
+    public override void Dispose()
+    {
+        _overlay?.Dispose();
+        base.Dispose();
+    }
 }

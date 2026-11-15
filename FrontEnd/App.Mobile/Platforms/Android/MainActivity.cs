@@ -9,7 +9,10 @@ using AWebkit = Android.Webkit;
 
 namespace App.Mobile;
 
-[Activity(Theme = "@style/Maui.SplashTheme", MainLauncher = true, ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation | ConfigChanges.UiMode | ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize | ConfigChanges.Density)]
+[Activity(Theme = "@style/Maui.SplashTheme", MainLauncher = true, ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation | ConfigChanges.UiMode | ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize | ConfigChanges.Density | ConfigChanges.FontScale)]
+// FontScale is handled here rather than by Android restarting the activity: a restart would reload
+// the whole app (and drop a half-counted mala) for what is only a size change. The app re-reads the
+// size whenever it comes back to the front, which is exactly when a change made in Settings lands.
 public class MainActivity : MauiAppCompatActivity
 {
     /// <summary>A notification tapped while the app was not running starts the activity with its page.</summary>

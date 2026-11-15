@@ -9,6 +9,7 @@
 @inject IGeolocationProvider Geo
 @inject RegionState Region
 @inject MenuState Menus
+@inject AppConfig Config
 
 <div class="sc-page-head">
     <div class="sc-page-title">
@@ -22,6 +23,10 @@
         @if (Menus.CanOpen("calendar"))
         {
             <a class="sc-btn-ghost sc-btn-sm" href="calendar">📅 @Loc["panchangam.monthView", "Month View"]</a>
+        }
+        @if (Config.IsMobile)
+        {
+            <PanchangamShare Day="_current" Date="_date" LocationLabel="@ShareLocationLabel()" InHeader="true" />
         }
         <button class="sc-btn-ghost sc-btn-sm sc-locbtn" @onclick="UseMyLocation" disabled="@_locating">
             @if (_locating) { <OmLoader Inline="true" Size="16" Message='@Loc["common.locating", "Locating…"]' /> } else { <span>📍 @Loc["panchangam.myLocation", "My Location"]</span> }
@@ -158,7 +163,10 @@ else
 
 @* The floating share button and its sheet. A root-level sibling like the dialog below, for the
    same reason: a fixed-position element inside a transformed ancestor is trapped by it. *@
-<PanchangamShare Day="_current" Date="_date" LocationLabel="@ShareLocationLabel()" />
+@if (!Config.IsMobile)
+{
+    <PanchangamShare Day="_current" Date="_date" LocationLabel="@ShareLocationLabel()" />
+}
 
 <ScModal Visible="_showGenerate" Title='@Loc["panchangam.generateTitle", "Generate Panchangam Data"]' OnClose="() => _showGenerate = false">
     <div class="sc-form">

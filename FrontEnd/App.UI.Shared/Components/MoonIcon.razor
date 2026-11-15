@@ -1,0 +1,80 @@
+@* The moon as it stands, drawn rather than typed.
+
+   The phase emoji (🌑🌒🌓🌔🌕🌖🌗🌘) is drawn by each phone maker's own emoji font: Google's are
+   grey discs, Samsung's carry faces, Apple's are shaded spheres, Windows draws them purple, and on
+   the dark theme the unlit part of most is near-black on near-black, so a new moon vanishes. They
+   are also wider than a calendar cell on a small phone allows. This is the same disc everywhere:
+   the lit part from the server's own illumination (0–100), on the side the moon is growing or
+   shrinking from, sized with the text (1em) and coloured from the theme.
+
+   Seen from India (northern hemisphere): a waxing moon is lit on the right, a waning one on the left. *@
+
+<svg class="sc-moon @(Key ? "is-key" : null) @Class" viewBox="0 0 24 24" aria-hidden="@(Label is null ? "true" : "false")"
+     role="@(Label is null ? null : "img")" focusable="false">
+    @if (Label is not null)
+    {
+        <title>@Label</title>
+    }
+    <circle class="sc-moon-dark" cx="12" cy="12" r="10" />
+    @if (Lit >= 0.995)
+    {
+        <circle class="sc-moon-lit" cx="12" cy="12" r="10" />
+    }
+    else if (Lit > 0.005)
+    {
+        <path class="sc-moon-lit" d="@LitPath" />
+    }
+    <circle class="sc-moon-edge" cx="12" cy="12" r="10" />
+</svg>
+
+@code {
+    /// <summary>The phase code the server sends ("waxingCrescent", "full", …), which says the side.</summary>
+    [Parameter] public string? Phase { get; set; }
+
+    /// <summary>How much of the disc is lit, 0–100. Without it the phase's typical value is used.</summary>
+    [Parameter] public int? Illumination { get; set; }
+
+    /// <summary>Purnima or Amavasya: drawn with a soft glow.</summary>
+    [Parameter] public bool Key { get; set; }
+
+    /// <summary>Read aloud by a screen reader; null hides the drawing from one (the caller says it in words).</summary>
+    [Parameter] public string? Label { get; set; }
+
+    [Parameter] public string? Class { get; set; }
+
+    private bool Waxing => Phase is "waxingCrescent" or "firstQuarter" or "waxingGibbous" or "new";
+
+    /// <summary>The lit fraction, 0–1.</summary>
+    private double Lit => Math.Clamp((Illumination ?? Typical(Phase)) / 100.0, 0, 1);
+
+    private static int Typical(string? phase) => phase switch
+    {
+        "new" => 0,
+        "waxingCrescent" or "waningCrescent" => 25,
+        "firstQuarter" or "lastQuarter" => 50,
+        "waxingGibbous" or "waningGibbous" => 75,
+        "full" => 100,
+        _ => 50
+    };
+
+    /// <summary>
+    /// The lit region: the outer half of the disc on the lit side, closed by the terminator, an
+    /// ellipse whose width is |1 - 2k| of the radius. Under half lit it bulges toward the lit side
+    /// (a crescent); over half, away from it (a gibbous moon).
+    /// </summary>
+    private string LitPath
+    {
+        get
+        {
+            var k = Lit;
+            var rx = (10 * Math.Abs(1 - 2 * k)).ToString("0.###", System.Globalization.CultureInfo.InvariantCulture);
+            var crescent = k < 0.5;
+
+            // Sweep flags in SVG's y-down space: 1 runs clockwise (top → right → bottom).
+            var limb = Waxing ? 1 : 0;
+            var terminator = Waxing ? (crescent ? 0 : 1) : (crescent ? 1 : 0);
+
+            return $"M12 2 A10 10 0 0 {limb} 12 22 A{rx} 10 0 0 {terminator} 12 2 Z";
+        }
+    }
+}

@@ -1,6 +1,7 @@
 @* Reusable popup modal shell (header + close + body). Themed to match the app. *@
 @implements IAsyncDisposable
 @inject IJSRuntime JS
+@inject OverlayStack Overlays
 @if (Visible)
 {
     <div class="sc-modal-backdrop" @onclick="CloseAsync">
@@ -26,8 +27,13 @@
     [Parameter] public bool Wide { get; set; }
 
     private bool _locked;
+    private OverlayRegistration? _overlay;
 
     private Task CloseAsync() => OnClose.InvokeAsync();
+
+    // On the overlay stack while showing, so the phone's Back closes this before leaving the page.
+    protected override void OnAfterRender(bool firstRender)
+        => (_overlay ??= new OverlayRegistration(Overlays)).Sync(Visible, CloseAsync);
 
     /// <summary>
     /// Holds the body-scroll lock for exactly as long as the dialog is on screen. Tracked with a
@@ -43,6 +49,7 @@
 
     public async ValueTask DisposeAsync()
     {
+        _overlay?.Dispose();
         // A modal can be torn down while still open (page navigation), which would strand the lock.
         if (_locked) await SafeInvokeAsync("scScroll.release");
     }

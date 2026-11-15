@@ -13,6 +13,8 @@
   "nav.feedback": "Feedback",
   "nav.feedbackDashboard": "Feedback Dashboard",
   "nav.festivals": "Festivals",
+  "nav.guestName": "Guest",
+  "nav.hiName": "Hi, {0}",
   "nav.issueTypes": "Issue Types",
   "nav.languageConfigs": "Language Configs",
   "nav.languages": "Languages",

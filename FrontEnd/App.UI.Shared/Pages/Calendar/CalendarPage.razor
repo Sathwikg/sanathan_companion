@@ -118,7 +118,7 @@ else if (_data is not null)
                                     <span class="sc-cal-num">@d.Date.Day</span>
                                     @if (d.MoonPhase is not null)
                                     {
-                                        <span class="sc-cal-moon @(d.IsPurnima || d.IsAmavasya ? "is-key" : null)" aria-hidden="true">@MoonGlyph(d.MoonPhase)</span>
+                                        <MoonIcon Class="sc-cal-moon" Phase="@d.MoonPhase" Illumination="d.MoonIllumination" Key="d.IsPurnima || d.IsAmavasya" />
                                     }
                                 </span>
                                 @if (d.Tithi is not null)
@@ -182,7 +182,7 @@ else if (_data is not null)
                                 </div>
                                 <div class="sc-cal-list-body">
                                     <div class="sc-cal-list-line">
-                                        @if (d.MoonPhase is not null) { <span aria-hidden="true">@MoonGlyph(d.MoonPhase)</span> }
+                                        @if (d.MoonPhase is not null) { <MoonIcon Class="sc-cal-moon-inline" Phase="@d.MoonPhase" Illumination="d.MoonIllumination" /> }
                                         @if (d.Tithi is not null) { <span>@d.Tithi</span> }
                                         @if (d.Nakshatram is not null) { <span class="sc-muted">· @d.Nakshatram</span> }
                                     </div>
@@ -496,18 +496,6 @@ else if (_data is not null)
 
     // ------------------------------------------------------------------ words for codes
 
-    private static string MoonGlyph(string phase) => phase switch
-    {
-        "new" => "🌑",
-        "waxingCrescent" => "🌒",
-        "firstQuarter" => "🌓",
-        "waxingGibbous" => "🌔",
-        "full" => "🌕",
-        "waningGibbous" => "🌖",
-        "lastQuarter" => "🌗",
-        _ => "🌘"
-    };
-
     private string MoonLabel(string phase) => phase switch
     {
         "new" => Loc["calendar.moon.new", "New Moon"],
@@ -588,7 +576,7 @@ else if (_data is not null)
                 @if (d.MoonPhase is not null)
                 {
                     <div class="sc-cal-moonbig" title="@MoonLabel(d.MoonPhase)">
-                        <span aria-hidden="true">@MoonGlyph(d.MoonPhase)</span>
+                        <MoonIcon Class="sc-cal-moon-lg" Phase="@d.MoonPhase" Illumination="d.MoonIllumination" Key="d.IsPurnima || d.IsAmavasya" />
                         <small>@MoonLabel(d.MoonPhase)@(d.MoonIllumination is { } ill ? $" · {ill}%" : string.Empty)</small>
                     </div>
                 }

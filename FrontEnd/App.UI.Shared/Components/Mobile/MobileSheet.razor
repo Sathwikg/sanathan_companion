@@ -1,5 +1,7 @@
 @* Bottom sheet: the phone's answer to a dialog. Anchored to the thumb, dismissed by the scrim,
    the grabber, or Escape. Rendered only while open so nothing offscreen stays in the tab order. *@
+@inject OverlayStack Overlays
+@implements IDisposable
 
 @if (Open)
 {
@@ -27,4 +29,12 @@
 
     private Task OnKeyDown(KeyboardEventArgs e)
         => e.Key == "Escape" ? CloseAsync() : Task.CompletedTask;
+
+    private OverlayRegistration? _overlay;
+
+    // On the overlay stack while showing, so the phone's Back closes this before leaving the page.
+    protected override void OnAfterRender(bool firstRender)
+        => (_overlay ??= new OverlayRegistration(Overlays)).Sync(Open, CloseAsync);
+
+    public void Dispose() => _overlay?.Dispose();
 }

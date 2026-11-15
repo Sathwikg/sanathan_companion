@@ -229,7 +229,7 @@ else
         if (success)
         {
             // Signed in by the API as part of registering: no second trip through the login page.
-            Nav.NavigateTo(Target);
+            Nav.NavigateTo(Target, replace: true);
             return;
         }
 
