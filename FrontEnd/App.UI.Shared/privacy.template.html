@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <title>Privacy Policy — {{Brand:AppName}}</title>
+    <title>Privacy Notice — {{Brand:AppName}}</title>
     <link rel="icon" type="image/png" href="favicon.png" />
     <link rel="stylesheet" href="_content/App.UI.Shared/theme.css" />
     <script src="_content/App.UI.Shared/theme.js"></script>
@@ -291,7 +291,7 @@
             <span class="policy-om">ॐ</span>
             <span class="policy-app-title">{{Brand:AppName}}</span>
         </div>
-        <div class="policy-doc-title">Privacy Policy & Data Transparency</div>
+        <div class="policy-doc-title">Privacy Notice</div>
         <div class="policy-nav-actions">
             <a href="login" class="policy-btn">← Back to Sign In</a>
             <button type="button" class="policy-btn" onclick="window.print()">🖨️ Print / Save as PDF</button>
@@ -301,185 +301,162 @@
 
     <main class="policy-main-container">
         <article class="policy-card">
-            
+            <!-- Generated from privacy.en.json: keep in step with Components/PrivacyNoticeBody.razor. -->
             <div class="policy-meta-box">
-                <p><strong>Application:</strong> {{Brand:AppName}} (All Gods Devotional Platform)</p>
-                <p><strong>Governing Organization:</strong> {{Brand:CompanyName}}</p>
-                <p><strong>Effective Date:</strong> October 5, 2026</p>
-                <p><strong>Last Updated:</strong> November 9, 2026</p>
+                <p><strong>Data Fiduciary:</strong> {{Brand:CompanyName}}</p>
+                <p><strong>Application:</strong> {{Brand:AppName}}</p>
+                <p><strong>Notice Version:</strong> 2</p>
+                <p><strong>Effective From:</strong> 15 November 2026</p>
             </div>
 
-            <!-- SECTION 1 -->
             <section class="policy-section">
-                <h2>1. Introduction & Spiritual Commitment</h2>
-                <p>
-                    Welcome to <strong>{{Brand:AppName}}</strong> ("we," "our," or "the Application"). We are dedicated to providing a serene, sacred, and respectful space for your daily spiritual practice (Sadhana), Panchangam calculations, chants, pujas, and devotional study.
-                </p>
-                <p>
-                    We hold your privacy in sacred trust. This Privacy Policy details our data practices across our mobile applications (Android and iOS) and web services. It explains what information we collect, the precise reasons we require it, how it is safeguarded, and how you maintain total ownership and control over your personal data.
-                </p>
+                <h2>1. Who We Are</h2>
+                <p>{{Brand:AppName}} is provided by {{Brand:CompanyName}}. We decide why and how your personal data is used, which makes us the Data Fiduciary under India's Digital Personal Data Protection Act, 2023. This notice tells you what we collect, why, how long we keep it, and how to use your rights.</p>
+                <p>It covers the Android and iOS apps and the website. We collect only what the features you use need, and we never sell your personal data.</p>
             </section>
-
-            <!-- SECTION 2 -->
             <section class="policy-section">
-                <h2>2. Summary of Data Collected</h2>
-                <p>
-                    We practice strict data minimization: we collect only what is necessary to run the features you actively use.
-                </p>
-                
+                <h2>2. What We Collect and Why</h2>
                 <div class="policy-table-wrapper">
                     <table>
                         <thead>
                             <tr>
-                                <th>Data Type</th>
-                                <th>Purpose</th>
-                                <th>Retention & Storage</th>
+                                <th>Personal Data</th>
+                                <th>Why We Need It</th>
+                                <th>How Long We Keep It</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
-                                <td><strong>Profile & Account</strong><br>(Name, Email, Mobile, Seeker Name)</td>
-                                <td>Account creation, personalized greetings, spiritual identity, and account recovery.</td>
-                                <td>Encrypted database storage until account deletion is requested.</td>
+                                <td><strong>Account Details</strong><br>(Full name, email, mobile number, seeker name (optional), preferred region (optional))</td>
+                                <td>To create your account, sign you in, greet you by name and show the deities and chants of your region.</td>
+                                <td>Until you delete your account.</td>
                             </tr>
                             <tr>
-                                <td><strong>Password Hash</strong></td>
-                                <td>Account security authentication.</td>
-                                <td>One-way salted cryptographic hash (BCrypt). Plain passwords are never stored.</td>
+                                <td><strong>Password</strong></td>
+                                <td>To check that it is you when you sign in. It is stored only as a one-way hash, so nobody, including us, can read it.</td>
+                                <td>Until you delete your account.</td>
                             </tr>
                             <tr>
-                                <td><strong>Google Account ID</strong><br>(OAuth Subject ID)</td>
-                                <td>Seamless one-tap sign-in with Google authentication.</td>
-                                <td>Linked identifier only. We never access your contacts, Google Drive, or personal Google files.</td>
+                                <td><strong>Google Sign-In (if you use it)</strong><br>(Your Google account ID, name and email address)</td>
+                                <td>To sign you in with Google. We never see your Google password, contacts, files or mail.</td>
+                                <td>Until you delete your account.</td>
                             </tr>
                             <tr>
-                                <td><strong>Geographic Location</strong><br>(Coarse / Fine GPS)</td>
-                                <td>Real-time calculation of local Vedic Panchangam (sunrise, sunset, tithi, nakshatra, Rahu Kalam, Yamagandam, Muhurthas).</td>
-                                <td>Processed dynamically on request. We do not track your location in the background or maintain location logs.</td>
+                                <td><strong>Your Practice</strong><br>(Japa counts, malas, streaks, favourites, puja progress, calendar entries)</td>
+                                <td>To keep your sadhana and favourites safe and the same on every device.</td>
+                                <td>Until you delete your account.</td>
                             </tr>
                             <tr>
-                                <td><strong>Sadhana & Devotion</strong><br>(Japa counts, streaks, puja logs, favorites)</td>
-                                <td>Syncing your personal spiritual journey, daily japa malas, streaks, and temple bookmarks.</td>
-                                <td>Retained under your profile so your devotional progress persists across devices.</td>
+                                <td><strong>Location (only when you ask)</strong><br>(Your phone or browser location, only when you tap My Location)</td>
+                                <td>To calculate the Panchangam (sunrise, tithi, Rahu Kalam and other timings) for where you are.</td>
+                                <td>Not saved. It is used for that one calculation; we keep no location history and never read your location in the background.</td>
                             </tr>
                             <tr>
-                                <td><strong>User Feedback & Media</strong><br>(Optional audio chants, deity photos)</td>
-                                <td>User-submitted bug reports, audio chants, or wallpapers chosen by you.</td>
-                                <td>Stored in secure media storage; accessible only for user-initiated features.</td>
+                                <td><strong>Notifications</strong><br>(Your phone's notification token, phone model, app version, time zone and language; the notifications sent to you)</td>
+                                <td>To send the reminders and alerts you choose, at the right local time and in your language, and to show them in your inbox.</td>
+                                <td>The phone details until you delete your account; the notifications for one year.</td>
                             </tr>
                             <tr>
-                                <td><strong>Audit & Security Logs</strong><br>(IP address, User-Agent, platform, session timestamps)</td>
-                                <td>Protecting accounts against token hijacking, fraud prevention, and crash diagnosis.</td>
-                                <td>Retained in secure audit logs for operational security.</td>
+                                <td><strong>Feedback and Requests</strong><br>(What you write to us and the type of issue)</td>
+                                <td>To answer you and to resolve problems and privacy requests.</td>
+                                <td>Until you delete your account.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Security Logs</strong><br>(IP address, browser or device type, sign-in and sign-out times, errors)</td>
+                                <td>To protect your account, detect misuse and investigate security incidents, as Indian law requires.</td>
+                                <td>One year, then deleted.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Usage Statistics (optional)</strong><br>(Which screens you open and when)</td>
+                                <td>To learn which features help seekers. Off unless you switch it on in My Profile, and never collected for guests.</td>
+                                <td>One year, then deleted.</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
+                <p>If you continue as a guest, we collect no account details; only the security logs above are kept.</p>
             </section>
-
-            <!-- SECTION 3 -->
             <section class="policy-section">
-                <h2>3. Device Permissions & How They Are Used</h2>
-                <p>When you use the mobile application, certain device features may request your permission:</p>
+                <h2>3. Your Consent and How to Withdraw It</h2>
+                <p>We use your personal data because you agree to this notice when you create your account. Optional uses, such as usage statistics, are asked for separately and stay off until you switch them on.</p>
                 <ul>
-                    <li>
-                        <strong>Location (<kbd>ACCESS_FINE_LOCATION</kbd> / <kbd>ACCESS_COARSE_LOCATION</kbd>):</strong>
-                        Requested solely to provide hyper-local sunrise, sunset, and planetary timings for the Vedic Panchangam. You may choose to deny this permission and instead manually pick a region.
-                    </li>
-                    <li>
-                        <strong>Notifications (<kbd>POST_NOTIFICATIONS</kbd>):</strong>
-                        Used to deliver your daily sadhana reminders, prayer alerts, auspicious tithi notifications, and festival announcements. You can turn notifications on or off at any time in app or system settings.
-                    </li>
-                    <li>
-                        <strong>Boot Completed (<kbd>RECEIVE_BOOT_COMPLETED</kbd>):</strong>
-                        Alarms on Android devices reset whenever your device restarts. This permission allows the app to restore your scheduled daily sadhana alarms after your phone reboots.
-                    </li>
-                    <li>
-                        <strong>Camera & Photo Gallery:</strong>
-                        Used solely if you choose to take a photo of a deity or select a wallpaper from your device gallery. We do not inspect other photos in your library.
-                    </li>
-                    <li>
-                        <strong>Microphone:</strong>
-                        Used exclusively if you record chant recitation or stotra audio within the app.
-                    </li>
+                    <li>Switch an optional use off at any time in My Profile, under Privacy and Your Data. It stops at once.</li>
+                    <li>Withdraw all consent by deleting your account in My Profile. It takes one step, just as agreeing did.</li>
+                    <li>Withdrawing does not affect what was done lawfully before, and every consent you give or withdraw is recorded so you can see it in your data download.</li>
                 </ul>
             </section>
-
-            <!-- SECTION 4 -->
             <section class="policy-section">
-                <h2>4. Advertising & Third-Party Service Providers</h2>
-                <p>
-                    To support the ongoing hosting and development of {{Brand:AppName}}, we may show non-intrusive advertisements:
-                </p>
+                <h2>4. Phone Permissions</h2>
                 <ul>
-                    <li>
-                        <strong>Google AdMob:</strong> We partner with Google AdMob to display banner, interstitial, native, or rewarded ads. AdMob may process your device's advertising identifier (GAID/IDFA) and cookies in accordance with <a href="https://policies.google.com/technologies/ads" target="_blank" rel="noopener">Google's Advertising Privacy Policies</a>.
-                    </li>
-                    <li>
-                        <strong>Spiritual Sacredness Clause:</strong> Advertisements are strictly prohibited from appearing in sensitive spiritual modules (such as active Japa mala chanting or during sacred puja recitation).
-                    </li>
+                    <li><strong>Location:</strong> only while the app is open and only when you tap My Location. You can refuse and choose a region instead.</li>
+                    <li><strong>Notifications:</strong> for the reminders and alerts you choose. Turn each type off in the app, or all of them in your phone settings.</li>
+                    <li><strong>Start After Restart:</strong> so your reminders keep working after your phone restarts.</li>
+                    <li><strong>Vibration:</strong> to let you feel each japa count.</li>
+                    <li><strong>Camera, Photos and Microphone:</strong> asked only when you save a wallpaper, or when an administrator uploads a deity image or chant audio. We never scan your photo library or record without you starting it.</li>
                 </ul>
             </section>
-
-            <!-- SECTION 5 -->
             <section class="policy-section">
-                <h2>5. Data Security & Storage Architecture</h2>
-                <p>We implement multi-layered defenses to ensure your information is safe:</p>
+                <h2>5. Who Else Handles Your Data</h2>
+                <p>We do not sell, rent or trade your personal data. Only these service providers process it for us, under contract and only to run the app:</p>
                 <ul>
-                    <li><strong>Transport Encryption:</strong> All client-to-server traffic is encrypted using modern TLS (HTTPS) standards.</li>
-                    <li><strong>Secure Storage on Device:</strong> Mobile credentials and tokens are safeguarded using platform hardware keychains (<kbd>EncryptedSharedPreferences</kbd> on Android and <kbd>Apple Keychain</kbd> on iOS).</li>
-                    <li><strong>No Plain-Text Passwords:</strong> Credentials cannot be read by anyone, including our system administrators.</li>
-                    <li><strong>Token Lifetime & Revocation:</strong> Sessions support instant invalidation upon password reset or logout.</li>
+                    <li><strong>Our hosting provider:</strong> runs the servers and database where your account and practice are stored.</li>
+                    <li><strong>Google:</strong> Google Sign-In, if you choose it, and Firebase Cloud Messaging, which delivers notifications to your phone using its notification token.</li>
+                </ul>
+                <p>We disclose personal data to a government agency only when Indian law requires it.</p>
+            </section>
+            <section class="policy-section">
+                <h2>6. Advertising</h2>
+                <p>The app shows no advertisements and contains no advertising or tracking software. If that ever changes, we will update this notice and ask for your consent first. We will never track or target advertising at anyone under 18.</p>
+            </section>
+            <section class="policy-section">
+                <h2>7. How We Protect It</h2>
+                <ul>
+                    <li>All traffic between the app and our servers is encrypted in transit (HTTPS).</li>
+                    <li>Passwords are stored only as one-way hashes. On the phone, your sign-in is kept in the secure storage of Android or iOS.</li>
+                    <li>Access inside our team is limited by role, and access to the system is logged.</li>
+                    <li>If a personal data breach affects you, we will tell you without delay through the app (a notification and your inbox) and by email where needed, with what happened, its likely effect and what you can do. We will also report it to the Data Protection Board of India and to CERT-In as the law requires.</li>
                 </ul>
             </section>
-
-            <!-- SECTION 6 -->
             <section class="policy-section">
-                <h2>6. Your Rights, Data Portability & Account Deletion</h2>
-                <p>As a seeker and user of {{Brand:AppName}}, you hold full authority over your data:</p>
+                <h2>8. Your Rights</h2>
                 <ul>
-                    <li><strong>Right to View & Update:</strong> You can edit your profile, mobile number, and spiritual name at any time within your profile screen.</li>
-                    <li><strong>Right to Withdraw Permissions:</strong> You can revoke location, notification, or media permissions via your device settings at any time without losing access to static devotional reading.</li>
-                    <li><strong>Right to Account & Data Deletion:</strong> You have the right to request permanent deletion of your account and all associated devotional streaks, favorites, and profile data. To initiate account deletion, contact our Grievance Desk or submit a request directly through the in-app feedback module.</li>
+                    <li><strong>Access:</strong> download everything we hold about you from My Profile, under Download My Data.</li>
+                    <li><strong>Correction:</strong> change your details in My Profile, or ask us to correct anything else.</li>
+                    <li><strong>Erasure:</strong> delete your account in My Profile. Your account, practice, favourites, notifications, devices, feedback and consent history are erased at once. Security logs are kept until their one-year period ends, because the law requires it.</li>
+                    <li><strong>Nomination:</strong> name a person in My Profile who may use these rights for you if you die or become unable to.</li>
+                    <li><strong>Grievance Redressal:</strong> write to us (section 12 below) or send Feedback with the type Privacy / My Data Request. We reply within 30 days.</li>
+                    <li><strong>Complaint to the Board:</strong> if you are not satisfied with our answer, you may complain to the Data Protection Board of India.</li>
                 </ul>
+                <p>In return, the law asks you to give true details and not to file false or frivolous complaints.</p>
             </section>
-
-            <!-- SECTION 7 -->
             <section class="policy-section">
-                <h2>7. Children's Privacy</h2>
-                <p>
-                    {{Brand:AppName}} is designed for devotional learning and general audiences. We do not intentionally collect personal information from children under the age of 13. If you become aware that a child has provided us with personal information without parental consent, please contact us immediately and we will promptly remove such records.
-                </p>
+                <h2>9. Adults Only</h2>
+                <p>Accounts are only for people aged 18 or older, and you confirm your age when you sign up. Under Indian law a child is anyone under 18. We do not knowingly process a child's personal data; if we learn that an account belongs to a child, we delete it. Please tell us if you believe this has happened.</p>
             </section>
-
-            <!-- SECTION 8 -->
             <section class="policy-section">
-                <h2>8. Updates to This Policy</h2>
-                <p>
-                    We may occasionally update this Privacy Policy to reflect application improvements or legal requirements. When updates occur, the "Last Updated" date at the top of this document will be revised. Any major revisions will be notified via in-app banner or notification.
-                </p>
+                <h2>10. Changes to This Notice</h2>
+                <p>Each version of this notice has a number and a date (above). When we change what we collect or why, we raise the version and ask you to read and accept it again in the app before you continue.</p>
             </section>
-
-            <!-- SECTION 9 -->
             <section class="policy-section">
-                <h2>9. Contact Us & Grievance Redressal</h2>
-                <p>
-                    For questions, comments, data deletion requests, or grievances related to this Privacy Policy, please reach out to our team:
-                </p>
-
+                <h2>11. Language</h2>
+                <p>You can read this notice in English, Telugu, Hindi, Tamil or Kannada by changing the app language. If the versions differ, the English text prevails.</p>
+            </section>
+            <section class="policy-section">
+                <h2>12. Contact and Grievance Officer</h2>
+                <p>For any question, request or complaint about your personal data, contact our Grievance Officer:</p>
                 <div class="policy-contact-card">
-                    <p><strong>Entity Name:</strong> {{Brand:CompanyName}}</p>
-                    <p><strong>Support & Privacy Email:</strong> <a href="mailto:{{Brand:SupportEmail}}">{{Brand:SupportEmail}}</a></p>
-                    <p><strong>Grievance Officer:</strong> Privacy Desk, {{Brand:CompanyName}} (reach it at the email above)</p>
-                    <p><strong>Mailing Address:</strong> <span class="policy-placeholder-tag">[Your Physical Business Address / City, State, Country, Postal Code]</span></p>
+                    <p><strong>Data Fiduciary:</strong> {{Brand:CompanyName}}</p>
+                    <p><strong>Grievance Officer:</strong> Grievance Officer, {{Brand:CompanyName}}</p>
+                    <p><strong>Email:</strong> <a href="mailto:{{Brand:SupportEmail}}">{{Brand:SupportEmail}}</a></p>
+                    <p><strong>In the App:</strong> Feedback, type Privacy / My Data Request</p>
+                    <p><strong>Postal Address:</strong> <span style="font-style: normal">{{Brand:PostalAddress}}</span></p>
+                    <p><strong>Response Time:</strong> Within 30 days</p>
                     <p><strong>Website:</strong> <a href="{{Brand:CompanyUrl}}" target="_blank" rel="noopener">{{Brand:CompanyUrl}}</a></p>
-                    <p><strong>Application:</strong> <a href="{{Brand:AppUrl}}" target="_blank" rel="noopener">{{Brand:AppUrl}}</a></p>
-                    <p><strong>This Policy:</strong> <a href="{{Brand:PrivacyUrl}}" target="_blank" rel="noopener">{{Brand:PrivacyUrl}}</a></p>
                 </div>
             </section>
 
             <footer class="policy-footer">
-                <p>© 2026 {{Brand:CompanyName}} · {{Brand:AppName}}. Dedicated to the eternal dharma and seeker privacy.</p>
+                <p>© 2026 {{Brand:CompanyName}} · {{Brand:AppName}}</p>
                 <p style="margin-top: 0.5rem;"><a href="login" style="color: #8D4E19; font-weight: 600;">Return to Login</a></p>
             </footer>
 

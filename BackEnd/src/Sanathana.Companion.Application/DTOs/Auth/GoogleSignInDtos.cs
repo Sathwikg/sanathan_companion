@@ -53,6 +53,16 @@ public class GoogleRegisterDto : IRegistrationFields
     public string ConfirmPassword { get; set; } = string.Empty;
     public string? SeekerName { get; set; }
     public Guid? RegionId { get; set; }
+
+    /// <summary>The seeker ticked "I have read and agree to the Privacy Notice" (unticked by default).</summary>
+    public bool AcceptPrivacyNotice { get; set; }
+
+    /// <summary>The seeker ticked "I am 18 years of age or older".</summary>
+    public bool ConfirmAdult { get; set; }
+
+    /// <summary>The notice version that was on screen, so an outdated app cannot consent to a notice it never showed.</summary>
+    public int PrivacyNoticeVersion { get; set; }
+
 }
 
 /// <summary>Connects a Google account to an existing account, on the strength of that account's password.</summary>

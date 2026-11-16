@@ -500,6 +500,13 @@
                             <input class="sc-input" placeholder="https://…" @bind="_broadcast.ImageUrl" />
                             <span class="sc-hint">@Loc["pushNotifications.imageHint", "An https address of a picture, shown large when the notification is expanded."]</span>
                         </div>
+                        <div class="sc-field">
+                            <label class="sc-consent-row" style="min-height:0">
+                                <input type="checkbox" checked="@_broadcast.Mandatory" @onchange="e => _broadcast.Mandatory = (bool)(e.Value ?? false)" />
+                                <span>@Loc["pushNotifications.mandatory", "Security or Legal Notice (Reaches Everyone)"]</span>
+                            </label>
+                            <span class="sc-hint">@Loc["pushNotifications.mandatoryHint", "Only for a personal data breach, a changed Privacy Notice or another notice the law requires. It reaches seekers who switched announcements off."]</span>
+                        </div>
 
                         <div class="sc-formfoot">
                             <button class="sc-btn-primary" @onclick="BroadcastAsync"
@@ -719,6 +726,7 @@
             _broadcast.Title = string.Empty;
             _broadcast.Body = string.Empty;
             _broadcast.ImageUrl = null;
+            _broadcast.Mandatory = false;
         }
     }
 

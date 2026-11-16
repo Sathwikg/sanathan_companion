@@ -64,4 +64,10 @@ public interface IUserRepository : IRepository<User>
     /// Used by background jobs for reminder sync.
     /// </summary>
     Task<IReadOnlyList<User>> GetUsersWithNotificationPrefsAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>Appends a consent given or withdrawn. Does not save.</summary>
+    Task AddConsentAsync(ConsentRecord record, CancellationToken cancellationToken = default);
+
+    /// <summary>A seeker's consent history, oldest first.</summary>
+    Task<IReadOnlyList<ConsentRecord>> GetConsentsAsync(Guid userId, CancellationToken cancellationToken = default);
 }

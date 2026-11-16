@@ -67,6 +67,8 @@
   "pushNotifications.lastSent": "ಕೊನೆಯದು {0}",
   "pushNotifications.lastTick": "ಕೊನೆಯ ಚಾಲನೆ {0}",
   "pushNotifications.loading": "ಕನ್ಸೋಲ್ ಅನ್ನು ಲೋಡ್ ಮಾಡಲಾಗುತ್ತಿದೆ…",
+  "pushNotifications.mandatory": "ಭದ್ರತಾ ಅಥವಾ ಕಾನೂನು ಸೂಚನೆ (ಎಲ್ಲರಿಗೂ ತಲುಪುತ್ತದೆ)",
+  "pushNotifications.mandatoryHint": "ವೈಯಕ್ತಿಕ ಡೇಟಾ ಉಲ್ಲಂಘನೆ, ಬದಲಾದ ಗೌಪ್ಯತಾ ಸೂಚನೆ ಅಥವಾ ಕಾನೂನು ಅಗತ್ಯಪಡಿಸುವ ಇತರ ಸೂಚನೆಗೆ ಮಾತ್ರ. ಪ್ರಕಟಣೆಗಳನ್ನು ಆಫ್ ಮಾಡಿರುವ ಸಾಧಕರಿಗೂ ಇದು ತಲುಪುತ್ತದೆ.",
   "pushNotifications.messagePlaceholder": "ಒಂದು ಅಥವಾ ಎರಡು ವಾಕ್ಯಗಳು. ಇಡೀ ಸಂದೇಶ ಲಾಕ್ ಸ್ಕ್ರೀನ್‌ನಲ್ಲಿ ಹಿಡಿಸಬೇಕು.",
   "pushNotifications.minutes": "{0} ನಿ.",
   "pushNotifications.minutesAgo": "{0} ನಿ. ಹಿಂದೆ",

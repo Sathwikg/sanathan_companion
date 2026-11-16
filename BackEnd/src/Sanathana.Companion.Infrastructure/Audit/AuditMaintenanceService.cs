@@ -31,7 +31,8 @@ public sealed class AuditMaintenanceService : BackgroundService
     private const int SweepBatch = 500;
 
     /// <summary>The floor applies even if the database holds less, so a typo cannot wipe the log.</summary>
-    private const int MinRetentionDays = 7;
+    /// <summary>Whatever the settings say, logs are never deleted younger than the law requires.</summary>
+    private const int MinRetentionDays = Sanathana.Companion.Application.Common.LegalRetention.MinimumLogDays;
 
     private readonly IAuditConfigCache _cache;
     private readonly IServiceScopeFactory _scopeFactory;

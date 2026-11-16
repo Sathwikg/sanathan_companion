@@ -16,12 +16,45 @@ public class ProfileController : ControllerBase
 {
     private readonly IUserService _users;
     private readonly ICurrentUserService _currentUser;
+    private readonly Sanathana.Companion.Application.Services.IPrivacyService _privacy;
+    private readonly IAuditRequestContext _request;
 
-    public ProfileController(IUserService users, ICurrentUserService currentUser)
+    public ProfileController(IUserService users, ICurrentUserService currentUser,
+        Sanathana.Companion.Application.Services.IPrivacyService privacy, IAuditRequestContext request)
     {
         _users = users;
         _currentUser = currentUser;
+        _privacy = privacy;
+        _request = request;
     }
+
+    // ---------------------------------------------------------------- privacy (DPDP Act 2023)
+
+    /// <summary>The seeker's consents, consent history and nominee; and whether the current notice still needs accepting.</summary>
+    [HttpGet("privacy")]
+    [ProducesResponseType(typeof(PrivacySettingsDto), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetPrivacy(CancellationToken cancellationToken)
+        => _currentUser.UserId is { } id ? Ok(await _privacy.GetAsync(id, cancellationToken)) : Unauthorized();
+
+    /// <summary>Accepts the current privacy notice and confirms the seeker is 18 or older.</summary>
+    [HttpPut("privacy/notice")]
+    [ProducesResponseType(typeof(PrivacySettingsDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> AcceptNotice([FromBody] AcceptNoticeDto dto, CancellationToken cancellationToken)
+        => _currentUser.UserId is { } id ? Ok(await _privacy.AcceptNoticeAsync(id, dto, _request.Platform, cancellationToken)) : Unauthorized();
+
+    /// <summary>Gives or withdraws consent to recording which screens are opened.</summary>
+    [HttpPut("privacy/usage-analytics")]
+    [ProducesResponseType(typeof(PrivacySettingsDto), StatusCodes.Status200OK)]
+    public async Task<IActionResult> SetUsageAnalytics([FromBody] SetConsentDto dto, CancellationToken cancellationToken)
+        => _currentUser.UserId is { } id ? Ok(await _privacy.SetUsageAnalyticsAsync(id, dto.Enabled, _request.Platform, cancellationToken)) : Unauthorized();
+
+    /// <summary>Sets or clears the person who may exercise the seeker's rights on their behalf (section 14).</summary>
+    [HttpPut("privacy/nominee")]
+    [ProducesResponseType(typeof(PrivacySettingsDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> SetNominee([FromBody] NomineeDto dto, CancellationToken cancellationToken)
+        => _currentUser.UserId is { } id ? Ok(await _privacy.SetNomineeAsync(id, dto, cancellationToken)) : Unauthorized();
 
     /// <summary>The current user's profile and per-day sadhana timeline.</summary>
     [HttpGet("me")]

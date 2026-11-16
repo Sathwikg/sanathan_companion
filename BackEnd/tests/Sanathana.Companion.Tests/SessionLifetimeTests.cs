@@ -17,7 +17,7 @@ namespace Sanathana.Companion.Tests;
 public class SessionLifetimeTests
 {
     private static RegisterRequestDto Registration(string email = "seeker@example.com", string mobile = "9876543210") => new()
-    {
+    { AcceptPrivacyNotice = true, ConfirmAdult = true, PrivacyNoticeVersion = Sanathana.Companion.Application.Common.PrivacyNotice.CurrentVersion, 
         FullName = "Ravi Kumar",
         Email = email,
         MobileNumber = mobile,

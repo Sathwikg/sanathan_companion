@@ -23,6 +23,16 @@ public class IssueTypeConfiguration : IEntityTypeConfiguration<IssueType>
         builder.HasData(
             new IssueType
             {
+                Id = SeedConstants.IssueTypePrivacyId,
+                Name = "Privacy / My Data Request",
+                Description = "A request about your personal data (access, correction, erasure, nominee) or a privacy grievance. Answered within 30 days.",
+                DisplayOrder = 0,
+                IsActive = true,
+                CreatedBy = "system",
+                CreatedDate = SeedConstants.SeedTimestamp
+            },
+            new IssueType
+            {
                 Id = SeedConstants.IssueTypeBugId,
                 Name = "Bug / Technical Issue",
                 Description = "Something in the app isn't working correctly.",

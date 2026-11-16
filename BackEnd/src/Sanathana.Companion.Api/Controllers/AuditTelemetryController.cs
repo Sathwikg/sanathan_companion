@@ -23,12 +23,15 @@ public class AuditTelemetryController : ControllerBase
     private readonly IAuditService _auditService;
     private readonly ICurrentUserService _currentUser;
     private readonly IAuditRequestContext _request;
+    private readonly Sanathana.Companion.Application.Services.IPrivacyService _privacy;
 
-    public AuditTelemetryController(IAuditService auditService, ICurrentUserService currentUser, IAuditRequestContext request)
+    public AuditTelemetryController(IAuditService auditService, ICurrentUserService currentUser, IAuditRequestContext request,
+        Sanathana.Companion.Application.Services.IPrivacyService privacy)
     {
         _auditService = auditService;
         _currentUser = currentUser;
         _request = request;
+        _privacy = privacy;
     }
 
     /// <summary>A page visit by a signed-in user. Belongs to no form: every role's visits are recorded.</summary>
@@ -38,7 +41,13 @@ public class AuditTelemetryController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> LogActivity([FromBody] LogActivityRequestDto dto, CancellationToken ct)
     {
-        await _auditService.RecordActivityAsync(dto, Caller(), ct);
+        // Which screens a seeker opens, and for how long, is behavioural monitoring: kept only for a
+        // seeker who opted in (Privacy & Your Data), and never for a guest, who cannot consent and
+        // whose age is unknown (DPDP Act 2023, sections 6 and 9(3)). Answered 204 either way, so an
+        // older app that still sends visits gets no error for it; the visit is simply not kept.
+        if (_currentUser.UserId is { } userId && await _privacy.AllowsUsageAnalyticsAsync(userId, ct))
+            await _auditService.RecordActivityAsync(dto, Caller(), ct);
+
         return NoContent();
     }
 

@@ -126,7 +126,7 @@ public sealed class CleanupJob
     /// </summary>
     public async Task<int> CleanupNotificationHistoryAsync(CancellationToken cancellationToken = default)
     {
-        var cutoff = DateTime.UtcNow.AddDays(-Math.Max(7, _pushOptions.HistoryDays));
+        var cutoff = DateTime.UtcNow.AddDays(-Math.Max(LegalRetention.MinimumLogDays, _pushOptions.HistoryDays));
 
         var logs = await _db.NotificationLogs.Where(l => l.CreatedDate < cutoff).ExecuteDeleteAsync(cancellationToken);
         var runs = await _db.NotificationRuns.Where(r => r.StartedAtUtc < cutoff).ExecuteDeleteAsync(cancellationToken);
@@ -138,11 +138,14 @@ public sealed class CleanupJob
     }
 
     /// <summary>
-    /// Removes error logs older than 30 days.
+    /// Removes error logs past their retention: the Audit Config setting, never less than the legal
+    /// floor. This used to be a fixed 30 days, which deleted logs the law requires for a year and
+    /// overrode whatever the administrator had set.
     /// </summary>
     public async Task<int> CleanupOldErrorLogsAsync(CancellationToken cancellationToken = default)
     {
-        var cutoff = DateTime.UtcNow.AddDays(-30);
+        var configured = await _db.AuditSettings.AsNoTracking().Select(s => (int?)s.ErrorRetentionDays).FirstOrDefaultAsync(cancellationToken);
+        var cutoff = DateTime.UtcNow.AddDays(-Math.Max(LegalRetention.MinimumLogDays, configured ?? LegalRetention.MinimumLogDays));
         var deletedCount = await _db.ErrorLogs
             .Where(e => e.TimestampUtc < cutoff)
             .ExecuteDeleteAsync(cancellationToken);

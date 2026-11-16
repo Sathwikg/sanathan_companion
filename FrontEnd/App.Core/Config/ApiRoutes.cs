@@ -133,6 +133,11 @@ public static class ApiRoutes
         public const string Export = "profile/export";
         /// <summary>DELETE — erases the caller's account and everything belonging to them.</summary>
         public const string DeleteMe = "profile/me";
+        /// <summary>GET — the notice accepted, the optional consents and the nominee.</summary>
+        public const string Privacy = "profile/privacy";
+        public const string PrivacyNotice = "profile/privacy/notice";
+        public const string UsageAnalytics = "profile/privacy/usage-analytics";
+        public const string Nominee = "profile/privacy/nominee";
     }
 
     public static class Sadhana

@@ -41,6 +41,8 @@
     <BrandCompanyName>SBS TechnoLabs</BrandCompanyName>
     <BrandCompanyUrl>https://sbstechnolabs.com</BrandCompanyUrl>
     <BrandSupportEmail>sbstechnolabs@gmail.com</BrandSupportEmail>
+    <!-- The postal address for communication and grievances, shown on the Privacy Notice. -->
+    <BrandPostalAddress>27-2-1433, Flat No. 402, 5th Floor, Kinni Homes, Near Anjaneya Swamy Temple, Balaji Nagar, Nellore, SPSR Nellore District, Andhra Pradesh - 524002</BrandPostalAddress>
 
     <!-- Where the app lives on the web, and the public URL of its privacy policy (the one the
          store listings point at). -->

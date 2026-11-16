@@ -78,12 +78,18 @@ else
 
     private IssueTypeModel? SelectedType => _types.FirstOrDefault(t => t.Id == _req.IssueTypeId);
 
+    /// <summary>Preselects an issue type, e.g. ?type=… from My Profile's "Raise a Privacy Request".</summary>
+    [SupplyParameterFromQuery(Name = "type")] public Guid? PresetType { get; set; }
+
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
         try { _types = await Api.GetActiveIssueTypesAsync(); }
         catch (Exception ex) { _error = Loc.ErrorText(ex); }
         finally { _loading = false; }
+
+        if (PresetType is { } preset && _types.Any(t => t.Id == preset))
+            _req.IssueTypeId = preset;
     }
 
     private async Task SubmitAsync()

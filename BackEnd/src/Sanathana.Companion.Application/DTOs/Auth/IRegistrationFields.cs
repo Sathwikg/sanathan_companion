@@ -11,4 +11,12 @@ public interface IRegistrationFields
     string Password { get; }
     string ConfirmPassword { get; }
     string? SeekerName { get; }
+
+    /// <summary>Consent to the privacy notice: unticked until the seeker ticks it (DPDP Act 2023, section 6).</summary>
+    bool AcceptPrivacyNotice { get; }
+
+    /// <summary>Accounts are for adults; a child's data would need verifiable parental consent (section 9).</summary>
+    bool ConfirmAdult { get; }
+
+    int PrivacyNoticeVersion { get; }
 }

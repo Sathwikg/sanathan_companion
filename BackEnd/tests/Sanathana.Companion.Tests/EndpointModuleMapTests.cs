@@ -112,10 +112,16 @@ public class EndpointModuleMapTests
             "NotificationsController.Inbox",
             "NotificationsController.MarkInboxRead",
             "NotificationsController.RegisterDevice",
+            // The seeker's own privacy choices (DPDP Act 2023): every signed-in role must be able to
+            // read the notice it is asked to accept, withdraw a consent and name a nominee.
+            "ProfileController.AcceptNotice",
             "ProfileController.DeleteMyAccount",
             "ProfileController.ExportMyData",
+            "ProfileController.GetPrivacy",
             "ProfileController.Me",
-            "ProfileController.SetDefaultRegion"
+            "ProfileController.SetDefaultRegion",
+            "ProfileController.SetNominee",
+            "ProfileController.SetUsageAnalytics"
         }, exempt);
     }
 

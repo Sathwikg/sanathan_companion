@@ -98,6 +98,7 @@ public class AuthService : IAuthService
         };
 
         await _uow.Users.AddAsync(user, cancellationToken);
+        await RecordSignUpConsentAsync(user, cancellationToken);
         await _uow.SaveChangesAsync(cancellationToken);
 
         return "Registration Successful";
@@ -357,6 +358,7 @@ public class AuthService : IAuthService
         };
 
         await _uow.Users.AddAsync(user, cancellationToken);
+        await RecordSignUpConsentAsync(user, cancellationToken);
 
         // Signed in straight away, unlike the plain form, which sends the seeker back to the login
         // screen: they have just proved who they are to Google, and asking them to type the
@@ -428,6 +430,27 @@ public class AuthService : IAuthService
     /// role yields a token carrying no role at all, which fails in a way that looks like a
     /// permissions bug rather than an authentication one.
     /// </remarks>
+    /// <summary>
+    /// Stamps the account with the consent its sign-up carried and keeps a record of it. Only
+    /// reached after the validator has insisted on both ticks and the current notice version.
+    /// </summary>
+    private async Task RecordSignUpConsentAsync(User user, CancellationToken cancellationToken)
+    {
+        var now = DateTime.UtcNow;
+        user.PrivacyNoticeVersion = PrivacyNotice.CurrentVersion;
+        user.PrivacyNoticeAcceptedAtUtc = now;
+        user.AdultConfirmedAtUtc = now;
+
+        await _uow.Users.AddConsentAsync(new ConsentRecord
+        {
+            UserId = user.UserId,
+            Purpose = ConsentPurposes.PrivacyNotice,
+            Granted = true,
+            NoticeVersion = PrivacyNotice.CurrentVersion,
+            AtUtc = now
+        }, cancellationToken);
+    }
+
     private async Task<AuthResponseDto> IssueAsync(User user, Guid familyId, CancellationToken cancellationToken, bool opensSession = true)
     {
         // The family id doubles as the session id: it is stable across every refresh of this

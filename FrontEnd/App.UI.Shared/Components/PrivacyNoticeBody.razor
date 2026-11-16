@@ -1,0 +1,211 @@
+@*
+    The Privacy Notice itself, written for the Digital Personal Data Protection Act, 2023 and the
+    DPDP Rules, 2025 (rule 3: an itemised list of the personal data and the purpose of each, how to
+    withdraw consent, how to use each right and how to complain to the Data Protection Board).
+    Shown by /privacy and, without leaving the form, from the sign-up and consent screens.
+
+    Every sentence is a localization key so the notice reads in the seeker's own language
+    (section 5(3)). Keep App.Web/privacy.template.html (the store listing's static copy) in step,
+    and when the meaning changes, raise PrivacyNoticeInfo.CurrentVersion here AND
+    PrivacyNotice.CurrentVersion on the server so every seeker is asked again.
+*@
+@inherits LocalizedComponentBase
+
+<div class="sc-privacy-doc">
+<div class="sc-privacy-meta-box">
+    <div class="sc-meta-item">
+        <span class="sc-meta-label">@Loc["privacy.metaFiduciary", "Data Fiduciary"]</span>
+        <span>@Brand.CompanyName</span>
+    </div>
+    <div class="sc-meta-item">
+        <span class="sc-meta-label">@Loc["privacy.metaApp", "Application"]</span>
+        <span>@Brand.AppName</span>
+    </div>
+    <div class="sc-meta-item">
+        <span class="sc-meta-label">@Loc["privacy.metaVersion", "Notice Version"]</span>
+        <span>@PrivacyNoticeInfo.CurrentVersion</span>
+    </div>
+    <div class="sc-meta-item">
+        <span class="sc-meta-label">@Loc["privacy.metaEffective", "Effective From"]</span>
+        <span>@PrivacyNoticeInfo.EffectiveDate.ToString("d MMMM yyyy", System.Globalization.CultureInfo.InvariantCulture)</span>
+    </div>
+</div>
+
+<section class="sc-privacy-sec">
+    <h2>1. @Loc["privacy.s1Title", "Who We Are"]</h2>
+    <p>@Loc.TF("privacy.s1Body", "{0} is provided by {1}. We decide why and how your personal data is used, which makes us the Data Fiduciary under India's Digital Personal Data Protection Act, 2023. This notice tells you what we collect, why, how long we keep it, and how to use your rights.", Brand.AppName, Brand.CompanyName)</p>
+    <p>@Loc["privacy.s1Scope", "It covers the Android and iOS apps and the website. We collect only what the features you use need, and we never sell your personal data."]</p>
+</section>
+
+<section class="sc-privacy-sec">
+    <h2>2. @Loc["privacy.s2Title", "What We Collect and Why"]</h2>
+    <div class="sc-table-wrap">
+        <table class="sc-privacy-table">
+            <thead>
+                <tr>
+                    <th>@Loc["privacy.colData", "Personal Data"]</th>
+                    <th>@Loc["privacy.colPurpose", "Why We Need It"]</th>
+                    <th>@Loc["privacy.colKept", "How Long We Keep It"]</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>@Loc["privacy.rowAccount", "Account Details"]</strong><br /><span class="sc-subtext">@Loc["privacy.rowAccountData", "Full name, email, mobile number, seeker name (optional), preferred region (optional)"]</span></td>
+                    <td>@Loc["privacy.rowAccountPurpose", "To create your account, sign you in, greet you by name and show the deities and chants of your region."]</td>
+                    <td>@Loc["privacy.untilDeleted", "Until you delete your account."]</td>
+                </tr>
+                <tr>
+                    <td><strong>@Loc["privacy.rowPassword", "Password"]</strong></td>
+                    <td>@Loc["privacy.rowPasswordPurpose", "To check that it is you when you sign in. It is stored only as a one-way hash, so nobody, including us, can read it."]</td>
+                    <td>@Loc["privacy.untilDeleted", "Until you delete your account."]</td>
+                </tr>
+                <tr>
+                    <td><strong>@Loc["privacy.rowGoogle", "Google Sign-In (if you use it)"]</strong><br /><span class="sc-subtext">@Loc["privacy.rowGoogleData", "Your Google account ID, name and email address"]</span></td>
+                    <td>@Loc["privacy.rowGooglePurpose", "To sign you in with Google. We never see your Google password, contacts, files or mail."]</td>
+                    <td>@Loc["privacy.untilDeleted", "Until you delete your account."]</td>
+                </tr>
+                <tr>
+                    <td><strong>@Loc["privacy.rowPractice", "Your Practice"]</strong><br /><span class="sc-subtext">@Loc["privacy.rowPracticeData", "Japa counts, malas, streaks, favourites, puja progress, calendar entries"]</span></td>
+                    <td>@Loc["privacy.rowPracticePurpose", "To keep your sadhana and favourites safe and the same on every device."]</td>
+                    <td>@Loc["privacy.untilDeleted", "Until you delete your account."]</td>
+                </tr>
+                <tr>
+                    <td><strong>@Loc["privacy.rowLocation", "Location (only when you ask)"]</strong><br /><span class="sc-subtext">@Loc["privacy.rowLocationData", "Your phone or browser location, only when you tap My Location"]</span></td>
+                    <td>@Loc["privacy.rowLocationPurpose", "To calculate the Panchangam (sunrise, tithi, Rahu Kalam and other timings) for where you are."]</td>
+                    <td>@Loc["privacy.rowLocationKept", "Not saved. It is used for that one calculation; we keep no location history and never read your location in the background."]</td>
+                </tr>
+                <tr>
+                    <td><strong>@Loc["privacy.rowDevice", "Notifications"]</strong><br /><span class="sc-subtext">@Loc["privacy.rowDeviceData", "Your phone's notification token, phone model, app version, time zone and language; the notifications sent to you"]</span></td>
+                    <td>@Loc["privacy.rowDevicePurpose", "To send the reminders and alerts you choose, at the right local time and in your language, and to show them in your inbox."]</td>
+                    <td>@Loc["privacy.rowDeviceKept", "The phone details until you delete your account; the notifications for one year."]</td>
+                </tr>
+                <tr>
+                    <td><strong>@Loc["privacy.rowFeedback", "Feedback and Requests"]</strong><br /><span class="sc-subtext">@Loc["privacy.rowFeedbackData", "What you write to us and the type of issue"]</span></td>
+                    <td>@Loc["privacy.rowFeedbackPurpose", "To answer you and to resolve problems and privacy requests."]</td>
+                    <td>@Loc["privacy.untilDeleted", "Until you delete your account."]</td>
+                </tr>
+                <tr>
+                    <td><strong>@Loc["privacy.rowSecurity", "Security Logs"]</strong><br /><span class="sc-subtext">@Loc["privacy.rowSecurityData", "IP address, browser or device type, sign-in and sign-out times, errors"]</span></td>
+                    <td>@Loc["privacy.rowSecurityPurpose", "To protect your account, detect misuse and investigate security incidents, as Indian law requires."]</td>
+                    <td>@Loc["privacy.oneYear", "One year, then deleted."]</td>
+                </tr>
+                <tr>
+                    <td><strong>@Loc["privacy.rowUsage", "Usage Statistics (optional)"]</strong><br /><span class="sc-subtext">@Loc["privacy.rowUsageData", "Which screens you open and when"]</span></td>
+                    <td>@Loc["privacy.rowUsagePurpose", "To learn which features help seekers. Off unless you switch it on in My Profile, and never collected for guests."]</td>
+                    <td>@Loc["privacy.oneYear", "One year, then deleted."]</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <p>@Loc["privacy.s2Guest", "If you continue as a guest, we collect no account details; only the security logs above are kept."]</p>
+</section>
+
+<section class="sc-privacy-sec">
+    <h2>3. @Loc["privacy.s3Title", "Your Consent and How to Withdraw It"]</h2>
+    <p>@Loc["privacy.s3Body", "We use your personal data because you agree to this notice when you create your account. Optional uses, such as usage statistics, are asked for separately and stay off until you switch them on."]</p>
+    <ul class="sc-privacy-list">
+        <li>@Loc["privacy.s3Withdraw1", "Switch an optional use off at any time in My Profile, under Privacy and Your Data. It stops at once."]</li>
+        <li>@Loc["privacy.s3Withdraw2", "Withdraw all consent by deleting your account in My Profile. It takes one step, just as agreeing did."]</li>
+        <li>@Loc["privacy.s3Withdraw3", "Withdrawing does not affect what was done lawfully before, and every consent you give or withdraw is recorded so you can see it in your data download."]</li>
+    </ul>
+</section>
+
+<section class="sc-privacy-sec">
+    <h2>4. @Loc["privacy.s4Title", "Phone Permissions"]</h2>
+    <ul class="sc-privacy-list">
+        <li><strong>@Loc["privacy.permLocation", "Location"]:</strong> @Loc["privacy.permLocationBody", "only while the app is open and only when you tap My Location. You can refuse and choose a region instead."]</li>
+        <li><strong>@Loc["privacy.permNotifications", "Notifications"]:</strong> @Loc["privacy.permNotificationsBody", "for the reminders and alerts you choose. Turn each type off in the app, or all of them in your phone settings."]</li>
+        <li><strong>@Loc["privacy.permBoot", "Start After Restart"]:</strong> @Loc["privacy.permBootBody", "so your reminders keep working after your phone restarts."]</li>
+        <li><strong>@Loc["privacy.permVibrate", "Vibration"]:</strong> @Loc["privacy.permVibrateBody", "to let you feel each japa count."]</li>
+        <li><strong>@Loc["privacy.permMedia", "Camera, Photos and Microphone"]:</strong> @Loc["privacy.permMediaBody", "asked only when you save a wallpaper, or when an administrator uploads a deity image or chant audio. We never scan your photo library or record without you starting it."]</li>
+    </ul>
+</section>
+
+<section class="sc-privacy-sec">
+    <h2>5. @Loc["privacy.s5Title", "Who Else Handles Your Data"]</h2>
+    <p>@Loc["privacy.s5Body", "We do not sell, rent or trade your personal data. Only these service providers process it for us, under contract and only to run the app:"]</p>
+    <ul class="sc-privacy-list">
+        <li><strong>@Loc["privacy.procHosting", "Our hosting provider"]:</strong> @Loc["privacy.procHostingBody", "runs the servers and database where your account and practice are stored."]</li>
+        <li><strong>@Loc["privacy.procGoogle", "Google"]:</strong> @Loc["privacy.procGoogleBody", "Google Sign-In, if you choose it, and Firebase Cloud Messaging, which delivers notifications to your phone using its notification token."]</li>
+    </ul>
+    <p>@Loc["privacy.s5Law", "We disclose personal data to a government agency only when Indian law requires it."]</p>
+</section>
+
+<section class="sc-privacy-sec">
+    <h2>6. @Loc["privacy.s6Title", "Advertising"]</h2>
+    <p>@Loc["privacy.s6Body", "The app shows no advertisements and contains no advertising or tracking software. If that ever changes, we will update this notice and ask for your consent first. We will never track or target advertising at anyone under 18."]</p>
+</section>
+
+<section class="sc-privacy-sec">
+    <h2>7. @Loc["privacy.s7Title", "How We Protect It"]</h2>
+    <ul class="sc-privacy-list">
+        <li>@Loc["privacy.sec1", "All traffic between the app and our servers is encrypted in transit (HTTPS)."]</li>
+        <li>@Loc["privacy.sec2", "Passwords are stored only as one-way hashes. On the phone, your sign-in is kept in the secure storage of Android or iOS."]</li>
+        <li>@Loc["privacy.sec3", "Access inside our team is limited by role, and access to the system is logged."]</li>
+        <li>@Loc["privacy.sec4", "If a personal data breach affects you, we will tell you without delay through the app (a notification and your inbox) and by email where needed, with what happened, its likely effect and what you can do. We will also report it to the Data Protection Board of India and to CERT-In as the law requires."]</li>
+    </ul>
+</section>
+
+<section class="sc-privacy-sec">
+    <h2>8. @Loc["privacy.s8Title", "Your Rights"]</h2>
+    <ul class="sc-privacy-list">
+        <li><strong>@Loc["privacy.rightAccess", "Access"]:</strong> @Loc["privacy.rightAccessBody", "download everything we hold about you from My Profile, under Download My Data."]</li>
+        <li><strong>@Loc["privacy.rightCorrect", "Correction"]:</strong> @Loc["privacy.rightCorrectBody", "change your details in My Profile, or ask us to correct anything else."]</li>
+        <li><strong>@Loc["privacy.rightErase", "Erasure"]:</strong> @Loc["privacy.rightEraseBody", "delete your account in My Profile. Your account, practice, favourites, notifications, devices, feedback and consent history are erased at once. Security logs are kept until their one-year period ends, because the law requires it."]</li>
+        <li><strong>@Loc["privacy.rightNominate", "Nomination"]:</strong> @Loc["privacy.rightNominateBody", "name a person in My Profile who may use these rights for you if you die or become unable to."]</li>
+        <li><strong>@Loc["privacy.rightGrievance", "Grievance Redressal"]:</strong> @Loc["privacy.rightGrievanceBody", "write to us (section 12 below) or send Feedback with the type Privacy / My Data Request. We reply within 30 days."]</li>
+        <li><strong>@Loc["privacy.rightBoard", "Complaint to the Board"]:</strong> @Loc["privacy.rightBoardBody", "if you are not satisfied with our answer, you may complain to the Data Protection Board of India."]</li>
+    </ul>
+    <p>@Loc["privacy.s8Duty", "In return, the law asks you to give true details and not to file false or frivolous complaints."]</p>
+</section>
+
+<section class="sc-privacy-sec">
+    <h2>9. @Loc["privacy.s9Title", "Adults Only"]</h2>
+    <p>@Loc["privacy.s9Body", "Accounts are only for people aged 18 or older, and you confirm your age when you sign up. Under Indian law a child is anyone under 18. We do not knowingly process a child's personal data; if we learn that an account belongs to a child, we delete it. Please tell us if you believe this has happened."]</p>
+</section>
+
+<section class="sc-privacy-sec">
+    <h2>10. @Loc["privacy.s10Title", "Changes to This Notice"]</h2>
+    <p>@Loc["privacy.s10Body", "Each version of this notice has a number and a date (above). When we change what we collect or why, we raise the version and ask you to read and accept it again in the app before you continue."]</p>
+</section>
+
+<section class="sc-privacy-sec">
+    <h2>11. @Loc["privacy.s11Title", "Language"]</h2>
+    <p>@Loc["privacy.s11Body", "You can read this notice in English, Telugu, Hindi, Tamil or Kannada by changing the app language. If the versions differ, the English text prevails."]</p>
+</section>
+
+<section class="sc-privacy-sec">
+    <h2>12. @Loc["privacy.s12Title", "Contact and Grievance Officer"]</h2>
+    <p>@Loc["privacy.s12Body", "For any question, request or complaint about your personal data, contact our Grievance Officer:"]</p>
+    <div class="sc-contact-box">
+        <div class="sc-contact-row">
+            <strong>@Loc["privacy.contactEntity", "Data Fiduciary"]</strong>
+            <span>@Brand.CompanyName</span>
+        </div>
+        <div class="sc-contact-row">
+            <strong>@Loc["privacy.contactOfficer", "Grievance Officer"]</strong>
+            <span>@Loc.TF("privacy.contactOfficerName", "Grievance Officer, {0}", Brand.CompanyName)</span>
+        </div>
+        <div class="sc-contact-row">
+            <strong>@Loc["privacy.contactEmail", "Email"]</strong>
+            <a href="mailto:@Brand.SupportEmail">@Brand.SupportEmail</a>
+        </div>
+        <div class="sc-contact-row">
+            <strong>@Loc["privacy.contactInApp", "In the App"]</strong>
+            <span>@Loc["privacy.contactInAppBody", "Feedback, type Privacy / My Data Request"]</span>
+        </div>
+        <div class="sc-contact-row">
+            <strong>@Loc["privacy.contactAddress", "Postal Address"]</strong>
+            <address class="sc-postal">@Brand.PostalAddress</address>
+        </div>
+        <div class="sc-contact-row">
+            <strong>@Loc["privacy.contactResponse", "Response Time"]</strong>
+            <span>@Loc["privacy.contactResponseBody", "Within 30 days"]</span>
+        </div>
+        <div class="sc-contact-row">
+            <strong>@Loc["privacy.contactWebsite", "Website"]</strong>
+            <a href="@Brand.CompanyUrl" target="_blank" rel="noopener">@Brand.CompanyUrl</a>
+        </div>
+    </div>
+</section>
+</div>

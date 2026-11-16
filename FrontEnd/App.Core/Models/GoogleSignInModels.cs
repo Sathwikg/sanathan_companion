@@ -53,6 +53,15 @@ public class GoogleRegisterRequest
     [Compare(nameof(Password), ErrorMessage = "Passwords do not match.")]
     public string ConfirmPassword { get; set; } = string.Empty;
 
+    /// <summary>"I am 18 or older" — the server refuses an account without it (DPDP Act, section 9).</summary>
+    public bool ConfirmAdult { get; set; }
+
+    /// <summary>"I have read and agree to the Privacy Notice" — consent under sections 5 and 6.</summary>
+    public bool AcceptPrivacyNotice { get; set; }
+
+    /// <summary>The version of the notice this app showed the seeker.</summary>
+    public int PrivacyNoticeVersion { get; set; } = PrivacyNoticeInfo.CurrentVersion;
+
     [StringLength(150)]
     public string? SeekerName { get; set; }
 

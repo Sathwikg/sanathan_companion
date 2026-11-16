@@ -115,6 +115,9 @@ public static class CoreServiceCollectionExtensions
         // The media ticket outlives a page but not a session.
         services.AddScoped<MediaUrlBuilder>();
         services.AddScoped<IUserSessionState>(sp => sp.GetRequiredService<MediaUrlBuilder>());
+        // The seeker's consents: the next account must never inherit the previous one's.
+        services.AddScoped<PrivacyState>();
+        services.AddScoped<IUserSessionState>(sp => sp.GetRequiredService<PrivacyState>());
 
         // A bare client for the refresh call itself: no handlers, because refreshing through the
         // typed client would send the request back through SessionExpiryHandler and a 401 on the

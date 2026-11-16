@@ -9,7 +9,7 @@ namespace Sanathana.Companion.Tests;
 public class AuthServiceTests
 {
     private static RegisterRequestDto NewRegistration(string email = "ravi@example.com", string mobile = "9876543210") => new()
-    {
+    { AcceptPrivacyNotice = true, ConfirmAdult = true, PrivacyNoticeVersion = Sanathana.Companion.Application.Common.PrivacyNotice.CurrentVersion, 
         FullName = "Ravi Kumar",
         Email = email,
         MobileNumber = mobile,

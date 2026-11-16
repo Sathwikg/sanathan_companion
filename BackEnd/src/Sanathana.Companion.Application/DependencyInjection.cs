@@ -49,6 +49,7 @@ public static class DependencyInjection
         services.AddScoped<IFeedbackService, FeedbackService>();
         services.AddScoped<IFavoritesService, FavoritesService>();
         services.AddScoped<INotificationService, NotificationService>();
+        services.AddScoped<IPrivacyService, PrivacyService>();
         services.AddScoped<INotificationEngine, NotificationEngine>();
         services.AddScoped<INotificationConsoleService, NotificationConsoleService>();
         services.AddScoped<IPushTextProvider, PushTextProvider>();

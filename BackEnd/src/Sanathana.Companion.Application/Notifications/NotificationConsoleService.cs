@@ -289,7 +289,7 @@ public sealed class NotificationConsoleService : INotificationConsoleService
             throw new BadRequestException("The picture must be an https address.");
 
         var summary = await _engine.SendDirectAsync(new DirectNotification(null, title, body, route, image,
-            RespectPreferences: true, Trigger: NotificationTriggers.Broadcast), cancellationToken);
+            RespectPreferences: !request.Mandatory, Trigger: NotificationTriggers.Broadcast), cancellationToken);
 
         return ToResult(summary, sentText: $"Broadcast sent to {summary.Sent} seeker(s).");
     }

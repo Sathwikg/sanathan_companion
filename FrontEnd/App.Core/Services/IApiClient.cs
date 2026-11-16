@@ -113,6 +113,12 @@ public interface IApiClient
     /// <summary>Permanently deletes the caller's account. Requires their password.</summary>
     Task<(bool Success, string Error)> DeleteMyAccountAsync(DeleteAccountRequest request);
 
+    // Privacy (Digital Personal Data Protection Act, 2023)
+    Task<PrivacySettings?> GetPrivacyAsync();
+    Task<(PrivacySettings? Data, string Error)> AcceptPrivacyNoticeAsync(AcceptNoticeRequest request);
+    Task<(PrivacySettings? Data, string Error)> SetUsageAnalyticsAsync(bool enabled);
+    Task<(PrivacySettings? Data, string Error)> SetNomineeAsync(NomineeRequest request);
+
     // Sadhana
     Task<SadhanaToday?> GetSadhanaTodayAsync(Guid? regionId = null);
     Task<List<SadhanaChant>> GetSadhanaChantsAsync(string? search = null, Guid? regionId = null);

@@ -1,0 +1,113 @@
+@*
+    Asks a signed-in seeker to accept the Privacy Notice when their account predates it, or when
+    the notice changed in a way that needs fresh consent (DPDP Act 2023, sections 5 and 6; rule 3
+    of the DPDP Rules 2025). It covers the app until answered, with two honest ways out: delete the
+    account (withdrawing consent), or sign out. Never shown on the notice itself or on My Profile,
+    where the seeker reads the notice, downloads their data or deletes the account.
+
+    Placed in both layouts inside <AuthorizeView>, so guests and visitors never see it.
+*@
+@inherits LocalizedComponentBase
+@inject PrivacyState Privacy
+@inject IApiClient Api
+@inject IAuthService AuthService
+@inject NavigationManager Nav
+
+@if (Privacy.NoticeUpdateRequired && !OnExemptPage)
+{
+    <div class="sc-consent-gate" role="dialog" aria-modal="true" aria-labelledby="sc-consent-title">
+        <div class="sc-consent-card">
+            <h2 id="sc-consent-title">🕉️ @Loc["privacy.gateTitle", "Please Review Our Privacy Notice"]</h2>
+            <p>@Loc["privacy.gateBody", "To follow India's Digital Personal Data Protection Act, 2023, we need your consent before you continue. In short:"]</p>
+            <ul>
+                <li>@Loc["privacy.gatePoint1", "We keep only what the app needs: your account, your practice and the reminders you choose."]</li>
+                <li>@Loc["privacy.gatePoint2", "We never sell your data and the app shows no advertisements."]</li>
+                <li>@Loc["privacy.gatePoint3", "You can download your data, name a nominee, or delete your account at any time in My Profile."]</li>
+            </ul>
+
+            <PrivacyConsentChecks @bind-ConfirmAdult="_adult" @bind-AcceptNotice="_accept" />
+
+            @if (_error is not null)
+            {
+                <div class="sc-alert sc-alert-error">@_error</div>
+            }
+
+            <div class="sc-consent-actions">
+                <button type="button" class="sc-btn-primary" disabled="@(_busy || !_adult || !_accept)" @onclick="AcceptAsync">
+                    @if (_busy) { <OmLoader Inline="true" Size="18" /> } else { <span>@Loc["privacy.gateAccept", "Accept and Continue"]</span> }
+                </button>
+                <div class="sc-consent-links">
+                    <button type="button" @onclick="DeleteInstead">@Loc["privacy.gateDelete", "Delete My Account Instead"]</button>
+                    <button type="button" @onclick="SignOutAsync">@Loc["privacy.gateSignOut", "Sign Out"]</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private bool _adult;
+    private bool _accept;
+    private bool _busy;
+    private string? _error;
+
+    /// <summary>Pages the seeker needs in order to decide: the notice, and My Profile.</summary>
+    private bool OnExemptPage
+    {
+        get
+        {
+            var path = Nav.ToBaseRelativePath(Nav.Uri).Split('?', '#')[0].Trim('/').ToLowerInvariant();
+            return path is "privacy" or "privacy-policy" or "profile";
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        Privacy.Changed += Refresh;
+        Nav.LocationChanged += OnLocationChanged;
+        await Privacy.LoadAsync();
+    }
+
+    private void OnLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
+        => InvokeAsync(StateHasChanged);
+
+    private void Refresh()
+    {
+        // A sign-in as someone else resets the state; fetch theirs.
+        if (Privacy.Current is null) _ = Privacy.LoadAsync();
+        InvokeAsync(StateHasChanged);
+    }
+
+    private async Task AcceptAsync()
+    {
+        _busy = true;
+        _error = null;
+        var (data, error) = await Api.AcceptPrivacyNoticeAsync(new AcceptNoticeRequest
+        {
+            NoticeVersion = PrivacyNoticeInfo.CurrentVersion,
+            ConfirmAdult = _adult
+        });
+        _busy = false;
+
+        if (data is not null)
+            Privacy.Set(data);
+        else
+            _error = string.IsNullOrWhiteSpace(error) ? Loc["privacy.gateFailed", "We could not save your consent. Please check your connection and try again."] : error;
+    }
+
+    private void DeleteInstead() => Nav.NavigateTo("profile#your-data");
+
+    private async Task SignOutAsync()
+    {
+        await AuthService.LogoutAsync();
+        Nav.NavigateTo("login", replace: true);
+    }
+
+    public override void Dispose()
+    {
+        Privacy.Changed -= Refresh;
+        Nav.LocationChanged -= OnLocationChanged;
+        base.Dispose();
+    }
+}

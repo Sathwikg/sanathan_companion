@@ -15,7 +15,7 @@ public class GoogleSignInTests
     private static GoogleSignInDto Google(string token = TestHarness.FakeGoogleVerifier.ValidToken) => new() { IdToken = token };
 
     private static GoogleRegisterDto Registration(string ticket, string mobile = "9876543210") => new()
-    {
+    { AcceptPrivacyNotice = true, ConfirmAdult = true, PrivacyNoticeVersion = Sanathana.Companion.Application.Common.PrivacyNotice.CurrentVersion, 
         Ticket = ticket,
         FullName = "Ravi Kumar",
         MobileNumber = mobile,
@@ -25,7 +25,7 @@ public class GoogleSignInTests
     };
 
     private static RegisterRequestDto PlainRegistration(string email, string mobile) => new()
-    {
+    { AcceptPrivacyNotice = true, ConfirmAdult = true, PrivacyNoticeVersion = Sanathana.Companion.Application.Common.PrivacyNotice.CurrentVersion, 
         FullName = "Ravi Kumar",
         Email = email,
         MobileNumber = mobile,

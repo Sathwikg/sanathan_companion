@@ -124,6 +124,13 @@
        make it the containing block for the popup's fixed backdrop and trap the popup inside it. *@
     <RoleDetailsModal Visible="_role is not null" Role="_role" OnClose="CloseRole" />
 
+    @* Signed-in seekers only: asks for consent to the current Privacy Notice when it is owed. *@
+    <AuthorizeView>
+        <Authorized>
+            <ConsentGate />
+        </Authorized>
+    </AuthorizeView>
+
     <ConfirmDialog />
     <ToastHost />
 </div>

@@ -38,6 +38,9 @@ public static class Brand
     /// <summary>Support and privacy contact address.</summary>
     public static string SupportEmail { get; } = Read(nameof(SupportEmail));
 
+    /// <summary>The postal address for communication and grievances (Privacy Notice).</summary>
+    public static string PostalAddress { get; } = Read(nameof(PostalAddress));
+
     /// <summary>Where the app lives on the web.</summary>
     public static string AppUrl { get; } = Read(nameof(AppUrl));
 

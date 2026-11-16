@@ -20,6 +20,9 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         // Google's `sub` is documented as up to 255 characters, though in practice it is a 21-digit
         // number; 64 leaves room without inviting something that is not a subject.
         builder.Property(u => u.GoogleSubject).HasMaxLength(64);
+        builder.Property(u => u.NomineeName).HasMaxLength(150);
+        builder.Property(u => u.NomineeRelationship).HasMaxLength(60);
+        builder.Property(u => u.NomineeContact).HasMaxLength(150);
         builder.Property(u => u.CreatedBy).HasMaxLength(100);
         builder.Property(u => u.ModifiedBy).HasMaxLength(100);
 

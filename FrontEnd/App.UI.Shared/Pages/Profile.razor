@@ -156,19 +156,25 @@ else if (_p is not null)
                 <div class="sc-danger-confirm" style="max-width:340px">
                     <div class="sc-field">
                         <label>@Loc["profile.currentPassword", "Current Password"]</label>
-                        <input class="sc-input" type="password" autocomplete="current-password"
-                               @bind="_currentPassword" @bind:event="oninput" disabled="@_busy" />
+                        <PasswordField Context="type">
+                            <input class="sc-input" type="@type" autocomplete="current-password"
+                                   @bind="_currentPassword" @bind:event="oninput" disabled="@_busy" />
+                        </PasswordField>
                     </div>
                     <div class="sc-field">
                         <label>@Loc["profile.newPassword", "New Password"]</label>
-                        <input class="sc-input" type="password" autocomplete="new-password"
-                               @bind="_newPassword" @bind:event="oninput" disabled="@_busy" />
+                        <PasswordField Context="type">
+                            <input class="sc-input" type="@type" autocomplete="new-password"
+                                   @bind="_newPassword" @bind:event="oninput" disabled="@_busy" />
+                        </PasswordField>
                         <span class="sc-hint">@Loc.TF("auth.passwordPolicyHint", "At least {0} characters. A short phrase you will remember beats a short password.", PasswordPolicy.MinimumLength)</span>
                     </div>
                     <div class="sc-field">
                         <label>@Loc["profile.confirmNewPassword", "Confirm New Password"]</label>
-                        <input class="sc-input" type="password" autocomplete="new-password"
-                               @bind="_confirmPassword" @bind:event="oninput" disabled="@_busy" />
+                        <PasswordField Context="type">
+                            <input class="sc-input" type="@type" autocomplete="new-password"
+                                   @bind="_confirmPassword" @bind:event="oninput" disabled="@_busy" />
+                        </PasswordField>
                     </div>
                     @if (_passwordError is not null)
                     {
@@ -187,7 +193,9 @@ else if (_p is not null)
             }
         </div>
 
-        <div class="sc-card sc-prefcard sc-dangercard">
+        <PrivacyPanel />
+
+        <div class="sc-card sc-prefcard sc-dangercard" id="your-data">
             <div class="sc-section-head" style="margin-bottom:0.6rem">
                 <h2>🔐 @Loc["profile.yourData", "Your Data"]</h2>
                 <span class="sc-section-sub">@Loc["profile.yourDataSub", "Take a copy, or close your account for good"]</span>
@@ -201,7 +209,7 @@ else if (_p is not null)
             </div>
 
             <p class="sc-hint" style="margin-top:0.4rem">
-                @Loc["profile.downloadMyDataHint", "A JSON file with your account details, sadhana history, favourites, feedback and notification settings."]
+                @Loc["profile.downloadMyDataHint", "A JSON file with your account details, sadhana history, favourites, feedback, notification settings, devices and consent history."]
             </p>
 
             <hr class="sc-danger-rule" />
@@ -216,12 +224,14 @@ else if (_p is not null)
             {
                 <div class="sc-danger-confirm">
                     <p class="sc-danger-warning">
-                        @Loc["profile.deleteAccountWarning", "This erases your account, your entire sadhana history, your favourites and your feedback. It cannot be undone."]
+                        @Loc["profile.deleteAccountWarning", "This erases your account, your entire sadhana history, your favourites, your feedback, your notifications and your consent history. It cannot be undone. Security logs are kept until their one-year period ends, as the law requires."]
                     </p>
                     <div class="sc-field" style="max-width:340px">
                         <label>@Loc["profile.confirmWithPassword", "Enter your password to confirm"]</label>
-                        <input class="sc-input" type="password" autocomplete="current-password"
-                               @bind="_deletePassword" @bind:event="oninput" disabled="@_busy" />
+                        <PasswordField Context="type">
+                            <input class="sc-input" type="@type" autocomplete="current-password"
+                                   @bind="_deletePassword" @bind:event="oninput" disabled="@_busy" />
+                        </PasswordField>
                     </div>
                     @if (_deleteError is not null)
                     {

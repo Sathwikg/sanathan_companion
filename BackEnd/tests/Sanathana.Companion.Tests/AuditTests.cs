@@ -410,7 +410,7 @@ public class AuditTests
     private static async Task<AuthResponseDto> SignInAsync(TestHarness harness)
     {
         await harness.AuthService.RegisterAsync(new RegisterRequestDto
-        {
+        { AcceptPrivacyNotice = true, ConfirmAdult = true, PrivacyNoticeVersion = Sanathana.Companion.Application.Common.PrivacyNotice.CurrentVersion, 
             FullName = "Ravi Kumar",
             Email = "ravi@example.com",
             MobileNumber = "9876543210",
@@ -579,9 +579,10 @@ public class AuditTests
     }
 
     [Theory]
-    [InlineData(3, 30)]
-    [InlineData(90, 400)]
-    [InlineData(1000, 30)]
+    [InlineData(3, 365)]
+    [InlineData(90, 400)]      // below the legal one-year floor
+    [InlineData(365, 180)]     // CERT-In's 180 days is not enough once the DPDP Rules apply
+    [InlineData(2000, 365)]
     public async Task Retention_outside_the_allowed_range_is_refused(int auditDays, int errorDays)
     {
         using var harness = new TestHarness();
@@ -602,12 +603,12 @@ public class AuditTests
 
         var saved = await service.SaveConfigAsync(new SaveAuditConfigDto
         {
-            Settings = new AuditSettingsDto { TrackPageNavigation = false, AuditRetentionDays = 60, ErrorRetentionDays = 14 },
+            Settings = new AuditSettingsDto { TrackPageNavigation = false, AuditRetentionDays = 400, ErrorRetentionDays = 365 },
             Modules = { new SaveAuditModuleDto { MenuModuleId = deities.MenuModuleId, IsActivityAuditEnabled = false, IsDataAuditEnabled = true } }
         });
 
         Assert.False(saved.Settings.TrackPageNavigation);
-        Assert.Equal(60, saved.Settings.AuditRetentionDays);
+        Assert.Equal(400, saved.Settings.AuditRetentionDays);
         Assert.False(saved.Modules.Single(m => m.ModuleCode == ModuleCodes.Deities).IsActivityAuditEnabled);
         Assert.Equal(1, harness.AuditCache.Reloads);
     }

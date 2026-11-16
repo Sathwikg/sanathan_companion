@@ -484,10 +484,10 @@ namespace Sanathana.Companion.Infrastructure.Persistence.Migrations
                         new
                         {
                             Id = new Guid("91919191-0002-0002-0002-000000000001"),
-                            AuditRetentionDays = 90,
+                            AuditRetentionDays = 365,
                             CreatedBy = "system",
                             CreatedDate = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ErrorRetentionDays = 30,
+                            ErrorRetentionDays = 365,
                             IsGlobalAuditEnabled = true,
                             TrackDataModifications = true,
                             TrackErrorLogs = true,
@@ -788,6 +788,54 @@ namespace Sanathana.Companion.Infrastructure.Persistence.Migrations
                         .HasDatabaseName("UX_ChantLanguageConfigs_Chant_Language");
 
                     b.ToTable("ChantLanguageConfigs", (string)null);
+                });
+
+            modelBuilder.Entity("Sanathana.Companion.Domain.Entities.ConsentRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("AtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("Granted")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("ModifiedBy")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime?>("ModifiedDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("NoticeVersion")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Platform")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("Purpose")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "AtUtc")
+                        .HasDatabaseName("IX_ConsentRecords_User_At");
+
+                    b.ToTable("ConsentRecords", (string)null);
                 });
 
             modelBuilder.Entity("Sanathana.Companion.Domain.Entities.Day", b =>
@@ -1500,6 +1548,16 @@ namespace Sanathana.Companion.Infrastructure.Persistence.Migrations
                     b.ToTable("IssueTypes", (string)null);
 
                     b.HasData(
+                        new
+                        {
+                            Id = new Guid("41000000-0000-0000-0000-000000000006"),
+                            CreatedBy = "system",
+                            CreatedDate = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "A request about your personal data (access, correction, erasure, nominee) or a privacy grievance. Answered within 30 days.",
+                            DisplayOrder = 0,
+                            IsActive = true,
+                            Name = "Privacy / My Data Request"
+                        },
                         new
                         {
                             Id = new Guid("41000000-0000-0000-0000-000000000001"),
@@ -3711,6 +3769,9 @@ namespace Sanathana.Companion.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid");
 
+                    b.Property<DateTime?>("AdultConfirmedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("CreatedBy")
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
@@ -3756,10 +3817,28 @@ namespace Sanathana.Companion.Infrastructure.Persistence.Migrations
                     b.Property<DateTime?>("ModifiedDate")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("NomineeContact")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
+                    b.Property<string>("NomineeName")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
+                    b.Property<string>("NomineeRelationship")
+                        .HasMaxLength(60)
+                        .HasColumnType("character varying(60)");
+
                     b.Property<string>("PasswordHash")
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
+
+                    b.Property<DateTime?>("PrivacyNoticeAcceptedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("PrivacyNoticeVersion")
+                        .HasColumnType("integer");
 
                     b.Property<int>("RoleId")
                         .HasColumnType("integer");
@@ -3770,6 +3849,9 @@ namespace Sanathana.Companion.Infrastructure.Persistence.Migrations
 
                     b.Property<DateTime>("TokensValidFromUtc")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("UsageAnalyticsConsent")
+                        .HasColumnType("boolean");
 
                     b.HasKey("UserId");
 
@@ -3804,7 +3886,8 @@ namespace Sanathana.Companion.Infrastructure.Persistence.Migrations
                             MobileNumber = "0000000000",
                             PasswordHash = "$2a$11$3Qm5rGml0DHTfjcYb4qBSuwNwEcQPXNbe5v8oJEt2hqNz0oV.KEwG",
                             RoleId = 1,
-                            TokensValidFromUtc = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                            TokensValidFromUtc = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            UsageAnalyticsConsent = false
                         });
                 });
 
