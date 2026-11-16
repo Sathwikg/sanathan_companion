@@ -67,6 +67,8 @@
   "pushNotifications.lastSent": "கடைசியாக {0}",
   "pushNotifications.lastTick": "கடைசி இயக்கம் {0}",
   "pushNotifications.loading": "கன்சோலை ஏற்றுகிறது…",
+  "pushNotifications.mandatory": "பாதுகாப்பு அல்லது சட்ட அறிவிப்பு (அனைவருக்கும் சென்றடையும்)",
+  "pushNotifications.mandatoryHint": "தனிநபர் தரவு மீறல், மாற்றப்பட்ட தனியுரிமை அறிவிப்பு அல்லது சட்டம் கோரும் வேறு அறிவிப்புக்கு மட்டும். பொது அறிவிப்புகளை முடக்கியுள்ள பக்தர்களையும் இது சென்றடையும்.",
   "pushNotifications.messagePlaceholder": "ஒன்று அல்லது இரண்டு வாக்கியங்கள். முழுவதும் பூட்டுத் திரையில் அடங்க வேண்டும்.",
   "pushNotifications.minutes": "{0} நிமி.",
   "pushNotifications.minutesAgo": "{0} நிமி. முன்",

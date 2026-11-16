@@ -6,9 +6,10 @@ namespace Sanathana.Companion.Application.Validators;
 
 public class SaveAuditConfigValidator : AbstractValidator<SaveAuditConfigDto>
 {
-    public const int MinRetentionDays = 7;
-    public const int MaxAuditRetentionDays = 730;
-    public const int MaxErrorRetentionDays = 365;
+    /// <summary>The legal floor (CERT-In 180 days now; DPDP Rules one year from May 2027). See LegalRetention.</summary>
+    public const int MinRetentionDays = LegalRetention.MinimumLogDays;
+    public const int MaxAuditRetentionDays = 1095;
+    public const int MaxErrorRetentionDays = 1095;
 
     public SaveAuditConfigValidator()
     {

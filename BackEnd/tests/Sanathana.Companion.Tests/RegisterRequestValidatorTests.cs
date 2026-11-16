@@ -8,7 +8,7 @@ public class RegisterRequestValidatorTests
     private readonly RegisterRequestValidator _validator = new();
 
     private static RegisterRequestDto Valid() => new()
-    {
+    { AcceptPrivacyNotice = true, ConfirmAdult = true, PrivacyNoticeVersion = Sanathana.Companion.Application.Common.PrivacyNotice.CurrentVersion, 
         FullName = "Ravi Kumar",
         Email = "ravi@example.com",
         MobileNumber = "9876543210",

@@ -69,6 +69,15 @@ public class UserRepository : BaseRepository<User>, IUserRepository
             .OrderByDescending(u => u.CreatedDate)
             .ToListAsync(cancellationToken);
 
+    public async Task AddConsentAsync(ConsentRecord record, CancellationToken cancellationToken = default)
+        => await Context.ConsentRecords.AddAsync(record, cancellationToken);
+
+    public async Task<IReadOnlyList<ConsentRecord>> GetConsentsAsync(Guid userId, CancellationToken cancellationToken = default)
+        => await Context.ConsentRecords.AsNoTracking()
+            .Where(c => c.UserId == userId)
+            .OrderBy(c => c.AtUtc)
+            .ToListAsync(cancellationToken);
+
     public async Task PurgeUserDataAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         // Order matters only for feedback, whose FK is Restrict; the rest would cascade, but doing
@@ -102,6 +111,9 @@ public class UserRepository : BaseRepository<User>, IUserRepository
 
         Context.NotificationLogs.RemoveRange(
             await Context.NotificationLogs.Where(x => x.UserId == userId).ToListAsync(cancellationToken));
+
+        Context.ConsentRecords.RemoveRange(
+            await Context.ConsentRecords.Where(x => x.UserId == userId).ToListAsync(cancellationToken));
 
         Context.Feedbacks.RemoveRange(
             await Context.Feedbacks.Where(x => x.UserId == userId).ToListAsync(cancellationToken));

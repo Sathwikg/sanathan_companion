@@ -22,6 +22,56 @@ public class MyDataExportDto
     public List<FeedbackExport> Feedback { get; set; } = new();
     public NotificationExport Notifications { get; set; } = new();
 
+    /// <summary>Consents given and withdrawn, and the nominee (DPDP Act 2023, sections 6 and 14).</summary>
+    public PrivacyExport Privacy { get; set; } = new();
+
+    /// <summary>The phones registered for notifications. The push token itself is left out: it is a credential, not information about the seeker.</summary>
+    public List<DeviceExport> Devices { get; set; } = new();
+
+    /// <summary>The notifications this seeker was sent.</summary>
+    public List<ReceivedNotificationExport> NotificationsReceived { get; set; } = new();
+
+    public class PrivacyExport
+    {
+        public int? AcceptedNoticeVersion { get; set; }
+        public DateTime? NoticeAcceptedAtUtc { get; set; }
+        public DateTime? AdultConfirmedAtUtc { get; set; }
+        public bool UsageAnalytics { get; set; }
+        public string? NomineeName { get; set; }
+        public string? NomineeRelationship { get; set; }
+        public string? NomineeContact { get; set; }
+        public List<ConsentExport> Consents { get; set; } = new();
+    }
+
+    public class ConsentExport
+    {
+        public string Purpose { get; set; } = string.Empty;
+        public bool Granted { get; set; }
+        public int NoticeVersion { get; set; }
+        public DateTime AtUtc { get; set; }
+        public string? Platform { get; set; }
+    }
+
+    public class DeviceExport
+    {
+        public string Platform { get; set; } = string.Empty;
+        public string? DeviceModel { get; set; }
+        public string? AppVersion { get; set; }
+        public string? Language { get; set; }
+        public string? TimeZone { get; set; }
+        public DateTime RegisteredOnUtc { get; set; }
+        public DateTime? LastNotifiedUtc { get; set; }
+    }
+
+    public class ReceivedNotificationExport
+    {
+        public string Title { get; set; } = string.Empty;
+        public string Body { get; set; } = string.Empty;
+        public string Status { get; set; } = string.Empty;
+        public DateTime CreatedUtc { get; set; }
+        public DateTime? ReadAtUtc { get; set; }
+    }
+
     public class AccountExport
     {
         public string FullName { get; set; } = string.Empty;

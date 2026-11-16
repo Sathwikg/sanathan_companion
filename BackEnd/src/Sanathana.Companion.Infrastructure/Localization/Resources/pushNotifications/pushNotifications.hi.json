@@ -67,6 +67,8 @@
   "pushNotifications.lastSent": "पिछली बार {0}",
   "pushNotifications.lastTick": "पिछला रन {0}",
   "pushNotifications.loading": "कंसोल लोड हो रहा है…",
+  "pushNotifications.mandatory": "सुरक्षा या कानूनी सूचना (सभी तक पहुँचती है)",
+  "pushNotifications.mandatoryHint": "केवल व्यक्तिगत डेटा उल्लंघन, बदली हुई निजता सूचना या कानून द्वारा अपेक्षित किसी अन्य सूचना के लिए। यह उन साधकों तक भी पहुँचती है जिन्होंने घोषणाएँ बंद कर रखी हैं।",
   "pushNotifications.messagePlaceholder": "एक या दो वाक्य। पूरा संदेश लॉक स्क्रीन पर समा जाना चाहिए।",
   "pushNotifications.minutes": "{0} मिनट",
   "pushNotifications.minutesAgo": "{0} मिनट पहले",

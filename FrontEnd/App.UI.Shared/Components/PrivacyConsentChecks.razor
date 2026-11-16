@@ -1,0 +1,45 @@
+@*
+    The two ticks the Digital Personal Data Protection Act, 2023 asks for before an account exists:
+    the seeker is an adult (section 9: a child is anyone under 18, and the app does not take on
+    verifiable parental consent), and they read and agreed to the Privacy Notice (sections 5 and 6).
+    Both start unticked: a pre-ticked box is not consent. The server refuses an account without them.
+
+    The notice opens in place, inside the form, rather than in a new tab (the phone's web view has
+    no tabs, and the form keeps what was typed) or in a dialog: the sign-up card carries a
+    backdrop-filter, which would trap a position:fixed dialog inside the card.
+*@
+@inherits LocalizedComponentBase
+
+<div class="sc-consent" role="group" aria-label="@Loc["privacy.consentGroup", "Your Consent"]">
+    <label class="sc-consent-row">
+        <input type="checkbox" checked="@ConfirmAdult" @onchange="e => ConfirmAdultChanged.InvokeAsync((bool)(e.Value ?? false))" />
+        <span>@Loc["privacy.confirmAdult", "I am 18 years of age or older."]</span>
+    </label>
+    <label class="sc-consent-row">
+        <input type="checkbox" checked="@AcceptNotice" @onchange="e => AcceptNoticeChanged.InvokeAsync((bool)(e.Value ?? false))" />
+        <span>
+            @Loc["privacy.acceptNoticePrefix", "I have read and agree to the"]
+            <a href="@PrivacyNoticeInfo.Route" @onclick="OpenNotice" @onclick:preventDefault="true" @onclick:stopPropagation="true">@Loc["privacy.noticeName", "Privacy Notice"]</a>.
+        </span>
+    </label>
+    @if (_showNotice)
+    {
+        <div class="sc-notice-inline" role="region" aria-label="@Loc["privacy.noticeTitle", "Privacy Notice"]">
+            <PrivacyNoticeBody />
+            <button type="button" class="sc-btn-primary sc-btn-sm" @onclick="() => _showNotice = false">@Loc["privacy.doneReading", "Done Reading"]</button>
+        </div>
+    }
+    <p class="sc-consent-note">@Loc["privacy.consentNote", "You can withdraw your consent at any time by deleting your account from My Profile. Optional uses, such as usage statistics, stay off until you switch them on."]</p>
+</div>
+
+
+@code {
+    [Parameter] public bool ConfirmAdult { get; set; }
+    [Parameter] public EventCallback<bool> ConfirmAdultChanged { get; set; }
+    [Parameter] public bool AcceptNotice { get; set; }
+    [Parameter] public EventCallback<bool> AcceptNoticeChanged { get; set; }
+
+    private bool _showNotice;
+
+    private void OpenNotice() => _showNotice = !_showNotice;
+}

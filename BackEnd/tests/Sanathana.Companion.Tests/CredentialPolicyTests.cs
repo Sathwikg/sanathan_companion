@@ -21,7 +21,7 @@ public class CredentialPolicyTests
     private readonly ChangePasswordValidator _change = new();
 
     private static RegisterRequestDto Registration(string password) => new()
-    {
+    { AcceptPrivacyNotice = true, ConfirmAdult = true, PrivacyNoticeVersion = Sanathana.Companion.Application.Common.PrivacyNotice.CurrentVersion, 
         FullName = "Ravi Kumar",
         Email = "ravi@example.com",
         MobileNumber = "9876543210",
@@ -140,7 +140,7 @@ public class CredentialPolicyTests
         using var harness = new TestHarness();
 
         await harness.AuthService.RegisterAsync(new RegisterRequestDto
-        {
+        { AcceptPrivacyNotice = true, ConfirmAdult = true, PrivacyNoticeVersion = Sanathana.Companion.Application.Common.PrivacyNotice.CurrentVersion, 
             FullName = "Ravi",
             Email = "Ravi@Example.com",
             MobileNumber = "9876543210",
@@ -153,7 +153,7 @@ public class CredentialPolicyTests
         Assert.Equal("ravi@example.com", stored!.Email);
 
         await Assert.ThrowsAsync<ConflictException>(() => harness.AuthService.RegisterAsync(new RegisterRequestDto
-        {
+        { AcceptPrivacyNotice = true, ConfirmAdult = true, PrivacyNoticeVersion = Sanathana.Companion.Application.Common.PrivacyNotice.CurrentVersion, 
             FullName = "Someone else",
             Email = "ravi@example.com",
             MobileNumber = "9111111110",
@@ -168,7 +168,7 @@ public class CredentialPolicyTests
         using var harness = new TestHarness();
 
         await harness.AuthService.RegisterAsync(new RegisterRequestDto
-        {
+        { AcceptPrivacyNotice = true, ConfirmAdult = true, PrivacyNoticeVersion = Sanathana.Companion.Application.Common.PrivacyNotice.CurrentVersion, 
             FullName = "Ravi",
             Email = "ravi@example.com",
             MobileNumber = "+91 98765 43210",
@@ -177,7 +177,7 @@ public class CredentialPolicyTests
         });
 
         await Assert.ThrowsAsync<ConflictException>(() => harness.AuthService.RegisterAsync(new RegisterRequestDto
-        {
+        { AcceptPrivacyNotice = true, ConfirmAdult = true, PrivacyNoticeVersion = Sanathana.Companion.Application.Common.PrivacyNotice.CurrentVersion, 
             FullName = "Someone else",
             Email = "other@example.com",
             // Not "another passphrase": it contains "other", which the identity rule refuses.
@@ -193,7 +193,7 @@ public class CredentialPolicyTests
         using var harness = new TestHarness();
 
         await harness.AuthService.RegisterAsync(new RegisterRequestDto
-        {
+        { AcceptPrivacyNotice = true, ConfirmAdult = true, PrivacyNoticeVersion = Sanathana.Companion.Application.Common.PrivacyNotice.CurrentVersion, 
             FullName = "Ravi",
             Email = "taken@example.com",
             MobileNumber = "9876543210",
@@ -203,7 +203,7 @@ public class CredentialPolicyTests
 
         var byEmail = await Assert.ThrowsAsync<ConflictException>(() => harness.AuthService.RegisterAsync(
             new RegisterRequestDto
-            {
+            { AcceptPrivacyNotice = true, ConfirmAdult = true, PrivacyNoticeVersion = Sanathana.Companion.Application.Common.PrivacyNotice.CurrentVersion, 
                 FullName = "B",
                 Email = "taken@example.com",
                 MobileNumber = "9111111110",
@@ -213,7 +213,7 @@ public class CredentialPolicyTests
 
         var byMobile = await Assert.ThrowsAsync<ConflictException>(() => harness.AuthService.RegisterAsync(
             new RegisterRequestDto
-            {
+            { AcceptPrivacyNotice = true, ConfirmAdult = true, PrivacyNoticeVersion = Sanathana.Companion.Application.Common.PrivacyNotice.CurrentVersion, 
                 FullName = "C",
                 Email = "free@example.com",
                 MobileNumber = "9876543210",

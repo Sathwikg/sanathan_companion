@@ -25,8 +25,8 @@ public class AuditSettings : BaseEntity
     public bool TrackErrorLogs { get; set; } = true;
 
     /// <summary>Retention duration in days for audit logs before cleanup.</summary>
-    public int AuditRetentionDays { get; set; } = 90;
+    public int AuditRetentionDays { get; set; } = 365;
 
     /// <summary>Retention duration in days for error logs before cleanup.</summary>
-    public int ErrorRetentionDays { get; set; } = 30;
+    public int ErrorRetentionDays { get; set; } = 365;
 }

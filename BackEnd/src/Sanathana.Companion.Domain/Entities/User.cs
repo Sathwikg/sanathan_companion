@@ -53,4 +53,28 @@ public class User : BaseEntity
     /// this is null for most accounts and set the moment Google vouches for it.
     /// </summary>
     public DateTime? EmailVerifiedAtUtc { get; set; }
+
+    // ---- data protection (DPDP Act 2023) ----
+
+    /// <summary>The privacy notice version this seeker last accepted; null for accounts from before notices were versioned.</summary>
+    public int? PrivacyNoticeVersion { get; set; }
+
+    public DateTime? PrivacyNoticeAcceptedAtUtc { get; set; }
+
+    /// <summary>
+    /// When the seeker confirmed they are 18 or older. Accounts are for adults only: a child's data
+    /// needs verifiable parental consent (section 9), which the app does not collect.
+    /// </summary>
+    public DateTime? AdultConfirmedAtUtc { get; set; }
+
+    /// <summary>Optional consent to record which screens are opened, and for how long. Off by default.</summary>
+    public bool UsageAnalyticsConsent { get; set; }
+
+    /// <summary>
+    /// The person the seeker nominates to exercise their rights if they die or cannot (section 14).
+    /// All three are free text the seeker provides; all null means no nominee.
+    /// </summary>
+    public string? NomineeName { get; set; }
+    public string? NomineeRelationship { get; set; }
+    public string? NomineeContact { get; set; }
 }

@@ -195,4 +195,11 @@ public class ConsoleBroadcastRequestDto
 
     /// <summary>Optional https picture.</summary>
     public string? ImageUrl { get; set; }
+
+    /// <summary>
+    /// Reach every seeker regardless of their notification settings and quiet hours. Only for a
+    /// security or legal notice, such as telling seekers about a personal data breach, which the
+    /// DPDP Rules 2025 (rule 7) require "without delay" through their account.
+    /// </summary>
+    public bool Mandatory { get; set; }
 }

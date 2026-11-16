@@ -144,6 +144,12 @@ public sealed class ConsoleBroadcastRequest
     public string Body { get; set; } = string.Empty;
     public string? Route { get; set; }
     public string? ImageUrl { get; set; }
+
+    /// <summary>
+    /// A security or legal notice (a personal-data breach, a changed Privacy Notice): it reaches
+    /// every seeker, including those who switched announcements off.
+    /// </summary>
+    public bool Mandatory { get; set; }
 }
 
 // ---------- the seeker's phone and inbox ----------

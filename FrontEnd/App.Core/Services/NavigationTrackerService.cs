@@ -6,7 +6,10 @@ using Microsoft.AspNetCore.Components.Routing;
 namespace App.Core.Services;
 
 /// <summary>
-/// Reports how long the signed-in user spent on each page, once they leave it.
+/// Reports how long the signed-in user spent on each page, once they leave it — only for a seeker
+/// who switched usage statistics on in My Profile. It is an optional purpose under the Digital
+/// Personal Data Protection Act, 2023, so it is off until consented to, and guests are never tracked.
+/// The server checks the consent again before it records anything.
 /// </summary>
 /// <remarks>
 /// <para>
@@ -25,14 +28,16 @@ public sealed class NavigationTrackerService : IDisposable
     private readonly IApiClient _apiClient;
     private readonly ITokenStore _tokens;
     private readonly IAppLifecycle _lifecycle;
+    private readonly PrivacyState _privacy;
 
     private string? _currentRoute;
     private DateTime? _enteredAtUtc;
     private bool _initialized;
     private bool _disposed;
 
-    public NavigationTrackerService(NavigationManager navigationManager, IApiClient apiClient, ITokenStore tokens, IAppLifecycle lifecycle)
+    public NavigationTrackerService(NavigationManager navigationManager, IApiClient apiClient, ITokenStore tokens, IAppLifecycle lifecycle, PrivacyState privacy)
     {
+        _privacy = privacy;
         _navigationManager = navigationManager;
         _apiClient = apiClient;
         _tokens = tokens;
@@ -91,6 +96,8 @@ public sealed class NavigationTrackerService : IDisposable
         {
             // Visits are recorded for signed-in users only; the endpoint would refuse anyone else.
             if (string.IsNullOrWhiteSpace(await _tokens.GetTokenAsync())) return;
+            var consent = await _privacy.LoadAsync();
+            if (consent?.UsageAnalytics != true) return;
             await _apiClient.LogActivityAsync(visit);
         }
         catch

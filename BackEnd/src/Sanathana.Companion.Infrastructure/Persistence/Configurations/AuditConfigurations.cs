@@ -24,8 +24,8 @@ public class AuditSettingsConfiguration : IEntityTypeConfiguration<AuditSettings
             TrackPageNavigation = true,
             TrackDataModifications = true,
             TrackErrorLogs = true,
-            AuditRetentionDays = 90,
-            ErrorRetentionDays = 30,
+            AuditRetentionDays = 365,
+            ErrorRetentionDays = 365,
             CreatedBy = "system",
             CreatedDate = SeedConstants.SeedTimestamp
         });

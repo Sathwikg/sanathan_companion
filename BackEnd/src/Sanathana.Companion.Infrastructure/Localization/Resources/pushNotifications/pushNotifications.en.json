@@ -67,6 +67,8 @@
   "pushNotifications.lastSent": "last {0}",
   "pushNotifications.lastTick": "last run {0}",
   "pushNotifications.loading": "Loading the console…",
+  "pushNotifications.mandatory": "Security or Legal Notice (Reaches Everyone)",
+  "pushNotifications.mandatoryHint": "Only for a personal data breach, a changed Privacy Notice or another notice the law requires. It reaches seekers who switched announcements off.",
   "pushNotifications.messagePlaceholder": "One or two sentences. The whole of it should fit on a lock screen.",
   "pushNotifications.minutes": "{0} min",
   "pushNotifications.minutesAgo": "{0} min ago",

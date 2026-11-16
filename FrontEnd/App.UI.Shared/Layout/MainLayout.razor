@@ -88,6 +88,13 @@
         </main>
     </div>
 
+    @* Signed-in seekers only: asks for consent to the current Privacy Notice when it is owed. *@
+    <AuthorizeView>
+        <Authorized>
+            <ConsentGate />
+        </Authorized>
+    </AuthorizeView>
+
     <ConfirmDialog />
     <ToastHost />
 </div>

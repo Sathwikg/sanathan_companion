@@ -36,5 +36,17 @@ public abstract class RegistrationFieldsValidator<T> : AbstractValidator<T> wher
 
         RuleFor(x => x.SeekerName)
             .MaximumLength(150);
+
+        // Enforced here, not only by the form: consent must be an affirmative act (DPDP Act 2023,
+        // section 6(1)), and an app too old to show the checkboxes must not create accounts silently.
+        RuleFor(x => x.ConfirmAdult)
+            .Equal(true).WithMessage("Accounts are for people aged 18 or older. Please confirm your age to continue. If you do not see this option, please update the app.");
+
+        RuleFor(x => x.AcceptPrivacyNotice)
+            .Equal(true).WithMessage("Please read and accept the Privacy Notice to create an account. If you do not see this option, please update the app.");
+
+        RuleFor(x => x.PrivacyNoticeVersion)
+            .Equal(PrivacyNotice.CurrentVersion).WithMessage("The Privacy Notice has been updated. Please reload and accept the current version.")
+            .When(x => x.AcceptPrivacyNotice);
     }
 }

@@ -71,18 +71,24 @@
 
         <div class="sc-field">
             <label>@Loc["auth.password", "Password"]</label>
-            <InputText type="password" @bind-Value="_google.Password" class="sc-input" autocomplete="new-password" />
+            <PasswordField Context="type">
+                <InputText type="@type" @bind-Value="_google.Password" class="sc-input" autocomplete="new-password" />
+            </PasswordField>
             <span class="sc-hint">@Loc.TF("auth.passwordPolicyHint", "At least {0} characters. A short phrase you will remember beats a short password.", PasswordPolicy.MinimumLength)</span>
             <ValidationMessage For="() => _google.Password" />
         </div>
 
         <div class="sc-field">
             <label>@Loc["auth.confirmPassword", "Confirm Password"]</label>
-            <InputText type="password" @bind-Value="_google.ConfirmPassword" class="sc-input" autocomplete="new-password" />
+            <PasswordField Context="type">
+                <InputText type="@type" @bind-Value="_google.ConfirmPassword" class="sc-input" autocomplete="new-password" />
+            </PasswordField>
             <ValidationMessage For="() => _google.ConfirmPassword" />
         </div>
 
-        <button type="submit" class="sc-btn-primary" disabled="@_busy">
+        <PrivacyConsentChecks @bind-ConfirmAdult="_google.ConfirmAdult" @bind-AcceptNotice="_google.AcceptPrivacyNotice" />
+
+        <button type="submit" class="sc-btn-primary" disabled="@(_busy || !_google.ConfirmAdult || !_google.AcceptPrivacyNotice)">
             @if (_busy) { <OmLoader Inline="true" Size="18" Message='@Loc["common.creating", "Creating…"]' /> } else { <span>@Loc["auth.createMyAccount", "Create My Account"]</span> }
         </button>
     </EditForm>
@@ -150,18 +156,24 @@ else
 
             <div class="sc-field">
                 <label>@Loc["auth.password", "Password"]</label>
-                <InputText type="password" @bind-Value="_model.Password" class="sc-input" autocomplete="new-password" />
+                <PasswordField Context="type">
+                    <InputText type="@type" @bind-Value="_model.Password" class="sc-input" autocomplete="new-password" />
+                </PasswordField>
                 <span class="sc-hint">@Loc.TF("auth.passwordPolicyHint", "At least {0} characters. A short phrase you will remember beats a short password.", PasswordPolicy.MinimumLength)</span>
                 <ValidationMessage For="() => _model.Password" />
             </div>
 
             <div class="sc-field">
                 <label>@Loc["auth.confirmPassword", "Confirm Password"]</label>
-                <InputText type="password" @bind-Value="_model.ConfirmPassword" class="sc-input" autocomplete="new-password" />
+                <PasswordField Context="type">
+                    <InputText type="@type" @bind-Value="_model.ConfirmPassword" class="sc-input" autocomplete="new-password" />
+                </PasswordField>
                 <ValidationMessage For="() => _model.ConfirmPassword" />
             </div>
 
-            <button type="submit" class="sc-btn-primary" disabled="@_busy">
+            <PrivacyConsentChecks @bind-ConfirmAdult="_model.ConfirmAdult" @bind-AcceptNotice="_model.AcceptPrivacyNotice" />
+
+            <button type="submit" class="sc-btn-primary" disabled="@(_busy || !_model.ConfirmAdult || !_model.AcceptPrivacyNotice)">
                 @if (_busy) { <OmLoader Inline="true" Size="18" Message='@Loc["common.creating", "Creating…"]' /> } else { <span>@Loc["auth.beginJourney", "Begin Journey"]</span> }
             </button>
         </EditForm>

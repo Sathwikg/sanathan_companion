@@ -63,6 +63,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<DeviceToken> DeviceTokens => Set<DeviceToken>();
     public DbSet<NotificationLog> NotificationLogs => Set<NotificationLog>();
     public DbSet<NotificationRun> NotificationRuns => Set<NotificationRun>();
+    public DbSet<ConsentRecord> ConsentRecords => Set<ConsentRecord>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

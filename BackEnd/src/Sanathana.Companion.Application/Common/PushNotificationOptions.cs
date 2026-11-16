@@ -111,8 +111,11 @@ public sealed class PushNotificationOptions
     /// </summary>
     public int GraceMinutes { get; set; } = 30;
 
-    /// <summary>How long the delivery history (and with it each seeker's inbox) is kept. Default: 60 days.</summary>
-    public int HistoryDays { get; set; } = 60;
+    /// <summary>
+    /// How long the delivery history (and with it each seeker's inbox) is kept. Default and minimum:
+    /// one year, the DPDP Rules' retention for logs of processing personal data.
+    /// </summary>
+    public int HistoryDays { get; set; } = LegalRetention.MinimumLogDays;
 
     /// <summary>
     /// Send Android messages as data only, leaving the app to draw every notification itself. Off by

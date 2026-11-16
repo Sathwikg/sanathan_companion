@@ -70,6 +70,8 @@ public static class SeedConstants
     public static readonly Guid IssueTypeFeatureId = new("41000000-0000-0000-0000-000000000003");
     public static readonly Guid IssueTypePraiseId = new("41000000-0000-0000-0000-000000000004");
     public static readonly Guid IssueTypeOtherId = new("41000000-0000-0000-0000-000000000005");
+    /// <summary>Privacy requests and grievances (DPDP Act 2023, sections 11-13): answered within 30 days.</summary>
+    public static readonly Guid IssueTypePrivacyId = new("41000000-0000-0000-0000-000000000006");
 
     // Default access-rights rows granting the Sanathan (seeker) role the devotee-facing forms.
     public static readonly Guid SanathanDashboardAccessId = new("a0000000-0000-0000-0000-000000000001");

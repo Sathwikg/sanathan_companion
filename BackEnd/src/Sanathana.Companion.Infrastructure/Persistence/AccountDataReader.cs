@@ -142,6 +142,46 @@ public class AccountDataReader : IAccountDataReader
                 }).ToListAsync(cancellationToken)
         };
 
+        export.Privacy = new MyDataExportDto.PrivacyExport
+        {
+            AcceptedNoticeVersion = user.PrivacyNoticeVersion,
+            NoticeAcceptedAtUtc = user.PrivacyNoticeAcceptedAtUtc,
+            AdultConfirmedAtUtc = user.AdultConfirmedAtUtc,
+            UsageAnalytics = user.UsageAnalyticsConsent,
+            NomineeName = user.NomineeName,
+            NomineeRelationship = user.NomineeRelationship,
+            NomineeContact = user.NomineeContact,
+            Consents = await _context.ConsentRecords.AsNoTracking()
+                .Where(c => c.UserId == userId)
+                .OrderBy(c => c.AtUtc)
+                .Select(c => new MyDataExportDto.ConsentExport
+                {
+                    Purpose = c.Purpose, Granted = c.Granted, NoticeVersion = c.NoticeVersion, AtUtc = c.AtUtc, Platform = c.Platform
+                }).ToListAsync(cancellationToken)
+        };
+
+        export.Devices = (await _context.DeviceTokens.AsNoTracking()
+                .Where(d => d.UserId == userId)
+                .ToListAsync(cancellationToken))
+            .Select(d => new MyDataExportDto.DeviceExport
+            {
+                Platform = d.Platform == 2 ? "iOS" : d.Platform == 1 ? "Android" : "Other",
+                DeviceModel = d.DeviceModel,
+                AppVersion = d.AppVersion,
+                Language = d.Language,
+                TimeZone = d.TimeZoneId,
+                RegisteredOnUtc = d.CreatedDate,
+                LastNotifiedUtc = d.LastUsedAt
+            }).ToList();
+
+        export.NotificationsReceived = await _context.NotificationLogs.AsNoTracking()
+            .Where(l => l.UserId == userId)
+            .OrderByDescending(l => l.CreatedDate)
+            .Select(l => new MyDataExportDto.ReceivedNotificationExport
+            {
+                Title = l.Title, Body = l.Body, Status = l.Status, CreatedUtc = l.CreatedDate, ReadAtUtc = l.ReadAtUtc
+            }).ToListAsync(cancellationToken);
+
         return export;
     }
 }

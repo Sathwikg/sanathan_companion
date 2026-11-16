@@ -33,4 +33,13 @@ public class RegisterRequest
 
     /// <summary>Optional preferred region — becomes the seeker's default region.</summary>
     public Guid? RegionId { get; set; }
+
+    /// <summary>"I am 18 or older" — the server refuses an account without it (DPDP Act, section 9).</summary>
+    public bool ConfirmAdult { get; set; }
+
+    /// <summary>"I have read and agree to the Privacy Notice" — consent under sections 5 and 6.</summary>
+    public bool AcceptPrivacyNotice { get; set; }
+
+    /// <summary>The version of the notice this app showed the seeker.</summary>
+    public int PrivacyNoticeVersion { get; set; } = PrivacyNoticeInfo.CurrentVersion;
 }

@@ -1,0 +1,226 @@
+@*
+    My Profile → Privacy and Consent: the seeker's side of the Digital Personal Data Protection
+    Act, 2023 in one place. The notice they accepted, the optional consent they can withdraw as
+    easily as they gave it (section 6(4)), the nominee (section 14), and where to take a grievance
+    (section 13) or a complaint to the Data Protection Board. Download and deletion live in the
+    Your Data card beside it.
+*@
+@inherits LocalizedComponentBase
+@inject PrivacyState Privacy
+@inject IApiClient Api
+@inject ToastService Toast
+
+<div class="sc-card sc-prefcard" id="privacy">
+    <div class="sc-section-head" style="margin-bottom:0.6rem">
+        <h2>🛡️ @Loc["privacy.panelTitle", "Privacy and Consent"]</h2>
+        <span class="sc-section-sub">@Loc["privacy.panelSub", "Your choices under India's data protection law"]</span>
+    </div>
+
+    @if (_settings is null)
+    {
+        @if (_loadFailed)
+        {
+            <div class="sc-alert sc-alert-error">@Loc["privacy.panelLoadFailed", "Your privacy settings could not be loaded. Please try again later."]</div>
+        }
+        else
+        {
+            <OmLoader Inline="true" Size="18" />
+        }
+    }
+    else
+    {
+        <div class="sc-privacy-panel">
+            <div class="sc-privacy-item">
+                <div>
+                    <h4>@Loc["privacy.noticeName", "Privacy Notice"]</h4>
+                    @if (_settings.NoticeAcceptedAtUtc is { } accepted && _settings.AcceptedNoticeVersion is { } version)
+                    {
+                        <p>@Loc.TF("privacy.panelAccepted", "You accepted version {0} on {1}.", version, accepted.ToLocalTime().ToString("d MMM yyyy"))</p>
+                    }
+                    else
+                    {
+                        <p>@Loc["privacy.panelNotAccepted", "You have not accepted the current notice yet."]</p>
+                    }
+                    <div class="sc-privacy-links">
+                        <a href="privacy" class="sc-btn-ghost sc-btn-sm">📄 @Loc["privacy.readNotice", "Read the Notice"]</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sc-privacy-item">
+                <div>
+                    <h4>@Loc["privacy.usageTitle", "Usage Statistics"]</h4>
+                    <p>@Loc["privacy.usageBody", "Lets us record which screens you open, to learn what helps seekers. Optional and off unless you switch it on; switching it off stops it at once."]</p>
+                </div>
+                <label class="sc-switch" title="@Loc["privacy.usageTitle", "Usage Statistics"]">
+                    <input type="checkbox" checked="@_settings.UsageAnalytics" disabled="@_busy"
+                           aria-label="@Loc["privacy.usageTitle", "Usage Statistics"]"
+                           @onchange="e => SetUsageAsync((bool)(e.Value ?? false))" />
+                    <span class="sc-slider"></span>
+                </label>
+            </div>
+
+            <div class="sc-privacy-item">
+                <div style="flex:1;min-width:0">
+                    <h4>@Loc["privacy.nomineeTitle", "Nominee"]</h4>
+                    <p>@Loc["privacy.nomineeBody", "A person who may use your data rights for you if you die or become unable to."]</p>
+
+                    @if (!_editingNominee)
+                    {
+                        @if (string.IsNullOrWhiteSpace(_settings.NomineeName))
+                        {
+                            <p><em>@Loc["privacy.nomineeNone", "No nominee named."]</em></p>
+                        }
+                        else
+                        {
+                            <p><strong>@_settings.NomineeName</strong>@(string.IsNullOrWhiteSpace(_settings.NomineeRelationship) ? "" : $" ({_settings.NomineeRelationship})") · @_settings.NomineeContact</p>
+                        }
+                        <div class="sc-privacy-links">
+                            <button type="button" class="sc-btn-ghost sc-btn-sm" @onclick="EditNominee" disabled="@_busy">
+                                @(string.IsNullOrWhiteSpace(_settings.NomineeName) ? Loc["privacy.nomineeAdd", "Name a Nominee"] : Loc["privacy.nomineeChange", "Change Nominee"])
+                            </button>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="sc-nominee-grid">
+                            <div class="sc-field">
+                                <label>@Loc["privacy.nomineeName", "Nominee's Name"]</label>
+                                <input class="sc-input" maxlength="150" @bind="_nominee.Name" @bind:event="oninput" disabled="@_busy" />
+                            </div>
+                            <div class="sc-field">
+                                <label>@Loc["privacy.nomineeRelationship", "Relationship"] <span class="sc-optional">@Loc["common.optional", "(optional)"]</span></label>
+                                <input class="sc-input" maxlength="60" @bind="_nominee.Relationship" @bind:event="oninput" disabled="@_busy" />
+                            </div>
+                            <div class="sc-field">
+                                <label>@Loc["privacy.nomineeContact", "Email or Mobile Number"]</label>
+                                <input class="sc-input" maxlength="150" @bind="_nominee.Contact" @bind:event="oninput" disabled="@_busy" />
+                            </div>
+                        </div>
+                        @if (_nomineeError is not null)
+                        {
+                            <div class="sc-alert sc-alert-error" style="margin-top:0.5rem">@_nomineeError</div>
+                        }
+                        <div class="sc-modal-actions" style="margin-top:0.6rem">
+                            @if (!string.IsNullOrWhiteSpace(_settings.NomineeName))
+                            {
+                                <button type="button" class="sc-btn-ghost sc-btn-sm" @onclick="ClearNomineeAsync" disabled="@_busy">@Loc["privacy.nomineeRemove", "Remove Nominee"]</button>
+                            }
+                            <button type="button" class="sc-btn-ghost sc-btn-sm" @onclick="() => _editingNominee = false" disabled="@_busy">@Loc["common.cancel", "Cancel"]</button>
+                            <button type="button" class="sc-btn-primary sc-btn-sm" @onclick="SaveNomineeAsync"
+                                    disabled="@(_busy || string.IsNullOrWhiteSpace(_nominee.Name) || string.IsNullOrWhiteSpace(_nominee.Contact))">
+                                @Loc["common.save", "Save"]
+                            </button>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="sc-privacy-item">
+                <div>
+                    <h4>@Loc["privacy.grievanceTitle", "Questions and Complaints"]</h4>
+                    <p>@Loc["privacy.grievanceBody", "Ask for a correction, raise a concern or make a complaint about your data. Our Grievance Officer replies within 30 days. If you are not satisfied, you may complain to the Data Protection Board of India."]</p>
+                    <div class="sc-privacy-links">
+                        <a href="@($"feedback?type={PrivacyNoticeInfo.PrivacyIssueTypeId}")" class="sc-btn-ghost sc-btn-sm">✉️ @Loc["privacy.raiseRequest", "Raise a Privacy Request"]</a>
+                        <a href="mailto:@Brand.SupportEmail" class="sc-btn-ghost sc-btn-sm">@Brand.SupportEmail</a>
+                    </div>
+                </div>
+            </div>
+
+            @if (_settings.History.Count > 0)
+            {
+                <details>
+                    <summary class="sc-hint" style="cursor:pointer">@Loc["privacy.historyTitle", "Consent History"]</summary>
+                    <ul class="sc-privacy-history">
+                        @foreach (var h in _settings.History.OrderByDescending(h => h.AtUtc))
+                        {
+                            <li>@h.AtUtc.ToLocalTime().ToString("d MMM yyyy, HH:mm") · @PurposeName(h.Purpose) · @(h.Granted ? Loc["privacy.historyGiven", "Given"] : Loc["privacy.historyWithdrawn", "Withdrawn"])@(string.IsNullOrWhiteSpace(h.Platform) ? "" : $" · {h.Platform}")</li>
+                        }
+                    </ul>
+                </details>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private PrivacySettings? _settings;
+    private bool _loadFailed;
+    private bool _busy;
+    private bool _editingNominee;
+    private NomineeRequest _nominee = new();
+    private string? _nomineeError;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        // Always fresh here: this is where the seeker checks what they agreed to.
+        _settings = await Privacy.LoadAsync(force: true);
+        _loadFailed = _settings is null;
+    }
+
+    private string PurposeName(string purpose) => purpose switch
+    {
+        "privacyNotice" => Loc["privacy.noticeName", "Privacy Notice"],
+        "usageAnalytics" => Loc["privacy.usageTitle", "Usage Statistics"],
+        _ => purpose
+    };
+
+    private async Task SetUsageAsync(bool enabled)
+    {
+        _busy = true;
+        var (data, error) = await Api.SetUsageAnalyticsAsync(enabled);
+        _busy = false;
+
+        if (data is null)
+        {
+            Toast.Error(string.IsNullOrWhiteSpace(error) ? Loc["privacy.saveFailed", "Your choice could not be saved. Please try again."] : error);
+            return;
+        }
+
+        Apply(data);
+        Toast.Success(enabled
+            ? Loc["privacy.usageOn", "Usage statistics switched on. Thank you."]
+            : Loc["privacy.usageOff", "Usage statistics switched off."]);
+    }
+
+    private void EditNominee()
+    {
+        _nominee = new NomineeRequest
+        {
+            Name = _settings?.NomineeName,
+            Relationship = _settings?.NomineeRelationship,
+            Contact = _settings?.NomineeContact
+        };
+        _nomineeError = null;
+        _editingNominee = true;
+    }
+
+    private Task SaveNomineeAsync() => SubmitNomineeAsync(_nominee, Loc["privacy.nomineeSaved", "Nominee saved."]);
+
+    private Task ClearNomineeAsync() => SubmitNomineeAsync(new NomineeRequest(), Loc["privacy.nomineeRemoved", "Nominee removed."]);
+
+    private async Task SubmitNomineeAsync(NomineeRequest request, string done)
+    {
+        _busy = true;
+        _nomineeError = null;
+        var (data, error) = await Api.SetNomineeAsync(request);
+        _busy = false;
+
+        if (data is null)
+        {
+            _nomineeError = string.IsNullOrWhiteSpace(error) ? Loc["privacy.saveFailed", "Your choice could not be saved. Please try again."] : error;
+            return;
+        }
+
+        Apply(data);
+        _editingNominee = false;
+        Toast.Success(done);
+    }
+
+    private void Apply(PrivacySettings data)
+    {
+        _settings = data;
+        Privacy.Set(data);
+    }
+}

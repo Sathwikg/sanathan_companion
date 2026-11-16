@@ -67,6 +67,8 @@
   "pushNotifications.lastSent": "చివరిది {0}",
   "pushNotifications.lastTick": "చివరి రన్ {0}",
   "pushNotifications.loading": "కన్సోల్ లోడ్ అవుతోంది…",
+  "pushNotifications.mandatory": "భద్రతా లేదా చట్టపరమైన నోటీసు (అందరికీ చేరుతుంది)",
+  "pushNotifications.mandatoryHint": "వ్యక్తిగత డేటా ఉల్లంఘన, మారిన గోప్యతా నోటీసు లేదా చట్టం కోరే మరో నోటీసు కోసం మాత్రమే. ప్రకటనలను ఆఫ్ చేసిన సాధకులకు కూడా ఇది చేరుతుంది.",
   "pushNotifications.messagePlaceholder": "ఒకటి రెండు వాక్యాలు. మొత్తం సందేశం లాక్ స్క్రీన్‌పై పట్టాలి.",
   "pushNotifications.minutes": "{0} నిమి.",
   "pushNotifications.minutesAgo": "{0} నిమి. క్రితం",

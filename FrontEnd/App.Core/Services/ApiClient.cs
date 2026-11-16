@@ -401,6 +401,26 @@ public class ApiClient : IApiClient
         return response.IsSuccessStatusCode ? (true, string.Empty) : (false, await ExtractErrorAsync(response));
     }
 
+    public async Task<PrivacySettings?> GetPrivacyAsync()
+        => await _http.GetFromJsonAsync<PrivacySettings>(ApiRoutes.Profile.Privacy);
+
+    public Task<(PrivacySettings? Data, string Error)> AcceptPrivacyNoticeAsync(AcceptNoticeRequest request)
+        => PutPrivacyAsync(ApiRoutes.Profile.PrivacyNotice, request);
+
+    public Task<(PrivacySettings? Data, string Error)> SetUsageAnalyticsAsync(bool enabled)
+        => PutPrivacyAsync(ApiRoutes.Profile.UsageAnalytics, new { enabled });
+
+    public Task<(PrivacySettings? Data, string Error)> SetNomineeAsync(NomineeRequest request)
+        => PutPrivacyAsync(ApiRoutes.Profile.Nominee, request);
+
+    private async Task<(PrivacySettings? Data, string Error)> PutPrivacyAsync<T>(string route, T body)
+    {
+        var response = await _http.PutAsJsonAsync(route, body);
+        return response.IsSuccessStatusCode
+            ? (await response.Content.ReadFromJsonAsync<PrivacySettings>(), string.Empty)
+            : (null, await ExtractErrorAsync(response));
+    }
+
     public async Task<SadhanaToday?> GetSadhanaTodayAsync(Guid? regionId = null)
         => await _http.GetFromJsonAsync<SadhanaToday>(ApiRoutes.Sadhana.Today(regionId));
 

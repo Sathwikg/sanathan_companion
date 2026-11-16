@@ -15,6 +15,7 @@
     <AssemblyMetadata Include="Brand.CompanyName" Value="$(BrandCompanyName)" />
     <AssemblyMetadata Include="Brand.CompanyUrl" Value="$(BrandCompanyUrl)" />
     <AssemblyMetadata Include="Brand.SupportEmail" Value="$(BrandSupportEmail)" />
+    <AssemblyMetadata Include="Brand.PostalAddress" Value="$(BrandPostalAddress)" />
     <AssemblyMetadata Include="Brand.AppUrl" Value="$(BrandAppUrl)" />
     <AssemblyMetadata Include="Brand.PrivacyUrl" Value="$(BrandPrivacyUrl)" />
   </ItemGroup>
