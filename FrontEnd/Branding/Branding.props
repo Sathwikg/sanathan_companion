@@ -41,6 +41,9 @@
     <BrandCompanyName>SBS TechnoLabs</BrandCompanyName>
     <BrandCompanyUrl>https://sbstechnolabs.com</BrandCompanyUrl>
     <BrandSupportEmail>sbstechnolabs@gmail.com</BrandSupportEmail>
+    <!-- The Grievance Officer named on the Privacy Notice (DPDP Act, section 8(10)). A person's
+         name, so it is never translated. -->
+    <BrandGrievanceOfficer>Bhargav M</BrandGrievanceOfficer>
     <!-- The postal address for communication and grievances, shown on the Privacy Notice. -->
     <BrandPostalAddress>27-2-1433, Flat No. 402, 5th Floor, Kinni Homes, Near Anjaneya Swamy Temple, Balaji Nagar, Nellore, SPSR Nellore District, Andhra Pradesh - 524002</BrandPostalAddress>
 
