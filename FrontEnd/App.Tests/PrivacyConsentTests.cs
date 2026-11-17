@@ -140,6 +140,9 @@ public class PrivacyConsentTests
         // DPDP Rules, rule 3: the seeker must be able to reach the Data Fiduciary.
         Assert.False(string.IsNullOrWhiteSpace(Brand.PostalAddress), "BrandPostalAddress is empty in Branding.props.");
         Assert.Matches(@"\b\d{6}\b", Brand.PostalAddress);   // an Indian PIN code
+        // DPDP Act, section 8(10): a named Grievance Officer, not the bare title.
+        Assert.False(string.IsNullOrWhiteSpace(Brand.GrievanceOfficer), "BrandGrievanceOfficer is empty in Branding.props.");
+        Assert.DoesNotContain("Grievance Officer", Brand.GrievanceOfficer);
 
         var root = FindRepoRoot();
         foreach (var file in new[]
@@ -152,6 +155,7 @@ public class PrivacyConsentTests
             var text = File.ReadAllText(Path.Combine(root.FullName, file));
             Assert.DoesNotContain("placeholder-tag\">[", text);
             Assert.Contains("PostalAddress", text);
+            Assert.Contains("GrievanceOfficer", text);
         }
     }
 

@@ -41,6 +41,9 @@ public static class Brand
     /// <summary>The postal address for communication and grievances (Privacy Notice).</summary>
     public static string PostalAddress { get; } = Read(nameof(PostalAddress));
 
+    /// <summary>The Grievance Officer's name (Privacy Notice). A person's name: never translated.</summary>
+    public static string GrievanceOfficer { get; } = Read(nameof(GrievanceOfficer));
+
     /// <summary>Where the app lives on the web.</summary>
     public static string AppUrl { get; } = Read(nameof(AppUrl));
 
